@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Selection Structure · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">Chapter 1</a>
+      <a href="chapter-2.html">Chapter 2</a>
+      <a href="chapter-3.html" aria-current="page">Chapter 3</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html" aria-current="page"><span class="ch-num">03</span>Selection Structure</a>
+    <span class="soon"><span class="ch-num">04</span>Repetition<small>soon</small></span>
+    <span class="soon"><span class="ch-num">05</span>Arrays &amp; Strings<small>soon</small></span>
+    <span class="soon"><span class="ch-num">06</span>Functions<small>soon</small></span>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 3 · C++ Track</span>
+      <h1>Selection Structure</h1>
+      <p class="lede">
+        So far your programs run top to bottom. This chapter teaches them to
+        <strong>choose</strong>: boolean expressions that are true or false, the
+        <code>if-else</code> statement and its nested chains, and the <code>switch</code>
+        statement — the decision diamond from Chapter 1, finally written in real C++.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">8 concepts</a>
+        <a class="chip" href="#quiz">26-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap03_Selection.pdf">Slides (PDF)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>Teaching the program to choose</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">3.1</span>Program flow of control</h3>
+        <p>
+          The <strong>flow of control</strong> is the order in which a program's statements are
+          executed. Unless directed otherwise, it is <strong>sequential</strong>. Exactly three
+          kinds of structure alter it in a defined way:
+          <strong>selection</strong> (this chapter), <strong>repetition</strong> (Chapter 4),
+          and <strong>function invocation</strong> (Chapter 6).
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">3.2</span>The bool type and comparison operators</h3>
+        <p style="max-width:46rem">
+          C++ has a built-in Boolean type, <code>bool</code>, holding <code>true</code> or
+          <code>false</code> — actually stored as the integers <strong>1</strong> and
+          <strong>0</strong> (printing a bool shows 1 or 0). Comparisons produce bools:
+        </p>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th class="mono">Operator</th><th>Description</th><th class="mono">Example</th></tr>
+            <tr><td class="mono">==</td><td>equal</td><td class="mono">a == 'y'</td></tr>
+            <tr><td class="mono">!=</td><td>not equal</td><td class="mono">m != 5</td></tr>
+            <tr><td class="mono">&gt;</td><td>greater than</td><td class="mono">a * b &gt; 7</td></tr>
+            <tr><td class="mono">&lt;</td><td>less than</td><td class="mono">b &lt; 6</td></tr>
+            <tr><td class="mono">&lt;=</td><td>less than or equal</td><td class="mono">b &lt;= a</td></tr>
+            <tr><td class="mono">&gt;=</td><td>greater than or equal</td><td class="mono">c &gt;= 6</td></tr>
+          </table>
+        </div>
+        <div class="note danger" style="max-width:44rem">
+          <span class="note-tag">The classic bug</span>
+          <span class="mono">=</span> assigns; <span class="mono">==</span> compares.
+          Writing <span class="mono">if (x = 5)</span> stores 5 into x and the condition is
+          always true. Read your conditions twice.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">3.3</span>Logical operators and short-circuiting</h3>
+        <p style="max-width:46rem">
+          Combine conditions with <code>&amp;&amp;</code> (AND), <code>||</code> (OR), and
+          <code>!</code> (NOT):
+        </p>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th class="mono">A</th><th class="mono">B</th><th class="mono">A &amp;&amp; B</th><th class="mono">A || B</th><th class="mono">!A</th></tr>
+            <tr><td class="mono">true</td><td class="mono">true</td><td class="mono ok">true</td><td class="mono ok">true</td><td class="mono bad">false</td></tr>
+            <tr><td class="mono">true</td><td class="mono">false</td><td class="mono bad">false</td><td class="mono ok">true</td><td class="mono bad">false</td></tr>
+            <tr><td class="mono">false</td><td class="mono">true</td><td class="mono bad">false</td><td class="mono ok">true</td><td class="mono ok">true</td></tr>
+            <tr><td class="mono">false</td><td class="mono">false</td><td class="mono bad">false</td><td class="mono bad">false</td><td class="mono ok">true</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          With <code>age = 45, term = 5</code>: <code>(age &gt; 40) &amp;&amp; (term &lt; 10)</code>
+          → true; <code>!(age &gt; 40)</code> → false.
+        </p>
+        <div class="note tip" style="max-width:44rem">
+          <span class="note-tag">Short-circuit evaluation</span>
+          Evaluation stops as soon as the result is determined. In
+          <span class="mono">(a==b) || (c==d) || (e==f)</span>, if <span class="mono">(a==b)</span>
+          is true the rest is skipped; in an <span class="mono">&amp;&amp;</span> chain, one
+          false operand skips the rest.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">3.4</span>Precedence, including the new operators</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Level</th><th class="mono">Operators</th><th>Associativity</th></tr>
+            <tr><td class="mono">1</td><td class="mono">! · unary − · ++ · −−</td><td>right to left</td></tr>
+            <tr><td class="mono">2</td><td class="mono">* / %</td><td>left to right</td></tr>
+            <tr><td class="mono">3</td><td class="mono">+ −</td><td>left to right</td></tr>
+            <tr><td class="mono">4</td><td class="mono">&lt; &lt;= &gt; &gt;=</td><td>left to right</td></tr>
+            <tr><td class="mono">5</td><td class="mono">== !=</td><td>left to right</td></tr>
+            <tr><td class="mono">6</td><td class="mono">&amp;&amp;</td><td>left to right</td></tr>
+            <tr><td class="mono">7</td><td class="mono">||</td><td>left to right</td></tr>
+            <tr><td class="mono">8</td><td class="mono">= += −= *= /=</td><td>right to left</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">Worked example from the slides — arithmetic first, then comparisons, then <code>&amp;&amp;</code> before <code>||</code>:</p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">order_of_evaluation.txt</span></div>
+          <pre>(6*3 == 36/2) || (13 &lt; 3*3 + 4) &amp;&amp; !(6-2 &lt; 5)
+  (18 == 18)  || (13 &lt; 13)      &amp;&amp; !(4 &lt; 5)
+       1      ||      0          &amp;&amp;    0
+       1      ||          0
+       1</pre>
+        </div>
+        <p style="max-width:46rem">
+          Characters join in as numbers: <code>'a' + 1 == 'b'</code> is true, while with
+          <code>i = 5, key = 'm'</code>, <code>i + 2 == key − 1</code> compares 7 with 108 — false.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">3.5</span>The if-else statement</h3>
+        <p>
+          <code>if</code> directs the computer to select between two sequences of statements —
+          the decision diamond of Chapter 1 in code:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">if_else.cpp</span></div>
+          <pre><span class="kw">if</span> (&lt;conditional expression&gt;) {
+    &lt;statements-1&gt;;      <span class="cm">// runs when the condition is true</span>
+}
+<span class="kw">else</span> {
+    &lt;statements-2&gt;;      <span class="cm">// runs when it is false</span>
+}</pre>
+        </div>
+        <p>
+          With only one statement in a branch, the braces may be omitted. The
+          <strong>one-way</strong> form drops <code>else</code> entirely — like Example 3.3.3,
+          which prints an error message only when
+          <code>grade &lt; 0 || grade &gt; 100</code>.
+          Example 3.3.1 turns the two-rate income-tax rule into exactly one
+          <code>if-else</code> — you will build it in Exercise 3.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">3.6</span>Block scope</h3>
+        <p>
+          Statements inside <code>{ }</code> form a <strong>block</strong>, and a variable
+          declared in a block is valid only there — that region is its <strong>scope</strong>.
+          An inner declaration with the same name temporarily hides the outer one:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_3_3_2.cpp</span></div>
+          <pre>{   <span class="cm">// outer block</span>
+    <span class="kw">int</span> a = 25;
+    {   <span class="cm">// inner block</span>
+        <span class="kw">float</span> a = 46.25;
+        cout &lt;&lt; a &lt;&lt; endl;   <span class="cm">// 46.25 — the inner a</span>
+    }
+    cout &lt;&lt; a &lt;&lt; endl;       <span class="cm">// 25 — the inner a no longer exists</span>
+}</pre>
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">3.7</span>Nested ifs and the if-else chain</h3>
+        <p>
+          An if inside another if is a <strong>nested if</strong>; when the nesting happens in
+          the <code>else</code> part, you get an <strong>if-else chain</strong> — the clean way
+          to select one option out of many. Exactly one branch runs:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">grade_ladder.cpp</span></div>
+          <pre><span class="kw">if</span> (score &gt;= <span class="str">90.0</span>)      grade = <span class="str">'A'</span>;
+<span class="kw">else if</span> (score &gt;= <span class="str">80.0</span>) grade = <span class="str">'B'</span>;
+<span class="kw">else if</span> (score &gt;= <span class="str">70.0</span>) grade = <span class="str">'C'</span>;
+<span class="kw">else if</span> (score &gt;= <span class="str">60.0</span>) grade = <span class="str">'D'</span>;
+<span class="kw">else</span>                    grade = <span class="str">'F'</span>;</pre>
+        </div>
+        <p>
+          The same shape solves the quadratic equation (Example 3.4.1): test
+          <code>del == 0</code>, then <code>del &gt; 0</code>, and the final <code>else</code>
+          covers <code>del &lt; 0</code> — “There is no solution”.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">3.8</span>The switch statement</h3>
+        <p>
+          When one <strong>integer</strong> expression (int, char, long, short — never a double
+          or a string) selects among many fixed values, <code>switch</code> reads better than a
+          long chain:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">switch.cpp</span></div>
+          <pre><span class="kw">switch</span> (&lt;expression&gt;) {
+    <span class="kw">case</span> &lt;label1&gt;:
+        &lt;statements-1&gt;;
+        <span class="kw">break</span>;           <span class="cm">// exit the switch here…</span>
+    <span class="kw">case</span> &lt;label2&gt;:
+        &lt;statements-2&gt;;
+        <span class="kw">break</span>;
+    <span class="kw">default</span>:             <span class="cm">// …runs when no case matches</span>
+        &lt;statements-3&gt;;
+}</pre>
+        </div>
+        <p>
+          The expression's value is compared with each case label in order; execution begins at
+          the first match. <strong>If the break statements are omitted, all cases following
+          the matching one — including default — are executed</strong> (“fallthrough”).
+          Example 3.5.1 builds a four-function calculator on a <code>char op</code> —
+          you will complete it in Exercise 4.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Test yourself</span>
+        <h2>Chapter 3 quiz</h2>
+        <p>26 questions — truth tables, short-circuits, tracing chains and switches.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Practice</span>
+        <h2>Programming exercises</h2>
+        <p>
+          Six programs, from even/odd to a full quadratic solver. Each one runs in the page —
+          use <strong>Run sample tests</strong> to check your work against the expected output.
+        </p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Team activity</span>
+        <h2>Group discussion: design a decision policy</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation with a live demo. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          Real organizations encode policy as selection logic. Pick one — cinema ticket pricing
+          (age, day, student card), shipping fees (weight, distance, express), scholarship
+          eligibility (GPA, credits, conduct), or taxi fare (distance bands) — and:
+        </p>
+        <ul style="max-width:46rem">
+          <li>write the policy as a <strong>decision table</strong> first (every combination of conditions → outcome);</li>
+          <li>implement it twice where sensible: as an <strong>if-else chain</strong> and (where the selector is an integer or char) as a <strong>switch</strong> — then argue which reads better;</li>
+          <li>test the <strong>boundaries</strong> live: the customer who is exactly 60, the score that is exactly 80.0, the weight of exactly 2.0 kg.</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Policy writer</td><td>owns the decision table and its plain-language wording</td></tr>
+            <tr><td>Programmer</td><td>implements the chain (and the switch variant) in the Playground</td></tr>
+            <tr><td>Boundary hunter</td><td>designs the edge-case tests and runs them during the demo</td></tr>
+            <tr><td>Presenter</td><td>walks the audience from the table to the code to the boundary results</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          Does the <em>order</em> of your if-else chain change the outcome? Where does
+          short-circuit evaluation (<code>&amp;&amp;</code>, <code>||</code>) protect your code —
+          for example testing <code>num2 != 0 &amp;&amp; total / num2 &gt; 10</code>? What
+          happens at every boundary if you swap <code>&gt;=</code> for <code>&gt;</code>?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/introduction-to-if-statements/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — If statements</h4>
+          <p>if/else, chains, and common pitfalls (including the dangling else).</p>
+        </a>
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/switch-statement-basics/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Switch basics</h4>
+          <p>switch, case labels, break, and deliberate fallthrough.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Short-circuit_evaluation" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Short-circuit evaluation</h4>
+          <p>Why C++ skips the rest of a condition — and how programs rely on it (e.g. <code>num2 != 0 &amp;&amp; num1 / num2 &gt; 1</code>).</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/operator_precedence" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — Operator precedence</h4>
+          <p>Where the comparison and logical operators really sit in the full C++ table.</p>
+        </a>
+        <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
+          <span class="rc-kind">Textbook</span>
+          <h4>Malik — C++ Programming, Chapter 4</h4>
+          <p>Control structures I: selection — with dozens of extra exercises.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-2.html"><span class="dir">← Previous chapter</span>Basic Elements in C++</a>
+        <a href="../playground.html" style="text-align:right"><span class="dir">Keep practising →</span>C++ Playground</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 3 · Selection Structure</p>
+  </div>
+</footer>
+
+<script src="../assets/minicpp.js"></script>
+<script src="../assets/ch3-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>
