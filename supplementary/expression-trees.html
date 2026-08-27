@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Expression Trees · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-1.html">Chapter 1</a>
+      <a href="../chapters/chapter-2.html">Chapter 2</a>
+      <a href="../chapters/chapter-3.html">Chapter 3</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <span class="soon"><span class="ch-num">04</span>Repetition<small>soon</small></span>
+    <span class="soon"><span class="ch-num">05</span>Arrays &amp; Strings<small>soon</small></span>
+    <span class="soon"><span class="ch-num">06</span>Functions<small>soon</small></span>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html" aria-current="page"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">The idea</a>
+    <a href="#lab">Tree Lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S2 · goes with Chapter 2</span>
+      <h1>From Expression to Computation Tree<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        Why is <code>8 + 5 * 7 % 2 * 4</code> equal to 12 and not something else?
+        Because the compiler never reads an expression left to right the way you do — it
+        builds a <strong>computation tree</strong> from the precedence rules, then evaluates
+        that tree from the bottom up. Once you can see the tree, precedence stops being a
+        table to memorize and becomes a picture.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">4 ideas</a>
+        <a class="chip" href="#lab">Tree Lab mini-app</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The idea</span>
+        <h2>Precedence is really a tree shape</h2>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S2.1</span>Operators become nodes, operands become leaves</h3>
+        <p style="max-width:46rem">
+          Take <code>a + b * c</code>. Precedence says <code>*</code> binds tighter than
+          <code>+</code> — so <code>b * c</code> forms a unit, and <code>+</code> combines
+          <code>a</code> with that unit. Drawn as a tree:
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 300 240" width="300" height="240" role="img" aria-label="Computation tree of a plus b times c: plus at the root with children a and the times node, whose children are b and c">
+            <line class="fc-line" x1="150" y1="61" x2="78" y2="119"/>
+            <line class="fc-line" x1="150" y1="61" x2="222" y2="119"/>
+            <line class="fc-line" x1="222" y1="141" x2="164" y2="189"/>
+            <line class="fc-line" x1="222" y1="141" x2="280" y2="189"/>
+            <g class="et-op et-arith"><circle cx="150" cy="40" r="21"/><text class="et-label" x="150" y="40" text-anchor="middle" dominant-baseline="central">+</text></g>
+            <g class="et-leaf"><circle cx="78" cy="140" r="21"/><text class="et-label" x="78" y="140" text-anchor="middle" dominant-baseline="central">a</text></g>
+            <g class="et-op et-arith"><circle cx="222" cy="140" r="21"/><text class="et-label" x="222" y="140" text-anchor="middle" dominant-baseline="central">*</text></g>
+            <g class="et-leaf"><circle cx="164" cy="210" r="21"/><text class="et-label" x="164" y="210" text-anchor="middle" dominant-baseline="central">b</text></g>
+            <g class="et-leaf"><circle cx="280" cy="210" r="21"/><text class="et-label" x="280" y="210" text-anchor="middle" dominant-baseline="central">c</text></g>
+          </svg>
+          <figcaption><code>a + b * c</code> — the tighter-binding <code>*</code> sits <em>deeper</em>; the loose <code>+</code> is the root.</figcaption>
+        </figure>
+        <ul style="max-width:46rem">
+          <li><strong>Operands</strong> (numbers, variables) are the <strong>leaves</strong> at the bottom.</li>
+          <li><strong>Operators</strong> are the internal nodes; each combines the results of its two subtrees.</li>
+          <li><strong>Higher precedence → deeper in the tree → evaluated earlier.</strong> The root is the <em>last</em> operation performed, and its value is the value of the whole expression.</li>
+          <li><strong>Associativity</strong> breaks ties between equal-precedence neighbours: left-to-right operators like <code>-</code> build a tree leaning left, so <code>100 - 20 - 5</code> means <code>(100 - 20) - 5</code>.</li>
+        </ul>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S2.2</span>Parentheses reshape the tree — nothing more</h3>
+        <p>
+          <code>( )</code> never appears in the tree and costs nothing at run time. Writing
+          <code>a * (b + c)</code> simply forces <code>+</code> to sit deeper than
+          <code>*</code> — the opposite of the default shape. That is the whole job of
+          parentheses: they overrule precedence by rearranging <em>which node is inside
+          which</em>, and then they vanish.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S2.3</span>How the compiler evaluates the tree</h3>
+        <p>
+          The compiler walks the tree <strong>bottom-up</strong>: to produce the value of a
+          node, first produce the values of its children (a <em>post-order</em> walk), then
+          apply the node's operator. For <code>a + b * c</code> it therefore emits machine
+          code for the deep <code>*</code> first and the root <code>+</code> last:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">a + b * c — the tree, flattened into instructions (simplified)</span></div>
+          <pre><span class="fn">mov</span>  eax, [b]     <span class="cm">; load the leaf b</span>
+<span class="fn">imul</span> eax, [c]     <span class="cm">; eax = b * c   — the deeper node runs FIRST</span>
+<span class="fn">add</span>  eax, [a]     <span class="cm">; eax = a + b*c — the root runs LAST</span></pre>
+        </div>
+        <p>
+          This is also exactly why C++ can apply <strong>integer division</strong> node by
+          node: in <code>9 / 2 * 3</code>, the node <code>9 / 2</code> produces the int 4
+          <em>before</em> the <code>*</code> node ever sees it — giving 12, not 13.5.
+        </p>
+        <div class="note tip">
+          <span class="note-tag">Constant folding</span>
+          When a whole subtree contains only constants — like every example on this page — a
+          real compiler evaluates it at <em>compile time</em> and just emits the answer.
+          Your <span class="mono">8 + 5 * 7 % 2 * 4</span> ships as the single constant 12.
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S2.4</span>Short-circuit is a tree walk that stops early</h3>
+        <p>
+          For <code>&amp;&amp;</code> and <code>||</code> (Chapter 3), the walk evaluates the
+          <em>left</em> subtree first — and if that already decides the answer, the entire
+          right subtree is <strong>never visited</strong>. In the Tree Lab below, load the
+          short-circuit example and watch the right half of the tree grey out.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Mini app</span>
+        <h2>Tree Lab — type an expression, watch it compute</h2>
+        <p>
+          Type any numeric C++ expression (arithmetic, comparisons, <code>&amp;&amp;</code>,
+          <code>||</code>, <code>!</code>, parentheses) and press
+          <strong>Build the tree</strong>. The fully parenthesized reading shows exactly how
+          precedence grouped it. Then press <strong>Step</strong>: each click evaluates one
+          operator node — deepest first, root last — turning its result green on the tree.
+        </p>
+      </div>
+      <div id="tree-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Compare <span class="mono">15 / 2 * 2</span> with <span class="mono">15.0 / 2 * 2</span> —
+        one decimal point changes a whole node's type. Add parentheses to
+        <span class="mono">8 + 5 * 7 % 2 * 4</span> until it evaluates to 84. Then load the
+        short-circuit example and count how many operators are <em>never</em> evaluated.
+        Try <span class="mono">5 / 0</span> and <span class="mono">1 / 0 == 1 || 1</span> —
+        which one survives, and why?
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/operator_precedence" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — Operator precedence</h4>
+          <p>All 17 precedence levels of real C++ — the six you know sit near the middle.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Binary_expression_tree" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Binary expression tree</h4>
+          <p>The formal version of this page: expression trees, and the prefix/infix/postfix walks around them.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Abstract_syntax_tree" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Abstract syntax tree</h4>
+          <p>Compilers build one of these for your <em>whole program</em> — expression trees are its branches.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Constant_folding" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Constant folding</h4>
+          <p>How compilers collapse constant subtrees at compile time — and much more.</p>
+        </a>
+        <a class="read-card" href="https://godbolt.org" target="_blank" rel="noopener">
+          <span class="rc-kind">Tool</span>
+          <h4>Compiler Explorer (godbolt.org)</h4>
+          <p>Type <code>int f(int a,int b,int c){return a+b*c;}</code> and watch the tree flatten into real instructions.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="../chapters/chapter-2.html"><span class="dir">← Related chapter</span>Basic Elements in C++</a>
+        <a href="compiling.html" style="text-align:right"><span class="dir">More supplementary →</span>Compile &amp; run, step by step</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S2 · From Expression to Computation Tree</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S2',
+  quiz: [
+    { q: 'In the computation tree for <code>a + b * c</code>, which node is the root?', supp: true,
+      opts: ['+ — it has the lower precedence, so it executes last',
+             '* — it has the higher precedence, so it executes first of all',
+             'b — the operand that sits in the middle of the expression text',
+             'Both operators share the root, because the tree has two levels'],
+      a: 0,
+      why: 'The loosest-binding operator combines everything else, so it sits at the root and runs last. The tight-binding * sits deeper and runs earlier.' },
+
+    { q: 'Where do the highest-precedence operators appear in the tree?', supp: true,
+      opts: ['Deeper in the tree, so they are evaluated earlier',
+             'At the very root of the tree, so they are evaluated last of all',
+             'Always on the left-hand side, regardless of their precedence',
+             'Nowhere special — only associativity decides where operators go'],
+      a: 0,
+      why: 'Higher precedence → binds tighter → forms a unit deeper in the tree → computed before the looser operators above it.' },
+
+    { q: 'What happens to parentheses when the tree is built?', supp: true,
+      opts: ['They do not become nodes — they only change the shape of the tree',
+             'They become special bracket nodes that the CPU must evaluate at run time',
+             'They make the compiled program slower — one extra machine step per pair',
+             'They are stored in the tree and printed back as part of the final answer'],
+      a: 0,
+      why: 'Parentheses overrule precedence while the tree is being built, then vanish. At run time there is no trace of them — and no cost.' },
+
+    { q: 'In what order is the computation tree evaluated?', supp: true,
+      opts: ['Children first, then their parent — a post-order walk',
+             'The root first, and then downward level by level to the leaves',
+             'Strictly left to right, taking one whole row of the tree at a time',
+             'In exactly the order the operators appear in the source text'],
+      a: 0,
+      why: 'A node needs the values of its subtrees before it can apply its operator — so the walk goes bottom-up (post-order): children, then parent.' },
+
+    { q: 'What is the value of <code>9 / 2 * 3</code> in C++, and why?', supp: true,
+      opts: ['12 — integer division makes 9 / 2 equal 4, then 4 * 3',
+             '13.5 — the division happens first and keeps its full fraction',
+             '9 — multiplication binds tighter here, so 2 * 3 is computed first',
+             '1 — multiplication binds tighter, so 9 / (2 * 3) is what really runs'],
+      a: 0,
+      why: '/ and * share a level and associate left to right: (9 / 2) * 3. The division node produces the int 4 before the * node ever sees it.' },
+
+    { q: 'Why does <code>100 - 20 - 5 - 1</code> build a tree that leans to the left?', supp: true,
+      opts: ['Because - is left-associative: (((100 - 20) - 5) - 1)',
+             'Because subtraction has the highest precedence of all the operators',
+             'Because the largest number is always placed at the bottom left corner',
+             'Because the parser reads the whole expression from right to left'],
+      a: 0,
+      why: 'Equal-precedence neighbours are grouped by associativity. Left-to-right means each new - takes the whole tree so far as its LEFT child — the tree leans left, and the answer is 74.' },
+
+    { q: 'In <code>x != 0 && 10 / x > 2</code>, what happens when x is 0?', supp: true,
+      opts: ['The right subtree is skipped, so the division by zero never runs',
+             'The program crashes, because both sides of && are always evaluated',
+             'The compiler refuses to build the tree because x might be zero there',
+             'The expression becomes true, because 10 / 0 counts as infinity in C++'],
+      a: 0,
+      why: 'The && walk evaluates its left subtree first; 0 != 0 is false, which decides the result, so the dangerous right subtree is never visited. Guards like this are a standard C++ idiom.' },
+
+    { q: 'The example trees on this page contain only constants. What would a real compiler most likely do with them?', supp: true,
+      opts: ['Compute the whole tree at compile time and just emit the answer (constant folding)',
+             'Refuse to compile the program, because an expression must contain a variable',
+             'Evaluate the tree again every single time the program reaches that line at run time',
+             'Hand the expression to the operating system so it can be evaluated while the program loads'],
+      a: 0,
+      why: 'A constant subtree has the same value forever, so the compiler folds it once at compile time — your 8 + 5 * 7 % 2 * 4 ships as the constant 12.' }
+  ]
+};
+</script>
+<script src="../assets/expr-tree.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

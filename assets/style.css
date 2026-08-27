@@ -823,3 +823,78 @@ section.block.folded { padding-bottom: 0.4rem; }
   padding: 0.1rem 0.55rem; margin-left: 0.55rem;
   vertical-align: 0.14em; white-space: nowrap;
 }
+
+/* ── Expression Tree Lab (supplementary S2) ── */
+.et-input {
+  flex: 1; min-width: 14rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.9rem;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+.et-paren-line {
+  font-size: 0.85rem; color: var(--ink-soft);
+  overflow-x: auto; white-space: nowrap;
+}
+.et-paren-line code { white-space: nowrap; }
+.et-canvas { max-height: 30rem; }
+.et-leaf circle { fill: var(--surface); stroke: var(--ink-soft); stroke-width: 1.6; }
+.et-op.et-arith circle { fill: color-mix(in srgb, var(--accent) 14%, var(--surface)); stroke: var(--accent); stroke-width: 1.8; }
+.et-op.et-cmp circle   { fill: color-mix(in srgb, var(--teal) 14%, var(--surface)); stroke: var(--teal); stroke-width: 1.8; }
+.et-op.et-logic circle { fill: color-mix(in srgb, var(--amber) 14%, var(--surface)); stroke: var(--amber); stroke-width: 1.8; }
+.et-label { fill: var(--ink); font-family: "IBM Plex Mono", monospace; font-size: 14px; font-weight: 600; }
+.et-val { fill: var(--green); font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 700; }
+.et-paren { fill: var(--ink-soft); font-family: "IBM Plex Mono", monospace; font-size: 10px; }
+.et-skipped { opacity: 0.3; }
+.et-current circle { stroke-width: 3.4; }
+.et-current { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 55%, transparent)); }
+.et-legend {
+  display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+  font-size: 0.78rem; color: var(--ink-soft);
+}
+.et-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.et-key { display: inline-block; width: 13px; height: 13px; border-radius: 50%; }
+.et-k-arith { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border: 1.8px solid var(--accent); }
+.et-k-cmp   { background: color-mix(in srgb, var(--teal) 14%, var(--surface)); border: 1.8px solid var(--teal); }
+.et-k-logic { background: color-mix(in srgb, var(--amber) 14%, var(--surface)); border: 1.8px solid var(--amber); }
+.et-k-leaf  { background: var(--surface); border: 1.6px solid var(--ink-soft); }
+
+/* ── IEEE 754 Lab (supplementary S3) ── */
+.ieee-bits-scroll { overflow-x: auto; padding-bottom: 0.2rem; }
+.ieee-bits { display: flex; gap: 2px; width: max-content; }
+.ieee-bit {
+  width: 1.15rem; height: 1.5rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; font-weight: 600;
+  border-radius: 4px; border: 1px solid var(--line);
+  cursor: pointer; color: var(--ink); padding: 0;
+}
+.ieee-bit.b-gap { margin-left: 7px; }
+.ieee-bit.b-sign { background: color-mix(in srgb, var(--red) 18%, var(--surface)); border-color: color-mix(in srgb, var(--red) 45%, var(--line)); }
+.ieee-bit.b-exp  { background: color-mix(in srgb, var(--amber) 18%, var(--surface)); border-color: color-mix(in srgb, var(--amber) 45%, var(--line)); }
+.ieee-bit.b-man  { background: color-mix(in srgb, var(--teal) 16%, var(--surface)); border-color: color-mix(in srgb, var(--teal) 40%, var(--line)); }
+.ieee-bit:hover { filter: brightness(1.12); }
+.ieee-bit-caption {
+  display: flex; gap: 0.8rem; width: max-content; margin-top: 0.3rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.68rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
+}
+.ieee-bit-caption .cap-sign { color: var(--red); }
+.ieee-bit-caption .cap-exp { color: var(--amber); }
+.ieee-bit-caption .cap-man { color: var(--teal); }
+table.ieee-table { border-collapse: collapse; font-size: 0.88rem; }
+table.ieee-table th {
+  text-align: right; padding: 0.2rem 0.8rem 0.2rem 0;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.72rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-soft); vertical-align: top; white-space: nowrap;
+}
+table.ieee-table td { padding: 0.2rem 0; color: var(--ink-soft); }
+table.ieee-table td strong, table.ieee-table td code { color: var(--ink); }
+.ieee-exact {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.85rem;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.55rem 0.8rem; overflow-x: auto; white-space: nowrap;
+  color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.ieee-exact.differs { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); }
+.ieee-note { font-size: 0.85rem; color: var(--amber); margin-top: 0.4rem; }

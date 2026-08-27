@@ -48,6 +48,8 @@
   <h4>Supplementary</h4>
   <nav aria-label="Supplementary topics">
     <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
   </nav>
   <h4>On this page</h4>
   <nav aria-label="On this page">
@@ -149,7 +151,9 @@
           <span class="note-tag">Floating point is approximate</span>
           A result like <span class="mono">0.1 + 0.2</span> is <em>not</em> guaranteed to be
           exactly 0.3. Avoid relying on exact equality (<span class="mono">==</span>) between
-          floating-point calculations.
+          floating-point calculations. Want the full story, bit by bit? See supplementary topic
+          <a href="../supplementary/floating-point.html">S3 — Inside floating point</a>, which
+          includes a lab that turns any number into its IEEE 754 bits.
         </div>
         <p style="max-width:46rem">
           Useful <strong>escape sequences</strong> for characters and strings:
@@ -181,6 +185,12 @@
           left to right. So <span class="mono">8 + 5 * 7 % 2 * 4</span> is
           8 + ((5×7 % 2) × 4) = 8 + (1 × 4) = <strong>12</strong>.
           Unary minus binds tighter still, right to left.
+        </div>
+        <div class="note tip" style="max-width:44rem">
+          <span class="note-tag">See it as a tree</span>
+          Want to see <em>why</em> that expression is 12? Supplementary topic
+          <a href="../supplementary/expression-trees.html">S2 — Expression trees</a> turns any
+          expression into its computation tree and lets you evaluate it one operator at a time.
         </div>
       </div>
 
