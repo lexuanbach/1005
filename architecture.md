@@ -6,7 +6,7 @@ Tài liệu nền tảng về cấu trúc website môn học **CO1005 · Introdu
 
 - **Dạng**: website tĩnh nhiều trang, không build framework, không dependency ngoài Google Fonts. Toàn bộ tính năng động (quiz, chạy C++, flowchart builder) là JavaScript thuần chạy client-side.
 - **Ngôn ngữ**: English mặc định. Riêng trang chủ có nút chuyển EN/VI (hệ thống `data-i18n` + từ điển JS trong `index.html`); các trang chương chỉ có tiếng Anh.
-- **Triển khai**: mở trực tiếp file, host tĩnh bất kỳ, hoặc publish qua Claude Artifact bằng `build.py` (xem mục 5).
+- **Triển khai chính**: GitHub Pages tại **https://lexuanbach.github.io/1005/** — repo `lexuanbach/1005`, serve nhánh `main` từ root. Deploy = `git push` (Pages tự build, ~1 phút). `.gitignore` loại `dist/` và các file `.pptx` (chỉ commit PDF slides — chúng được link từ chip "Slides (PDF)" trên trang chương và hoạt động trên Pages). Ngoài ra có thể mở file trực tiếp hoặc publish qua Claude Artifact bằng `build.py` (xem mục 5).
 
 ## 2. Cấu trúc thư mục
 
