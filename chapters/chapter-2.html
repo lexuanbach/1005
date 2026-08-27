@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Basic Elements in C++ · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .bits { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; margin: 0.5rem 0 0.3rem; }
+  .bits span { padding: 0.45rem 0; text-align: center; color: var(--ink); }
+  .bits .b-sign { background: color-mix(in srgb, var(--red) 18%, var(--surface)); flex: 2; }
+  .bits .b-exp  { background: color-mix(in srgb, var(--amber) 18%, var(--surface)); }
+  .bits .b-man  { background: color-mix(in srgb, var(--teal) 16%, var(--surface)); }
+  .bits-cap { font-size: 0.8rem; color: var(--ink-soft); margin-bottom: 0.9rem; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">Chapter 1</a>
+      <a href="chapter-2.html" aria-current="page">Chapter 2</a>
+      <a href="chapter-3.html">Chapter 3</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html" aria-current="page"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <span class="soon"><span class="ch-num">04</span>Repetition<small>soon</small></span>
+    <span class="soon"><span class="ch-num">05</span>Arrays &amp; Strings<small>soon</small></span>
+    <span class="soon"><span class="ch-num">06</span>Functions<small>soon</small></span>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 2 · C++ Track</span>
+      <h1>Basic Elements in C++</h1>
+      <p class="lede">
+        Your first real C++ programs: the anatomy of <code>main()</code>, printing with
+        <code>cout</code>, storing values in variables, doing arithmetic without surprises
+        (integer division!), reading input with <code>cin</code>, calling math library
+        functions, and formatting the output neatly.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">9 concepts</a>
+        <a class="chip" href="#quiz">28-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap02_Basic%20Element%20in%20C%2B%2B.pdf">Slides (PDF)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>The building blocks of every program</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">2.1</span>A simple program, line by line</h3>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">hello.cpp</span></div>
+          <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>   <span class="cm">// header file: gives the program I/O capabilities</span>
+<span class="kw">using namespace</span> std;  <span class="cm">// tells the compiler where to find cout, cin, endl</span>
+
+<span class="kw">int</span> <span class="fn">main</span>()            <span class="cm">// the function header line — the entry point</span>
+{
+    cout &lt;&lt; <span class="str">"Hello world!"</span>;
+    <span class="kw">return</span> 0;         <span class="cm">// 0 = the program terminated successfully</span>
+}</pre>
+        </div>
+        <ul>
+          <li><strong>Header files</strong> notify the compiler that the program uses run-time libraries; the <strong>preprocessor</strong> (which runs <em>before</em> the compiler) pastes the entire contents of the included file into yours.</li>
+          <li><code>main()</code> runs automatically when the program executes. Every C++ program must include exactly one — all other functions are executed from it.</li>
+          <li>Its header line tells you three things: what type it returns (<code>int</code>), its name, and what data it receives (here: nothing).</li>
+          <li><strong>All statements in C++ must end with a semicolon.</strong></li>
+        </ul>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">2.2</span>cout, endl, and comments</h3>
+        <p>
+          The <code>cout</code> object sends data to the standard output display device.
+          The <strong>insertion operator</strong> <code>&lt;&lt;</code> pushes items into the
+          stream, and you can chain it: <code>cout &lt;&lt; "Hello " &lt;&lt; "C++";</code>.
+          The <code>endl</code> <strong>i/o manipulator</strong> represents a new line.
+        </p>
+        <p>
+          Comments are for humans: <code>// a line comment</code> runs to the end of the line;
+          <code>/* a block comment */</code> can span several lines. The compiler ignores both.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">2.3</span>The basic data types</h3>
+        <p style="max-width:46rem">
+          A <strong>data type</strong> is the category of information a variable contains.
+          The three basic ones: <strong>integers</strong> (no decimal places: −259, 0, 200),
+          <strong>floating point numbers</strong> (decimals or exponential notation:
+          −6.16, 2.7541, <code>90.1e3</code> = 90.1 × 10³), and
+          <strong>characters</strong> (<code>char cLetter = 'A';</code> — single quotes).
+        </p>
+        <p style="max-width:46rem">
+          Floating point values are stored in the <strong>IEEE 754</strong> standard, which
+          splits the bits into a sign, an exponent (the scale), and a mantissa (the fraction):
+        </p>
+        <div style="max-width:44rem">
+          <div class="bits" role="img" aria-label="32-bit float layout: 1 sign bit, 8 exponent bits, 23 mantissa bits">
+            <span class="b-sign" style="flex:2">1</span><span class="b-exp" style="flex:8">exponent · 8</span><span class="b-man" style="flex:23">mantissa · 23</span>
+          </div>
+          <div class="bits-cap"><strong>float</strong> — single precision, 32 bits (4 bytes)</div>
+          <div class="bits" role="img" aria-label="64-bit double layout: 1 sign bit, 11 exponent bits, 52 mantissa bits">
+            <span class="b-sign" style="flex:1.5">1</span><span class="b-exp" style="flex:11">exponent · 11</span><span class="b-man" style="flex:52">mantissa · 52</span>
+          </div>
+          <div class="bits-cap"><strong>double</strong> — double precision, 64 bits (8 bytes)</div>
+        </div>
+        <div class="note warn" style="max-width:44rem">
+          <span class="note-tag">Floating point is approximate</span>
+          A result like <span class="mono">0.1 + 0.2</span> is <em>not</em> guaranteed to be
+          exactly 0.3. Avoid relying on exact equality (<span class="mono">==</span>) between
+          floating-point calculations.
+        </div>
+        <p style="max-width:46rem">
+          Useful <strong>escape sequences</strong> for characters and strings:
+          <code>\n</code> moves to the next line, <code>\t</code> moves to the next tab stop.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">2.4</span>Arithmetic operators — and two traps</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th class="mono">Operator</th><th>Description</th><th class="mono">Example</th></tr>
+            <tr><td class="mono">+</td><td>add two operands</td><td class="mono">3 + 7 → 10</td></tr>
+            <tr><td class="mono">-</td><td>subtract one operand from another</td><td class="mono">18 - 3 → 15</td></tr>
+            <tr><td class="mono">*</td><td>multiply</td><td class="mono">12.6 * 2.0 → 25.2</td></tr>
+            <tr><td class="mono">/</td><td>divide</td><td class="mono">15.0 / 2.0 → 7.5</td></tr>
+            <tr><td class="mono">%</td><td>remainder of an integer division</td><td class="mono">17 % 3 → 2</td></tr>
+          </table>
+        </div>
+        <div class="note danger" style="max-width:44rem">
+          <span class="note-tag">Trap 1 · integer division</span>
+          The division of two integers yields an integer result:
+          <span class="mono">15 / 2</span> is <strong>7</strong>, not 7.5.
+          Write <span class="mono">15.0 / 2</span> (or use double variables) to keep the fraction.
+        </div>
+        <div class="note warn" style="max-width:44rem">
+          <span class="note-tag">Trap 2 · precedence</span>
+          <span class="mono">* / %</span> are evaluated before <span class="mono">+ -</span>,
+          left to right. So <span class="mono">8 + 5 * 7 % 2 * 4</span> is
+          8 + ((5×7 % 2) × 4) = 8 + (1 × 4) = <strong>12</strong>.
+          Unary minus binds tighter still, right to left.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">2.5</span>Variables and identifiers</h3>
+        <p style="max-width:46rem">
+          Programming is largely storing and manipulating values in <strong>variables</strong>.
+          A name (identifier) must begin with a letter or underscore, may contain digits (never
+          first), never special characters like <code>$ &amp; * %</code>, and cannot be a
+          reserved word.
+        </p>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Identifier</th><th>Verdict</th><th>Why</th></tr>
+            <tr><td class="mono">myVariable</td><td class="ok">valid</td><td>camelCase — the suggested style for C++ in this course</td></tr>
+            <tr><td class="mono">my_variable</td><td class="ok">valid</td><td>snake_case (Python style) — also legal</td></tr>
+            <tr><td class="mono">x1, _my_variable</td><td class="ok">valid</td><td>digits allowed after the first character; leading underscore allowed</td></tr>
+            <tr><td class="mono">%x1</td><td class="bad">invalid</td><td>starts with a special character</td></tr>
+            <tr><td class="mono">X$2</td><td class="bad">invalid</td><td><code>$</code> is not allowed anywhere</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Declare with <code>&lt;type&gt; &lt;name&gt;;</code> — e.g. <code>int count;</code> or
+          with an initial value, <code>int num = 15;</code>. Two rules:
+          a variable <strong>must be declared before it is used</strong>, and note that a
+          declaration gives information <em>to the compiler</em> — it is not a step of the algorithm.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">2.6</span>Assignment — and the ++ / −− shortcuts</h3>
+        <p>
+          <code>&lt;variable&gt; = &lt;expression&gt;;</code> evaluates the right side
+          <em>first</em>, then stores the result into the variable on the left. The
+          <code>=</code> here is <strong>not</strong> the equals sign of mathematics — each new
+          value stored simply overwrites the old one. Conversion happens across the operator:
+          if <code>temp</code> is an <code>int</code>, then <code>temp = 25.89;</code> stores 25.
+        </p>
+        <p>
+          Compound shortcuts: <code>sum += 10</code> ≡ <code>sum = sum + 10</code>, and likewise
+          <code>-= *= /= %=</code>. For ±1 there are unary operators — and prefix vs postfix
+          matters:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_2_4_2.cpp</span></div>
+          <pre><span class="kw">int</span> c = 5;
+cout &lt;&lt; c++ &lt;&lt; endl;  <span class="cm">// prints 5 — print first, THEN increment</span>
+cout &lt;&lt; c &lt;&lt; endl;    <span class="cm">// prints 6</span>
+
+c = 5;
+cout &lt;&lt; ++c &lt;&lt; endl;  <span class="cm">// prints 6 — increment FIRST, then print</span>
+cout &lt;&lt; c &lt;&lt; endl;    <span class="cm">// prints 6</span></pre>
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">2.7</span>Input with the cin object</h3>
+        <p>
+          <code>cin</code> reads from the keyboard via the standard input stream, using the
+          <strong>extraction operator</strong> <code>&gt;&gt;</code>. When
+          <code>cin &gt;&gt; num1;</code> is reached, the program stops and waits; the typed
+          value is stored into the variable. One statement can read several values:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">average3.cpp</span></div>
+          <pre><span class="kw">int</span> num1, num2, num3;
+<span class="kw">float</span> average;
+
+cout &lt;&lt; <span class="str">"Enter three integer numbers: "</span>;
+cin &gt;&gt; num1 &gt;&gt; num2 &gt;&gt; num3;
+average = (num1 + num2 + num3) / <span class="str">3.0</span>;   <span class="cm">// 3.0, not 3 — why?</span>
+cout &lt;&lt; <span class="str">"The average of the numbers is "</span> &lt;&lt; average &lt;&lt; endl;</pre>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">2.8</span>Mathematical library functions</h3>
+        <p style="max-width:46rem">
+          Add <code>#include &lt;cmath&gt;</code> (the modern C++ math header) and you can call:
+        </p>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th class="mono">Function</th><th>Description</th><th>Returns</th></tr>
+            <tr><td class="mono">sqrt(a)</td><td>square root of a</td><td class="mono">double</td></tr>
+            <tr><td class="mono">pow(a1, a2)</td><td>a1 raised to the power a2</td><td class="mono">double</td></tr>
+            <tr><td class="mono">abs(a)</td><td>absolute value</td><td>same type as the argument</td></tr>
+            <tr><td class="mono">log(a) · log10(a)</td><td>natural log · base-10 log</td><td class="mono">double</td></tr>
+            <tr><td class="mono">sin(a) · cos(a) · tan(a)</td><td>trigonometry (a in radians)</td><td class="mono">double</td></tr>
+            <tr><td class="mono">exp(a)</td><td>e<sup>a</sup>, where e ≈ 2.71828</td><td class="mono">double</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">Except <code>abs</code>, all take a <code>double</code> argument and return a <code>double</code>.</p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">2.9</span>Formatting the output</h3>
+        <p>
+          A program should present results attractively. <strong>Stream manipulators</strong>
+          from <code>#include &lt;iomanip&gt;</code> control the format:
+          <code>setw(n)</code> sets the minimum field width <em>for the next item only</em>
+          (right-aligned), and <code>setprecision(n)</code> controls digits — with the
+          <code>fixed</code> flag enabled, that means n digits after the decimal point.
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_2_7_1.cpp</span></div>
+          <pre>cout &lt;&lt; <span class="str">"|"</span> &lt;&lt; setw(10)
+     &lt;&lt; setprecision(3) &lt;&lt; fixed &lt;&lt; <span class="str">25.67</span> &lt;&lt; <span class="str">"|"</span>;
+
+<span class="cm">// prints:   |    25.670|</span>
+<span class="cm">// to reset the fixed behaviour afterwards, use defaultfloat</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Test yourself</span>
+        <h2>Chapter 2 quiz</h2>
+        <p>28 questions covering every section — several ask you to evaluate expressions exactly the way the compiler would.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Practice</span>
+        <h2>Programming exercises</h2>
+        <p>
+          Every exercise runs right here in the page. Write your code, press
+          <strong>Run</strong> to try it with the stdin box, then press
+          <strong>Run sample tests</strong> to check it against the expected output.
+        </p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Team activity</span>
+        <h2>Group discussion: pitch a tiny console program</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute demo-and-pitch. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          Design and build a small console tool that a first-year student would actually use —
+          a tuition-and-costs estimator, a unit converter, a GPA calculator, a currency splitter.
+          The team writes a one-page <strong>spec</strong> (inputs, formulas, exact output format),
+          then implements it in the <a href="../playground.html">Playground</a> and demos it live.
+        </p>
+        <h3>Constraints that force Chapter 2 thinking</h3>
+        <ul style="max-width:46rem">
+          <li>At least one place where <strong>integer division vs real division</strong> matters — and the team must explain their choice of types.</li>
+          <li>Formatted output with <code>setw</code> / <code>setprecision</code> / <code>fixed</code> — money must show exactly 2 decimals, columns must line up.</li>
+          <li>Every variable name follows the identifier rules and camelCase style.</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Product owner</td><td>writes the spec and defends every input/output decision</td></tr>
+            <tr><td>Programmer</td><td>types the code live during the demo (the whole team designs it)</td></tr>
+            <tr><td>Type inspector</td><td>justifies every data type; hunts down the integer-division trap</td></tr>
+            <tr><td>Presenter</td><td>runs the pitch: problem → demo → one thing that went wrong</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          Why <code>double</code> and not <code>float</code>? What happens to your program when
+          the user types a word instead of a number? Why is <code>average = sum / 3</code> a bug
+          when sum is an int — and how did your team catch it?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/statements-and-the-structure-of-a-program/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Chapter 1</h4>
+          <p>Statements, program structure, variables, and iostream — the same ground as this chapter, in more depth.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/operator_precedence" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — Operator precedence</h4>
+          <p>The full precedence table — bookmark it; you will consult it for years.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/IEEE_754" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — IEEE 754</h4>
+          <p>How sign, exponent, and mantissa really encode a floating-point number.</p>
+        </a>
+        <a class="read-card" href="https://float.exposed" target="_blank" rel="noopener">
+          <span class="rc-kind">Tool</span>
+          <h4>float.exposed</h4>
+          <p>Flip the individual bits of a float and watch the value change — IEEE 754 made tangible.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/io/manip" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — I/O manipulators</h4>
+          <p>setw, setprecision, fixed, and the rest of the iomanip toolbox.</p>
+        </a>
+        <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
+          <span class="rc-kind">Textbook</span>
+          <h4>Malik — C++ Programming, Chapters 2–3</h4>
+          <p>Basic elements, I/O, and formatting with many worked examples.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-1.html"><span class="dir">← Previous chapter</span>Algorithms &amp; Flowcharts</a>
+        <a href="chapter-3.html" style="text-align:right"><span class="dir">Next chapter →</span>Selection Structure</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 2 · Basic Elements in C++</p>
+  </div>
+</footer>
+
+<script src="../assets/minicpp.js"></script>
+<script src="../assets/ch2-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

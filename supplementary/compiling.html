@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>From Source Code to Running Program · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-1.html">Chapter 1</a>
+      <a href="../chapters/chapter-2.html">Chapter 2</a>
+      <a href="../chapters/chapter-3.html">Chapter 3</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <span class="soon"><span class="ch-num">04</span>Repetition<small>soon</small></span>
+    <span class="soon"><span class="ch-num">05</span>Arrays &amp; Strings<small>soon</small></span>
+    <span class="soon"><span class="ch-num">06</span>Functions<small>soon</small></span>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html" aria-current="page"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#pipeline">The build pipeline</a>
+    <a href="#interpreter">Our interpreter</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S1 · goes with Chapter 2</span>
+      <h1>From Source Code to Running Program<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        You press “compile and run” — and a plain text file somehow becomes a process the CPU
+        executes. This topic walks that journey step by step: preprocessor, compiler,
+        assembler, linker, loader. Then it opens the hood of this website's
+        <strong>Playground</strong>, which takes a completely different route: an
+        <strong>interpreter</strong> that never produces machine code at all.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#pipeline">5-stage pipeline</a>
+        <a class="chip" href="#interpreter">compiler vs interpreter</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="pipeline">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The build pipeline</span>
+        <h2>Five steps from hello.cpp to “Hello world!”</h2>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S1.1</span>The whole journey at a glance</h3>
+        <p style="max-width:46rem">
+          Each stage is a separate program. Each one consumes the previous stage's output —
+          your source file gradually turns into something the processor can execute.
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 560 620" width="560" height="620" role="img" aria-label="Build pipeline: hello.cpp through preprocessor, compiler, assembler, linker to an executable that the OS loads and the CPU runs">
+            <defs><marker id="bp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>
+            <polygon class="fc-io" points="132,12 328,12 306,52 110,52"/>
+            <text class="fc-text" x="218" y="36" text-anchor="middle">hello.cpp — source code</text>
+            <line class="fc-line" x1="218" y1="52" x2="218" y2="78" marker-end="url(#bp-arrow)"/>
+            <rect class="fc-process" x="110" y="84" width="216" height="44"/>
+            <text class="fc-text" x="218" y="106" text-anchor="middle" dominant-baseline="middle">1 · Preprocessor</text>
+            <text class="fc-label" x="340" y="100">pastes every #include file in;</text>
+            <text class="fc-label" x="340" y="116">output: the translation unit</text>
+            <line class="fc-line" x1="218" y1="128" x2="218" y2="154" marker-end="url(#bp-arrow)"/>
+            <rect class="fc-process" x="110" y="160" width="216" height="44"/>
+            <text class="fc-text" x="218" y="182" text-anchor="middle" dominant-baseline="middle">2 · Compiler</text>
+            <text class="fc-label" x="340" y="176">translates C++ into assembly;</text>
+            <text class="fc-label" x="340" y="192">syntax errors are caught HERE</text>
+            <line class="fc-line" x1="218" y1="204" x2="218" y2="230" marker-end="url(#bp-arrow)"/>
+            <rect class="fc-process" x="110" y="236" width="216" height="44"/>
+            <text class="fc-text" x="218" y="258" text-anchor="middle" dominant-baseline="middle">3 · Assembler</text>
+            <text class="fc-label" x="340" y="252">assembly → binary machine</text>
+            <text class="fc-label" x="340" y="268">code: hello.o (object file)</text>
+            <line class="fc-line" x1="218" y1="280" x2="218" y2="306" marker-end="url(#bp-arrow)"/>
+            <rect class="fc-process" x="110" y="312" width="216" height="44"/>
+            <text class="fc-text" x="218" y="334" text-anchor="middle" dominant-baseline="middle">4 · Linker</text>
+            <text class="fc-label" x="340" y="328">joins your code with library</text>
+            <text class="fc-label" x="340" y="344">code (cout lives there!)</text>
+            <line class="fc-line" x1="218" y1="356" x2="218" y2="382" marker-end="url(#bp-arrow)"/>
+            <polygon class="fc-io" points="132,388 328,388 306,428 110,428"/>
+            <text class="fc-text" x="218" y="412" text-anchor="middle">hello — executable file</text>
+            <line class="fc-line" x1="218" y1="428" x2="218" y2="454" marker-end="url(#bp-arrow)"/>
+            <rect class="fc-process" x="110" y="460" width="216" height="44"/>
+            <text class="fc-text" x="218" y="482" text-anchor="middle" dominant-baseline="middle">5 · OS loads it, CPU runs it</text>
+            <text class="fc-label" x="340" y="476">instruction by instruction;</text>
+            <text class="fc-label" x="340" y="492">run-time errors happen here</text>
+            <line class="fc-line" x1="218" y1="504" x2="218" y2="530" marker-end="url(#bp-arrow)"/>
+            <rect class="fc-terminal" x="128" y="536" width="180" height="40" rx="20"/>
+            <text class="fc-text" x="218" y="556" text-anchor="middle" dominant-baseline="middle">Hello world!</text>
+          </svg>
+          <figcaption>The classic build pipeline. On the command line, <span class="mono">g++ hello.cpp -o hello</span> runs stages 1–4 in one go; <span class="mono">./hello</span> is stage 5.</figcaption>
+        </figure>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S1.2</span>Step 1 — the preprocessor</h3>
+        <p>
+          You met it in Chapter 2: the preprocessor runs <em>before</em> the compiler. When it
+          sees <code>#include &lt;iostream&gt;</code>, it pastes the entire contents of that
+          file into yours. Your 7-line hello.cpp leaves this stage tens of thousands of lines
+          long — that whole text is called a <strong>translation unit</strong>.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S1.3</span>Steps 2 &amp; 3 — compiler and assembler</h3>
+        <p>
+          The compiler does the intelligent work: it checks your syntax and translates C++
+          into <strong>assembly language</strong> — human-readable names for the processor's
+          own instructions. The assembler then converts that listing into raw binary
+          <strong>machine code</strong>, stored in an object file (<code>hello.o</code>).
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">return 0; — three views of the same idea</span></div>
+          <pre><span class="cm">// C++  (what you write)</span>
+<span class="kw">return</span> 0;
+
+<span class="cm">; assembly  (what the compiler emits — simplified x86-64)</span>
+<span class="fn">mov</span>  eax, 0
+<span class="fn">ret</span>
+
+<span class="cm">; machine code  (what the assembler produces — bytes, in hex)</span>
+<span class="str">b8 00 00 00 00 c3</span></pre>
+        </div>
+        <div class="note warn">
+          <span class="note-tag">Compile-time errors</span>
+          A missing semicolon or an undeclared variable is caught in step 2 —
+          <strong>before anything runs</strong>. If the compiler objects, no executable is
+          produced at all.
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S1.4</span>Step 4 — the linker</h3>
+        <p>
+          Your object file is not complete: it <em>uses</em> <code>cout</code>, but the code
+          that actually paints characters on the screen lives in the C++
+          <strong>standard library</strong>, compiled long ago by someone else. The linker
+          stitches your object code and the library object code together into one
+          self-contained <strong>executable</strong>. (If it cannot find something — say you
+          declared a function but never defined it — you get the famous
+          <em>undefined reference</em> link error.)
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S1.5</span>Step 5 — loading and running</h3>
+        <p>
+          When you run <code>./hello</code>, the operating system copies the executable into
+          memory and points the CPU at its first instruction. From there the processor
+          executes machine instructions one after another — exactly the flow of control you
+          drew in Chapter 1's flowcharts. Errors that depend on actual values — dividing by a
+          zero the user typed, reading past the end of an array — only appear now, at
+          <strong>run time</strong>.
+        </p>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Error</th><th>Caught at</th><th>By</th></tr>
+            <tr><td>missing semicolon, unknown variable</td><td class="mono">compile time</td><td>compiler (step 2)</td></tr>
+            <tr><td>declared but never defined function</td><td class="mono">link time</td><td>linker (step 4)</td></tr>
+            <tr><td>division by zero, index out of bounds</td><td class="mono">run time</td><td>the running program (step 5)</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="interpreter">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · A different route entirely</span>
+        <h2>How the Playground's interpreter is different</h2>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S1.6</span>No machine code, ever</h3>
+        <p style="max-width:46rem">
+          The <a href="../playground.html">Playground</a> (and every exercise box on the
+          chapter pages) does <strong>not</strong> compile your program. It runs
+          <strong>MiniCPP</strong>, an interpreter written in JavaScript that lives inside
+          this very web page. Its pipeline stops long before machine code:
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 560 300" width="560" height="300" role="img" aria-label="Interpreter pipeline: source code to lexer to parser to evaluator, which executes the tree directly">
+            <defs><marker id="ip-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>
+            <polygon class="fc-io" points="132,12 328,12 306,52 110,52"/>
+            <text class="fc-text" x="218" y="36" text-anchor="middle">your C++ source code</text>
+            <line class="fc-line" x1="218" y1="52" x2="218" y2="78" marker-end="url(#ip-arrow)"/>
+            <rect class="fc-process" x="110" y="84" width="216" height="44"/>
+            <text class="fc-text" x="218" y="106" text-anchor="middle" dominant-baseline="middle">Lexer — text → tokens</text>
+            <text class="fc-label" x="340" y="106">"int x = 5;" → int, x, =, 5, ;</text>
+            <line class="fc-line" x1="218" y1="128" x2="218" y2="154" marker-end="url(#ip-arrow)"/>
+            <rect class="fc-process" x="110" y="160" width="216" height="44"/>
+            <text class="fc-text" x="218" y="182" text-anchor="middle" dominant-baseline="middle">Parser — tokens → tree</text>
+            <text class="fc-label" x="340" y="176">a syntax tree of statements</text>
+            <text class="fc-label" x="340" y="192">and expressions (the AST)</text>
+            <line class="fc-line" x1="218" y1="204" x2="218" y2="230" marker-end="url(#ip-arrow)"/>
+            <rect class="fc-process" x="110" y="236" width="216" height="44"/>
+            <text class="fc-text" x="218" y="258" text-anchor="middle" dominant-baseline="middle">Evaluator — walks the tree</text>
+            <text class="fc-label" x="340" y="252">executes each node directly:</text>
+            <text class="fc-label" x="340" y="268">no assembly, no machine code</text>
+          </svg>
+          <figcaption>MiniCPP's pipeline: it understands the program the way the compiler does, then simply <em>performs</em> it instead of translating it.</figcaption>
+        </figure>
+        <p style="max-width:46rem">
+          When the evaluator meets <code>x = x + 1</code>, no processor instruction for that
+          addition is ever generated — the interpreter (a JavaScript program) looks up
+          <code>x</code> in its variable table, adds one, and stores it back. It is the same
+          idea as the Flowchart Studio's step-runner in Chapter 1, just for real C++ syntax.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S1.7</span>Compiler vs interpreter, side by side</h3>
+        <div class="tbl-scroll" style="max-width:48rem">
+          <table class="tbl">
+            <tr><th></th><th>Compiled (g++, clang)</th><th>Interpreted (the Playground)</th></tr>
+            <tr><td>Translation</td><td>whole program → machine code, <em>before</em> running</td><td>none — the source is executed as it is read</td></tr>
+            <tr><td>What executes your code</td><td>the CPU, directly</td><td>another program (the interpreter)</td></tr>
+            <tr><td>Speed</td><td class="ok">fast — native instructions</td><td>slower — every step goes through the interpreter</td></tr>
+            <tr><td>Syntax errors</td><td>all reported up front, at compile time</td><td>reported when the source is parsed, before any statement runs</td></tr>
+            <tr><td>Distribution</td><td>ship the executable; source stays private</td><td>the source itself is what you share and run</td></tr>
+            <tr><td>Setup</td><td>needs a compiler toolchain installed</td><td class="ok">nothing to install — it is already in this page</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Why the Playground chose this route</span>
+          Real C++ is a compiled language — that is what you will use in labs. The Playground
+          trades raw speed for <strong>instant, installation-free feedback</strong>, plus
+          safety nets a compiler cannot give: it counts every step, so an infinite loop is
+          stopped and reported instead of freezing your browser, and an out-of-bounds array
+          index becomes a clear error message instead of silent memory corruption.
+        </div>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Not either/or</span>
+          Many modern languages mix the two ideas: Python interprets a compiled
+          <em>bytecode</em>; Java compiles to bytecode and then compiles the hot parts to
+          machine code <em>while running</em> (JIT). Compilation vs interpretation is a
+          spectrum, and the C++-to-executable pipeline above sits at one well-defined end.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/introduction-to-the-compiler-linker-and-libraries/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Compiler, linker, and libraries</h4>
+          <p>The same pipeline, with diagrams and the exact g++ commands for each stage.</p>
+        </a>
+        <a class="read-card" href="https://godbolt.org" target="_blank" rel="noopener">
+          <span class="rc-kind">Tool</span>
+          <h4>Compiler Explorer (godbolt.org)</h4>
+          <p>Type C++ on the left, watch the real assembly appear on the right — step 2 of the pipeline, live.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/translation_phases" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — Phases of translation</h4>
+          <p>The official, fully detailed version: the C++ standard actually defines the build as nine phases.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Interpreter_(computing)" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Interpreter (computing)</h4>
+          <p>Tree-walking interpreters (like MiniCPP), bytecode VMs, and JIT compilers compared.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Compiler" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Compiler</h4>
+          <p>A broader map of what compilers do — front ends, back ends, and optimization.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="../chapters/chapter-2.html"><span class="dir">← Related chapter</span>Basic Elements in C++</a>
+        <a href="../playground.html" style="text-align:right"><span class="dir">See it in action →</span>C++ Playground</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S1 · From Source Code to Running Program</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S1',
+  quiz: [
+    { q: 'Which program runs first when you build a C++ program?', supp: true,
+      opts: ['The linker, which combines all of the object files into one',
+             'The preprocessor, which handles #include directives',
+             'The assembler, which produces the binary machine code',
+             'The loader, which copies the program into main memory'],
+      a: 1,
+      why: 'The preprocessor runs before the compiler and pastes every included file into your source, producing the translation unit.' },
+
+    { q: 'What does the compiler translate your C++ source into?', supp: true,
+      opts: ['Assembly language for the target processor',
+             'A ZIP archive containing the program resources',
+             'Another high-level language such as Python',
+             'A list of all the variables used by the program'],
+      a: 0,
+      why: 'The compiler emits assembly — readable names for processor instructions — which the assembler then turns into binary machine code.' },
+
+    { q: 'You forgot a semicolon. When is that discovered?', supp: true,
+      opts: ['At compile time — the compiler reports a syntax error and no executable is produced',
+             'At run time — the program crashes when it reaches the exact line that is missing it',
+             'At link time — the linker cannot find the semicolon symbol and reports an undefined reference',
+             'Never — C++ inserts missing semicolons automatically the way some other languages do'],
+      a: 0,
+      why: 'Syntax errors are compile-time errors: they stop the pipeline at step 2, so nothing ever runs.' },
+
+    { q: 'What is the linker\'s job?', supp: true,
+      opts: ['To combine your object code with library code (like iostream) into one executable',
+             'To check that every line of the program is shorter than the maximum allowed length',
+             'To translate the assembly language listing into binary object code for the processor',
+             'To remove all of the comments, spaces, and blank lines from the finished executable'],
+      a: 0,
+      why: 'Your object file uses cout, but the code behind cout lives in the standard library — the linker stitches the two together. (Translating assembly is the assembler\'s job.)' },
+
+    { q: 'After compiling, you send only the executable file to a friend with the same kind of computer. Can they run it?', supp: true,
+      opts: ['Yes — the executable contains machine code and runs without the source or the compiler',
+             'No — every C++ program needs its original source code to be present each time it runs',
+             'No — an executable can only ever run on the single computer where it was first compiled',
+             'Yes, but only if your friend installs the exact same C++ compiler and standard library first'],
+      a: 0,
+      why: 'That is the point of compilation: the executable is self-contained machine code. (It does have to match the friend\'s processor and operating system.)' },
+
+    { q: 'How does the Playground interpreter execute your program?', supp: true,
+      opts: ['It parses the source into a tree and walks that tree, executing each node directly',
+             'It secretly compiles the source into machine code and runs the resulting executable',
+             'It sends your source code to a compiler running on a server somewhere on the internet',
+             'It converts the program into JavaScript text and asks the browser to evaluate that text'],
+      a: 0,
+      why: 'MiniCPP is a tree-walking interpreter: lexer → parser → evaluator. No machine code and no network — everything happens inside the page.' },
+
+    { q: 'Why does the Playground need no installation?', supp: true,
+      opts: ['The interpreter is JavaScript, so it runs inside the browser you already have',
+             'Because modern browsers ship with a complete C++ compiler already built into them',
+             'Because the operating system preinstalls g++ on every laptop sold in recent years',
+             'Because the code is executed on the university server and streamed back to your screen'],
+      a: 0,
+      why: 'The whole interpreter is delivered with the web page. Browsers run JavaScript; they do not ship C++ compilers, and nothing is sent to any server.' },
+
+    { q: 'Which normally runs faster, and why?', supp: true,
+      opts: ['The compiled program — it is native machine code that the CPU executes directly',
+             'The interpreted program — skipping the whole compile step also saves time while running',
+             'They always run at exactly the same speed, because both execute the same algorithm',
+             'The interpreted program — the interpreter optimizes each statement while executing it'],
+      a: 0,
+      why: 'Compiled code is executed by the CPU itself; interpreted code pays for an interpreter step on every statement. (Skipping compilation saves time before the run, not during it.)' }
+  ]
+};
+</script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

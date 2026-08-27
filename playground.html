@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>C++ Playground · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .preset-select {
+    font-family: "IBM Plex Mono", monospace; font-size: 0.85rem;
+    color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 0.45rem 0.7rem;
+  }
+  .pg-panel {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow);
+    padding: 1.3rem 1.4rem; display: grid; gap: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="index.html">Syllabus</a>
+      <a href="chapters/chapter-1.html">Chapter 1</a>
+      <a href="chapters/chapter-2.html">Chapter 2</a>
+      <a href="chapters/chapter-3.html">Chapter 3</a>
+      <a href="playground.html" aria-current="page">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">CO1005 · Practice anywhere</span>
+      <h1>C++ Playground</h1>
+      <p class="lede">
+        Type C++, press Run, see the output — no installation, no server. Everything executes
+        inside your browser with an interpreter built for this course, covering exactly the
+        C++ subset CO1005 teaches: variables and types, <code>cin</code>/<code>cout</code>,
+        conditions, loops, functions with pass&nbsp;by&nbsp;value <em>and</em>
+        pass&nbsp;by&nbsp;reference, strings, and simple arrays.
+      </p>
+      <div class="meta-chips">
+        <span class="chip">runs 100% in your browser</span>
+        <span class="chip">Ctrl+Enter to run</span>
+        <span class="chip">infinite-loop safe</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="pg-panel">
+        <div id="playground-root"></div>
+      </div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">What the playground supports</span>
+        <code>int</code> · <code>double</code> / <code>float</code> · <code>bool</code> ·
+        <code>char</code> · <code>string</code> · <code>const</code> · if / else · switch ·
+        while / for / do-while · functions, references (<code>&amp;</code>), recursion ·
+        1-D arrays · <code>cin</code>, <code>cout</code>, <code>getline</code> ·
+        <code>&lt;cmath&gt;</code> · <code>&lt;iomanip&gt;</code> (setw, setprecision, fixed).
+        Not included (and not part of CO1005's C++ track): pointers, classes, vectors, file I/O.
+        Type the values your program reads into the <strong>Input (stdin)</strong> box before running.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>C++ Playground · runs the CO1005 course subset in your browser</p>
+  </div>
+</footer>
+
+<script src="assets/minicpp.js"></script>
+<script>
+window.PLAYGROUND_PRESETS = [
+  { name: 'Hello, CO1005!',
+    code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, CO1005!" << endl;\n    return 0;\n}\n' },
+  { name: 'Variables & types (Ch 2)',
+    code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int age = 19;\n    double gpa = 3.25;\n    char grade = \'A\';\n    bool enrolled = true;\n    string name = "Bach";\n\n    cout << "Name: " << name << endl;\n    cout << "Age: " << age << endl;\n    cout << "GPA: " << gpa << " Grade: " << grade << endl;\n    cout << "Enrolled: " << enrolled << "  (bools print as 1/0)" << endl;\n\n    cout << "15 / 2 = " << 15 / 2 << "   (integer division!)" << endl;\n    cout << "15.0 / 2 = " << 15.0 / 2 << endl;\n    cout << "17 % 3 = " << 17 % 3 << endl;\n    return 0;\n}\n' },
+  { name: 'Reading input with cin (Ch 2)',
+    code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int num1, num2, num3;\n    float average;\n\n    cin >> num1 >> num2 >> num3;\n    average = (num1 + num2 + num3) / 3.0;\n    cout << "The average of the numbers is " << average << endl;\n    return 0;\n}\n',
+    stdin: '22 56 73' },
+  { name: 'Selection: grade ladder (Ch 3)',
+    code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    double score;\n    cin >> score;\n\n    char grade;\n    if (score >= 90.0)      grade = \'A\';\n    else if (score >= 80.0) grade = \'B\';\n    else if (score >= 70.0) grade = \'C\';\n    else if (score >= 60.0) grade = \'D\';\n    else                    grade = \'F\';\n\n    cout << "Score " << score << " -> grade " << grade << endl;\n    return 0;\n}\n',
+    stdin: '87.5' },
+  { name: 'Loops: squares of 4…9 (Ch 1 & 4)',
+    code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int num = 4;\n    do {\n        cout << num << " " << num * num << endl;\n        num = num + 1;\n    } while (num <= 9);\n    return 0;\n}\n' },
+  { name: 'Functions: value vs reference (Ch 6)',
+    code: '#include <iostream>\nusing namespace std;\n\nvoid byValue(int x)  { x = x + 100; }   // changes a COPY\nvoid byRef(int &x)   { x = x + 100; }   // changes the ORIGINAL\n\nint main() {\n    int a = 1, b = 1;\n    byValue(a);\n    byRef(b);\n    cout << "after byValue(a): a = " << a << endl;\n    cout << "after byRef(b):   b = " << b << endl;\n\n    int x = 3, y = 7;\n    swap(x, y);\n    cout << "after swap: x = " << x << ", y = " << y << endl;\n    return 0;\n}\n' },
+  { name: 'Formatted output (Ch 2)',
+    code: '#include <iostream>\n#include <iomanip>\nusing namespace std;\n\nint main() {\n    cout << "|" << setw(10)\n         << setprecision(3) << fixed << 25.67 << "|" << endl;\n\n    cout << setw(3) << 6 << endl\n         << setw(3) << 18 << endl\n         << setw(3) << 124 << endl\n         << "---\\n"\n         << (6 + 18 + 124) << endl;\n    return 0;\n}\n' },
+  { name: 'Strings & arrays (Ch 5)',
+    code: '#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string course = "CO" + to_string(1005);\n    cout << course << " has " << course.length() << " characters" << endl;\n\n    int marks[5] = {8, 9, 7, 10, 6};\n    int sum = 0;\n    for (int i = 0; i < 5; i++) sum += marks[i];\n    cout << "average mark: " << sum / 5.0 << endl;\n    return 0;\n}\n' }
+];
+</script>
+<script src="assets/course.js"></script>
+</body>
+</html>
