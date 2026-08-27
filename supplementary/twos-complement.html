@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inside Integers · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-1.html">Chapter 1</a>
+      <a href="../chapters/chapter-2.html">Chapter 2</a>
+      <a href="../chapters/chapter-3.html">Chapter 3</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <span class="soon"><span class="ch-num">04</span>Repetition<small>soon</small></span>
+    <span class="soon"><span class="ch-num">05</span>Arrays &amp; Strings<small>soon</small></span>
+    <span class="soon"><span class="ch-num">06</span>Functions<small>soon</small></span>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="twos-complement.html" aria-current="page"><span class="ch-num">S4</span>Inside integers</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#idea">The idea</a>
+    <a href="#overflow">Overflow</a>
+    <a href="#lab">Two's Complement Lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S4 · goes with Chapter 2</span>
+      <h1>Inside Integers<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        S3 showed how doubles bend reality; integers are exact — until they run out of room.
+        This topic shows how <code>int</code> really lives in memory: <strong>two's
+        complement</strong>, the one representation that lets the same adder circuit handle
+        positive and negative numbers alike. You will see why <code>−1</code> is all ones,
+        why the range is lopsided, and what actually happens the moment
+        <code>127 + 1</code> wraps around to <code>−128</code>.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#idea">two's complement</a>
+        <a class="chip" href="#lab">Two's Complement Lab</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="idea">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The idea</span>
+        <h2>One negative place value fixes everything</h2>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S4.1</span>Bits are just place values</h3>
+        <p style="max-width:46rem">
+          An unsigned 8-bit number is ordinary binary: each bit is worth
+          128&nbsp;·&nbsp;64&nbsp;·&nbsp;32&nbsp;·&nbsp;16&nbsp;·&nbsp;8&nbsp;·&nbsp;4&nbsp;·&nbsp;2&nbsp;·&nbsp;1,
+          giving 0 … 255. But that has no room for negatives — and computers need them.
+        </p>
+        <p style="max-width:46rem">
+          <strong>Two's complement</strong> changes exactly one thing: the top bit's weight
+          becomes <strong>negative</strong>. In 8 bits it counts as <strong>−128</strong>
+          instead of +128:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">reading −5 in 8 bits</span></div>
+          <pre>bit weights:   <span class="str">−128</span>  64  32  16   8   4   2   1
+−5 = 11111011:    <span class="str">1</span>   1   1   1   1   0   1   1
+
+value = <span class="str">−128</span> + 64 + 32 + 16 + 8 + 2 + 1 = <span class="fn">−5</span></pre>
+        </div>
+        <ul style="max-width:46rem">
+          <li>Top bit 0 → the number is ≥ 0, and reads like plain binary.</li>
+          <li>Top bit 1 → the number is negative. That is why it is called the <strong>sign bit</strong> — but it also carries value (−2⁷), it is not just a flag.</li>
+          <li><code>−1</code> is <strong>all ones</strong>: −128 + 127 = −1. Every width: 0xFF, 0xFFFF, 0xFFFFFFFF.</li>
+        </ul>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S4.2</span>Negating a number: invert every bit, add 1</h3>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">−x = ~x + 1  (negating 5)</span></div>
+          <pre> 5  =  00000101
+invert 11111010
+ + 1   <span class="fn">11111011</span>  =  −5   ✓</pre>
+        </div>
+        <p>
+          Try it in the Lab below — the <em>negate</em> button shows all three rows for any
+          number, including the one weird case the rule cannot handle.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S4.3</span>Why this representation won: the adder doesn't care</h3>
+        <p>
+          The magic of two's complement is that <strong>the ordinary binary adder gives the
+          right answer for signed numbers too</strong> — no special circuit for negatives:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">2 + (−5), computed by a plain adder</span></div>
+          <pre>  00000010      (  2 )
++ 11111011      ( −5 )
+──────────
+  <span class="fn">11111101</span>      ( <span class="fn">−3</span> )   ✓  same wires, correct signed result</pre>
+        </div>
+        <p>
+          The CPU adds, subtracts, and compares signed and unsigned numbers with the same
+          hardware — only <em>your program's type</em> decides how the bit pattern is
+          <em>read</em>. The Lab shows both readings of every pattern side by side.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="overflow">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · When the room runs out</span>
+        <h2>Overflow: 127 + 1 = −128</h2>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S4.4</span>The wrap-around, bit by bit</h3>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">the largest 8-bit value, plus one</span></div>
+          <pre>  01111111      ( 127, the maximum )
++ 00000001
+──────────
+  <span class="str">10000000</span>      ( <span class="str">−128</span> — the carry marched into the sign bit! )</pre>
+        </div>
+        <p style="max-width:46rem">
+          Nothing “breaks” electrically — the carry simply ripples into the negative-weight
+          bit and the value teleports from the top of the range to the bottom. The ranges,
+          and one crucial C++ rule:
+        </p>
+        <div class="tbl-scroll" style="max-width:46rem">
+          <table class="tbl">
+            <tr><th>Type</th><th>Bits</th><th>Signed range</th></tr>
+            <tr><td class="mono">char</td><td class="mono">8</td><td class="mono">−128 … 127</td></tr>
+            <tr><td class="mono">short</td><td class="mono">16</td><td class="mono">−32,768 … 32,767</td></tr>
+            <tr><td class="mono">int</td><td class="mono">32</td><td class="mono">−2,147,483,648 … 2,147,483,647</td></tr>
+            <tr><td class="mono">long long</td><td class="mono">64</td><td class="mono">about ±9.2 × 10¹⁸</td></tr>
+          </table>
+        </div>
+        <div class="note danger" style="max-width:46rem">
+          <span class="note-tag">C++ rule</span>
+          Overflowing an <strong>unsigned</strong> type is well defined — it wraps modulo 2ⁿ.
+          Overflowing a <strong>signed</strong> type is <strong>undefined behaviour</strong>:
+          the compiler is allowed to assume it never happens, and optimized programs can do
+          truly strange things when it does. If your sums can reach billions, use
+          <code>long long</code>.
+        </div>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Notice the asymmetry</span>
+          There is a −128 but no +128 (zero uses up one of the “positive” patterns). That is
+          why negating the minimum value is the one case invert-and-add-one cannot handle —
+          press <em>negate</em> on −128 in the Lab and watch it give −128 straight back.
+        </div>
+        <p style="max-width:46rem">
+          And one familiar face: <code>char</code> is just an 8-bit integer. That is why
+          Chapter 3's <code>'a' + 1 == 'b'</code> works — <code>'A'</code> <em>is</em> 65.
+          Encode it in the Lab and read its bits.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Mini app</span>
+        <h2>Two's Complement Lab — integers to bits and back</h2>
+        <p>
+          Type an integer and press <strong>Encode</strong> — or <strong>click any bit</strong>
+          to flip it. The readout shows the same bits read as signed and as unsigned, the hex,
+          and the full place-value sum. Use <strong>+1 / −1</strong> to walk right off the edge
+          of the range, and <strong>negate</strong> to watch invert-and-add-one happen row by row.
+          Switch widths to see the same story at 8, 16, and 32 bits.
+        </p>
+      </div>
+      <div id="twos-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Encode <span class="mono">127</span> at 8 bits and press <span class="mono">+1</span>.
+        Encode <span class="mono">255</span> and compare the signed and unsigned readings of
+        the same bits. Press <span class="mono">negate</span> twice on 5 — and then once on
+        <span class="mono">−128</span>. Flip the sign bit of 0 and read the place-value sum.
+        Switch to 32-bit, encode 2147483647, and press <span class="mono">+1</span> —
+        that is exactly the bug that has crashed real systems.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Two%27s_complement" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Two's complement</h4>
+          <p>History, proofs, and why the alternatives (sign-magnitude, one's complement) lost.</p>
+        </a>
+        <a class="read-card" href="https://www.youtube.com/watch?v=4qH4unVtJkE" target="_blank" rel="noopener">
+          <span class="rc-kind">Video</span>
+          <h4>Ben Eater — Twos complement: Negative numbers in binary</h4>
+          <p>The clearest 13 minutes on this topic ever recorded — with real breadboard hardware.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Integer_overflow" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Integer overflow</h4>
+          <p>Famous real-world overflow disasters — from the Ariane 5 rocket to YouTube's view counter.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/types/climits" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — &lt;climits&gt;</h4>
+          <p>INT_MAX, INT_MIN and friends — ask C++ for the exact limits on your machine.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Undefined_behavior" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Undefined behavior</h4>
+          <p>Why “it wrapped around on my machine” is not a guarantee the C++ standard makes.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="floating-point.html"><span class="dir">← Companion topic</span>Inside floating point</a>
+        <a href="../chapters/chapter-2.html" style="text-align:right"><span class="dir">Related chapter →</span>Basic Elements in C++</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S4 · Inside Integers</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S4',
+  quiz: [
+    { q: 'In an 8-bit two\'s complement number, what is the top (sign) bit worth?', supp: true,
+      opts: ['−128 — it is a negative place value, not just a flag',
+             '+128, exactly like the top place value of an unsigned number',
+             'Nothing — it only marks the sign and carries no numeric value',
+             '−1, so that setting it simply subtracts one from the number'],
+      a: 0,
+      why: 'Two\'s complement changes exactly one weight: the top bit counts as −2⁷ = −128. That single negative place value is the whole trick.' },
+
+    { q: 'What is the 8-bit two\'s complement pattern for −1?', supp: true,
+      opts: ['11111111 — all ones', '10000001 — sign bit plus a one in the last place',
+             '10000000 — the sign bit alone, with every value bit cleared', '01111111 — every bit except the sign bit'],
+      a: 0,
+      why: '−128 + 64 + 32 + 16 + 8 + 4 + 2 + 1 = −1. All-ones is −1 at every width — 0xFF, 0xFFFF, 0xFFFFFFFF.' },
+
+    { q: 'How do you negate a two\'s complement number?', supp: true,
+      opts: ['Invert every bit, then add 1',
+             'Flip only the sign bit and leave all of the other bits unchanged',
+             'Subtract it from 100000000 using ordinary decimal subtraction',
+             'Reverse the order of the bits, so the last bit becomes the first'],
+      a: 0,
+      why: '−x = ~x + 1. (Flipping only the sign bit is sign-magnitude — a representation real CPUs abandoned.)' },
+
+    { q: 'The byte 11111111 is read by an <code>unsigned char</code> and by a signed <code>char</code>. What do they see?', supp: true,
+      opts: ['255 and −1 — the same bits, two different readings',
+             '255 and 255 — the type never changes what a bit pattern means',
+             '−1 and −1 — the sign bit forces both readings to be negative',
+             '127 and −127 — each reading uses only the lower seven bits'],
+      a: 0,
+      why: 'Bits have no inherent meaning — the declared type chooses the reading. Unsigned: 255. Two\'s complement: −128 + 127 = −1.' },
+
+    { q: 'In 8 bits, what does 127 + 1 produce, and why?', supp: true,
+      opts: ['−128 — the carry ripples into the negative-weight sign bit',
+             '128 — an eight-bit number simply grows a ninth bit when it must',
+             '0 — the addition is cancelled whenever the result would not fit',
+             '127 — the value saturates and stays clamped at the maximum'],
+      a: 0,
+      why: '01111111 + 1 = 10000000, which reads as −128. The value wraps from the top of the range to the bottom — no error is raised by the hardware.' },
+
+    { q: 'Why did two\'s complement win over other ways of storing negatives?', supp: true,
+      opts: ['The same plain binary adder works for signed and unsigned alike',
+             'It is the only representation in which zero can be stored at all',
+             'It stores every negative number using fewer bits than the positives need',
+             'It was required by the very first C standard, and hardware followed'],
+      a: 0,
+      why: 'With two\'s complement, 2 + (−5) through an ordinary adder just works. No separate subtractor, no special negative-number circuit — cheaper, simpler hardware.' },
+
+    { q: 'What happens when you negate −128 in 8 bits?', supp: true,
+      opts: ['You get −128 back — +128 does not exist, the range is asymmetric',
+             'You get +128, stored by borrowing one bit from the pattern of zero',
+             'The result is 0, because the two values cancel each other perfectly',
+             'The CPU raises a hardware error and stops the running program'],
+      a: 0,
+      why: 'Invert 10000000 → 01111111, add 1 → 10000000 again. The range −128 … 127 has one more negative than positive, so −(−128) cannot be represented.' },
+
+    { q: 'What does the C++ standard say about integer overflow?', supp: true,
+      opts: ['Unsigned wraps modulo 2ⁿ; signed overflow is undefined behaviour',
+             'Both signed and unsigned wrap around, and programs may rely on it',
+             'Both are compile-time errors that the compiler must always detect',
+             'The program is guaranteed to crash immediately with a clear message'],
+      a: 0,
+      why: 'Unsigned wrap-around is defined and sometimes useful. Signed overflow is UB — the optimizer assumes it never happens, so use long long before your sums reach billions.' }
+  ]
+};
+</script>
+<script src="../assets/twos.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>
