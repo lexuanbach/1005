@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inside Floating Point · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-1.html">Chapter 1</a>
+      <a href="../chapters/chapter-2.html">Chapter 2</a>
+      <a href="../chapters/chapter-3.html">Chapter 3</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <span class="soon"><span class="ch-num">04</span>Repetition<small>soon</small></span>
+    <span class="soon"><span class="ch-num">05</span>Arrays &amp; Strings<small>soon</small></span>
+    <span class="soon"><span class="ch-num">06</span>Functions<small>soon</small></span>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html" aria-current="page"><span class="ch-num">S3</span>Inside floating point</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#format">The format</a>
+    <a href="#mystery">0.1 + 0.2 ≠ 0.3</a>
+    <a href="#lab">IEEE 754 Lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S3 · goes with Chapter 2</span>
+      <h1>Inside Floating Point<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        Chapter 2 told you floating point numbers are “always approximate” and to avoid
+        <code>==</code>. This topic shows you <em>exactly why</em> — down to the last of the
+        55 decimal digits your computer really stores for <code>0.1</code> — and walks the
+        famous mystery step by step: why <code>0.1 + 0.2 == 0.3</code> is
+        <strong>false</strong>. The IEEE 754 Lab below lets you turn any number into its
+        bits and flip them back.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#format">sign · exponent · mantissa</a>
+        <a class="chip" href="#lab">IEEE 754 Lab mini-app</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="format">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The format</span>
+        <h2>How a real number becomes bits</h2>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S3.1</span>Sign, exponent, mantissa — scientific notation in binary</h3>
+        <p style="max-width:46rem">
+          IEEE 754 stores every number the way scientists write big numbers — as
+          <span class="mono">±&nbsp;1.fraction × 2<sup>exponent</sup></span> — just in base 2:
+        </p>
+        <ul style="max-width:46rem">
+          <li><strong>Sign</strong> (1 bit): 0 = positive, 1 = negative.</li>
+          <li><strong>Exponent</strong>: stored with a <strong>bias</strong> added so that negative exponents need no sign of their own — a float stores E = e + 127, a double stores E = e + 1023.</li>
+          <li><strong>Mantissa</strong> (the fraction): the digits after “1.” — the leading 1 of every normal number is <em>implicit</em>, so it is never stored. One whole bit of precision, free.</li>
+        </ul>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th></th><th>float (32-bit)</th><th>double (64-bit)</th></tr>
+            <tr><td>sign · exponent · mantissa</td><td class="mono">1 · 8 · 23</td><td class="mono">1 · 11 · 52</td></tr>
+            <tr><td>exponent bias</td><td class="mono">127</td><td class="mono">1023</td></tr>
+            <tr><td>reliable decimal digits</td><td class="mono">~7</td><td class="mono">~15–16</td></tr>
+            <tr><td>largest value</td><td class="mono">≈ 3.4 × 10³⁸</td><td class="mono">≈ 1.8 × 10³⁰⁸</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Special bit patterns cover the edge cases: all-zero exponent and mantissa is
+          <strong>zero</strong>; all-ones exponent is <strong>±infinity</strong> (mantissa 0)
+          or <strong>NaN</strong> (mantissa ≠ 0). Overflowing a float — try
+          <span class="mono">3.4e39</span> in the Lab — lands you on infinity.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S3.2</span>Why 0.1 cannot be stored exactly</h3>
+        <p style="max-width:46rem">
+          Convert 0.1 to binary by repeated doubling — the integer part of each doubling is
+          the next binary digit:
+        </p>
+        <div class="tbl-scroll" style="max-width:34rem">
+          <table class="tbl">
+            <tr><th>Step</th><th class="mono">× 2</th><th>Binary digit</th></tr>
+            <tr><td class="mono">0.1</td><td class="mono">0.2</td><td class="mono">0</td></tr>
+            <tr><td class="mono">0.2</td><td class="mono">0.4</td><td class="mono">0</td></tr>
+            <tr><td class="mono">0.4</td><td class="mono">0.8</td><td class="mono">0</td></tr>
+            <tr><td class="mono">0.8</td><td class="mono">1.6</td><td class="mono">1</td></tr>
+            <tr><td class="mono">0.6</td><td class="mono">1.2</td><td class="mono">1</td></tr>
+            <tr><td class="mono">0.2</td><td class="mono">0.4</td><td class="mono">0 — we are back at 0.2: it repeats forever</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          So 0.1 in binary is <span class="mono">0.0001100110011001100…₂</span> — an
+          <strong>infinite repeating fraction</strong>, like 1/3 = 0.333… in decimal.
+          A double has only 52 mantissa bits, so the tail must be <strong>rounded off</strong>.
+          The value that actually lands in memory is the nearest representable double:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">what “double x = 0.1;” really stores</span></div>
+          <pre>0.1000000000000000055511151231257827021181583404541015625</pre>
+        </div>
+        <p style="max-width:46rem">
+          A decimal fraction is exact in binary only when its denominator is a power of two:
+          0.5, 0.25, 0.75, 2.75 store perfectly; 0.1, 0.2, 0.3 never can.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="mystery">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · The mystery, solved step by step</span>
+        <h2>Why 0.1 + 0.2 ≠ 0.3</h2>
+      </div>
+      <div class="concept wide">
+        <h3><span class="idx">S3.3</span>Three roundings, one surprise</h3>
+        <p style="max-width:46rem">Every number below is exact — verified bit-for-bit (check them yourself in the Lab):</p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Step</th><th>Exact value involved</th></tr>
+            <tr><td><strong>1.</strong> <code>0.1</code> is stored as</td>
+                <td class="mono">0.1000000000000000055511151231257827021181583404541015625</td></tr>
+            <tr><td><strong>2.</strong> <code>0.2</code> is stored as</td>
+                <td class="mono">0.200000000000000011102230246251565404236316680908203125</td></tr>
+            <tr><td><strong>3.</strong> the CPU adds them exactly</td>
+                <td class="mono">0.3000000000000000166533453693773481063544750213623046875</td></tr>
+            <tr><td><strong>4.</strong> …but that sum is not representable either, so it is rounded to the nearest double</td>
+                <td class="mono">0.3000000000000000444089209850062616169452667236328125</td></tr>
+            <tr><td><strong>5.</strong> meanwhile <code>0.3</code> is stored as</td>
+                <td class="mono">0.299999999999999988897769753748434595763683319091796875</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Step 4 rounded <em>up</em>; step 5 rounded <em>down</em>. The two results are
+          different doubles — they differ in their very last bit — so
+          <code>0.1 + 0.2 == 0.3</code> is <strong>false</strong>, and
+          <code>cout &lt;&lt; 0.1 + 0.2</code> with enough precision prints
+          <span class="mono">0.30000000000000004</span>.
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">see_it_yourself.cpp</span></div>
+          <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;iomanip&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    cout &lt;&lt; setprecision(17);
+    cout &lt;&lt; 0.1 + 0.2 &lt;&lt; endl;             <span class="cm">// 0.30000000000000004</span>
+    cout &lt;&lt; (0.1 + 0.2 == 0.3) &lt;&lt; endl;    <span class="cm">// 0  (false!)</span>
+}</pre>
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S3.4</span>So what should you do?</h3>
+        <ul>
+          <li><strong>Never compare doubles with <code>==</code>.</strong> Compare against a tolerance instead:</li>
+        </ul>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">epsilon_compare.cpp</span></div>
+          <pre><span class="kw">#include</span> <span class="str">&lt;cmath&gt;</span>
+
+<span class="kw">bool</span> <span class="fn">nearlyEqual</span>(<span class="kw">double</span> a, <span class="kw">double</span> b) {
+    <span class="kw">return</span> fabs(a - b) &lt; <span class="str">1e-9</span>;   <span class="cm">// close enough counts as equal</span>
+}</pre>
+        </div>
+        <ul>
+          <li><strong>Money:</strong> count in integer cents / nghìn đồng, not in fractional currency — integers are exact.</li>
+          <li><strong>Know your budget:</strong> a float carries ~7 reliable decimal digits, a double ~15–16. Accumulated arithmetic eats into that budget — which is why scientific computation defaults to <code>double</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Mini app</span>
+        <h2>IEEE 754 Lab — numbers to bits and back</h2>
+        <p>
+          Type a number and press <strong>Encode</strong> to see its sign, exponent, and
+          mantissa bits — plus the <em>exact</em> value those bits represent, every digit.
+          Then go the other way: <strong>click any bit to flip it</strong> and watch the
+          decimal value change. Switch between double (64-bit) and float (32-bit) to see
+          precision shrink before your eyes.
+        </p>
+      </div>
+      <div id="ieee-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Encode <span class="mono">0.1</span>, then press the <span class="mono">0.1 + 0.2</span>
+        and <span class="mono">0.3</span> presets and compare their last mantissa bits — that
+        single-bit difference is the whole famous bug. Flip the sign bit. Flip the last
+        mantissa bit of <span class="mono">1</span> and read how tiny the change is. Switch
+        <span class="mono">0.1</span> to 32-bit float and watch the error grow. Encode
+        <span class="mono">3.4e39</span> as a float — welcome to infinity.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://0.30000000000000004.com" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>0.30000000000000004.com</h4>
+          <p>The famous sum in thirty programming languages — every one of them “gets it wrong” the same way.</p>
+        </a>
+        <a class="read-card" href="https://float.exposed" target="_blank" rel="noopener">
+          <span class="rc-kind">Tool</span>
+          <h4>float.exposed</h4>
+          <p>A deluxe version of the Lab above — inspect and edit floats, halfs, and doubles bit by bit.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/IEEE_754" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — IEEE 754</h4>
+          <p>The full standard: rounding modes, subnormals, NaN payloads, and the history.</p>
+        </a>
+        <a class="read-card" href="https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html" target="_blank" rel="noopener">
+          <span class="rc-kind">Classic paper</span>
+          <h4>Goldberg — What Every Computer Scientist Should Know About Floating-Point Arithmetic</h4>
+          <p>The canonical deep-dive. Heavy, but this is where the rabbit hole leads.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/types/numeric_limits" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — numeric_limits</h4>
+          <p>Ask C++ itself: epsilon(), digits10, max() and friends for float and double.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="../chapters/chapter-2.html"><span class="dir">← Related chapter</span>Basic Elements in C++</a>
+        <a href="expression-trees.html" style="text-align:right"><span class="dir">More supplementary →</span>Expression trees &amp; precedence</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S3 · Inside Floating Point</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S3',
+  quiz: [
+    { q: 'Why does IEEE 754 add a bias (127 or 1023) to the exponent?', supp: true,
+      opts: ['So negative exponents can be stored without needing a sign bit of their own',
+             'To make the numbers larger, so that more values fit into the same format',
+             'To leave room in the exponent field for storing part of the mantissa',
+             'Because binary hardware cannot represent the number zero without a bias'],
+      a: 0,
+      why: 'Storing e + bias keeps the exponent field a plain unsigned number — tiny 2⁻¹⁰ and huge 2¹⁰ both become positive stored values, and comparisons stay simple.' },
+
+    { q: 'The mantissa of a normal number stores the digits after “1.” — where is the leading 1?', supp: true,
+      opts: ['It is implicit: every normal number starts with 1, so it is not stored at all',
+             'It is stored in the first bit of the mantissa, before the fraction digits',
+             'It is stored inside the exponent field, together with the bias value',
+             'There is no leading 1 — binary fractions always start with a zero digit'],
+      a: 0,
+      why: 'In binary scientific notation every normal number is 1.something × 2ᵉ — the 1 is guaranteed, so IEEE 754 leaves it out and gains a free bit of precision.' },
+
+    { q: 'Why can 0.1 never be stored exactly in binary?', supp: true,
+      opts: ['Its binary expansion repeats forever, like 1/3 does in decimal',
+             'Because 0.1 is smaller than the smallest value a double can represent',
+             'Because the sign bit of 0.1 conflicts with its exponent bits in the format',
+             'It can be stored exactly — only printing it introduces the tiny error'],
+      a: 0,
+      why: '0.1 = 1/10, and 10 has the prime factor 5. Only fractions whose denominator is a pure power of 2 terminate in binary; the rest repeat forever and must be rounded.' },
+
+    { q: 'Which of these decimal numbers is stored exactly in a double?', supp: true,
+      opts: ['0.75', '0.1', '0.3', '0.2'],
+      a: 0,
+      why: '0.75 = 3/4 — the denominator is a power of two, so its binary form (0.11₂) terminates. 0.1, 0.2, and 0.3 all repeat forever.' },
+
+    { q: 'With enough precision, what does <code>cout &lt;&lt; 0.1 + 0.2</code> print?', supp: true,
+      opts: ['0.30000000000000004', '0.3 exactly, because the errors cancel out',
+             '0.29999999999999998, slightly below the true value', '0.3125, the nearest binary fraction'],
+      a: 0,
+      why: 'The stored 0.1 and 0.2 are both slightly high, and rounding the sum pushes it higher still — one bit above the stored 0.3, printing as 0.30000000000000004.' },
+
+    { q: 'What is the correct way to compare two computed doubles?', supp: true,
+      opts: ['Check that they are close: fabs(a - b) &lt; 1e-9',
+             'Use a == b, but only after printing both numbers to the screen first',
+             'Convert both of them to float first, because floats compare more exactly',
+             'Compare them three times and accept the result that occurs most often'],
+      a: 0,
+      why: 'An epsilon comparison treats “close enough” as equal, absorbing the rounding error. Converting to float only throws away more precision.' },
+
+    { q: 'About how many reliable decimal digits do float and double give you?', supp: true,
+      opts: ['About 7 for float, about 15–16 for double',
+             'Exactly 32 for float and exactly 64 for double, one per bit',
+             'About 23 for float and about 52 for double, one per mantissa bit',
+             'Unlimited digits — only the largest possible value is limited'],
+      a: 0,
+      why: '23 mantissa bits ≈ 7 decimal digits; 52 bits ≈ 15–16. (Bits and decimal digits differ by a factor of log₂10 ≈ 3.32.)' },
+
+    { q: 'You store 3.4 × 10³⁹ into a float (max ≈ 3.4 × 10³⁸). What do the bits become?', supp: true,
+      opts: ['Infinity — exponent bits all 1, mantissa bits all 0',
+             'The largest float, because values are clamped to the maximum on overflow',
+             'NaN — the special pattern used for every kind of invalid result',
+             'Zero — the number wraps around past the maximum and starts over'],
+      a: 0,
+      why: 'Overflow in IEEE 754 produces ±infinity (all-ones exponent, zero mantissa). NaN is reserved for invalid operations like 0.0/0.0. Try it in the Lab.' }
+  ]
+};
+</script>
+<script src="../assets/ieee754.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

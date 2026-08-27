@@ -25,6 +25,8 @@ PAGES = [
     'chapters/chapter-2.html',
     'chapters/chapter-3.html',
     'supplementary/compiling.html',
+    'supplementary/expression-trees.html',
+    'supplementary/floating-point.html',
 ]
 
 def load_mapping():
