@@ -116,17 +116,19 @@
     isTypeStart: function () {
       var t = this.peek();
       if (t.t !== 'id') return false;
-      if (t.v === 'const') return true;
+      if (t.v === 'const' || t.v === 'static' || t.v === 'auto' || t.v === 'register' || t.v === 'extern') return true;
       if (t.v === 'std') return this.peek(1) && this.peek(1).v === '::';
       return TYPE_WORDS.indexOf(t.v) >= 0;
     },
 
     parseType: function () {
-      var isConst = false, words = [], line = this.peek().line;
+      var isConst = false, isStatic = false, words = [], line = this.peek().line;
       for (;;) {
         var t = this.peek();
         if (t.t !== 'id') break;
         if (t.v === 'const') { isConst = true; this.pos++; continue; }
+        if (t.v === 'static') { isStatic = true; this.pos++; continue; }
+        if (t.v === 'auto' || t.v === 'register' || t.v === 'extern') { this.pos++; continue; } // storage classes: accepted, no effect here
         if (t.v === 'std' && this.peek(1).v === '::') { this.pos += 2; continue; }
         if (TYPE_WORDS.indexOf(t.v) >= 0) { words.push(t.v); this.pos++; continue; }
         break;
@@ -139,7 +141,7 @@
       else if (words.indexOf('char') >= 0) base = 'char';
       else if (words.indexOf('void') >= 0) base = 'void';
       else base = 'int';
-      return { base: base, isConst: isConst, line: line };
+      return { base: base, isConst: isConst, isStatic: isStatic, line: line };
     },
 
     parseProgram: function () {
@@ -173,11 +175,16 @@
           var pty = this.parseType();
           if (pty.base === 'void') this.err('a parameter cannot have type void', this.peek());
           var ref = this.eat('&');
-          var pn = null;
+          var pn = null, isArr = false;
           if (this.peek().t === 'id') pn = this.next().v;
-          if (this.at('[')) this.err('array parameters are not supported in the playground');
+          if (this.eat('[')) { // array parameter: int b[] (a size inside is allowed and ignored, as in C++)
+            if (!this.at(']')) this.parseAssign();
+            this.expect(']');
+            isArr = true;
+            if (this.at('[')) this.err('only 1-D arrays can be passed to functions in the playground');
+          }
           if (this.at('=')) this.err('default arguments are not supported in the playground');
-          params.push({ type: pty.base, ref: ref, name: pn, line: pty.line });
+          params.push({ type: pty.base, ref: ref, arr: isArr, name: pn, line: pty.line });
           if (!this.eat(',')) break;
         }
       }
@@ -206,29 +213,44 @@
         var t = this.peek();
         if (t.t !== 'id') this.err('expected a variable name');
         this.pos++;
-        var d = { name: t.v, ref: ref, size: null, init: null, line: t.line };
+        var d = { name: t.v, ref: ref, size: null, size2: null, init: null, line: t.line };
         if (this.eat('[')) {
           d.size = this.parseAssign();
           this.expect(']');
+          if (this.eat('[')) { // two-dimensional array
+            d.size2 = this.parseAssign();
+            this.expect(']');
+            if (this.at('[')) this.err('the playground supports at most 2-D arrays');
+          }
         }
         if (this.eat('=')) {
           if (this.at('{')) d.init = this.parseInitList();
           else d.init = this.parseAssign();
         } else if (this.at('{')) {
           d.init = this.parseInitList();
+        } else if (d.size === null && this.at('(')) {
+          // constructor-style init: string s(str, n, p) / int x(5)
+          this.next();
+          var cargs = [];
+          if (!this.at(')')) for (;;) { cargs.push(this.parseAssign()); if (!this.eat(',')) break; }
+          this.expect(')');
+          d.init = { k: 'ctorargs', args: cargs, line: t.line };
         }
         decls.push(d);
         if (!this.eat(',')) break;
       }
       this.expect(';', 'at the end of the declaration');
-      return { k: 'vardecl', type: ty.base, isConst: ty.isConst, decls: decls, line: line };
+      return { k: 'vardecl', type: ty.base, isConst: ty.isConst, isStatic: ty.isStatic, decls: decls, line: line };
     },
 
     parseInitList: function () {
       var open = this.expect('{');
       var items = [];
       if (!this.at('}')) {
-        for (;;) { items.push(this.parseAssign()); if (!this.eat(',')) break; }
+        for (;;) {
+          items.push(this.at('{') ? this.parseInitList() : this.parseAssign());
+          if (!this.eat(',')) break;
+        }
       }
       this.expect('}');
       return { k: 'initlist', items: items, line: open.line };
@@ -631,29 +653,80 @@
           env.define(d.name, lv.cell, d.line);
           continue;
         }
-        if (d.size !== null) { // array
+        // static locals: created once, remembered between calls (the AST node keeps the cell)
+        if (st.isStatic) {
+          st.__statics = st.__statics || {};
+          if (st.__statics[d.name]) { env.define(d.name, st.__statics[d.name], d.line); continue; }
+        }
+        var newCell;
+        if (d.size !== null) { // array (1-D or 2-D)
           var sz = this.convert(this.evalExpr(d.size, env), 'int', d.line).v;
           if (sz <= 0 || sz > 1000000) throw new RuntimeError(d.line, 'invalid array size ' + sz);
-          var arr = new Array(sz);
-          for (var j = 0; j < sz; j++) arr[j] = this.defaultVal(st.type).v;
+          var dims = [sz], total = sz;
+          if (d.size2 !== null) {
+            var sz2 = this.convert(this.evalExpr(d.size2, env), 'int', d.line).v;
+            if (sz2 <= 0 || sz * sz2 > 1000000) throw new RuntimeError(d.line, 'invalid array size ' + sz + 'x' + sz2);
+            dims = [sz, sz2];
+            total = sz * sz2;
+          }
+          var arr = new Array(total);
+          for (var j = 0; j < total; j++) arr[j] = this.defaultVal(st.type).v;
           if (d.init) {
             if (d.init.k !== 'initlist') throw new RuntimeError(d.line, 'an array needs a {...} initializer list');
-            if (d.init.items.length > sz) throw new RuntimeError(d.line, 'too many initializers for array of size ' + sz);
-            for (var m = 0; m < d.init.items.length; m++)
-              arr[m] = this.convert(this.evalExpr(d.init.items[m], env), st.type, d.line).v;
+            if (dims.length === 2 && d.init.items.length && d.init.items[0].k === 'initlist') {
+              // nested rows: {{...}, {...}}
+              if (d.init.items.length > dims[0]) throw new RuntimeError(d.line, 'too many rows in the initializer');
+              for (var r = 0; r < d.init.items.length; r++) {
+                var row = d.init.items[r];
+                if (row.k !== 'initlist') throw new RuntimeError(d.line, 'mix of {row} and plain values in a 2-D initializer');
+                if (row.items.length > dims[1]) throw new RuntimeError(d.line, 'too many values in row ' + (r + 1));
+                for (var c = 0; c < row.items.length; c++)
+                  arr[r * dims[1] + c] = this.convert(this.evalExpr(row.items[c], env), st.type, d.line).v;
+              }
+            } else {
+              if (d.init.items.length > total) throw new RuntimeError(d.line, 'too many initializers for array of size ' + total);
+              for (var m = 0; m < d.init.items.length; m++)
+                arr[m] = this.convert(this.evalExpr(d.init.items[m], env), st.type, d.line).v;
+            }
           }
-          env.define(d.name, { t: st.type, isArray: true, arr: arr, isConst: st.isConst }, d.line);
-          continue;
+          newCell = { t: st.type, isArray: true, arr: arr, dims: dims, isConst: st.isConst };
+        } else {
+          var val;
+          if (d.init) {
+            if (d.init.k === 'initlist') {
+              if (d.init.items.length !== 1) throw new RuntimeError(d.line, 'a scalar variable takes exactly one initializer');
+              val = this.convert(this.evalExpr(d.init.items[0], env), st.type, d.line);
+            } else if (d.init.k === 'ctorargs') {
+              val = this.ctorInit(st.type, d.init.args, env, d.line);
+            } else val = this.convert(this.evalExpr(d.init, env), st.type, d.line);
+          } else val = this.defaultVal(st.type);
+          newCell = { t: st.type, v: val.v, isConst: st.isConst };
         }
-        var val;
-        if (d.init) {
-          if (d.init.k === 'initlist') {
-            if (d.init.items.length !== 1) throw new RuntimeError(d.line, 'a scalar variable takes exactly one initializer');
-            val = this.convert(this.evalExpr(d.init.items[0], env), st.type, d.line);
-          } else val = this.convert(this.evalExpr(d.init, env), st.type, d.line);
-        } else val = this.defaultVal(st.type);
-        env.define(d.name, { t: st.type, v: val.v, isConst: st.isConst }, d.line);
+        if (st.isStatic) st.__statics[d.name] = newCell;
+        env.define(d.name, newCell, d.line);
       }
+    },
+
+    // constructor-style initialization: string s(str) / s(str, n) / s(str, n, p) / int x(5)
+    ctorInit: function (type, args, env, line) {
+      if (!args.length) return this.defaultVal(type);
+      if (type === 'string') {
+        var src = this.evalExpr(args[0], env);
+        if (src.t !== 'string')
+          throw new RuntimeError(line, 'a string constructor needs a string as its first argument');
+        var s = src.v;
+        if (args.length >= 2) {
+          var n = this.convert(this.evalExpr(args[1], env), 'int', line).v;
+          if (n < 0 || n > s.length) throw new RuntimeError(line, 'start position ' + n + ' is out of range');
+          s = args.length >= 3
+            ? s.substr(n, this.convert(this.evalExpr(args[2], env), 'int', line).v)
+            : s.substr(n);
+          if (args.length > 3) throw new RuntimeError(line, 'a string constructor takes at most 3 arguments');
+        }
+        return { t: 'string', v: s };
+      }
+      if (args.length !== 1) throw new RuntimeError(line, 'this constructor takes exactly one value');
+      return this.convert(this.evalExpr(args[0], env), type, line);
     },
 
     // ---- lvalues: wrappers with {t, get(), set(v)} and, when the value has
@@ -671,36 +744,48 @@
         };
       }
       if (node.k === 'index') {
-        if (node.a.k === 'id') {
-          var acell = env.lookup(node.a.name);
-          if (!acell) throw new RuntimeError(node.line, "'" + node.a.name + "' was not declared in this scope");
-          var idx = this.convert(this.evalExpr(node.i, env), 'int', node.line).v;
-          if (acell.isArray) {
-            if (idx < 0 || idx >= acell.arr.length)
-              throw new RuntimeError(node.line, 'array index ' + idx + ' is out of bounds (size ' + acell.arr.length + ')');
-            var proxy = {
-              t: acell.t, isConst: acell.isConst,
-              get v() { return acell.arr[idx]; },
-              set v(x) { acell.arr[idx] = x; }
-            };
-            return {
-              t: acell.t, isConst: acell.isConst, cell: proxy,
-              get: function () { return { t: acell.t, v: acell.arr[idx] }; },
-              set: function (v) { acell.arr[idx] = v; }
-            };
+        // collect the whole a[i] / a[i][j] chain down to the base name
+        var idxNodes = [node.i], base = node.a;
+        while (base.k === 'index') { idxNodes.unshift(base.i); base = base.a; }
+        if (base.k !== 'id') throw new RuntimeError(node.line, 'this expression cannot be indexed');
+        var acell = env.lookup(base.name);
+        if (!acell) throw new RuntimeError(node.line, "'" + base.name + "' was not declared in this scope");
+        if (acell.isArray) {
+          var dims = acell.dims || [acell.arr.length];
+          if (idxNodes.length !== dims.length)
+            throw new RuntimeError(node.line, "'" + base.name + "' is a " + dims.length + '-D array — it needs ' +
+              dims.length + ' ' + (dims.length === 1 ? 'index' : 'indices') + ', not ' + idxNodes.length);
+          var off = 0;
+          for (var q = 0; q < dims.length; q++) {
+            var iv = this.convert(this.evalExpr(idxNodes[q], env), 'int', node.line).v;
+            if (iv < 0 || iv >= dims[q])
+              throw new RuntimeError(node.line, 'index ' + iv + ' is out of bounds for dimension ' + (q + 1) + ' (size ' + dims[q] + ')');
+            off = off * dims[q] + iv;
           }
-          if (acell.t === 'string') {
-            if (idx < 0 || idx >= acell.v.length)
-              throw new RuntimeError(node.line, 'string index ' + idx + ' is out of bounds (length ' + acell.v.length + ')');
-            return {
-              t: 'char', isConst: acell.isConst,
-              get: function () { return { t: 'char', v: acell.v.charCodeAt(idx) }; },
-              set: function (v) { acell.v = acell.v.slice(0, idx) + String.fromCharCode(v) + acell.v.slice(idx + 1); }
-            };
-          }
-          throw new RuntimeError(node.line, "'" + node.a.name + "' is not an array or string");
+          var idx = off;
+          var proxy = {
+            t: acell.t, isConst: acell.isConst,
+            get v() { return acell.arr[idx]; },
+            set v(x) { acell.arr[idx] = x; }
+          };
+          return {
+            t: acell.t, isConst: acell.isConst, cell: proxy,
+            get: function () { return { t: acell.t, v: acell.arr[idx] }; },
+            set: function (v) { acell.arr[idx] = v; }
+          };
         }
-        throw new RuntimeError(node.line, 'this expression cannot be indexed');
+        if (acell.t === 'string') {
+          if (idxNodes.length !== 1) throw new RuntimeError(node.line, 'a string takes a single index');
+          var six = this.convert(this.evalExpr(idxNodes[0], env), 'int', node.line).v;
+          if (six < 0 || six >= acell.v.length)
+            throw new RuntimeError(node.line, 'string index ' + six + ' is out of bounds (length ' + acell.v.length + ')');
+          return {
+            t: 'char', isConst: acell.isConst,
+            get: function () { return { t: 'char', v: acell.v.charCodeAt(six) }; },
+            set: function (v) { acell.v = acell.v.slice(0, six) + String.fromCharCode(v) + acell.v.slice(six + 1); }
+          };
+        }
+        throw new RuntimeError(node.line, "'" + base.name + "' is not an array or string");
       }
       throw new RuntimeError(node.line, 'this expression cannot be assigned to (not a variable)');
     },
@@ -981,6 +1066,21 @@
       var frame = new Env(this.globalEnv);
       for (var i = 0; i < f.params.length; i++) {
         var p = f.params[i];
+        if (p.arr) {
+          // array parameter: the callee works on the caller's array (like C++ array decay)
+          var an = argNodes[i];
+          if (an.k !== 'id')
+            throw new RuntimeError(line, "parameter '" + p.name + "' is an array — pass an array by its name, without brackets");
+          var acl = (env || this.globalEnv).lookup(an.name);
+          if (!acl || !acl.isArray)
+            throw new RuntimeError(line, "'" + an.name + "' is not an array, but parameter '" + p.name + "' expects one");
+          if (acl.dims && acl.dims.length === 2)
+            throw new RuntimeError(line, 'only 1-D arrays can be passed to functions in the playground');
+          if (acl.t !== p.type)
+            throw new RuntimeError(line, "cannot pass a " + acl.t + ' array to ' + p.type + " parameter '" + p.name + "'");
+          frame.vars[p.name] = acl;
+          continue;
+        }
         if (p.ref) {
           var lv;
           try { lv = this.evalLValue(argNodes[i], env); }

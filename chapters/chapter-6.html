@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Functions · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">Chapter 1</a>
+      <a href="chapter-2.html">Chapter 2</a>
+      <a href="chapter-3.html">Chapter 3</a>
+      <a href="chapter-4.html">Chapter 4</a>
+      <a href="chapter-5.html">Chapter 5</a>
+      <a href="chapter-6.html" aria-current="page">Chapter 6</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="chapter-6.html" aria-current="page"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 6 · C++ Track</span>
+      <h1>Functions</h1>
+      <p class="lede">
+        The predefined-process box from Chapter 1's flowcharts finally gets its C++ form.
+        Declarations and definitions, prototypes, <strong>pass by value</strong> versus
+        <strong>pass by reference</strong>, the scope and lifetime of variables — including
+        the <code>static</code> locals that remember — and how whole arrays travel into
+        functions.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">7 concepts</a>
+        <a class="chip" href="#quiz">26-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap06_Functions.pdf">Slides (PDF)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>Programs made of named pieces</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">6.1</span>Definitions, calls, and the two kinds of parameter</h3>
+        <p>
+          In C++ all subprograms are <strong>functions</strong>. A function definition has
+          four parts: the return data type, the name, any parameters within
+          <code>( )</code>, and the body in <code>{ }</code>:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_6_1_1.cpp</span></div>
+          <pre><span class="kw">void</span> <span class="fn">FindMax</span>(<span class="kw">int</span> x, <span class="kw">int</span> y) {        <span class="cm">// x, y: FORMAL parameters</span>
+    <span class="kw">int</span> maxnum;
+    maxnum = (x &gt;= y) ? x : y;
+    cout &lt;&lt; <span class="str">"The maximum of the 2 numbers is "</span> &lt;&lt; maxnum &lt;&lt; endl;
+}
+
+<span class="cm">// in main():</span>
+<span class="kw">int</span> firstNum = 5, secNum = 8;
+FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTUAL parameters</span></pre>
+        </div>
+        <p>
+          The names in the function header are <strong>formal parameters</strong>; the values
+          or variables placed in the call are <strong>actual parameters</strong>.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">6.2</span>Prototypes — promise now, define later</h3>
+        <p>
+          A <strong>function prototype</strong> declares to the compiler that you intend to
+          use a function later: <code>int maximum(int, int, int);</code> (parameter names
+          optional). Calling a function before either its prototype or its definition is a
+          <strong>compile-time error</strong>. Example 7.3.2 puts the prototype above
+          <code>main</code>, the call inside it, and the definition below — the standard
+          layout you will use in Exercise 2.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">6.3</span>Pass by value — the function gets a copy</h3>
+        <p>
+          When a variable is an actual parameter, the called function receives a
+          <strong>copy of its value</strong>. Changes to the copy never affect the caller's
+          variable. To hand a result back, use <code>return expression;</code> (or the bare
+          <code>return;</code> in a void function) — and the value's type must match the
+          function's declared return type.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">6.4</span>Scope: global vs local</h3>
+        <p>
+          <strong>Scope</strong> is where a declared name may be used. Declared outside every
+          function → <strong>global scope</strong>, accessible throughout the program.
+          Declared inside a function → <strong>local scope</strong>, that function only.
+          Example 6.3.1 is the classic trace: a global <code>x</code> changed inside
+          <code>valfun()</code> stays changed for <code>main</code> (x = 40), while each
+          function's local <code>y</code> is its own — main's y is still 20.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">6.5</span>Storage classes — how long a variable lives</h3>
+        <p>
+          A variable's lifetime is its <strong>storage duration</strong> (storage class):
+          <code>auto</code>, <code>static</code>, <code>extern</code>, and
+          <code>register</code>. Locals may be auto (the default), static, or register.
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">auto_vs_static.cpp — one word changes everything</span></div>
+          <pre><span class="kw">void</span> <span class="fn">testauto</span>()   { <span class="kw">int</span> num = 0;        cout &lt;&lt; num; num++; }
+<span class="cm">// three calls print: 0 0 0   — created and destroyed every call</span>
+
+<span class="kw">void</span> <span class="fn">teststatic</span>() { <span class="kw">static int</span> num = 0; cout &lt;&lt; num; num++; }
+<span class="cm">// three calls print: 0 1 2   — created ONCE, remembered for the</span>
+<span class="cm">//                              life of the program</span></pre>
+        </div>
+        <ul>
+          <li>A <strong>static</strong> local's initialization happens only once; with no explicit initializer, statics are set to zero. Example 6.4.4's <code>static int sum = 100;</code> accumulates: 101, 103, 106, 110…</li>
+          <li><code>register</code> asks for storage in the CPU's internal registers; same duration as auto.</li>
+          <li><code>extern</code> names a global that is defined in another file, so several files can share it.</li>
+        </ul>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">6.6</span>Pass by reference — the &amp; that changes the caller</h3>
+        <p>
+          Follow the parameter's type with an ampersand and the callee can access — and
+          modify — the caller's data directly:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_6_5_1.cpp</span></div>
+          <pre><span class="kw">int</span> <span class="fn">squareByValue</span>(<span class="kw">int</span> a) {
+    <span class="kw">return</span> a *= a;      <span class="cm">// squares a COPY — caller's x unchanged</span>
+}
+
+<span class="kw">void</span> <span class="fn">squareByReference</span>(<span class="kw">int</span> &amp;cRef) {
+    cRef *= cRef;       <span class="cm">// squares the caller's own variable</span>
+}
+
+<span class="cm">// x = 2 → still 2 after squareByValue(x)  (which returned 4)</span>
+<span class="cm">// z = 4 → becomes 16 after squareByReference(z)</span></pre>
+        </div>
+        <p>
+          Choose by-value when the function only needs to <em>read</em>; choose by-reference
+          when its job is to <em>change</em> its arguments — like <code>swap</code>, or a
+          function that must hand back more than one result.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">6.7</span>Passing arrays to functions</h3>
+        <p>
+          Pass an array by its <strong>name, without brackets</strong>:
+          <code>modifyArray(hourlyTemperature, size)</code>. The receiving parameter is
+          declared as <code>int b[]</code> — the size is <em>not</em> required between the
+          brackets, which is exactly why the element count travels as its own parameter.
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_6_6_1.cpp — linear search</span></div>
+          <pre><span class="kw">int</span> <span class="fn">linearSearch</span>(<span class="kw">int</span> array[], <span class="kw">int</span> key, <span class="kw">int</span> sizeofArray) {
+    <span class="kw">for</span> (<span class="kw">int</span> n = 0; n &lt; sizeofArray; n++)
+        <span class="kw">if</span> (array[n] == key)
+            <span class="kw">return</span> n;       <span class="cm">// found: its position</span>
+    <span class="kw">return</span> -1;              <span class="cm">// a sentinel: no valid index is −1</span>
+}</pre>
+        </div>
+        <div class="note warn">
+          <span class="note-tag">Arrays break the copy rule</span>
+          Unlike single values, an array is <em>not</em> copied into the function — the callee
+          works on the caller's elements, so modifications are visible after the call.
+          Arrays are effectively passed by reference.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Test yourself</span>
+        <h2>Chapter 6 quiz</h2>
+        <p>26 questions — definitions, traces of scope and static, and the two passing styles.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Practice</span>
+        <h2>Programming exercises</h2>
+        <p>
+          From your first void function to linear search with an array parameter — the
+          chapter's examples, runnable and auto-checked.
+        </p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Team activity</span>
+        <h2>Group discussion: the great refactor</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute before/after presentation. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          Take one long, working, function-free program — your team's Chapter 4 survey
+          machine or Chapter 5 gradebook is perfect — and <strong>refactor it into
+          functions</strong>. The deliverable is an API design the team can defend: a list of
+          function prototypes where every parameter is deliberately by-value, by-reference,
+          or an array — with one sentence of justification each.
+        </p>
+        <h3>Constraints that force Chapter 6 thinking</h3>
+        <ul style="max-width:46rem">
+          <li>main() shrinks to a readable sequence of calls — no loose loops left in it.</li>
+          <li>At least one function returns a value, one uses a reference out-parameter, and one takes an array plus its size.</li>
+          <li>No global variables — everything travels through parameters. (If the team keeps one, they must defend it against the scope section of this chapter.)</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>API designer</td><td>owns the list of prototypes and the by-value / by-reference decisions</td></tr>
+            <tr><td>Programmer</td><td>performs the refactor live in the Playground, function by function</td></tr>
+            <tr><td>Skeptic</td><td>hunts for hidden coupling: which function secretly needs another's local?</td></tr>
+            <tr><td>Presenter</td><td>shows before vs after and argues why the after is easier to test and reuse</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          Which parameters did you make references, and what would silently break if they
+          were by-value? Where would a static local be tempting — and why is it usually the
+          wrong call in a refactor? What did splitting into functions make <em>testable</em>
+          that was not before?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/introduction-to-functions/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Introduction to functions</h4>
+          <p>Definitions, return values, and why “one function, one job” is the golden rule.</p>
+        </a>
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/pass-by-lvalue-reference/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Pass by reference</h4>
+          <p>References in depth — including const references, the read-only middle ground.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/functions" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — Functions</h4>
+          <p>The complete rules for declarations, definitions, parameters, and return.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/storage_duration" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — Storage duration</h4>
+          <p>auto, static, extern and friends — scope vs lifetime, precisely defined.</p>
+        </a>
+        <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
+          <span class="rc-kind">Textbook</span>
+          <h4>Malik — C++ Programming, Chapters 6–7</h4>
+          <p>User-defined functions I &amp; II — value vs reference parameters, scope, and static.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-5.html"><span class="dir">← Previous chapter</span>Arrays &amp; Strings</a>
+        <a href="../playground.html" style="text-align:right"><span class="dir">Keep practising →</span>C++ Playground</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 6 · Functions</p>
+  </div>
+</footer>
+
+<script src="../assets/minicpp.js"></script>
+<script src="../assets/ch6-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

@@ -18,6 +18,9 @@
       <a href="../chapters/chapter-1.html">Chapter 1</a>
       <a href="../chapters/chapter-2.html">Chapter 2</a>
       <a href="../chapters/chapter-3.html">Chapter 3</a>
+      <a href="../chapters/chapter-4.html">Chapter 4</a>
+      <a href="../chapters/chapter-5.html">Chapter 5</a>
+      <a href="../chapters/chapter-6.html">Chapter 6</a>
       <a href="../playground.html">Playground</a>
       <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
     </nav>
@@ -32,9 +35,9 @@
     <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
     <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
     <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
-    <span class="soon"><span class="ch-num">04</span>Repetition<small>soon</small></span>
-    <span class="soon"><span class="ch-num">05</span>Arrays &amp; Strings<small>soon</small></span>
-    <span class="soon"><span class="ch-num">06</span>Functions<small>soon</small></span>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
     <a href="../playground.html">⚡ Playground</a>
   </nav>
   <h4>Supplementary</h4>
@@ -194,8 +197,37 @@ invert 11111010
           Encode it in the Lab and read its bits.
         </p>
       </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S4.5</span>Overflow in the wild</h3>
+        <p style="max-width:46rem">
+          Overflow is not a classroom curiosity — it ships in real products. A one-line C++
+          example that looks completely innocent:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">seconds_per_century.cpp — spot the bug</span></div>
+          <pre><span class="kw">int</span> secondsPerCentury = 100 * 365 * 24 * 60 * 60;
+<span class="cm">// 3,153,600,000 — but INT_MAX is 2,147,483,647.</span>
+<span class="cm">// The multiplication overflows BEFORE the assignment:</span>
+<span class="cm">// every factor is an int, so the arithmetic is int arithmetic.</span>
+<span class="cm">// Fix: make one factor wider —  100LL * 365 * 24 * 60 * 60</span></pre>
+        </div>
+        <ul style="max-width:46rem">
+          <li><strong>YouTube, 2014:</strong> the view counter was a 32-bit int — then PSY's <em>Gangnam Style</em> passed 2,147,483,647 views and YouTube had to move the counter to 64 bits.</li>
+          <li><strong>Ariane 5, 1996:</strong> a velocity value was converted into a 16-bit integer that could not hold it; the overflow cascaded and the rocket was destroyed 37 seconds after launch — roughly $370 million.</li>
+          <li><strong>Boeing 787:</strong> a generator-control counter overflowed after 248 days of continuous power, prompting an airworthiness directive to reboot the aircraft before then.</li>
+        </ul>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Honest note about the exercise boxes</span>
+          The chapter pages' C++ playground interprets numbers with wide precision, so it
+          does <em>not</em> reproduce real 32-bit wrapping — that is exactly what the
+          <strong>Lab below</strong> is for: set 32-bit, encode 2147483647, press
+          <span class="mono">+1</span>, and watch the real thing happen.
+        </div>
+      </div>
     </div>
   </section>
+
 
   <section class="block" id="lab">
     <div class="wrap">
