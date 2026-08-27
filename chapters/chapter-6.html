@@ -46,6 +46,10 @@
     <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
     <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
     <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="../supplementary/loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
   </nav>
   <h4>On this page</h4>
   <nav aria-label="On this page">
@@ -167,6 +171,12 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           <li><code>register</code> asks for storage in the CPU's internal registers; same duration as auto.</li>
           <li><code>extern</code> names a global that is defined in another file, so several files can share it.</li>
         </ul>
+        <div class="note tip">
+          <span class="note-tag">See it as a stack</span>
+          Why exactly does auto reset while static remembers? Where does a reference
+          parameter really point? <a href="../supplementary/call-stack.html">S7 — The call
+          stack</a> runs this chapter's examples with the frames drawn live.
+        </div>
       </div>
 
       <div class="concept">

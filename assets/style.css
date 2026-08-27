@@ -898,3 +898,97 @@ table.ieee-table td strong, table.ieee-table td code { color: var(--ink); }
 }
 .ieee-exact.differs { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); }
 .ieee-note { font-size: 0.85rem; color: var(--amber); margin-top: 0.4rem; }
+
+/* ── Jump Machine (S5) & shared source listing ── */
+.jm-cpp {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; line-height: 1.6;
+  background: var(--code-bg); color: var(--code-text);
+  border-radius: 8px; padding: 0.7rem 0.9rem; overflow-x: auto; margin: 0;
+}
+.jm-listing {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; line-height: 1.7;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.5rem 0; overflow-x: auto; white-space: pre;
+}
+.jm-line { padding: 0 0.7rem 0 0.3rem; color: var(--ink-soft); }
+.jm-line .jm-no {
+  display: inline-block; width: 2rem; text-align: right;
+  margin-right: 0.6rem; color: color-mix(in srgb, var(--ink-soft) 55%, transparent);
+  font-size: 0.72rem;
+}
+.jm-line.jm-pc {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--ink); font-weight: 600;
+}
+.jm-line.jm-pc .jm-no { color: var(--accent); }
+.jm-flag {
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink-soft);
+  padding: 0.4rem 0.7rem; font-size: 0.8rem;
+}
+
+/* ── Memory Lab (S6) ── */
+.mem-decl {
+  font-size: 0.82rem; color: var(--ink-soft);
+  border: 1px dashed var(--line); border-radius: 8px; padding: 0.5rem 0.8rem;
+  overflow-x: auto; white-space: nowrap;
+}
+.mem-grid { display: flex; gap: 3px; overflow-x: auto; padding: 0.3rem 0; }
+.mem-cell {
+  min-width: 4.4rem; text-align: center;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--surface); padding: 0.3rem 0.25rem;
+  font-family: "IBM Plex Mono", monospace;
+}
+.mem-cell.is-arr { border-color: color-mix(in srgb, var(--teal) 50%, var(--line)); }
+.mem-cell.is-var { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.mem-cell.flash { background: color-mix(in srgb, var(--amber) 20%, var(--surface)); border-color: var(--amber); }
+.mem-cell .mc-addr { display: block; font-size: 0.62rem; color: var(--ink-soft); }
+.mem-cell .mc-val { display: block; font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+.mem-cell .mc-name { display: block; font-size: 0.66rem; color: var(--ink-soft); }
+.mem-in {
+  width: 4.5rem; font-family: "IBM Plex Mono", monospace; font-size: 0.9rem;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.6rem;
+}
+.mem-formula { font-size: 0.85rem; color: var(--ink-soft); min-height: 1.3rem; }
+.mem-formula strong { color: var(--ink); }
+.mem-2d { display: grid; gap: 3px; width: max-content; }
+.mem-2d-row { display: flex; gap: 3px; }
+
+/* ── Text Inspector (S8) ── */
+.tx-counts { display: flex; flex-wrap: wrap; gap: 0.9rem; font-size: 0.86rem; color: var(--ink-soft); }
+.tx-counts b { color: var(--ink); }
+.tx-count.tx-mismatch { color: var(--amber); font-weight: 600; }
+.tx-table-box table.tbl td.tx-ch { font-size: 1.1rem; }
+.tx-table-box tr.tx-multi td { background: color-mix(in srgb, var(--teal) 7%, transparent); }
+
+/* ── Call Stack Visualizer (S7) ── */
+.cs-cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+@media (max-width: 720px) { .cs-cols { grid-template-columns: 1fr; } }
+.cs-src { max-height: 26rem; overflow-y: auto; }
+.cs-stack, .cs-outside { display: grid; gap: 0.5rem; }
+.cs-frame {
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 8px; background: var(--surface); overflow: hidden;
+}
+.cs-frame.cs-top { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+.cs-frame.cs-glob { border-color: color-mix(in srgb, var(--teal) 55%, var(--line)); }
+.cs-frame.cs-stat { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); }
+.cs-fname {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; font-weight: 600;
+  padding: 0.3rem 0.7rem; color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border-bottom: 1px solid var(--line);
+}
+.cs-frame.cs-glob .cs-fname { background: color-mix(in srgb, var(--teal) 10%, var(--surface)); }
+.cs-frame.cs-stat .cs-fname { background: color-mix(in srgb, var(--amber) 12%, var(--surface)); }
+.cs-fname small { color: var(--ink-soft); font-weight: 500; }
+.cs-var {
+  display: flex; justify-content: space-between; gap: 1rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.78rem;
+  padding: 0.18rem 0.7rem; color: var(--ink-soft);
+}
+.cs-var b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.cs-var.cs-none { font-style: italic; }
+.cs-empty { font-size: 0.82rem; color: var(--ink-soft); font-style: italic; padding: 0.4rem 0.2rem; }

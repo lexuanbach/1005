@@ -31,6 +31,10 @@ PAGES = [
     'supplementary/expression-trees.html',
     'supplementary/floating-point.html',
     'supplementary/twos-complement.html',
+    'supplementary/loops-are-jumps.html',
+    'supplementary/arrays-in-memory.html',
+    'supplementary/call-stack.html',
+    'supplementary/text-encoding.html',
 ]
 
 def load_mapping():

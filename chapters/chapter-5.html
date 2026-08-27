@@ -59,6 +59,10 @@
     <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
     <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
     <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="../supplementary/loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
   </nav>
   <h4>On this page</h4>
   <nav aria-label="On this page">
@@ -147,6 +151,12 @@
           security hole. The playground raises a clear error instead, so you can learn the
           rule safely.
         </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">See it as memory</span>
+          Why does a[i] even work — and what exactly gets destroyed when i goes too far?
+          <a href="../supplementary/arrays-in-memory.html">S6 — Arrays in memory</a> shows
+          the address arithmetic live, including a safe out-of-bounds crash scene.
+        </div>
       </div>
 
       <div class="concept wide">
@@ -205,6 +215,13 @@
           <li><code>length()</code> and <code>size()</code> both return the number of characters.</li>
           <li><code>at(i)</code> returns the character at index i — <code>s.at(s.length() - 1)</code> is the last one.</li>
         </ul>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">And what about tiếng Việt?</span>
+          Every example above is ASCII. The moment your strings contain <em>à</em> or
+          <em>ệ</em>, characters and bytes stop agreeing —
+          <a href="../supplementary/text-encoding.html">S8 — How text becomes bytes</a>
+          explains ASCII, Unicode, and UTF-8 with an inspector you can type into.
+        </div>
       </div>
 
       <div class="concept wide">

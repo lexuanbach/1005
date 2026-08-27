@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Arrays in Memory · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-5.html">Chapter 5</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="arrays-in-memory.html" aria-current="page"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#idea">The idea</a>
+    <a href="#lab">Memory Lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S6 · goes with Chapter 5</span>
+      <h1>Arrays in Memory<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        <code>a[i]</code> looks like magic notation — it is actually one multiplication and
+        one addition: <strong>base address + i × size</strong>. That single formula explains
+        why indices start at 0, why 2-D arrays are secretly flat, and why writing one step
+        past the end of an array silently destroys whatever lives next door.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#idea">3 ideas</a>
+        <a class="chip" href="#lab">Memory Lab mini-app</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="idea">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The idea</span>
+        <h2>One formula explains everything</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S6.1</span>Indexing is address arithmetic</h3>
+        <p>
+          Chapter 5 said array elements are stored <em>contiguously starting at the base
+          address</em>. That is not trivia — it is the mechanism. For
+          <code>int a[5]</code> whose base address is 1004:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">what a[i] compiles to</span></div>
+          <pre>&amp;a[i]  =  base + i × sizeof(<span class="kw">int</span>)
+&amp;a[0]  =  1004 + 0 × 4  =  1004      <span class="cm">; ← why indices start at ZERO:</span>
+&amp;a[3]  =  1004 + 3 × 4  =  1016      <span class="cm">;   the first element is 0 steps away</span></pre>
+        </div>
+        <p>
+          One multiply, one add — the same cost for <code>a[0]</code> and
+          <code>a[4999]</code>. For a <code>double</code> array the ×4 becomes ×8; the
+          formula never changes.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S6.2</span>2-D arrays: the grid is a lie</h3>
+        <p>
+          <code>int b[3][4]</code> is not a grid in memory — it is 12 consecutive cells with
+          one more layer of the same arithmetic, called <strong>row-major order</strong>:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">b[r][c] flattened</span></div>
+          <pre>flat position  =  r × COLS + c
+&amp;b[r][c]       =  base + (r × 4 + c) × sizeof(<span class="kw">int</span>)
+
+<span class="cm">; b[1][2] → 1 × 4 + 2 = flat #6 — the 7th cell of the block</span></pre>
+        </div>
+        <p>
+          This is why the inner loop of Chapter 5's nested walks runs over <em>columns</em>:
+          consecutive <code>c</code> values are physically adjacent in memory.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S6.3</span>The formula has no idea where the array ends</h3>
+        <p>
+          Here is the dark side: <code>base + i × 4</code> computes an address for
+          <em>any</em> i. Real C++ performs no bounds check — <code>a[5]</code> on a
+          5-element array simply computes the next address after the array and writes there,
+          destroying whichever variable happens to live at it. No error, no warning; the
+          corruption surfaces later, somewhere else. This bug class —
+          <strong>buffer overflow</strong> — has powered decades of security exploits.
+        </p>
+        <div class="note tip">
+          <span class="note-tag">Why does C++ allow this?</span>
+          Speed. A bounds check on every access costs instructions (S5!), and C++'s founding
+          bargain is “you don't pay for what you don't use”. Higher-level languages chose the
+          check; C++ chose to trust you. The playground on the chapter pages adds the check
+          back while you learn.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Mini app</span>
+        <h2>Memory Lab — watch the arithmetic, then break it</h2>
+        <p>
+          Panel 1 is a little neighbourhood of memory: a variable, an array of five, another
+          variable. Every store shows its address computation — then try
+          <strong>index 5</strong>, and <strong>−1</strong>, and watch the neighbours change.
+          Panel 2 lets you click around <code>b[3][4]</code> and see the row-major formula
+          pick the flat cell.
+        </p>
+      </div>
+      <div id="memory-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Store into a[2] and read the address formula. Then a[5] = 9999 — where did it land?
+        Then a[−1]. In Panel 2, walk one full row left to right and watch the flat position
+        rise by exactly 1 each click; then step down one row and watch it jump by 4.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Row-_and_column-major_order" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Row- and column-major order</h4>
+          <p>Not every language flattens the same way — Fortran and MATLAB go by columns.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Buffer_overflow" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Buffer overflow</h4>
+          <p>From Panel 1's little accident to the Morris worm and beyond.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Bounds_checking" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Bounds checking</h4>
+          <p>The check C++ skips: what it costs, and which languages pay it anyway.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/container/array" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — std::array</h4>
+          <p>Modern C++'s safer array wrapper — same memory layout, with an at() that checks.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="loops-are-jumps.html"><span class="dir">← Previous topic</span>Loops are just jumps</a>
+        <a href="call-stack.html" style="text-align:right"><span class="dir">Next topic →</span>The call stack</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S6 · Arrays in Memory</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S6',
+  quiz: [
+    { q: 'What does <code>a[i]</code> actually compute?', supp: true,
+      opts: ['The address base + i × sizeof(type), then reads or writes that cell',
+             'A search through the array from the start until element number i is found',
+             'A lookup in a hidden table that maps every index to its own address',
+             'Nothing — the compiler replaces every a[i] with the value at compile time'],
+      a: 0,
+      why: 'One multiply and one add. That is the whole mechanism — no searching, no tables, the same cost for every index.' },
+
+    { q: 'Why do C++ array indices start at 0?', supp: true,
+      opts: ['Because a[0] is zero steps from the base address — the offset is the index',
+             'A historical accident from the first compiler that later became unfixable',
+             'Because the number 0 is cheaper for the hardware to store than the number 1',
+             'To leave index 1 free for the size of the array to be stored in'],
+      a: 0,
+      why: 'The index IS the distance from the base, measured in elements: the first element is 0 elements away.' },
+
+    { q: 'int a[5] has base address 1004. What is &amp;a[3]?', supp: true,
+      opts: ['1016', '1007, three addresses after the base of the array', '1012, using three steps of four minus one for the base', '1020, since the count starts from element number one'],
+      a: 0,
+      why: '1004 + 3 × 4 = 1016. (For a double array the step would be 8.)' },
+
+    { q: 'In <code>int b[3][4]</code>, which flat cell is b[1][2]?', supp: true,
+      opts: ['Number 6, because r × COLS + c = 1 × 4 + 2',
+             'Number 12, the product of the two indices and the element size',
+             'Number 3, adding the row index and the column index together',
+             'Number 7, counting the cells one by one starting from number one'],
+      a: 0,
+      why: 'Row-major: skip 1 full row of 4, then 2 more — flat position 6, the seventh cell (counting from 0).' },
+
+    { q: 'Why is it faster to walk a 2-D array with the COLUMN index in the inner loop?', supp: true,
+      opts: ['Consecutive columns are physically adjacent in memory, so access is sequential',
+             'The column index is stored in a faster register than the row index is',
+             'Because the compiler forbids putting the row index in the inner loop',
+             'It is not faster — the order of the two loops makes no difference at all'],
+      a: 0,
+      why: 'Row-major layout puts b[r][c] and b[r][c+1] next to each other; sequential access is what memory (and its caches) love.' },
+
+    { q: 'What happens in real C++ when you write to a[5] on <code>int a[5]</code>?', supp: true,
+      opts: ['The formula computes the next address after the array and writes there — over a neighbour',
+             'The program always stops immediately with a clear index-out-of-range message',
+             'The write is silently discarded, since the array has no such element to hold it',
+             'The array is automatically grown by one element to make room for the value'],
+      a: 0,
+      why: 'base + 5 × 4 is a perfectly computable address — it just belongs to something else. That silent trampling is undefined behaviour and the seed of buffer-overflow exploits.' },
+
+    { q: 'Why does C++ not check array bounds?', supp: true,
+      opts: ['Performance — a check on every access costs instructions, and C++ chose speed',
+             'It is technically impossible to check an array bound while a program runs',
+             'The C++ designers considered out-of-bounds writes to be harmless in practice',
+             'Bounds are checked, but only for arrays declared with the const keyword'],
+      a: 0,
+      why: '“You don\'t pay for what you don\'t use.” Languages like Java and Python pay the per-access cost; C++ trusts the programmer — with famous consequences.' },
+
+    { q: 'A double array starts at address 2000. Where is d[3]?', supp: true,
+      opts: ['2024, because sizeof(double) is 8', '2012, using the four-byte step that all arrays share', '2003, three addresses beyond the base of the array', '2032, since doubles also need one extra alignment byte each'],
+      a: 0,
+      why: 'Same formula, different size: 2000 + 3 × 8 = 2024. The element type sets the stride.' }
+  ]
+};
+</script>
+<script src="../assets/memory-lab.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>
