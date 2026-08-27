@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>How Text Becomes Bytes · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-5.html">Chapter 5</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="text-encoding.html" aria-current="page"><span class="ch-num">S8</span>How text becomes bytes</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#idea">The idea</a>
+    <a href="#lab">Text Inspector</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S8 · goes with Chapter 5</span>
+      <h1>How Text Becomes Bytes<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        S4 showed integers in bits, S3 showed doubles — this topic finishes the set:
+        <strong>text</strong>. A <code>char</code> is just a small number, ASCII maps the
+        English keyboard into 128 of them… and then Vietnamese happens. Unicode gives every
+        character on Earth a number, UTF-8 packs those numbers into bytes — and suddenly
+        <em>“Xin chào”</em> has 8 characters but 9 bytes, which is exactly what a C++
+        <code>string</code> will count.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#idea">4 ideas</a>
+        <a class="chip" href="#lab">Text Inspector mini-app</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="idea">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The idea</span>
+        <h2>From 'A' to chào: three layers of encoding</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S8.1</span>ASCII: 128 numbers for an English keyboard</h3>
+        <p>
+          You already know the secret from Chapters 3 and 5: <code>'A'</code> <em>is</em> 65,
+          <code>'a' + 1 == 'b'</code>, and a <code>char</code> is an 8-bit integer (S4!).
+          The mapping is <strong>ASCII</strong>: codes 0–127 cover English letters, digits,
+          punctuation, and control characters like <code>'\n'</code> (code 10). Neat, tiny —
+          and hopelessly insufficient for most of the world's languages.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S8.2</span>Unicode: a number for every character on Earth</h3>
+        <p>
+          <strong>Unicode</strong> extends the idea to everything: each character gets a
+          <strong>code point</strong>, written U+hex. <code>A</code> is U+0041 (still 65 —
+          ASCII is Unicode's first 128 rows), <code>à</code> is U+00E0, the Vietnamese
+          <code>ệ</code> is U+1EC7, and 🚀 is U+1F680. Over 150,000 characters have numbers
+          today. A code point is <em>which character</em> — it says nothing yet about bytes.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S8.3</span>UTF-8: packing code points into bytes</h3>
+        <p>
+          <strong>UTF-8</strong> is the encoding that turns code points into bytes — using
+          <em>one to four bytes per character</em>, small codes getting fewer bytes:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">utf8_sizes.txt</span></div>
+          <pre>U+0000 … U+007F   → 1 byte    <span class="cm">A → 41            (all of ASCII, unchanged!)</span>
+U+0080 … U+07FF   → 2 bytes   <span class="cm">à → C3 A0</span>
+U+0800 … U+FFFF   → 3 bytes   <span class="cm">ệ → E1 BB 87</span>
+U+10000 and up    → 4 bytes   <span class="cm">🚀 → F0 9F 9A 80</span></pre>
+        </div>
+        <p>
+          The genius move: ASCII text is <em>already</em> valid UTF-8, byte for byte. That
+          backward compatibility is why UTF-8 quietly conquered the web — including this page.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S8.4</span>What this means for your C++ strings</h3>
+        <p>
+          A C++ <code>string</code> counts <strong>bytes</strong>, not characters. For pure
+          ASCII the two agree — but <code>string s = "Xin chào";</code> has
+          <code>s.length() == 9</code>, because <code>à</code> occupies two bytes. Indexing
+          <code>s[7]</code> lands you in the <em>middle</em> of à's two bytes, and a
+          <code>char</code> (one byte, S4) simply cannot hold <code>'à'</code>. The rule of
+          thumb for now: treat non-ASCII strings as whole values — print them, concatenate
+          them — and be careful indexing into them character by character.
+        </p>
+        <div class="note tip">
+          <span class="note-tag">Why the slides never hit this</span>
+          Every example in Chapters 1–6 uses ASCII text, where 1 character = 1 byte and
+          nothing surprises you. The moment your programs speak Vietnamese, this topic is
+          the difference between confusion and comprehension.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Mini app</span>
+        <h2>Text Inspector — every character, every byte</h2>
+        <p>
+          Type anything. Each character shows its Unicode code point and its UTF-8 bytes in
+          hex; rows beyond ASCII are tinted. The two counters at the top — characters vs
+          bytes — are the whole lesson in two numbers.
+        </p>
+      </div>
+      <div id="text-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Compare the <span class="mono">à vs a</span> preset byte by byte. Type your own full
+        name with diacritics and predict the byte count before looking. Inspect
+        <span class="mono">🚀</span> — four bytes for one character. Then go to the
+        <a href="../playground.html">Playground</a>, run
+        <span class="mono">string s = "Xin chào"; cout &lt;&lt; s.length();</span> and watch
+        C++ agree with the byte counter.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/" target="_blank" rel="noopener">
+          <span class="rc-kind">Classic essay</span>
+          <h4>Joel Spolsky — The Absolute Minimum About Unicode</h4>
+          <p>The legendary explainer this topic is a descendant of. Twenty years old, still right.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/UTF-8" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — UTF-8</h4>
+          <p>The bit-level rules behind the 1-to-4-byte table, and the history of the design.</p>
+        </a>
+        <a class="read-card" href="https://home.unicode.org" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Unicode Consortium</h4>
+          <p>The organization that assigns the numbers — browse the charts, Vietnamese included.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Vietnamese_alphabet#Computer_encodings" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Vietnamese alphabet: computer encodings</h4>
+          <p>The pre-Unicode chaos of VNI, TCVN3 and VISCII — and why Unicode ended it.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/ASCII" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — ASCII</h4>
+          <p>The full 128-entry table your char values come from, control codes and all.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="call-stack.html"><span class="dir">← Previous topic</span>The call stack</a>
+        <a href="../chapters/chapter-5.html" style="text-align:right"><span class="dir">Related chapter →</span>Arrays &amp; Strings</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S8 · How Text Becomes Bytes</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S8',
+  quiz: [
+    { q: 'What is a C++ <code>char</code>, really?', supp: true,
+      opts: ['A small (8-bit) integer whose value is read as a character code',
+             'A picture of the letter, stored as a tiny image inside the variable',
+             'A one-element string with all of the string member functions attached',
+             'A special type with no numeric value that only cout can understand'],
+      a: 0,
+      why: 'char is an integer type (S4!). \'A\' is 65 — which is why \'a\' + 1 == \'b\' worked back in Chapter 3.' },
+
+    { q: 'How many characters does ASCII define?', supp: true,
+      opts: ['128, using codes 0 through 127', '256, exactly one for every possible value of a byte', '1005, one for every character used in this course', 'Unlimited — ASCII grows as new characters are needed'],
+      a: 0,
+      why: '7 bits → 128 codes: English letters, digits, punctuation, and control characters like newline (10). The other half of the byte came later — chaotically.' },
+
+    { q: 'What is a Unicode code point?', supp: true,
+      opts: ['The unique number assigned to a character, written like U+1EC7',
+             'The position of a character inside the particular string containing it',
+             'The number of bytes that a character occupies when written to a file',
+             'A compressed pair of two ASCII codes packed into a single number'],
+      a: 0,
+      why: 'Unicode numbers the characters themselves — WHICH character, independent of any byte encoding. ệ is U+1EC7 whether or not it is ever stored.' },
+
+    { q: 'How many bytes may one character take in UTF-8?', supp: true,
+      opts: ['1 to 4, with smaller code points taking fewer bytes',
+             'Always exactly 2, so that characters can be counted by halving',
+             'Always exactly 1 — that is the entire point of having an encoding',
+             '8, one byte for every bit of the character\'s seven-bit code'],
+      a: 0,
+      why: 'Variable length: ASCII → 1 byte, à → 2, ệ → 3, 🚀 → 4. Frequency-friendly and backward compatible.' },
+
+    { q: 'Why is plain ASCII text automatically valid UTF-8?', supp: true,
+      opts: ['UTF-8 encodes code points below 128 as the identical single byte',
+             'Text editors silently convert ASCII to UTF-8 whenever a file is saved',
+             'It is not — ASCII files must be converted before UTF-8 tools read them',
+             'Because both formats store the bytes of a file in reverse order'],
+      a: 0,
+      why: 'By design, U+0000…U+007F map to themselves as single bytes. Decades of existing ASCII files were instantly valid UTF-8 — the reason UTF-8 won.' },
+
+    { q: '<code>string s = "Xin chào";</code> — what is <code>s.length()</code>?', supp: true,
+      opts: ['9 — length() counts bytes, and à occupies two of them',
+             '8 — length() counts the characters that appear on the screen',
+             '10 — one extra byte marks where the string finally terminates',
+             'Undefined — a C++ string cannot store Vietnamese characters at all'],
+      a: 0,
+      why: 'A C++ string is a byte sequence. 7 ASCII characters + the 2-byte à = 9. The visible-character count and the byte count are different questions.' },
+
+    { q: 'Why can a single <code>char</code> not hold <code>\'à\'</code>?', supp: true,
+      opts: ['à needs two UTF-8 bytes, and a char is exactly one byte wide',
+             'Because à is a capital letter and char only stores the small ones',
+             'It can — the compiler transparently widens the char when it needs to',
+             'Because chars may only hold characters that appear in C++ keywords'],
+      a: 0,
+      why: 'One byte cannot hold C3 A0. Indexing s[i] into non-ASCII text steps through BYTES, and can land mid-character — treat such strings as whole values for now.' },
+
+    { q: 'Before Unicode, Vietnamese text used encodings like VNI and TCVN3. What was the problem?', supp: true,
+      opts: ['Each encoding assigned different numbers, so text readable in one was garbage in another',
+             'They stored Vietnamese beautifully but were too slow for early computers to process',
+             'They could only encode text written entirely in uppercase letters',
+             'There was no problem — Unicode replaced them purely for legal reasons'],
+      a: 0,
+      why: 'Same bytes, different tables → mojibake. One universal numbering (Unicode) plus one dominant byte format (UTF-8) ended the chaos.' }
+  ]
+};
+</script>
+<script src="../assets/text-lab.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

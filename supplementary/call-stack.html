@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Call Stack · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-6.html">Chapter 6</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="call-stack.html" aria-current="page"><span class="ch-num">S7</span>The call stack</a>
+    <a href="text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#idea">The idea</a>
+    <a href="#lab">Visualizer</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S7 · goes with Chapter 6</span>
+      <h1>The Call Stack<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        One picture explains half of Chapter 6: every function call pushes a
+        <strong>frame</strong> onto a stack, every return pops it. Locals live and die with
+        their frame — that is why <code>auto</code> resets. <code>static</code> and globals
+        live <em>outside</em> the stack — that is why they remember. References are arrows
+        into another frame. And recursion is just many frames of the same function, each
+        with its own variables.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#idea">4 ideas</a>
+        <a class="chip" href="#lab">Call Stack Visualizer</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="idea">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The idea</span>
+        <h2>Frames: where variables actually live</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S7.1</span>Call = push, return = pop</h3>
+        <p>
+          When <code>main</code> calls <code>findMax(a, b)</code>, the machine pushes a
+          <strong>stack frame</strong> for findMax: a fresh workspace holding its parameters
+          (copies, for pass-by-value — Chapter 6's central rule) and its local variables,
+          plus a note of where in main to resume. When findMax returns, its frame is
+          <strong>popped</strong> — the workspace, and every local in it, is gone. The value
+          travels back; the variables do not.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S7.2</span>Why auto resets and static remembers</h3>
+        <p>
+          Chapter 6's Examples 6.4.1 and 6.4.2 stop being mysterious the moment you see
+          where each variable lives. An <code>auto</code> local lives <em>in the frame</em>:
+          new call, new frame, new variable, initialized again — 0, 0, 0. A
+          <code>static</code> local lives <em>outside the stack</em>, in the same region as
+          globals: it is created once, survives every pop, and greets the next call with its
+          old value — 0, 1, 2. Scope and lifetime are different questions:
+          the static's <em>scope</em> is still just its function; only its
+          <em>lifetime</em> is the whole program.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S7.3</span>References are arrows between frames</h3>
+        <p>
+          A pass-by-value parameter is a copy <em>inside the callee's frame</em> — squaring
+          it disturbs nobody. A reference parameter (<code>int &amp;cRef</code>) is an arrow
+          pointing back into the <em>caller's</em> frame: assignments travel along the arrow
+          and land in the caller's variable while its frame sits suspended below. Watch the
+          third preset — while <code>squareByReference</code> is on top of the stack, main's
+          <code>z</code> changes underneath it.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S7.4</span>Recursion — and the stack's limit</h3>
+        <p>
+          <code>fact(4)</code> calls <code>fact(3)</code> before it can finish — so both
+          frames are alive at once, each with <em>its own n</em>. The stack grows four
+          frames deep, then unwinds pop by pop as the returns multiply back up. And because
+          the stack is finite memory, recursion without a base case pushes frames until it
+          runs out: the crash every programmer eventually meets, called a
+          <strong>stack overflow</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Mini app</span>
+        <h2>Call Stack Visualizer — step through real programs</h2>
+        <p>
+          Four Chapter 6 programs, executed by the site's own C++ interpreter with a
+          recorder attached. Press <strong>Step</strong> (or <strong>Back</strong>!) and
+          watch frames push and pop on the right while the source line runs on the left.
+          Globals and statics sit in their own boxes — outside the stack, exactly where they
+          live in a real process.
+        </p>
+      </div>
+      <div id="stack-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        In the recursion preset, pause at the deepest moment: four <span class="mono">fact</span>
+        frames, four different n's. In the reference preset, find the exact step where main's
+        z becomes 16 — which frame is on top when it happens? In the static preset, watch
+        temp be born and die three times while num never blinks.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Call_stack" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Call stack</h4>
+          <p>Frames, return addresses, and how real machines lay them out.</p>
+        </a>
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/the-stack-and-the-heap/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — The stack and the heap</h4>
+          <p>Where the stack ends and the other memory region begins — your next course's territory.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Stack_overflow" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Stack overflow</h4>
+          <p>What actually happens when the frames run out — and yes, the famous website is named after it.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Recursion_(computer_science)" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Recursion</h4>
+          <p>Base cases, recursive cases, and the stack discipline that makes it all work.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="arrays-in-memory.html"><span class="dir">← Previous topic</span>Arrays in memory</a>
+        <a href="text-encoding.html" style="text-align:right"><span class="dir">Next topic →</span>How text becomes bytes</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S7 · The Call Stack</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S7',
+  quiz: [
+    { q: 'What happens on every function call?', supp: true,
+      opts: ['A frame is pushed onto the call stack, holding the callee\'s parameters and locals',
+             'The callee\'s variables are merged into the caller\'s existing set of variables',
+             'The whole program\'s memory is copied so the callee can work undisturbed',
+             'A brand-new copy of the entire program is started to execute the function'],
+      a: 0,
+      why: 'Call = push a frame; return = pop it. The frame is the function\'s private workspace, including where to resume in the caller.' },
+
+    { q: 'Why does an auto local variable “forget” its value between calls?', supp: true,
+      opts: ['It lives in the frame — which is destroyed when the function returns',
+             'The compiler erases all locals as a security measure between the calls',
+             'Its value is moved into the caller\'s frame and never brought back again',
+             'It does not forget — the value is merely hidden until the next call'],
+      a: 0,
+      why: 'Pop the frame and everything in it is gone; the next call builds a fresh frame and re-runs the initialization. Hence Example 6.4.1\'s 0, 0, 0.' },
+
+    { q: 'Where does a static local variable live?', supp: true,
+      opts: ['Outside the stack, in the same lifetime region as global variables',
+             'In the frame of main, so that it can outlive the smaller functions',
+             'In whichever frame happens to be on the top of the stack at the time',
+             'In the CPU registers, where popping the stack is unable to reach it'],
+      a: 0,
+      why: 'Statics are created once and never popped — that is the whole difference. Scope stays local to the function; lifetime becomes the whole program (0, 1, 2 in Example 6.4.2).' },
+
+    { q: 'When a function returns a value, what happens to its local variables?', supp: true,
+      opts: ['They vanish with the popped frame; only the return value travels back',
+             'They are handed to the caller together with the returned value itself',
+             'They are kept alive until the caller\'s own function finally returns too',
+             'They are written to the output so the programmer can inspect them later'],
+      a: 0,
+      why: 'The value is copied out; the frame — locals, parameters, all of it — is gone. (Which is exactly why returning is the only way OUT for a by-value function.)' },
+
+    { q: 'What is a reference parameter (<code>int &amp;cRef</code>) in stack terms?', supp: true,
+      opts: ['An arrow from the callee\'s frame into a variable of the caller\'s frame',
+             'A second copy of the variable, kept synchronized after the call returns',
+             'A rule telling the compiler to keep the callee\'s frame after it returns',
+             'A shared region outside the stack where both functions place the value'],
+      a: 0,
+      why: 'Assignments through the reference land directly in the caller\'s suspended frame — visible in the visualizer the moment cRef *= cRef runs.' },
+
+    { q: 'During fact(4), how many frames are on the stack at the deepest moment?', supp: true,
+      opts: ['5 — main plus four fact frames, each holding its own n',
+             '2 — main plus a single fact frame that keeps updating its own n',
+             '4 — the four fact frames; main\'s frame is popped while it waits',
+             '1 — recursion reuses one frame, overwriting n on every deeper call'],
+      a: 0,
+      why: 'Each recursive call pushes a new frame with its own n (4, 3, 2, 1) on top of main\'s. They unwind pop by pop as the returns multiply upward.' },
+
+    { q: 'What is a stack overflow?', supp: true,
+      opts: ['The stack running out of space — typically from recursion with no base case',
+             'A frame containing more local variables than the compiler expected it to',
+             'Two frames being popped at the same time by two different return statements',
+             'A return value too large to fit through the function\'s declared return type'],
+      a: 0,
+      why: 'The stack is finite memory. Endless pushes exhaust it and the program dies — the recursive cousin of Chapter 4\'s infinite loop.' },
+
+    { q: 'A global variable is changed inside a function. Why does main see the change?', supp: true,
+      opts: ['Globals live outside every frame, so all functions share the one variable',
+             'The function\'s frame is copied back into main\'s frame when it returns',
+             'main re-reads its own y and x variables freshly after every function call',
+             'It does not — Example 6.3.1 shows main\'s values remaining unchanged'],
+      a: 0,
+      why: 'There is exactly one x, outside the stack. valfun\'s x = 40 is main\'s x = 40. (Each function\'s local y, by contrast, lives and dies in its own frame.)' }
+  ]
+};
+</script>
+<script src="../assets/minicpp.js"></script>
+<script src="../assets/call-stack.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

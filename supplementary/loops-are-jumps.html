@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loops Are Just Jumps · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-4.html">Chapter 4</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="loops-are-jumps.html" aria-current="page"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#idea">The idea</a>
+    <a href="#lab">Jump Machine</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S5 · goes with Chapter 4</span>
+      <h1>Loops Are Just Jumps<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        There is no <code>while</code> instruction in your CPU. There is no <code>for</code>,
+        and no <code>do-while</code> either. Every loop you wrote in Chapter 4 compiles down
+        to exactly two abilities the hardware does have: <strong>compare two numbers</strong>
+        and <strong>jump to a different instruction</strong>. The Jump Machine below lets you
+        run your Chapter 4 loops the way the machine really does.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#idea">3 ideas</a>
+        <a class="chip" href="#lab">Jump Machine mini-app</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="idea">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The idea</span>
+        <h2>Compare, then jump — that is the whole secret</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S5.1</span>How a while loop compiles</h3>
+        <p>
+          The compiler (S1) translates <code>while (count &lt;= 10)</code> into a
+          <strong>test-and-jump sandwich</strong>: a labelled test at the top, a conditional
+          jump that <em>leaves</em> when the condition fails, the body, and an unconditional
+          jump back up:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">while (count &lt;= 10) — as the machine sees it</span></div>
+          <pre>      SET  count, 1
+<span class="fn">TEST:</span> CMP  count, 10    <span class="cm">; while (count &lt;= 10) …</span>
+      JGT  END          <span class="cm">; …really means: if count &gt; 10, LEAVE</span>
+      PRINT count       <span class="cm">; the body</span>
+      ADD  count, 1
+      JMP  TEST         <span class="cm">; the backwards jump IS the loop</span>
+<span class="fn">END:</span>  HALT</pre>
+        </div>
+        <p>
+          Notice the condition is <strong>inverted</strong>: the C++ says “continue while
+          ≤ 10”, the machine says “leave if &gt; 10”. And the loop itself is nothing but the
+          <code>JMP TEST</code> — an arrow pointing backwards, exactly like the flowchart
+          arrows of Chapter 1.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S5.2</span>for and do-while are the same trick, rearranged</h3>
+        <ul>
+          <li><strong>for(init; cond; update)</strong> compiles to: init <em>above</em> the label, the update just <em>before</em> the backwards jump — the same sandwich with the bookkeeping folded in.</li>
+          <li><strong>do-while</strong> puts the test at the <em>bottom</em>: the body runs, then a single conditional jump goes <em>back up</em> if the condition still holds. One test per pass, and the body always runs once — the post-test behaviour of Chapter 4, explained by instruction order.</li>
+        </ul>
+        <p>
+          And <code>break</code>? It is simply a jump to <span class="mono">END</span>.
+          <code>continue</code>? A jump to <span class="mono">TEST</span> (or to the update).
+          Even <code>if/else</code> from Chapter 3 is the same machinery — a conditional jump
+          over the branch not taken.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S5.3</span>Infinite loops, seen from below</h3>
+        <p>
+          At machine level an unintentional infinite loop is nothing mysterious: the
+          backwards jump is <em>always taken</em> because nothing between the label and the
+          jump ever changes the compared register. Forgetting <code>count++</code> in C++
+          <em>is</em> deleting the <span class="mono">ADD count, 1</span> line here — try it
+          in the Lab and watch the step counter run away.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Mini app</span>
+        <h2>Jump Machine — run your loops as the CPU does</h2>
+        <p>
+          Four Chapter 4 loops, each shown twice: the C++ you wrote, and the compare-and-jump
+          program it becomes. Press <strong>Step</strong> and follow the ▶ program counter —
+          especially the moment it <em>jumps backwards</em>. The registers panel is your
+          iteration-trace table.
+        </p>
+      </div>
+      <div id="jump-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Count how many instructions one pass of the while-loop costs (CMP, JGT, PRINT, ADD,
+        JMP — five). Watch the do-while preset: where is its test, and why does the body
+        always run once? Step the very last pass of each loop and observe the one time the
+        conditional jump is finally <em>taken</em>.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://godbolt.org" target="_blank" rel="noopener">
+          <span class="rc-kind">Tool</span>
+          <h4>Compiler Explorer (godbolt.org)</h4>
+          <p>Paste a real C++ while-loop and find the cmp / jg / jmp trio in the actual x86 output.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Branch_(computer_science)" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Branch (computer science)</h4>
+          <p>Conditional jumps, branch prediction, and why modern CPUs try to guess your loop's future.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Goto" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Goto</h4>
+          <p>The raw jump exists in C++ too — and why structured loops replaced it (“Go To Statement Considered Harmful”).</p>
+        </a>
+        <a class="read-card" href="https://www.youtube.com/watch?v=Zg1NdPKoosU" target="_blank" rel="noopener">
+          <span class="rc-kind">Video</span>
+          <h4>Ben Eater — Conditional jumps on breadboard hardware</h4>
+          <p>An 8-bit computer built by hand executes compare-and-jump — the Jump Machine, in physical form.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="../chapters/chapter-4.html"><span class="dir">← Related chapter</span>Repetition Structures</a>
+        <a href="arrays-in-memory.html" style="text-align:right"><span class="dir">Next topic →</span>Arrays in memory</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S5 · Loops Are Just Jumps</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S5',
+  quiz: [
+    { q: 'Which repetition instructions does a CPU actually have?', supp: true,
+      opts: ['None — loops are built from compare and jump instructions',
+             'One WHILE instruction, which the three C++ loops all share underneath',
+             'Three, matching while, for, and do-while one to one in the hardware',
+             'A REPEAT instruction that takes the loop count as its only operand'],
+      a: 0,
+      why: 'Hardware offers comparisons and jumps; the compiler assembles every loop out of exactly those two abilities.' },
+
+    { q: 'C++ says <code>while (count &lt;= 10)</code>. What does the machine test?', supp: true,
+      opts: ['The inverted condition: jump OUT when count &gt; 10',
+             'The same condition: jump back to the top while count &lt;= 10 holds',
+             'Both conditions, one at the top of the loop and one at the bottom',
+             'Neither — the machine counts the passes and stops at exactly ten'],
+      a: 0,
+      why: '“Continue while ≤ 10” compiles to “leave if > 10”: the conditional jump guards the exit, and a plain JMP loops back.' },
+
+    { q: 'What is a label like <code>TEST:</code> in the jump program?', supp: true,
+      opts: ['A named position in the program that jumps can target',
+             'A special instruction that the machine executes to slow itself down',
+             'A comment for humans, discarded before the program is ever run',
+             'A register that stores how many times the loop has run so far'],
+      a: 0,
+      why: 'Labels name instruction positions so jumps can say where to go — the assembler resolves them to instruction numbers.' },
+
+    { q: 'Which single instruction actually IS the loop?', supp: true,
+      opts: ['The backwards JMP to the test label',
+             'The CMP, because comparing two values is what repetition means',
+             'The PRINT, since output is what the body of the loop produces',
+             'The HALT, because it marks where the repetition finally ends'],
+      a: 0,
+      why: 'Remove the backwards jump and the code runs straight through once. The jump back up is the loop — the flowchart arrow of Chapter 1, made real.' },
+
+    { q: 'How does do-while differ from while at machine level?', supp: true,
+      opts: ['Its only test sits at the bottom: one conditional jump back up',
+             'It uses two jumps per pass instead of one, which makes it slower',
+             'It cannot be compiled to jumps and needs special hardware support',
+             'The machine runs its body twice before the first test happens'],
+      a: 0,
+      why: 'Body first, then CMP + jump-back-if. The body always runs once, and each pass costs a single test — instruction order explains Chapter 4\'s post-test rule.' },
+
+    { q: 'What is <code>break</code> at machine level?', supp: true,
+      opts: ['A jump to the first instruction after the loop (the END label)',
+             'An instruction that erases the loop\'s registers before leaving it',
+             'A HALT that stops the machine until the user presses a key again',
+             'A jump back to the very first instruction of the whole program'],
+      a: 0,
+      why: 'break = JMP END; continue = a jump back to the test (or update). Structured statements are named, disciplined jumps.' },
+
+    { q: 'At machine level, what makes an unintentional infinite loop infinite?', supp: true,
+      opts: ['Nothing between the label and the jump changes the compared register',
+             'The CPU loses count of the passes once they grow beyond a few thousand',
+             'The jump instruction wears out and stops being able to fall through',
+             'The program is missing a HALT, so the machine keeps wrapping around'],
+      a: 0,
+      why: 'If the register never changes, the CMP result never changes, so the backwards jump is taken forever. Forgetting count++ deletes exactly the ADD that would fix it.' },
+
+    { q: 'In the while-loop preset, one full pass executes CMP, JGT, PRINT, ADD, JMP. How many instructions do ten passes plus the final exit cost?', supp: true,
+      opts: ['About 52: ten full passes of five, plus the final CMP and taken JGT',
+             'Exactly 50, because the exit test comes free with the last pass',
+             'About 20 — the machine skips the CMP once the pattern is obvious',
+             '10, one instruction for each of the ten numbers that get printed'],
+      a: 0,
+      why: '10 × 5 = 50 for the passes, then one more CMP and the finally-taken JGT ≈ 52 (plus the initial SET). Loops have a real per-pass cost — a first taste of counting steps.' }
+  ]
+};
+</script>
+<script src="../assets/jump-machine.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

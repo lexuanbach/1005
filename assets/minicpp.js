@@ -502,6 +502,12 @@
     this.maxSteps = 5000000;
     this.outCount = 0;
     this.maxOut = 200000;
+    // optional execution trace (used by the S7 call-stack visualizer)
+    this.trace = null;
+    this.frames = [];
+    this.staticsReg = [];
+    this.outBuf = '';
+    this.traceCount = 0;
     // <iomanip> stream state: setw applies to the next item only
     this.fmt = { width: 0, precision: 6, fixed: false, scientific: false, showpoint: false };
     var self = this;
@@ -524,6 +530,57 @@
       if (this.outCount > this.maxOut)
         throw new RuntimeError(line, 'output limit exceeded (200 kB) — your program may contain an infinite printing loop');
       this.write(s);
+      if (this.trace) this.outBuf += s;
+    },
+
+    // ---- execution trace (S7 call-stack visualizer) ----
+    fmtCell: function (c) {
+      if (c.isArray) {
+        var head = c.arr.slice(0, 6).join(', ');
+        return '[' + head + (c.arr.length > 6 ? ', …' : '') + ']';
+      }
+      if (c.t === 'string') return '"' + c.v + '"';
+      if (c.t === 'char') return "'" + String.fromCharCode(c.v) + "'";
+      if (c.t === 'double') return fmtDouble(c.v);
+      return String(c.v);
+    },
+    varsOfEnv: function (env) {
+      var out = [];
+      for (var k in env.vars) {
+        var c = env.vars[k];
+        if (c.isStatic) continue; // statics are shown in their own panel
+        out.push({ name: k, value: this.fmtCell(c) });
+      }
+      return out;
+    },
+    snap: function (line, note, env) {
+      if (!this.trace) return;
+      if (++this.traceCount > 600) {
+        this.trace({ truncated: true });
+        this.trace = null;
+        return;
+      }
+      var self = this;
+      var stack = this.frames.map(function (fr, i) {
+        if (i === self.frames.length - 1 && env) {
+          // current frame: walk the whole block-env chain for its locals
+          var envs = [], e = env;
+          while (e && e !== self.globalEnv) { envs.push(e); e = e.parent; }
+          envs.reverse();
+          var vars = [];
+          envs.forEach(function (en) { vars = vars.concat(self.varsOfEnv(en)); });
+          return { name: fr.name, vars: vars };
+        }
+        return { name: fr.name, vars: self.varsOfEnv(fr.env) };
+      });
+      this.trace({
+        line: line,
+        note: note || null,
+        stack: stack,
+        globals: this.varsOfEnv(this.globalEnv),
+        statics: this.staticsReg.map(function (s) { return { name: s.label, value: self.fmtCell(s.cell) }; }),
+        out: this.outBuf
+      });
     },
 
     run: function () {
@@ -572,9 +629,9 @@
       this.tick(st.line);
       switch (st.k) {
         case 'block': this.execBlock(st, env); return;
-        case 'vardecl': this.execVarDecl(st, env); return;
+        case 'vardecl': this.execVarDecl(st, env); this.snap(st.line, null, env); return;
         case 'empty': return;
-        case 'expr': this.evalExpr(st.e, env); return;
+        case 'expr': this.evalExpr(st.e, env); this.snap(st.line, null, env); return;
         case 'if':
           if (this.truthy(this.evalExpr(st.cond, env), st.cond.line)) this.execStmt(st.then, env);
           else if (st.els) this.execStmt(st.els, env);
@@ -629,6 +686,10 @@
         }
         case 'return': {
           var rv = st.value ? this.evalExpr(st.value, env) : { t: 'void', v: 0 };
+          if (this.trace) {
+            var who = this.frames.length ? this.frames[this.frames.length - 1].name : '?';
+            this.snap(st.line, 'return from ' + who + (rv.t === 'void' ? '' : ' → ' + this.fmtCell(rv)) + ' — its frame is about to pop', env);
+          }
           throw { __ret: rv };
         }
         case 'break': throw { __brk: true };
@@ -702,7 +763,14 @@
           } else val = this.defaultVal(st.type);
           newCell = { t: st.type, v: val.v, isConst: st.isConst };
         }
-        if (st.isStatic) st.__statics[d.name] = newCell;
+        if (st.isStatic) {
+          newCell.isStatic = true;
+          st.__statics[d.name] = newCell;
+          this.staticsReg.push({
+            label: (this.frames.length ? this.frames[this.frames.length - 1].name : 'global') + '.' + d.name,
+            cell: newCell
+          });
+        }
         env.define(d.name, newCell, d.line);
       }
     },
@@ -1101,21 +1169,34 @@
           frame.vars[p.name] = { t: p.type, v: val.v };
         }
       }
+      this.frames.push({ name: f.name, env: frame });
+      if (this.trace) this.snap(f.line, 'call ' + f.name + '(…) — a new frame is pushed onto the stack', frame);
       try {
-        this.execBlock(f.body, frame);
-      } catch (e) {
-        if (e && e.__ret) {
-          if (f.ret === 'void') {
-            if (e.__ret.t !== 'void') throw new RuntimeError(line, "void function '" + f.name + "' cannot return a value");
-            return { t: 'void', v: 0 };
+        try {
+          // run the body statements directly in the frame env, so the frame
+          // owns its top-level locals (also makes shadowing a parameter an
+          // error, exactly as real C++ does)
+          for (var bi = 0; bi < f.body.body.length; bi++)
+            this.execStmt(f.body.body[bi], frame);
+        } catch (e) {
+          if (e && e.__ret) {
+            if (f.ret === 'void') {
+              if (e.__ret.t !== 'void') throw new RuntimeError(line, "void function '" + f.name + "' cannot return a value");
+              return { t: 'void', v: 0 };
+            }
+            if (e.__ret.t === 'void') throw new RuntimeError(line, "function '" + f.name + "' must return a value of type " + f.ret);
+            return this.convert(e.__ret, f.ret, line);
           }
-          if (e.__ret.t === 'void') throw new RuntimeError(line, "function '" + f.name + "' must return a value of type " + f.ret);
-          return this.convert(e.__ret, f.ret, line);
+          throw e;
         }
-        throw e;
+        if (f.ret === 'void' || f.name === 'main') {
+          if (this.trace) this.snap(f.line, f.name + ' reaches its end — its frame is about to pop', frame);
+          return { t: f.ret === 'void' ? 'void' : 'int', v: 0 };
+        }
+        throw new RuntimeError(f.line, "function '" + f.name + "' reached its end without returning a value");
+      } finally {
+        this.frames.pop();
       }
-      if (f.ret === 'void' || f.name === 'main') return { t: f.ret === 'void' ? 'void' : 'int', v: 0 };
-      throw new RuntimeError(f.line, "function '" + f.name + "' reached its end without returning a value");
     },
 
     evalMember: function (node, env, args) {
@@ -1257,6 +1338,7 @@
         var toks = lex(code);
         var prog = new Parser(toks).parseProgram();
         var interp = new Interp(prog, input, write);
+        if (opts && opts.trace) interp.trace = opts.trace;
         var exit = interp.run();
         return { exit: exit, error: null };
       } catch (e) {

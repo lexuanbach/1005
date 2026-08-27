@@ -25,7 +25,11 @@ CO1005-Website/
 │   ├── compiling.html         # S1: compile & run từng bước vs interpreter
 │   ├── expression-trees.html  # S2: precedence → cây tính toán + Tree Lab (assets/expr-tree.js)
 │   ├── floating-point.html    # S3: IEEE 754, 0.1+0.2 ≠ 0.3 + IEEE 754 Lab (assets/ieee754.js)
-│   └── twos-complement.html   # S4: bù hai, tràn số + Two's Complement Lab (assets/twos.js)
+│   ├── twos-complement.html   # S4: bù hai, tràn số + Two's Complement Lab (assets/twos.js)
+│   ├── loops-are-jumps.html   # S5: loop = compare+jump + Jump Machine (assets/jump-machine.js)
+│   ├── arrays-in-memory.html  # S6: số học địa chỉ + Memory Lab (assets/memory-lab.js)
+│   ├── call-stack.html        # S7: stack frame + Visualizer (assets/call-stack.js, dùng trace của MiniCPP)
+│   └── text-encoding.html     # S8: ASCII/Unicode/UTF-8 + Text Inspector (assets/text-lab.js)
 ├── assets/
 │   ├── style.css         # Stylesheet chung cho chapter pages + playground (KHÔNG dùng cho index)
 │   ├── minicpp.js        # Trình thông dịch C++ (MiniCPP) — chạy code trong trình duyệt
@@ -71,6 +75,10 @@ Mount vào `#studio-root` (chapter 1). State = mảng steps `{type, text, yes?, 
 - Chủ đề bổ trợ là trang riêng trong `supplementary/`, đánh số S1, S2…; sidebar mọi trang chương có nhóm "Supplementary"; trang chủ có mat-card viền đứt. Quiz của trang bổ trợ khai báo `window.CHAPTER_DATA` inline ngay trong trang. Khi thêm SN mới: cập nhật sidebar ở TẤT CẢ trang chương + các trang S khác, thêm mat-card + VI keys ở index, đăng ký vào build.py, và thêm note dẫn từ concept liên quan trong chương.
 - **S2 Tree Lab** (`assets/expr-tree.js`): parser precedence-đúng-C++ cho biểu thức số → cây (SVG tự layout), chuỗi fully-parenthesized, đánh giá từng bước post-order với integer division, kiểu int/double, và && / || short-circuit (cây con phải bị mờ đi khi bị bỏ qua). Test: `test-exprtree.js` (22 test).
 - **S4 Two's Complement Lab** (`assets/twos.js`): số nguyên có dấu 8/16/32 bit qua BigInt — bit bấm được, đọc song song signed/unsigned/hex/place-values, nút ±1 đi thẳng vào tràn số (127+1 → −128), nút negate hiển thị 3 hàng invert-&-add-1 (kể cả edge case −(−128) = −128). Test: `test-twos.js` (22 test).
+- **S5 Jump Machine** (`assets/jump-machine.js`): máy lệnh tí hon (SET/ADD/CMP/JGT…/JMP/PRINT/HALT) chạy từng bước với PC highlight — 4 preset là chính các vòng lặp chương 4. Test trong `test-s5678.js`.
+- **S6 Memory Lab** (`assets/memory-lab.js`): scene bộ nhớ cố định limit|a[5]|balance — ghi a[i] hiện công thức base+i×size, vượt biên đè biến hàng xóm (mô phỏng); panel 2 khám phá row-major của b[3][4].
+- **S7 Call Stack Visualizer** (`assets/call-stack.js`): dùng hook `opts.trace` MỚI của MiniCPP — interpreter phát sự kiện snapshot (line, stack frames + vars, globals, statics, output) sau mỗi statement/call/return, cap 600 events; visualizer phát lại từng bước có cả nút Back. Lưu ý kèm theo: thân hàm giờ chạy trực tiếp trong frame env (che tên tham số thành lỗi — đúng C++).
+- **S8 Text Inspector** (`assets/text-lab.js`): từng ký tự → code point → byte UTF-8 (tự encode theo luật UTF-8, test đối chiếu TextEncoder).
 - **S3 IEEE 754 Lab** (`assets/ieee754.js`): encode/decode float32 & float64 qua DataView + BigInt; in **giá trị thập phân chính xác tuyệt đối** được lưu (`exactStored`) — nền tảng của câu chuyện 0.1 + 0.2 ≠ 0.3 (mọi hằng số trong trang đã kiểm bằng test + Decimal). Bit bấm được hai chiều, nhận diện zero/subnormal/inf/NaN. Test: `test-ieee.js` (19 test).
 
 ### Team activity
