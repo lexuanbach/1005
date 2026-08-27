@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Repetition Structures · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">Chapter 1</a>
+      <a href="chapter-2.html">Chapter 2</a>
+      <a href="chapter-3.html">Chapter 3</a>
+      <a href="chapter-4.html" aria-current="page">Chapter 4</a>
+      <a href="chapter-5.html">Chapter 5</a>
+      <a href="chapter-6.html">Chapter 6</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="chapter-4.html" aria-current="page"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 4 · C++ Track</span>
+      <h1>Repetition Structures</h1>
+      <p class="lede">
+        You met loops as flowchart arrows pointing back up (Chapter 1) — now you get all
+        three of them in real C++: <code>while</code>, <code>for</code>, and
+        <code>do-while</code>, plus sentinels that end a data series, loops nested inside
+        loops, and the three little statements that steer them: <code>break</code>,
+        <code>continue</code>, and the treacherous lone semicolon.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">7 concepts</a>
+        <a class="chip" href="#quiz">26-question quiz</a>
+        <a class="chip" href="#exercises">7 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap04_Repetition.pdf">Slides (PDF)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>Doing it again, and again, and again</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">4.1</span>Three loops, two tests, two kinds of counting</h3>
+        <p>
+          C++ has three repetition structures — <code>while</code>, <code>for</code>, and
+          <code>do-while</code> — and each needs a condition. Two classifications tell you
+          which to reach for:
+        </p>
+        <ul>
+          <li><strong>Where is the test?</strong> At the beginning → a <strong>pre-test</strong> loop (while, for): the body may run zero times. At the end → a <strong>post-test</strong> loop (do-while): the body always runs at least once.</li>
+          <li><strong>How does it stop?</strong> A <strong>fixed count loop</strong> performs a set number of repetitions, tracked by the condition. When the number of repetitions is not known in advance, a <strong>variable condition loop</strong> stops when a specified value appears — however many passes that takes.</li>
+        </ul>
+        <div class="note">
+          <span class="note-tag">Finite vs infinite</span>
+          A <em>finite</em> loop stops when its condition is met. An <em>infinite</em> loop runs
+          until something external stops it — <strong>intentionally</strong> in servers,
+          monitoring apps and embedded systems, or <strong>unintentionally</strong> as a bug
+          that burns CPU and freezes the program. (The exercise boxes here detect the
+          unintentional kind and stop them for you.)
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">4.2</span>while — and counter-controlled repetition</h3>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_4_2_1.cpp — prints 1 to 10</span></div>
+          <pre><span class="kw">int</span> count;
+count = 1;                  <span class="cm">// 2. initial value</span>
+<span class="kw">while</span> (count &lt;= 10) {       <span class="cm">// 3. condition testing the final value</span>
+    cout &lt;&lt; count &lt;&lt; <span class="str">" "</span>;
+    count++;                <span class="cm">// 4. the increment</span>
+}                           <span class="cm">// (1. the control variable: count)</span></pre>
+        </div>
+        <p>
+          <strong>Counter-controlled repetition</strong> always needs the same four things:
+          the name of a control variable, its initial value, the condition that tests for its
+          final value, and the increment (or decrement) applied on every pass. Forget number 4
+          and you have written an unintentional infinite loop.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">4.3</span>Sentinels — data that means “stop”</h3>
+        <p>
+          Data values used to indicate the start or end of a data series are called
+          <strong>sentinels</strong>. A sentinel must not conflict with legitimate data: in the
+          grade-totalling program, grades run 0–100, so <em>any number greater than 100</em>
+          ends the input.
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_4_2_2.cpp — the shape of sentinel input</span></div>
+          <pre><span class="kw">const int</span> HIGHGRADE = 100;   <span class="cm">// sentinel boundary</span>
+
+cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</span>
+<span class="kw">while</span> (grade &lt;= HIGHGRADE) { <span class="cm">// …test it…</span>
+    total = total + grade;
+    cin &gt;&gt; grade;            <span class="cm">// …then read the next before retesting</span>
+}</pre>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">4.4</span>for — the loop with the built-in bookkeeping</h3>
+        <p style="max-width:46rem">
+          <code>for (initialization; condition; update)</code> repeats exactly like while —
+          but the header also initializes the counter and changes it each iteration. The
+          slides draw its life cycle like this:
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 460 400" width="460" height="400" role="img" aria-label="Flowchart of the for statement: initialization once, then test the condition; if true run the body then the update and retest; if false exit">
+            <defs><marker id="fl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>
+            <rect class="fc-process" x="60" y="14" width="220" height="40"/>
+            <text class="fc-text" x="170" y="34" text-anchor="middle" dominant-baseline="middle">Initialization expression</text>
+            <line class="fc-line" x1="170" y1="54" x2="170" y2="86" marker-end="url(#fl-arrow)"/>
+            <polygon class="fc-decision" points="170,92 268,132 170,172 72,132"/>
+            <text class="fc-text" x="170" y="127" text-anchor="middle">test the</text>
+            <text class="fc-text" x="170" y="143" text-anchor="middle">condition?</text>
+            <polyline class="fc-line" points="268,132 356,132 356,172" marker-end="url(#fl-arrow)"/>
+            <text class="fc-label" x="286" y="122">false</text>
+            <rect class="fc-terminal" x="292" y="178" width="128" height="40" rx="20"/>
+            <text class="fc-text" x="356" y="198" text-anchor="middle" dominant-baseline="middle">Exit the loop</text>
+            <line class="fc-line" x1="170" y1="172" x2="170" y2="204" marker-end="url(#fl-arrow)"/>
+            <text class="fc-label" x="180" y="192">true</text>
+            <rect class="fc-process" x="60" y="210" width="220" height="40"/>
+            <text class="fc-text" x="170" y="230" text-anchor="middle" dominant-baseline="middle">Execute the statement(s)</text>
+            <line class="fc-line" x1="170" y1="250" x2="170" y2="282" marker-end="url(#fl-arrow)"/>
+            <rect class="fc-process" x="60" y="288" width="220" height="40"/>
+            <text class="fc-text" x="170" y="308" text-anchor="middle" dominant-baseline="middle">Execute the update statement</text>
+            <polyline class="fc-line" points="60,308 24,308 24,132 64,132" marker-end="url(#fl-arrow)"/>
+          </svg>
+          <figcaption>Initialization runs once; then test → body → update → test again, until the condition is false.</figcaption>
+        </figure>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_4_3_1.cpp — even numbers 2 to 20</span></div>
+          <pre><span class="kw">for</span> (count = 2; count &lt;= 20; count = count + 2)
+    cout &lt;&lt; count &lt;&lt; <span class="str">" "</span>;
+
+<span class="cm">// 2 4 6 8 10 12 14 16 18 20</span></pre>
+        </div>
+        <p style="max-width:46rem">
+          Example 4.3.2 puts a for loop to real work: $1000 at 5% interest, printing
+          <span class="mono">a = p(1 + r)ⁿ</span> for each of 10 years in neat
+          <code>setw</code> columns — you will build it in Exercise 4.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">4.5</span>Nested loops</h3>
+        <p>
+          A loop contained within another loop is a <strong>nested loop</strong>. The inner
+          loop runs <em>completely</em>, from start to finish, on <em>every single pass</em> of
+          the outer loop — Example 4.4.1's outer i = 1…5 and inner j = 1…4 execute the inner
+          body 5 × 4 = 20 times. You already met the pattern in Chapter 1's flowcharts; in
+          Chapter 5 it becomes the standard way to walk a 2-D array.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">4.6</span>do-while — test at the end</h3>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">do_while.cpp</span></div>
+          <pre><span class="kw">do</span> {
+    &lt;statement(s)&gt;;          <span class="cm">// runs BEFORE the first test</span>
+}
+<span class="kw">while</span> (&lt;loop-continuation-condition&gt;);   <span class="cm">// note the semicolon!</span></pre>
+        </div>
+        <p>
+          The post-test loop: its body always executes at least once. Example 4.5.1 uses it to
+          sum 2 + 4 + … + n — and “ask until the answer is valid” problems fit it naturally,
+          because you must ask once before there is anything to test.
+        </p>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">4.7</span>break, continue — and the null statement</h3>
+        <ul>
+          <li><code>break</code> causes an exit from the <strong>innermost enclosing loop</strong> — execution continues after that loop.</li>
+          <li><code>continue</code> halts the current pass and <strong>restarts the loop with a new iteration</strong> — the slides use it to skip invalid grades so only valid ones reach the total.</li>
+          <li>A semicolon with nothing preceding it is the <strong>null statement</strong> — legal, and does nothing.</li>
+        </ul>
+        <div class="note danger">
+          <span class="note-tag">The semicolon trap</span>
+          <span class="mono">for (int i = 0; i &lt; 10; i++);</span> — that innocent semicolon
+          <em>is the entire loop body</em>. The loop spins ten times doing nothing, and
+          whatever follows runs exactly once. One character, hours of debugging.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Test yourself</span>
+        <h2>Chapter 4 quiz</h2>
+        <p>26 questions — classifications, traces, and the traps.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Practice</span>
+        <h2>Programming exercises</h2>
+        <p>
+          Six exercises straight from the chapter's examples, plus one famous extra. Use
+          <strong>Run sample tests</strong> to check your output character for character.
+        </p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Team activity</span>
+        <h2>Group discussion: the class survey machine</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation with a live run. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          Design and build a <strong>sentinel-controlled survey program</strong>: it reads a
+          stream of responses (e.g. daily study hours, canteen ratings 1–5, commute minutes)
+          until a sentinel appears, and then reports statistics — count, total, average,
+          largest and smallest. The team chooses the survey topic, the valid range, and the
+          sentinel — and must defend all three.
+        </p>
+        <h3>Constraints that force Chapter 4 thinking</h3>
+        <ul style="max-width:46rem">
+          <li>The main loop must be <strong>sentinel-controlled</strong> (a variable condition loop) — teams must explain why a fixed count loop cannot work here.</li>
+          <li>Invalid responses are skipped with <code>continue</code> — and counted separately, so the report can say how many were rejected.</li>
+          <li>At least one output table formatted with <code>setw</code>, printed by a loop.</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Survey designer</td><td>defines the question, the valid range, and defends the choice of sentinel</td></tr>
+            <tr><td>Programmer</td><td>drives the Playground during the live run (the whole team designs the loop)</td></tr>
+            <tr><td>Boundary hunter</td><td>attacks the demo: sentinel first, all-invalid input, one single response</td></tr>
+            <tr><td>Presenter</td><td>walks the audience through the loop's four counter-controlled ingredients</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          What happens to your average when zero valid responses arrive — and which loop
+          shape protects you from dividing by zero? Why must the sentinel be outside the
+          valid range? Would a do-while make your read-test-read shape simpler or uglier?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/introduction-to-loops-and-while-statements/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Loops and while statements</h4>
+          <p>The same ground in more depth, continuing into do-while, for, and break/continue.</p>
+        </a>
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/for-statements/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — For statements</h4>
+          <p>Idiomatic for-loop style, off-by-one errors, and when to prefer while.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/for" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — for loop</h4>
+          <p>The precise definition of the header's three parts and their evaluation order.</p>
+        </a>
+        <a class="read-card" href="https://projecteuler.net" target="_blank" rel="noopener">
+          <span class="rc-kind">Practice</span>
+          <h4>Project Euler</h4>
+          <p>Hundreds of math problems that are all, at heart, loop-writing practice — problem 1 is ready for you today.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Infinite_loop" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Infinite loop</h4>
+          <p>Intentional and unintentional infinite loops — including famous ones that shipped.</p>
+        </a>
+        <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
+          <span class="rc-kind">Textbook</span>
+          <h4>Malik — C++ Programming, Chapter 5</h4>
+          <p>Control structures II: repetition — with many more worked loop programs.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-3.html"><span class="dir">← Previous chapter</span>Selection Structure</a>
+        <a href="chapter-5.html" style="text-align:right"><span class="dir">Next chapter →</span>Arrays &amp; Strings</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 4 · Repetition Structures</p>
+  </div>
+</footer>
+
+<script src="../assets/minicpp.js"></script>
+<script src="../assets/ch4-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

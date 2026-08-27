@@ -18,6 +18,9 @@
       <a href="../chapters/chapter-1.html">Chapter 1</a>
       <a href="../chapters/chapter-2.html">Chapter 2</a>
       <a href="../chapters/chapter-3.html">Chapter 3</a>
+      <a href="../chapters/chapter-4.html">Chapter 4</a>
+      <a href="../chapters/chapter-5.html">Chapter 5</a>
+      <a href="../chapters/chapter-6.html">Chapter 6</a>
       <a href="../playground.html">Playground</a>
       <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
     </nav>
@@ -32,9 +35,9 @@
     <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
     <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
     <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
-    <span class="soon"><span class="ch-num">04</span>Repetition<small>soon</small></span>
-    <span class="soon"><span class="ch-num">05</span>Arrays &amp; Strings<small>soon</small></span>
-    <span class="soon"><span class="ch-num">06</span>Functions<small>soon</small></span>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
     <a href="../playground.html">⚡ Playground</a>
   </nav>
   <h4>Supplementary</h4>
@@ -66,7 +69,7 @@
         table to memorize and becomes a picture.
       </p>
       <div class="meta-chips">
-        <a class="chip" href="#concepts">4 ideas</a>
+        <a class="chip" href="#concepts">5 ideas</a>
         <a class="chip" href="#lab">Tree Lab mini-app</a>
         <a class="chip" href="#quiz">8-question quiz</a>
       </div>
@@ -109,8 +112,60 @@
         </ul>
       </div>
 
+      <div class="concept wide">
+        <h3><span class="idx">S2.2</span>Why the rules exist: one expression, two possible trees</h3>
+        <p style="max-width:46rem">
+          Forget precedence for a moment. The text <code>8 + 5 * 7</code> alone is
+          <strong>ambiguous</strong> — it can be parsed into two different trees with two
+          different answers:
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 640 250" width="640" height="250" role="img" aria-label="Two possible trees for 8 plus 5 times 7: grouping the plus first gives 91, grouping the times first gives 43">
+            <line class="fc-line" x1="150" y1="59" x2="86" y2="111"/>
+            <line class="fc-line" x1="150" y1="59" x2="214" y2="111"/>
+            <line class="fc-line" x1="86" y1="131" x2="40" y2="181"/>
+            <line class="fc-line" x1="86" y1="131" x2="132" y2="181"/>
+            <g class="et-op et-arith"><circle cx="150" cy="40" r="19"/><text class="et-label" x="150" y="40" text-anchor="middle" dominant-baseline="central">*</text></g>
+            <g class="et-op et-arith"><circle cx="86" cy="130" r="19"/><text class="et-label" x="86" y="130" text-anchor="middle" dominant-baseline="central">+</text></g>
+            <g class="et-leaf"><circle cx="214" cy="130" r="19"/><text class="et-label" x="214" y="130" text-anchor="middle" dominant-baseline="central">7</text></g>
+            <g class="et-leaf"><circle cx="40" cy="200" r="19"/><text class="et-label" x="40" y="200" text-anchor="middle" dominant-baseline="central">8</text></g>
+            <g class="et-leaf"><circle cx="132" cy="200" r="19"/><text class="et-label" x="132" y="200" text-anchor="middle" dominant-baseline="central">5</text></g>
+            <text class="fc-label" x="127" y="238">(8 + 5) * 7 = 91 ✗</text>
+
+            <line class="fc-line" x1="470" y1="59" x2="406" y2="111"/>
+            <line class="fc-line" x1="470" y1="59" x2="534" y2="111"/>
+            <line class="fc-line" x1="534" y1="131" x2="488" y2="181"/>
+            <line class="fc-line" x1="534" y1="131" x2="580" y2="181"/>
+            <g class="et-op et-arith"><circle cx="470" cy="40" r="19"/><text class="et-label" x="470" y="40" text-anchor="middle" dominant-baseline="central">+</text></g>
+            <g class="et-leaf"><circle cx="406" cy="130" r="19"/><text class="et-label" x="406" y="130" text-anchor="middle" dominant-baseline="central">8</text></g>
+            <g class="et-op et-arith"><circle cx="534" cy="130" r="19"/><text class="et-label" x="534" y="130" text-anchor="middle" dominant-baseline="central">*</text></g>
+            <g class="et-leaf"><circle cx="488" cy="200" r="19"/><text class="et-label" x="488" y="200" text-anchor="middle" dominant-baseline="central">5</text></g>
+            <g class="et-leaf"><circle cx="580" cy="200" r="19"/><text class="et-label" x="580" y="200" text-anchor="middle" dominant-baseline="central">7</text></g>
+            <text class="fc-label" x="447" y="238">8 + (5 * 7) = 43 ✓</text>
+          </svg>
+          <figcaption>Same source text, two legal-looking trees, two answers. A programming language cannot allow both.</figcaption>
+        </figure>
+        <p style="max-width:46rem">
+          A grammar that permits two parse trees for the same text is called
+          <strong>ambiguous</strong> — and a compiler must never flip a coin. Precedence and
+          associativity are exactly the <strong>tie-breaking rules</strong> that make the
+          expression grammar unambiguous: precedence picks between <em>different</em>
+          operators (the second tree wins here), associativity picks between <em>equal</em>
+          ones (<code>100 − 20 − 5</code> leans left). Once the rules are applied, every
+          expression has exactly one tree.
+        </p>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Ambiguity beyond expressions</span>
+          The most famous grammar ambiguity is not about operators at all: in
+          <span class="mono">if (a) if (b) x = 1; else x = 2;</span> — which if owns the
+          else? C++ resolves this <em>dangling else</em> by rule, too: the else attaches to
+          the <strong>nearest</strong> unmatched if. When in doubt, braces are your
+          parentheses.
+        </div>
+      </div>
+
       <div class="concept">
-        <h3><span class="idx">S2.2</span>Parentheses reshape the tree — nothing more</h3>
+        <h3><span class="idx">S2.3</span>Parentheses reshape the tree — nothing more</h3>
         <p>
           <code>( )</code> never appears in the tree and costs nothing at run time. Writing
           <code>a * (b + c)</code> simply forces <code>+</code> to sit deeper than
@@ -121,7 +176,7 @@
       </div>
 
       <div class="concept">
-        <h3><span class="idx">S2.3</span>How the compiler evaluates the tree</h3>
+        <h3><span class="idx">S2.4</span>How the compiler evaluates the tree</h3>
         <p>
           The compiler walks the tree <strong>bottom-up</strong>: to produce the value of a
           node, first produce the values of its children (a <em>post-order</em> walk), then
@@ -148,7 +203,7 @@
       </div>
 
       <div class="concept">
-        <h3><span class="idx">S2.4</span>Short-circuit is a tree walk that stops early</h3>
+        <h3><span class="idx">S2.5</span>Short-circuit is a tree walk that stops early</h3>
         <p>
           For <code>&amp;&amp;</code> and <code>||</code> (Chapter 3), the walk evaluates the
           <em>left</em> subtree first — and if that already decides the answer, the entire

@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Arrays &amp; Strings · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .arr-fig { display: flex; width: max-content; font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; }
+  .arr-fig .cell {
+    min-width: 3rem; text-align: center;
+    border: 1px solid var(--line); border-left: none;
+    padding: 0.4rem 0.3rem; background: var(--surface); color: var(--ink);
+  }
+  .arr-fig .cell:first-child { border-left: 1px solid var(--line); border-radius: 6px 0 0 6px; }
+  .arr-fig .cell:last-child { border-radius: 0 6px 6px 0; }
+  .arr-idx { display: flex; width: max-content; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--ink-soft); margin-bottom: 2px; }
+  .arr-idx span { min-width: 3rem; text-align: center; padding: 0 0.3rem; box-sizing: border-box; border-left: 1px solid transparent; }
+  .arr-scroll { overflow-x: auto; padding-bottom: 0.3rem; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">Chapter 1</a>
+      <a href="chapter-2.html">Chapter 2</a>
+      <a href="chapter-3.html">Chapter 3</a>
+      <a href="chapter-4.html">Chapter 4</a>
+      <a href="chapter-5.html" aria-current="page">Chapter 5</a>
+      <a href="chapter-6.html">Chapter 6</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="chapter-5.html" aria-current="page"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 5 · C++ Track</span>
+      <h1>Arrays and Strings</h1>
+      <p class="lede">
+        One variable, many values. This chapter introduces C++'s first
+        <strong>compound types</strong>: arrays that hold a whole series of data under a
+        single name (in one or two dimensions), and the <strong>string</strong> class with
+        its constructors, operators, and member functions — plus how the two differ from
+        plain character arrays.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">6 concepts</a>
+        <a class="chip" href="#quiz">25-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap05_ArraysAndStrings.pdf">Slides (PDF)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>Many values, one name</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">5.1</span>Compound types</h3>
+        <p>
+          <strong>Compound data types</strong> are created from the basic types, for when
+          the basic types are not sufficient. The common ones: <strong>array</strong>,
+          <strong>string</strong>, and class/struct (a later course). This chapter covers
+          the first two.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">5.2</span>Arrays: elements and subscripts</h3>
+        <p style="max-width:46rem">
+          An <strong>array</strong> contains a set of data represented by a single variable
+          name; each individual piece is an <strong>element</strong>, reached by its
+          <strong>index</strong> (also called a subscript) — <em>numbered from 0</em>:
+        </p>
+        <div class="arr-scroll">
+          <div class="arr-idx"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+          <div class="arr-fig">
+            <span class="cell">12</span><span class="cell">49</span><span class="cell">-2</span><span class="cell">26</span><span class="cell">5</span><span class="cell">17</span><span class="cell">-6</span><span class="cell">84</span><span class="cell">72</span><span class="cell">3</span>
+          </div>
+        </div>
+        <p style="max-width:46rem; margin-top:0.8rem">
+          Declare with <code>&lt;type&gt; &lt;name&gt;[&lt;elements&gt;];</code> — e.g.
+          <code>int arMyArray[3];</code> reserves 3 integers (initially undefined!). Read and
+          write elements with <code>name[index]</code>. In a 5-element array the valid
+          indices are 0…4 — <code>arStuGrade[3]</code> is the <em>4th</em> element.
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">examples_5_2_1_and_5_2_2.cpp</span></div>
+          <pre><span class="kw">char</span> arStuGrade[5] = {<span class="str">'A'</span>, <span class="str">'B'</span>, <span class="str">'C'</span>, <span class="str">'D'</span>, <span class="str">'F'</span>};
+<span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; 5; i++)
+    cout &lt;&lt; arStuGrade[i] &lt;&lt; endl;
+
+<span class="kw">const int</span> arraySize = 12;    <span class="cm">// one name for the size — used twice below</span>
+<span class="kw">int</span> a[arraySize] = {1, 3, 5, 4, 7, 2, 99, 16, 45, 67, 89, 45};
+<span class="kw">int</span> total = 0;
+<span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; arraySize; i++)
+    total += a[i];               <span class="cm">// Total of array element values is 383</span></pre>
+        </div>
+        <div class="note danger" style="max-width:46rem">
+          <span class="note-tag">No bounds checking</span>
+          Real C++ does not check indices: writing <span class="mono">a[12]</span> on a
+          12-element array silently tramples other memory — undefined behaviour and a classic
+          security hole. The playground raises a clear error instead, so you can learn the
+          rule safely.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">5.3</span>Multidimensional arrays</h3>
+        <p style="max-width:46rem">
+          C++ allows arrays of arrays: each extra bracket pair adds a dimension.
+          <code>int b[4][3];</code> is a two-dimensional array of 4 × 3 = 12 elements —
+          think of it as rows and columns:
+        </p>
+        <div class="tbl-scroll" style="max-width:34rem">
+          <table class="tbl">
+            <tr><th></th><th class="mono">Column 1</th><th class="mono">Column 2</th><th class="mono">Column 3</th></tr>
+            <tr><td>Row 1</td><td class="mono">b[0][0]</td><td class="mono">b[0][1]</td><td class="mono">b[0][2]</td></tr>
+            <tr><td>Row 2</td><td class="mono">b[1][0]</td><td class="mono">b[1][1]</td><td class="mono">b[1][2]</td></tr>
+            <tr><td>Row 3</td><td class="mono">b[2][0]</td><td class="mono">b[2][1]</td><td class="mono">b[2][2]</td></tr>
+            <tr><td>Row 4</td><td class="mono">b[3][0]</td><td class="mono">b[3][1]</td><td class="mono">b[3][2]</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          In memory, though, all elements are stored <strong>contiguously</strong> starting at
+          the array's base address — the grid is a way of thinking, not a layout. Nested loops
+          (Chapter 4!) are the natural way to walk a 2-D array: the slides' Example 5.3.1 reads
+          a 3×3 matrix and tests <code>a[i][j] != a[j][i]</code> to decide whether it is
+          symmetric, and Example 5.3.2 stores a whole student score table, one row per student.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">5.4</span>The string class</h3>
+        <p style="max-width:46rem">
+          A <code>string</code> stores a sequence of characters — words or sentences. It is a
+          compound type from the standard library, so include its header:
+          <code>#include &lt;string&gt;</code>. It can be created many ways:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_5_4_2.cpp — seven constructors</span></div>
+          <pre><span class="kw">string</span> str1;                    <span class="cm">// an empty string</span>
+<span class="kw">string</span> str2(<span class="str">"Good Morning"</span>);    <span class="cm">// from a literal</span>
+<span class="kw">string</span> str3 = <span class="str">"Hot Dog"</span>;        <span class="cm">// assignment form</span>
+<span class="kw">string</span> str4(str3);              <span class="cm">// a copy            → "Hot Dog"</span>
+<span class="kw">string</span> str5(str4, 4);           <span class="cm">// from index 4       → "Dog"</span>
+<span class="kw">string</span> str6 = <span class="str">"linear"</span>;
+<span class="kw">string</span> str7(str6, 3, 3);        <span class="cm">// 3 chars from idx 3 → "ear"</span></pre>
+        </div>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th class="mono">Operator</th><th>Description</th></tr>
+            <tr><td class="mono">+=</td><td>appends characters to a string</td></tr>
+            <tr><td class="mono">=</td><td>assigns new character values to the contents</td></tr>
+            <tr><td class="mono">[ ]</td><td>references the character at a given index</td></tr>
+            <tr><td class="mono">+</td><td>combines (concatenates) two strings</td></tr>
+          </table>
+        </div>
+        <ul style="max-width:46rem">
+          <li><code>getline(cin, message)</code> accepts characters until Enter — spaces included. Plain <code>cin &gt;&gt;</code> stops at the first whitespace.</li>
+          <li><code>length()</code> and <code>size()</code> both return the number of characters.</li>
+          <li><code>at(i)</code> returns the character at index i — <code>s.at(s.length() - 1)</code> is the last one.</li>
+        </ul>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">5.5</span>Character arrays vs strings</h3>
+        <div class="tbl-scroll" style="max-width:46rem">
+          <table class="tbl">
+            <tr><th>Character array (<code>char[]</code>)</th><th>string</th></tr>
+            <tr><td>a sequential collection of type char</td><td>a sequence of characters as a single data type</td></tr>
+            <tr><td>no built-in methods</td><td>built-in functions: at(), length(), size(), …</td></tr>
+            <tr><td>elements accessed by index</td><td>index <em>or</em> member functions</td></tr>
+            <tr><td>fixed size — cannot be changed</td><td>dynamic size — grows and shrinks as needed</td></tr>
+            <tr><td>contiguous memory, managed by you</td><td>memory managed automatically</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Test yourself</span>
+        <h2>Chapter 5 quiz</h2>
+        <p>25 questions — subscripts, dimensions, constructors, and the bounds trap.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Practice</span>
+        <h2>Programming exercises</h2>
+        <p>
+          Arrays, a 2-D matrix, and the string constructors — every one runs in the page,
+          and the playground's bounds checking will catch your off-by-one errors kindly.
+        </p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Team activity</span>
+        <h2>Group discussion: design the gradebook</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation with a live run. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          Build a mini gradebook in the spirit of Example 5.3.2: a 2-D array holds n students
+          × m score columns, the program computes a weighted final score per student
+          (the team chooses the weights and must justify them), and prints the whole table
+          with aligned columns. Before writing any code, the team must present its
+          <strong>data design</strong>: what does each row mean, what does each column mean,
+          and where does the computed final score live?
+        </p>
+        <h3>Constraints that force Chapter 5 thinking</h3>
+        <ul style="max-width:46rem">
+          <li>The table must be one 2-D array — not separate 1-D arrays per column — and the team must argue why (or argue the opposite and defend it!).</li>
+          <li>All input, computation, and printing walked with nested loops; sizes come from <code>const int</code> names used everywhere.</li>
+          <li>One string feature somewhere real: student names read with <code>getline</code>, or a letter-grade column built by indexing a <code>char</code> array.</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Data designer</td><td>owns the row/column meaning and the weights — presents the design first</td></tr>
+            <tr><td>Programmer</td><td>drives the Playground; the team dictates the nested loops together</td></tr>
+            <tr><td>Boundary hunter</td><td>tests n = 1, the largest allowed n, and a score at each end of the range</td></tr>
+            <tr><td>Presenter</td><td>demos the run and explains why index [i][j] means “student i, column j”</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          What breaks first if a new score column is added — and how many lines does your
+          <code>const int</code> design require you to change? Why is the final score stored
+          <em>in</em> the table instead of printed and forgotten? Where exactly would an
+          out-of-bounds index hide in this program?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/introduction-to-containers-and-arrays/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Containers and arrays</h4>
+          <p>Arrays in modern C++ — including std::vector, the resizable array you will meet in later courses.</p>
+        </a>
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/introduction-to-stdstring/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — std::string</h4>
+          <p>Strings in depth: input quirks, substrings, and the member-function toolbox.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/string/basic_string" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — std::string</h4>
+          <p>Every constructor and member function — the full version of this chapter's table.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Buffer_overflow" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Buffer overflow</h4>
+          <p>What “no bounds checking” costs in the real world — the security bug class born from arrays.</p>
+        </a>
+        <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
+          <span class="rc-kind">Textbook</span>
+          <h4>Malik — C++ Programming, Chapters 8–9</h4>
+          <p>Arrays, strings, and their algorithms — searching and sorting included.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-4.html"><span class="dir">← Previous chapter</span>Repetition Structures</a>
+        <a href="chapter-6.html" style="text-align:right"><span class="dir">Next chapter →</span>Functions</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 5 · Arrays and Strings</p>
+  </div>
+</footer>
+
+<script src="../assets/minicpp.js"></script>
+<script src="../assets/ch5-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>
