@@ -17,7 +17,10 @@ CO1005-Website/
 ├── chapters/
 │   ├── chapter-1.html    # Algorithms & Flowcharts + Flowchart Studio
 │   ├── chapter-2.html    # Basic Elements in C++
-│   └── chapter-3.html    # Selection Structure
+│   ├── chapter-3.html    # Selection Structure
+│   ├── chapter-4.html    # Repetition Structures
+│   ├── chapter-5.html    # Arrays & Strings (mảng 2 chiều)
+│   └── chapter-6.html    # Functions (static, array params)
 ├── supplementary/
 │   ├── compiling.html         # S1: compile & run từng bước vs interpreter
 │   ├── expression-trees.html  # S2: precedence → cây tính toán + Tree Lab (assets/expr-tree.js)
@@ -32,7 +35,10 @@ CO1005-Website/
 │   ├── flowchart-studio.js  # Mini app ghép flowchart từ khối + panel chạy từng bước (chapter 1)
 │   ├── ch1-data.js       # Dữ liệu chương 1: 25 MCQs + 6 exercises (window.CHAPTER_DATA)
 │   ├── ch2-data.js       # Dữ liệu chương 2: 28 MCQs + 6 exercises
-│   └── ch3-data.js       # Dữ liệu chương 3: 26 MCQs + 6 exercises
+│   ├── ch3-data.js       # Dữ liệu chương 3: 26 MCQs + 6 exercises
+│   ├── ch4-data.js       # Dữ liệu chương 4: 26 MCQs + 7 exercises
+│   ├── ch5-data.js       # Dữ liệu chương 5: 25 MCQs + 6 exercises
+│   └── ch6-data.js       # Dữ liệu chương 6: 26 MCQs + 6 exercises
 ├── build.py              # Build bản tự chứa cho Claude Artifact → dist/
 ├── dist/                 # Output build (inline assets, đã rewrite link) + urls.json
 ├── Lecture Slides/       # Slide gốc (pptx + pdf) — nguồn nội dung các chương
@@ -43,7 +49,7 @@ CO1005-Website/
 ## 3. Các hệ con quan trọng
 
 ### MiniCPP (`assets/minicpp.js`)
-Trình thông dịch C++ tự viết (lexer → recursive-descent parser → tree-walking interpreter), phủ đúng tập con của môn: `int/long/float/double/bool/char/string`, `const`, if/else, switch, while/for/do-while, hàm với **pass by value và pass by reference** (lý do không dùng thư viện ngoài: JSCPP không hỗ trợ references), mảng 1 chiều, `cin/cout/getline`, `<cmath>`, `<iomanip>` (setw/setprecision/fixed). Có chặn vòng lặp vô hạn (5M bước) và giới hạn output (200 kB). API: `MiniCPP.run(code, stdinString, {write}) → {exit, error}`.
+Trình thông dịch C++ tự viết (lexer → recursive-descent parser → tree-walking interpreter), phủ đúng tập con của môn: `int/long/float/double/bool/char/string`, `const`, if/else, switch, while/for/do-while, hàm với **pass by value và pass by reference** (lý do không dùng thư viện ngoài: JSCPP không hỗ trợ references), mảng 1 chiều, `cin/cout/getline`, `<cmath>`, `<iomanip>` (setw/setprecision/fixed). Có chặn vòng lặp vô hạn (5M bước) và giới hạn output (200 kB). Mở rộng cho chương 4–6: **mảng 2 chiều** (khai báo, initializer lồng nhau, kiểm tra biên theo từng chiều), **truyền mảng vào hàm** `int b[]` (callee thao tác trên mảng của caller), **biến `static` cục bộ** (khởi tạo một lần, nhớ giữa các lần gọi; auto/register/extern chấp nhận và bỏ qua), **khởi tạo kiểu constructor** `string s(str, n, p)` / `int x(5)`. Lưu ý: MiniCPP dùng số JS nên KHÔNG mô phỏng wrap 32-bit của int (đã ghi chú trong S4). Test mở rộng: `test-minicpp-ext.js` (15 test). API: `MiniCPP.run(code, stdinString, {write}) → {exit, error}`.
 
 **Test**: bộ test Node nằm ở scratchpad phiên làm việc (53 test interpreter + script `verify-exercises.js` chạy toàn bộ lời giải bài tập qua test của chúng). Khi sửa minicpp.js phải chạy lại cả hai.
 
