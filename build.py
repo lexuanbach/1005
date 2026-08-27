@@ -27,6 +27,7 @@ PAGES = [
     'supplementary/compiling.html',
     'supplementary/expression-trees.html',
     'supplementary/floating-point.html',
+    'supplementary/twos-complement.html',
 ]
 
 def load_mapping():

@@ -21,7 +21,8 @@ CO1005-Website/
 ├── supplementary/
 │   ├── compiling.html         # S1: compile & run từng bước vs interpreter
 │   ├── expression-trees.html  # S2: precedence → cây tính toán + Tree Lab (assets/expr-tree.js)
-│   └── floating-point.html    # S3: IEEE 754, 0.1+0.2 ≠ 0.3 + IEEE 754 Lab (assets/ieee754.js)
+│   ├── floating-point.html    # S3: IEEE 754, 0.1+0.2 ≠ 0.3 + IEEE 754 Lab (assets/ieee754.js)
+│   └── twos-complement.html   # S4: bù hai, tràn số + Two's Complement Lab (assets/twos.js)
 ├── assets/
 │   ├── style.css         # Stylesheet chung cho chapter pages + playground (KHÔNG dùng cho index)
 │   ├── minicpp.js        # Trình thông dịch C++ (MiniCPP) — chạy code trong trình duyệt
@@ -63,6 +64,7 @@ Mount vào `#studio-root` (chapter 1). State = mảng steps `{type, text, yes?, 
 - Tag `.supp-tag` (viền đứt, mono) đánh dấu nội dung ngoài phạm vi slide; exercise/quiz đặt `supp: true` trong data là tự hiện tag.
 - Chủ đề bổ trợ là trang riêng trong `supplementary/`, đánh số S1, S2…; sidebar mọi trang chương có nhóm "Supplementary"; trang chủ có mat-card viền đứt. Quiz của trang bổ trợ khai báo `window.CHAPTER_DATA` inline ngay trong trang. Khi thêm SN mới: cập nhật sidebar ở TẤT CẢ trang chương + các trang S khác, thêm mat-card + VI keys ở index, đăng ký vào build.py, và thêm note dẫn từ concept liên quan trong chương.
 - **S2 Tree Lab** (`assets/expr-tree.js`): parser precedence-đúng-C++ cho biểu thức số → cây (SVG tự layout), chuỗi fully-parenthesized, đánh giá từng bước post-order với integer division, kiểu int/double, và && / || short-circuit (cây con phải bị mờ đi khi bị bỏ qua). Test: `test-exprtree.js` (22 test).
+- **S4 Two's Complement Lab** (`assets/twos.js`): số nguyên có dấu 8/16/32 bit qua BigInt — bit bấm được, đọc song song signed/unsigned/hex/place-values, nút ±1 đi thẳng vào tràn số (127+1 → −128), nút negate hiển thị 3 hàng invert-&-add-1 (kể cả edge case −(−128) = −128). Test: `test-twos.js` (22 test).
 - **S3 IEEE 754 Lab** (`assets/ieee754.js`): encode/decode float32 & float64 qua DataView + BigInt; in **giá trị thập phân chính xác tuyệt đối** được lưu (`exactStored`) — nền tảng của câu chuyện 0.1 + 0.2 ≠ 0.3 (mọi hằng số trong trang đã kiểm bằng test + Decimal). Bit bấm được hai chiều, nhận diện zero/subnormal/inf/NaN. Test: `test-ieee.js` (19 test).
 
 ### Team activity
