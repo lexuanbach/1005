@@ -131,6 +131,7 @@
   var CX = 190, STEP_H = 96, TOP = 56;
   var HALF_H = { start: 20, end: 20, input: 22, output: 22, process: 22, decision: 32 };
   var HALF_W = { start: 62, end: 62, input: 84, output: 84, process: 84, decision: 88 };
+  var ZOOM_MIN = 0.5, ZOOM_MAX = 2, ZOOM_STEP = 0.15;
 
   function palIcon(type) {
     var s = 'width="44" height="30" viewBox="0 0 44 30" aria-hidden="true"';
@@ -170,6 +171,7 @@
     if (!host) return;
 
     var steps = [];
+    var zoom = 1;
     var helpBox, canvasBox, warnBox, editorBox;
 
     // layout
@@ -221,6 +223,42 @@
     clearBtn.textContent = 'Clear canvas';
     clearBtn.addEventListener('click', function () { steps = []; renderAll(); });
     toolbar.appendChild(clearBtn);
+
+    var zoomGroup = document.createElement('div');
+    zoomGroup.className = 'zoom-group';
+    var zoomOutBtn = document.createElement('button');
+    zoomOutBtn.className = 'btn ghost small';
+    zoomOutBtn.type = 'button';
+    zoomOutBtn.setAttribute('aria-label', 'Zoom out');
+    zoomOutBtn.textContent = '−';
+    var zoomLabel = document.createElement('span');
+    zoomLabel.className = 'zoom-label mono';
+    zoomLabel.setAttribute('aria-live', 'polite');
+    zoomLabel.textContent = Math.round(zoom * 100) + '%';
+    var zoomInBtn = document.createElement('button');
+    zoomInBtn.className = 'btn ghost small';
+    zoomInBtn.type = 'button';
+    zoomInBtn.setAttribute('aria-label', 'Zoom in');
+    zoomInBtn.textContent = '+';
+    var zoomResetBtn = document.createElement('button');
+    zoomResetBtn.className = 'btn ghost small';
+    zoomResetBtn.type = 'button';
+    zoomResetBtn.textContent = 'Reset zoom';
+    function setZoom(z) {
+      zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+      zoomLabel.textContent = Math.round(zoom * 100) + '%';
+      zoomOutBtn.disabled = zoom <= ZOOM_MIN;
+      zoomInBtn.disabled = zoom >= ZOOM_MAX;
+      renderSVG();
+    }
+    zoomOutBtn.addEventListener('click', function () { setZoom(zoom - ZOOM_STEP); });
+    zoomInBtn.addEventListener('click', function () { setZoom(zoom + ZOOM_STEP); });
+    zoomResetBtn.addEventListener('click', function () { setZoom(1); });
+    zoomGroup.appendChild(zoomOutBtn);
+    zoomGroup.appendChild(zoomLabel);
+    zoomGroup.appendChild(zoomInBtn);
+    zoomGroup.appendChild(zoomResetBtn);
+    toolbar.appendChild(zoomGroup);
     mainCol.appendChild(toolbar);
 
     var canvasRow = document.createElement('div');
@@ -603,7 +641,7 @@
 
       var minX = -(leftLanes * 34 + (leftLanes ? 60 : 0)) - 10;
       var W = 380 + (rightLanes * 34 + (rightLanes ? 60 : 0)) + 20;
-      var svg = '<svg viewBox="' + minX + ' 0 ' + (W - minX) + ' ' + H + '" width="' + (W - minX) + '" height="' + H + '" role="img" aria-label="Flowchart built from ' + steps.length + ' blocks">' +
+      var svg = '<svg viewBox="' + minX + ' 0 ' + (W - minX) + ' ' + H + '" width="' + ((W - minX) * zoom) + '" height="' + (H * zoom) + '" role="img" aria-label="Flowchart built from ' + steps.length + ' blocks">' +
         '<defs><marker id="fs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">' +
         '<path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>' +
         arrows + body + '</svg>';
