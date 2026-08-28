@@ -15,13 +15,67 @@
   --red: #C23A3A;
   --green: #1B7F3B;
   --accent-contrast: #FFFFFF;
-  --code-bg: #0F1A2E;
+  --shadow: 0 1px 2px rgba(19, 28, 46, 0.05), 0 8px 24px rgba(19, 28, 46, 0.06);
+
+  /* Code colors are independent of the light/dark site theme — see .code-theme-btn.
+     "Midnight" (default) below; .hl-* (live editor) has its own richer palette further down. */
+  --code-bg: #0A111E;
   --code-text: #D9E4F5;
+  --code-caret: #E8EDF6;
   --code-kw: #7DA2FF;
   --code-str: #6FD3A6;
   --code-fn: #F0B45C;
   --code-cm: #6B7A94;
-  --shadow: 0 1px 2px rgba(19, 28, 46, 0.05), 0 8px 24px rgba(19, 28, 46, 0.06);
+  --code-hl-kw: #C792EA;
+  --code-hl-type: #82AAFF;
+  --code-hl-stream: #56C8D8;
+  --code-hl-fn: #FFCB6B;
+  --code-hl-str: #C3E88D;
+  --code-hl-chr: #F78C6C;
+  --code-hl-num: #F78C6C;
+  --code-hl-pre: #FF9E64;
+  --code-hl-op: #89DDFF;
+  --code-hl-cm: #7E8CA8;
+}
+
+:root[data-code-theme="paper"] {
+  --code-bg: #F6F8FA;
+  --code-text: #24292F;
+  --code-caret: #24292F;
+  --code-kw: #0550AE;
+  --code-str: #116329;
+  --code-fn: #8A5300;
+  --code-cm: #6E7781;
+  --code-hl-kw: #A626A4;
+  --code-hl-type: #0184BC;
+  --code-hl-stream: #0997B3;
+  --code-hl-fn: #986801;
+  --code-hl-str: #50A14F;
+  --code-hl-chr: #B76B01;
+  --code-hl-num: #B76B01;
+  --code-hl-pre: #E45649;
+  --code-hl-op: #383A42;
+  --code-hl-cm: #A0A1A7;
+}
+
+:root[data-code-theme="contrast"] {
+  --code-bg: #000000;
+  --code-text: #FFFFFF;
+  --code-caret: #FFFFFF;
+  --code-kw: #6AB8FF;
+  --code-str: #8CFFC1;
+  --code-fn: #FFD866;
+  --code-cm: #B0BAC9;
+  --code-hl-kw: #FF6AC1;
+  --code-hl-type: #5CCFE6;
+  --code-hl-stream: #39C5CF;
+  --code-hl-fn: #FFD866;
+  --code-hl-str: #A6E22E;
+  --code-hl-chr: #FF9E64;
+  --code-hl-num: #FF9E64;
+  --code-hl-pre: #FF6188;
+  --code-hl-op: #78DCE8;
+  --code-hl-cm: #B0BAC9;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,12 +92,6 @@
     --amber: #E0A64B;
     --red: #E57B7B;
     --green: #5BC97E;
-    --code-bg: #0A111E;
-    --code-text: #D9E4F5;
-    --code-kw: #8CACFF;
-    --code-str: #7BDCB0;
-    --code-fn: #F0B45C;
-    --code-cm: #64748D;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
   }
 }
@@ -62,12 +110,6 @@
   --red: #E57B7B;
   --green: #5BC97E;
   --accent-contrast: #0D1420;
-  --code-bg: #0A111E;
-  --code-text: #D9E4F5;
-  --code-kw: #8CACFF;
-  --code-str: #7BDCB0;
-  --code-fn: #F0B45C;
-  --code-cm: #64748D;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
@@ -791,7 +833,7 @@ section.block.folded { padding-bottom: 0.4rem; }
 .editor-shell textarea.code-edit {
   background: transparent;
   color: transparent;
-  caret-color: #E8EDF6;
+  caret-color: var(--code-caret);
   resize: none;
   min-height: 0;
   /* Chromium/WebKit lay out monospace text inside <textarea> a bit wider per
@@ -803,16 +845,16 @@ section.block.folded { padding-bottom: 0.4rem; }
 .editor-shell textarea.code-edit:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* colorful C++ token palette (editor background is dark in both themes) */
-.hl-kw     { color: #C792EA; }               /* keywords — violet */
-.hl-type   { color: #82AAFF; }               /* types — blue */
-.hl-stream { color: #56C8D8; }               /* cout/cin/endl — cyan */
-.hl-fn     { color: #FFCB6B; }               /* function calls — gold */
-.hl-str    { color: #C3E88D; }               /* strings — green */
-.hl-chr    { color: #F78C6C; }               /* char literals — coral */
-.hl-num    { color: #F78C6C; }               /* numbers — coral */
-.hl-pre    { color: #FF9E64; }               /* #include — orange */
-.hl-op     { color: #89DDFF; }               /* operators — light cyan */
-.hl-cm     { color: #7E8CA8; font-style: italic; }  /* comments */
+.hl-kw     { color: var(--code-hl-kw); }               /* keywords */
+.hl-type   { color: var(--code-hl-type); }             /* types */
+.hl-stream { color: var(--code-hl-stream); }           /* cout/cin/endl */
+.hl-fn     { color: var(--code-hl-fn); }               /* function calls */
+.hl-str    { color: var(--code-hl-str); }              /* strings */
+.hl-chr    { color: var(--code-hl-chr); }               /* char literals */
+.hl-num    { color: var(--code-hl-num); }               /* numbers */
+.hl-pre    { color: var(--code-hl-pre); }               /* #include */
+.hl-op     { color: var(--code-hl-op); }               /* operators */
+.hl-cm     { color: var(--code-hl-cm); font-style: italic; }  /* comments */
 
 /* pseudocode example grid (chapter 1) */
 .pseudo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; margin-top: 0.9rem; }

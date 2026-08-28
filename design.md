@@ -26,7 +26,17 @@ Màu được khai báo bằng CSS custom properties trên `:root`. **Không har
 | `--teal` | `#0E8A7B` | Teal — **Phần 2: Chủ đề điện toán** |
 | `--amber` | `#B45309` | Đánh dấu **thi giữa kỳ** |
 | `--red` | `#C23A3A` | Đánh dấu **nghỉ lễ** |
-| `--code-bg` | `#0F1A2E` | Nền thẻ code (luôn tối ở cả hai theme) |
+| `--code-bg` | `#0A111E` | Nền thẻ code — mặc định "Midnight", độc lập với theme sáng/tối của trang |
+
+### Code theme (độc lập với theme sáng/tối)
+
+Màu code (`--code-bg/--code-text/--code-caret/--code-kw/--code-str/--code-fn/--code-cm` cho code-card tĩnh, và bộ `--code-hl-*` giàu hơn cho editor sống) **không** đổi theo theme sáng/tối của trang — thay vào đó có nút riêng (`#code-theme-toggle`, mono, cạnh nút Dark/Light) cho phép chọn giữa 3 theme, lưu ở `localStorage['co1005-code-theme']`, áp qua `[data-code-theme]` trên `<html>`:
+
+- **Midnight** (mặc định, không cần attribute): navy đậm, giữ nguyên giao diện gốc.
+- **Paper**: nền gần trắng, chữ tối — cho người thấy nền tối khó đọc.
+- **Contrast**: nền đen tuyệt đối, màu cực rực để phân biệt token dễ hơn.
+
+index.html giữ bản sao độc lập của các token này (như mọi token khác) và nút riêng cùng key localStorage.
 
 ### Nguyên tắc màu
 

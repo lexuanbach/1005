@@ -30,6 +30,46 @@
     paint();
   }
 
+  // ───────────── Code color theme (independent of light/dark site theme) ─────────────
+  var CODE_THEMES = [
+    { key: 'midnight', label: 'Midnight' },
+    { key: 'paper', label: 'Paper' },
+    { key: 'contrast', label: 'Contrast' }
+  ];
+  try {
+    var storedCodeTheme = localStorage.getItem('co1005-code-theme');
+    if (storedCodeTheme && storedCodeTheme !== 'midnight') root.dataset.codeTheme = storedCodeTheme;
+  } catch (e) {}
+
+  function initCodeTheme() {
+    var siteThemeBtn = document.getElementById('theme-toggle');
+    var nav = document.querySelector('.topnav');
+    if (!nav) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'icon-btn';
+    btn.id = 'code-theme-toggle';
+    if (siteThemeBtn) nav.insertBefore(btn, siteThemeBtn);
+    else nav.appendChild(btn);
+
+    function current() { return root.dataset.codeTheme || 'midnight'; }
+    function paint() {
+      var t = CODE_THEMES.filter(function (t) { return t.key === current(); })[0] || CODE_THEMES[0];
+      btn.textContent = '◐ ' + t.label;
+      btn.setAttribute('aria-label', 'Code color theme: ' + t.label + ' — click to change');
+      btn.title = 'Code color theme: ' + t.label;
+    }
+    btn.addEventListener('click', function () {
+      var idx = CODE_THEMES.map(function (t) { return t.key; }).indexOf(current());
+      var next = CODE_THEMES[(idx + 1) % CODE_THEMES.length].key;
+      if (next === 'midnight') delete root.dataset.codeTheme;
+      else root.dataset.codeTheme = next;
+      try { localStorage.setItem('co1005-code-theme', next); } catch (e) {}
+      paint();
+    });
+    paint();
+  }
+
   // ───────────── helpers ─────────────
   function el(tag, cls, html) {
     var n = document.createElement(tag);
@@ -475,6 +515,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     initTheme();
+    initCodeTheme();
     var data = window.CHAPTER_DATA;
     initQuiz(data);
     initExercises(data);
