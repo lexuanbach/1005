@@ -50,6 +50,8 @@
     <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
     <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
     <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="../supplementary/short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="../supplementary/loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
   </nav>
   <h4>On this page</h4>
   <nav aria-label="On this page">
@@ -113,6 +115,14 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           The names in the function header are <strong>formal parameters</strong>; the values
           or variables placed in the call are <strong>actual parameters</strong>.
         </p>
+        <div class="note tip">
+          <span class="note-tag">A function can call itself</span>
+          Nothing in the rule above says the function being called has to be a
+          <em>different</em> one — a function is allowed to call itself, which gives you a
+          second way to repeat something besides the loops of Chapter 4. Supplementary topic
+          <a href="../supplementary/loop-vs-recursion.html">S10 — Loop vs. recursion</a> runs a
+          loop and a recursive function side by side and watches what each one actually costs.
+        </div>
       </div>
 
       <div class="concept">

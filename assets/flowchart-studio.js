@@ -223,13 +223,21 @@
     toolbar.appendChild(clearBtn);
     mainCol.appendChild(toolbar);
 
+    var canvasRow = document.createElement('div');
+    canvasRow.className = 'studio-canvas-row';
+    mainCol.appendChild(canvasRow);
+
+    var canvasCol = document.createElement('div');
+    canvasCol.className = 'studio-canvas-col';
+    canvasRow.appendChild(canvasCol);
+
     canvasBox = document.createElement('div');
     canvasBox.className = 'studio-canvas';
-    mainCol.appendChild(canvasBox);
+    canvasCol.appendChild(canvasBox);
 
     warnBox = document.createElement('div');
     warnBox.className = 'studio-warnings';
-    mainCol.appendChild(warnBox);
+    canvasCol.appendChild(warnBox);
 
     // ── run panel: step-by-step execution with variable trace + terminal ──
     var sim = null;
@@ -292,7 +300,7 @@
     termCol.appendChild(termBox);
     runCols.appendChild(termCol);
     runPanel.appendChild(runCols);
-    mainCol.appendChild(runPanel);
+    canvasRow.appendChild(runPanel);
 
     function simActivePC() {
       if (!sim) return -1;
