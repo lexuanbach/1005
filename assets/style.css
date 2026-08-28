@@ -451,6 +451,9 @@ textarea.code-edit, textarea.stdin-edit {
 textarea.code-edit { min-height: 15rem; }
 textarea.stdin-edit { min-height: 4.2rem; }
 .ex-actions { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; }
+.zoom-group { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
+.zoom-group .btn.small { padding: 0.35rem 0.6rem; line-height: 1; }
+.zoom-label { min-width: 3.2rem; text-align: center; font-size: 0.8rem; color: var(--ink-soft); }
 .term {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.84rem; line-height: 1.6;
