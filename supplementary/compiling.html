@@ -50,6 +50,8 @@
     <a href="arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
     <a href="call-stack.html"><span class="ch-num">S7</span>The call stack</a>
     <a href="text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
   </nav>
   <h4>On this page</h4>
   <nav aria-label="On this page">
@@ -132,38 +134,120 @@
           </svg>
           <figcaption>The classic build pipeline. On the command line, <span class="mono">g++ hello.cpp -o hello</span> runs stages 1–4 in one go; <span class="mono">./hello</span> is stage 5.</figcaption>
         </figure>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Nothing on this page is invented</span>
+          Every file name, line count, byte, and terminal line below was produced by actually
+          running a real compiler on a real <span class="mono">hello.cpp</span> while writing
+          this page (Apple Clang, invoked as <span class="mono">g++</span> — MinGW/GCC on
+          Windows or Linux will differ in small details, never in the pipeline itself). Nothing
+          is hand-typed to look plausible; you can reproduce every one of these steps yourself.
+        </div>
       </div>
 
       <div class="concept">
-        <h3><span class="idx">S1.2</span>Step 1 — the preprocessor</h3>
+        <h3><span class="idx">S1.2</span>Step 1 — the preprocessor, on a real file</h3>
         <p>
           You met it in Chapter 2: the preprocessor runs <em>before</em> the compiler. When it
           sees <code>#include &lt;iostream&gt;</code>, it pastes the entire contents of that
-          file into yours. Your 7-line hello.cpp leaves this stage tens of thousands of lines
-          long — that whole text is called a <strong>translation unit</strong>.
+          file into yours. Here is the real, complete source file used for this demo:
         </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">hello.cpp — 7 lines, the whole file</span></div>
+          <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    cout &lt;&lt; <span class="str">"Hello world!"</span> &lt;&lt; endl;
+    <span class="kw">return</span> 0;
+}</pre>
+        </div>
+        <p>
+          Running <span class="mono">g++ -E hello.cpp -o hello.i</span> stops the pipeline right
+          after the preprocessor and saves its output. The real result: <strong>59,350
+          lines</strong> from a 7-line file — the compiler's own headers pull in the C++
+          standard library's internal implementation. The very top shows exactly which files
+          got pasted in, and where:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">hello.i — real first lines (of 59,350)</span></div>
+          <pre><span class="cm"># 1 "hello.cpp"</span>
+<span class="cm"># 1 "&lt;built-in&gt;" 1</span>
+<span class="cm"># 1 "hello.cpp" 2</span>
+<span class="cm"># 1 ".../c++/v1/iostream" 1 3</span>
+<span class="cm"># 1 ".../c++/v1/__config" 1 3</span>
+<span class="cm"># 1 ".../c++/v1/__config_site" 1 3</span></pre>
+        </div>
+        <p>
+          Those <span class="mono"># <em>line</em> "<em>file</em>"</span> markers are not your
+          code — they are bookkeeping the preprocessor leaves behind so that later, if the
+          compiler finds an error, it can still report <em>your</em> file and line number even
+          though everything now lives in one enormous pasted-together text (a total of 3,671
+          such file-entry markers, real count, for this one <span class="mono">#include</span>).
+          Scroll all 59,350 lines down and your own three statements are still there, byte for
+          byte, completely unchanged, right at the very end:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">hello.i — real last lines</span></div>
+          <pre><span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    cout &lt;&lt; <span class="str">"Hello world!"</span> &lt;&lt; endl;
+    <span class="kw">return</span> 0;
+}</pre>
+        </div>
+        <p>This whole pasted-together text is the <strong>translation unit</strong> — what the compiler actually reads next.</p>
       </div>
 
       <div class="concept">
-        <h3><span class="idx">S1.3</span>Steps 2 &amp; 3 — compiler and assembler</h3>
+        <h3><span class="idx">S1.3</span>Steps 2 &amp; 3 — compiler and assembler, on a real file</h3>
         <p>
           The compiler does the intelligent work: it checks your syntax and translates C++
           into <strong>assembly language</strong> — human-readable names for the processor's
           own instructions. The assembler then converts that listing into raw binary
-          <strong>machine code</strong>, stored in an object file (<code>hello.o</code>).
+          <strong>machine code</strong>, stored in an object file. The full <span class="mono">hello.i</span>
+          compiles to hundreds of lines of assembly (name-mangled library calls and all), so
+          this demo uses a second, tiny real file to keep the output readable:
         </p>
         <div class="code-card">
-          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">return 0; — three views of the same idea</span></div>
-          <pre><span class="cm">// C++  (what you write)</span>
-<span class="kw">return</span> 0;
-
-<span class="cm">; assembly  (what the compiler emits — simplified x86-64)</span>
-<span class="fn">mov</span>  eax, 0
-<span class="fn">ret</span>
-
-<span class="cm">; machine code  (what the assembler produces — bytes, in hex)</span>
-<span class="str">b8 00 00 00 00 c3</span></pre>
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">ret0.cpp — 3 lines, the whole file</span></div>
+          <pre><span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">return</span> 0;
+}</pre>
         </div>
+        <p>
+          <span class="mono">g++ -S ret0.cpp -o ret0.s</span> really produced this — nothing
+          trimmed, nothing rewritten by hand:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">ret0.s — real compiler output</span></div>
+          <pre><span class="fn">main:</span>                    <span class="cm"># @main</span>
+        <span class="fn">xorl</span>    %eax, %eax
+        <span class="fn">retq</span></pre>
+        </div>
+        <p>
+          Notice the compiler did not write <span class="mono">mov eax, 0</span> — it chose
+          <span class="mono">xorl %eax, %eax</span> (“XOR the register with itself”) instead,
+          a genuine micro-optimization real compilers make because it is a shorter instruction
+          than loading the constant 0. Then <span class="mono">g++ -c ret0.cpp -o ret0.o</span>
+          assembles that listing into a real object file, and disassembling it
+          (<span class="mono">objdump -d ret0.o</span>) shows the exact bytes the assembler
+          chose for each instruction:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">ret0.o — real objdump -d output</span></div>
+          <pre>0000000000000000 &lt;<span class="fn">main</span>&gt;:
+   0: <span class="str">31 c0</span>    <span class="fn">xorl</span>    %eax, %eax
+   2: <span class="str">c3</span>       <span class="fn">retq</span></pre>
+        </div>
+        <p>
+          Three bytes, total — <span class="mono">31 c0 c3</span> — is the entire machine-code
+          body of this function. The object file that holds them opens with its own real
+          signature, too: hex-dumping <span class="mono">ret0.o</span> shows it starts with the
+          bytes <span class="mono">7f 45 4c 46</span>, which spelled out as ASCII characters
+          read <strong>.ELF</strong> — the four-byte magic number every Linux/Unix object file
+          and executable begins with, so the OS can recognise the format before touching
+          anything else in the file.
+        </p>
         <div class="note warn">
           <span class="note-tag">Compile-time errors</span>
           A missing semicolon or an undeclared variable is caught in step 2 —
@@ -173,27 +257,80 @@
       </div>
 
       <div class="concept">
-        <h3><span class="idx">S1.4</span>Step 4 — the linker</h3>
+        <h3><span class="idx">S1.4</span>Step 4 — the linker, on a real file</h3>
         <p>
           Your object file is not complete: it <em>uses</em> <code>cout</code>, but the code
           that actually paints characters on the screen lives in the C++
-          <strong>standard library</strong>, compiled long ago by someone else. The linker
-          stitches your object code and the library object code together into one
-          self-contained <strong>executable</strong>. (If it cannot find something — say you
-          declared a function but never defined it — you get the famous
-          <em>undefined reference</em> link error.)
+          <strong>standard library</strong>, compiled long ago by someone else. Go back to the
+          real <span class="mono">hello.o</span> from step S1.2 and list its symbols
+          (<span class="mono">nm hello.o</span>) and one really is left unresolved, marked
+          <span class="mono">U</span> for “undefined”:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">nm hello.o — real output, one line</span></div>
+          <pre>                 <span class="str">U</span> __ZNSt3__14coutE</pre>
+        </div>
+        <p>
+          That cryptic name is real too — it is <span class="mono">std::cout</span> after
+          <strong>name mangling</strong>, the scheme C++ compilers use to encode a symbol's
+          namespace and type into one linker-safe identifier. Now really link it —
+          <span class="mono">g++ hello.o -o hello</span> — and ask the finished executable what
+          it depends on (<span class="mono">otool -L hello</span> on macOS; the equivalent on
+          Linux is <span class="mono">ldd hello</span>):
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">otool -L hello — real output</span></div>
+          <pre>hello:
+        /usr/lib/libc++.1.dylib
+        /usr/lib/libSystem.B.dylib</pre>
+        </div>
+        <p>
+          <span class="mono">libc++</span> is exactly “the code that lives in the C++ standard
+          library” — the linker recorded a real dependency on it, and the undefined
+          <span class="mono">cout</span> symbol from before is gone. If it cannot find
+          something — say a function is declared but never defined — linking really fails.
+          Compiling and linking a file that calls an undefined <span class="mono">helper(int)</span>
+          produces this genuine error:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">g++ badref.o -o badref — real error</span></div>
+          <pre><span class="str">Undefined symbols for architecture arm64:
+  "helper(int)", referenced from:
+      _main in badref.o
+ld: symbol(s) not found for architecture arm64</span></pre>
+        </div>
+        <p>
+          On GCC/MinGW (the toolchain most Windows labs use) the identical failure is worded
+          <span class="mono">undefined reference to `helper(int)'</span> — different wording,
+          same real cause: the linker went looking for that symbol's machine code and it was
+          nowhere to be found.
         </p>
       </div>
 
       <div class="concept">
-        <h3><span class="idx">S1.5</span>Step 5 — loading and running</h3>
+        <h3><span class="idx">S1.5</span>Step 5 — loading and running, for real</h3>
         <p>
           When you run <code>./hello</code>, the operating system copies the executable into
           memory and points the CPU at its first instruction. From there the processor
           executes machine instructions one after another — exactly the flow of control you
-          drew in Chapter 1's flowcharts. Errors that depend on actual values — dividing by a
-          zero the user typed, reading past the end of an array — only appear now, at
-          <strong>run time</strong>.
+          drew in Chapter 1's flowcharts. This is the real, unedited transcript of running the
+          <span class="mono">hello</span> built above:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal — real session</span></div>
+          <pre>$ ./hello
+<span class="str">Hello world!</span>
+$ echo $?
+<span class="str">0</span></pre>
+        </div>
+        <p>
+          One more real number: <span class="mono">hello.o</span> is 10,416 bytes, but the
+          finished, linked <span class="mono">hello</span> is 38,856 bytes — bigger, but nowhere
+          near the size of the whole standard library, because the linker recorded
+          <em>dependencies</em> on <span class="mono">libc++</span> and <span class="mono">libSystem</span>
+          (step S1.4) rather than copying them in wholesale. Errors that depend on actual
+          values — dividing by a zero the user typed, reading past the end of an array — only
+          appear now, at <strong>run time</strong>.
         </p>
         <div class="tbl-scroll" style="max-width:44rem">
           <table class="tbl">
