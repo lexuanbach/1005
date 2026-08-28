@@ -10,6 +10,22 @@
     if (storedTheme === 'dark' || storedTheme === 'light') root.dataset.theme = storedTheme;
   } catch (e) {}
 
+  // Move the theme button(s) out of the scrollable .topnav into their own
+  // fixed-width group, so a narrow/long nav can scroll internally instead
+  // of pushing the appearance controls off-screen. Safe to call once.
+  function topbarTools() {
+    var existing = document.querySelector('.topbar-tools');
+    if (existing) return existing;
+    var nav = document.querySelector('.topnav');
+    if (!nav) return null;
+    var tools = document.createElement('div');
+    tools.className = 'topbar-tools';
+    var themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn && nav.contains(themeBtn)) tools.appendChild(themeBtn);
+    nav.parentNode.insertBefore(tools, nav.nextSibling);
+    return tools;
+  }
+
   function initTheme() {
     var btn = document.getElementById('theme-toggle');
     if (!btn) return;
@@ -42,15 +58,15 @@
   } catch (e) {}
 
   function initCodeTheme() {
+    var tools = topbarTools();
+    if (!tools) return;
     var siteThemeBtn = document.getElementById('theme-toggle');
-    var nav = document.querySelector('.topnav');
-    if (!nav) return;
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'icon-btn';
     btn.id = 'code-theme-toggle';
-    if (siteThemeBtn) nav.insertBefore(btn, siteThemeBtn);
-    else nav.appendChild(btn);
+    if (siteThemeBtn) tools.insertBefore(btn, siteThemeBtn);
+    else tools.appendChild(btn);
 
     function current() { return root.dataset.codeTheme || 'midnight'; }
     function paint() {
