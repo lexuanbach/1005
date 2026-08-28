@@ -794,6 +794,10 @@ section.block.folded { padding-bottom: 0.4rem; }
   caret-color: #E8EDF6;
   resize: none;
   min-height: 0;
+  /* Chromium/WebKit lay out monospace text inside <textarea> a bit wider per
+     character than the identical text in a <pre> — this compensates so the
+     caret stays lined up with the highlighted text underneath as you type. */
+  letter-spacing: -0.08em;
 }
 .editor-shell textarea.code-edit::selection { background: rgba(125, 162, 255, 0.32); color: transparent; }
 .editor-shell textarea.code-edit:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
