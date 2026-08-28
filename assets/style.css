@@ -541,6 +541,13 @@ details.solution pre {
   color: var(--accent-ink);
 }
 .studio-canvas-wrap { display: grid; gap: 1.1rem; }
+.studio-canvas-row {
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1.1rem; align-items: start;
+}
+@media (max-width: 720px) { .studio-canvas-row { grid-template-columns: 1fr; } }
+.studio-canvas-col { display: grid; gap: 1.1rem; }
+.studio-canvas-row .run-cols { grid-template-columns: 1fr; }
 .studio-canvas {
   background: var(--surface); border: 1px solid var(--line);
   border-radius: 12px; box-shadow: var(--shadow);
@@ -992,3 +999,26 @@ table.ieee-table td strong, table.ieee-table td code { color: var(--ink); }
 .cs-var b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .cs-var.cs-none { font-style: italic; }
 .cs-empty { font-size: 0.82rem; color: var(--ink-soft); font-style: italic; padding: 0.4rem 0.2rem; }
+
+/* ── Short-Circuit Lab (S9) ── */
+.sc-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; font-family: "IBM Plex Mono", monospace; font-size: 0.86rem; }
+.sc-op { color: var(--ink-soft); font-weight: 600; padding: 0 0.1rem; }
+.sc-term { border: 1px solid var(--line); border-radius: 8px; padding: 0.35rem 0.65rem; background: var(--paper); color: var(--ink-soft); }
+.sc-term.sc-true { border-color: color-mix(in srgb, var(--green) 55%, var(--line)); color: var(--green); background: color-mix(in srgb, var(--green) 8%, var(--paper)); }
+.sc-term.sc-false { border-color: color-mix(in srgb, var(--red) 55%, var(--line)); color: var(--red); background: color-mix(in srgb, var(--red) 8%, var(--paper)); }
+.sc-term.sc-current { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.sc-term.sc-skipped { opacity: 0.4; text-decoration: line-through; }
+.sc-badge {
+  display: inline-block; margin-left: 0.4rem; font-size: 0.6rem; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-soft); text-decoration: none;
+}
+.sc-danger-note { margin-top: 0.2rem; }
+.sc-result {
+  border: 1px solid var(--line); border-radius: 8px; background: var(--paper);
+  padding: 0.6rem 0.8rem; display: grid; gap: 0.3rem; font-size: 0.85rem; color: var(--ink-soft);
+}
+.sc-result strong { color: var(--ink); }
+
+/* ── Loop vs. Recursion Race (S10) ── */
+.rc-stat { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.35rem; }
+.rc-note { margin-top: 0.4rem; font-size: 0.82rem; }

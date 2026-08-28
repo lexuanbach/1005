@@ -29,7 +29,9 @@ CO1005-Website/
 │   ├── loops-are-jumps.html   # S5: loop = compare+jump + Jump Machine (assets/jump-machine.js)
 │   ├── arrays-in-memory.html  # S6: số học địa chỉ + Memory Lab (assets/memory-lab.js)
 │   ├── call-stack.html        # S7: stack frame + Visualizer (assets/call-stack.js, dùng trace của MiniCPP)
-│   └── text-encoding.html     # S8: ASCII/Unicode/UTF-8 + Text Inspector (assets/text-lab.js)
+│   ├── text-encoding.html     # S8: ASCII/Unicode/UTF-8 + Text Inspector (assets/text-lab.js)
+│   ├── short-circuit.html     # S9: && / || bỏ qua hẳn vế sau + Short-Circuit Lab (assets/short-circuit.js)
+│   └── loop-vs-recursion.html # S10: loop vs đệ quy chạy song song + Loop vs. Recursion Race (assets/recursion-lab.js)
 ├── assets/
 │   ├── style.css         # Stylesheet chung cho chapter pages + playground (KHÔNG dùng cho index)
 │   ├── minicpp.js        # Trình thông dịch C++ (MiniCPP) — chạy code trong trình duyệt
@@ -80,6 +82,8 @@ Mount vào `#studio-root` (chapter 1). State = mảng steps `{type, text, yes?, 
 - **S7 Call Stack Visualizer** (`assets/call-stack.js`): dùng hook `opts.trace` MỚI của MiniCPP — interpreter phát sự kiện snapshot (line, stack frames + vars, globals, statics, output) sau mỗi statement/call/return, cap 600 events; visualizer phát lại từng bước có cả nút Back. Lưu ý kèm theo: thân hàm giờ chạy trực tiếp trong frame env (che tên tham số thành lỗi — đúng C++).
 - **S8 Text Inspector** (`assets/text-lab.js`): từng ký tự → code point → byte UTF-8 (tự encode theo luật UTF-8, test đối chiếu TextEncoder).
 - **S3 IEEE 754 Lab** (`assets/ieee754.js`): encode/decode float32 & float64 qua DataView + BigInt; in **giá trị thập phân chính xác tuyệt đối** được lưu (`exactStored`) — nền tảng của câu chuyện 0.1 + 0.2 ≠ 0.3 (mọi hằng số trong trang đã kiểm bằng test + Decimal). Bit bấm được hai chiều, nhận diện zero/subnormal/inf/NaN. Test: `test-ieee.js` (19 test).
+- **S9 Short-Circuit Lab** (`assets/short-circuit.js`): 5 preset là chuỗi điều kiện `&&`/`||` gồm các "lệnh gọi" có log riêng — Step gọi thật từng điều kiện, dừng đúng lúc kết quả đã chắc chắn, phần còn lại bị đánh dấu "never called" (mờ + gạch ngang); có preset guard pattern an toàn/không an toàn (mảng out-of-range) và preset lộ side-effect bị bỏ qua.
+- **S10 Loop vs. Recursion Race** (`assets/recursion-lab.js`): chạy **thật** một chương trình lặp và một chương trình đệ quy tính cùng kết quả qua MiniCPP (`opts.trace`, dùng lại cơ chế của S7), phát lại song song — 1 nút Step tiến cả hai theo từng statement đã ghi. Cột lặp hiện bảng biến phẳng (bộ nhớ hằng số); cột đệ quy hiện stack frame (`cs-frame`, tái dùng CSS của S7) phình to theo độ sâu. Preset "thiếu điều kiện dừng" cho thấy 2 kiểu lỗi thật khác nhau: vòng lặp treo ở 1 frame (`execution limit exceeded`) còn đệ quy tràn stack thật (`Maximum call stack size exceeded`, bắt được nhờ try/catch của MiniCPP).
 
 ### Team activity
 Mỗi chương có section `#teamwork` (thảo luận nhóm 3–4 người + thuyết trình 5 phút, tính vào 10% điểm hoạt động lớp): Ch1 thiết kế thuật toán cho quy trình đời thường; Ch2 pitch một tool console nhỏ (ép dùng kiểu dữ liệu + formatting); Ch3 mã hóa chính sách quyết định (decision table → if-else/switch → test biên). Nội dung tĩnh trong HTML, tái dùng class `concept/tbl/note`.

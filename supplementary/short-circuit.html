@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Short-Circuit Evaluation · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-3.html">Chapter 3</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="short-circuit.html" aria-current="page"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#idea">The idea</a>
+    <a href="#lab">Short-Circuit Lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S9 · goes with Chapter 3</span>
+      <h1>Short-Circuit Evaluation<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        Chapter 3 mentioned it in one paragraph: <code>&amp;&amp;</code> and <code>||</code>
+        stop evaluating as soon as the answer is certain. This topic takes that one sentence
+        seriously — because it means C++ genuinely <strong>never calls</strong> some of the
+        code you wrote, and that has consequences that go far beyond speed: it is how real
+        programs guard against crashes, and how real bugs hide inside conditions that look
+        perfectly innocent.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#idea">3 ideas</a>
+        <a class="chip" href="#lab">Short-Circuit Lab mini-app</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="idea">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The idea</span>
+        <h2>Evaluation stops the instant the answer is certain</h2>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S9.1</span>Not "evaluates fast" — evaluates <em>not at all</em></h3>
+        <p>
+          <code>a &amp;&amp; b</code> only needs to check <code>b</code> when <code>a</code> is
+          true — if <code>a</code> is false, the whole expression is already false, no matter
+          what <code>b</code> is. <code>a || b</code> is the mirror image: only when
+          <code>a</code> is false does <code>b</code> matter. C++ guarantees it will not waste
+          time confirming what it already knows:
+        </p>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th class="mono">Expression</th><th>Left operand is…</th><th>Right operand</th></tr>
+            <tr><td class="mono">a &amp;&amp; b</td><td>false</td><td class="bad">never evaluated — result is false</td></tr>
+            <tr><td class="mono">a &amp;&amp; b</td><td>true</td><td class="ok">evaluated — it decides the result</td></tr>
+            <tr><td class="mono">a || b</td><td>true</td><td class="bad">never evaluated — result is true</td></tr>
+            <tr><td class="mono">a || b</td><td>false</td><td class="ok">evaluated — it decides the result</td></tr>
+          </table>
+        </div>
+        <p>
+          “Never evaluated” is a stronger claim than “doesn't matter”. If <code>b</code> is a
+          function call, that function is <strong>not invoked</strong>. If it has a side
+          effect — printing something, incrementing a counter, changing a variable — that side
+          effect <strong>does not happen</strong>. This is guaranteed by the C++ standard, not
+          an implementation detail a particular compiler happens to choose.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S9.2</span>The guard pattern — order is a safety decision</h3>
+        <p style="max-width:46rem">
+          The single most useful consequence is the <strong>guard pattern</strong>: put the
+          check that makes an operation safe <em>before</em> the operation itself, in the same
+          <code>&amp;&amp;</code> chain.
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">safe_guard.cpp</span></div>
+          <pre><span class="cm">// idx might be out of range — check FIRST</span>
+<span class="kw">if</span> (idx &gt;= 0 &amp;&amp; idx &lt; n &amp;&amp; arr[idx] &gt; 0) {
+    cout &lt;&lt; <span class="str">"positive"</span>;
+}</pre>
+        </div>
+        <p style="max-width:46rem">
+          When <code>idx</code> is <code>-1</code>, <code>idx &gt;= 0</code> is false, the chain
+          stops right there, and <code>arr[idx]</code> — the dangerous part — is
+          <strong>never reached</strong>. Now swap the order:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">unsafe_guard.cpp — do not do this</span></div>
+          <pre><span class="cm">// arr[idx] runs FIRST — before idx is checked at all</span>
+<span class="kw">if</span> (arr[idx] &gt; 0 &amp;&amp; idx &gt;= 0 &amp;&amp; idx &lt; n) {
+    cout &lt;&lt; <span class="str">"positive"</span>;
+}</pre>
+        </div>
+        <div class="note danger" style="max-width:46rem">
+          <span class="note-tag">This is not a style preference</span>
+          C++ evaluates <code>&amp;&amp;</code> and <code>||</code> strictly left to right — the
+          compiler is not allowed to reorder the terms for you, not even if reordering them
+          would be safer. <code>arr[idx]</code> in the second version runs with an
+          out-of-range <code>idx</code> and reads memory it has no business touching:
+          <strong>undefined behaviour</strong> — it might crash, might not, might return
+          garbage. Writing the bounds check first is what actually prevents this, and it only
+          works because of short-circuit evaluation.
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S9.3</span>Where the bug hides: skipped side effects</h3>
+        <p>
+          The same rule that makes the guard pattern safe can silently break code that expects
+          <em>both</em> sides of a condition to run:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">hidden_side_effect.cpp</span></div>
+          <pre><span class="kw">if</span> (hasCache() || computeExpensive()) {
+    cout &lt;&lt; <span class="str">"ready"</span>;
+}
+<span class="cm">// if hasCache() is true, computeExpensive() NEVER runs —</span>
+<span class="cm">// including whatever it was supposed to update along the way</span></pre>
+        </div>
+        <p>
+          Nothing here is a compiler bug — this is short-circuit evaluation working exactly as
+          specified. The mistake is assuming a condition's right-hand side "always runs
+          anyway". Whenever a term inside <code>&amp;&amp;</code> / <code>||</code> does more
+          than answer true or false — a function call, an <code>i++</code>, an assignment —
+          ask first: <em>is this term guaranteed to be reached?</em>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Mini app</span>
+        <h2>Short-Circuit Lab — watch each term actually get called, or not</h2>
+        <p>
+          Five real conditions, each a chain of terms joined by one operator. Press
+          <strong>Step</strong> and watch the call log fill in one term at a time — the moment
+          the result is certain, every remaining term turns grey and is marked
+          <span class="mono">never called</span>: it genuinely did not run.
+        </p>
+      </div>
+      <div id="sc-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Compare the first two presets: identical terms, different order, one of them safe.
+        Step through the OR permission chain and notice it stops the moment <em>any</em> role
+        matches. Finally look at “the worst case” — an <code>&amp;&amp;</code> chain that
+        happens to be true all the way through: nothing is skipped, and the full cost of all
+        four checks is paid. Short-circuiting saves work sometimes, not always.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/operator_logical.html" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — Logical operators</h4>
+          <p>The exact standard wording: <code>&amp;&amp;</code> and <code>||</code> are the only two operators in C++ with a guaranteed left-to-right, short-circuit order of evaluation.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Short-circuit_evaluation" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Short-circuit evaluation</h4>
+          <p>How different languages treat this: some guarantee it like C++, some make it a compiler choice, some don't have it at all.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Undefined_behavior" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Undefined behavior</h4>
+          <p>What "reading arr[-1]" really means, and why the guard pattern in S9.2 is not just tidiness.</p>
+        </a>
+        <a class="read-card" href="expression-trees.html">
+          <span class="rc-kind">Supplementary</span>
+          <h4>S2 — Expression trees &amp; precedence</h4>
+          <p>The Tree Lab already fades out skipped subtrees when it hits a short-circuit — see the same idea drawn as a tree instead of a chain.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="../chapters/chapter-3.html"><span class="dir">← Related chapter</span>Selection Structure</a>
+        <a href="loop-vs-recursion.html" style="text-align:right"><span class="dir">Next topic →</span>Loop vs. recursion</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S9 · Short-Circuit Evaluation</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S9',
+  quiz: [
+    { q: 'In <code>a &amp;&amp; b</code>, when is <code>b</code> evaluated?', supp: true,
+      opts: ['Only when a is true — if a is false the whole expression is already false',
+             'Only when a is false — the second operand always double-checks the first',
+             'Always — both operands are evaluated no matter what a turns out to be',
+             'Never — the compiler decides the result of && from a alone, always'],
+      a: 0,
+      why: 'If a is false, a && b cannot possibly be true, so C++ skips b entirely and the result is false.' },
+
+    { q: 'In <code>a || b</code>, when is <code>b</code> evaluated?', supp: true,
+      opts: ['Only when a is false — if a is true the whole expression is already true',
+             'Only when a is true — the second operand confirms the first one found',
+             'Always — || checks both operands before it reports any result at all',
+             'Never — || can only ever look at its very first operand, by definition'],
+      a: 0,
+      why: 'If a is true, a || b is already true, so b is skipped. b only matters when a turns out false.' },
+
+    { q: 'idx is -1. What happens when <code>idx &gt;= 0 &amp;&amp; idx &lt; n &amp;&amp; arr[idx] &gt; 0</code> runs?', supp: true,
+      opts: ['idx >= 0 is false, so the chain stops there — arr[idx] is never reached',
+             'All three terms run in order, and arr[idx] reads whatever garbage is at index -1',
+             'C++ reorders the terms automatically, moving the safe checks in front first',
+             'The program refuses to compile, because idx could be negative at run time'],
+      a: 0,
+      why: 'The first term is already false, so && short-circuits immediately — the guard does its job.' },
+
+    { q: 'Now the terms are reordered: <code>arr[idx] &gt; 0 &amp;&amp; idx &gt;= 0 &amp;&amp; idx &lt; n</code>, still idx = -1. What is true about this version?', supp: true,
+      opts: ['arr[idx] runs first, before idx is checked — reading arr[-1] is undefined behaviour',
+             'It behaves identically to the previous ordering, since && does not care about order',
+             'C++ detects the unsafe access at compile time and swaps the terms for you',
+             'idx >= 0 still runs first, because the compiler always checks comparisons before arrays'],
+      a: 0,
+      why: 'C++ evaluates && strictly left to right; the array access is not protected by a check that comes after it.' },
+
+    { q: '<code>if (hasCache() || computeExpensive()) …</code> — hasCache() returns true. What happens to computeExpensive()?', supp: true,
+      opts: ['It is never called — || already knows the result once the left side is true',
+             'It still runs, but its return value is discarded and never used for anything',
+             'It runs first, before hasCache(), so the compiler can compare both results',
+             'It runs only if computeExpensive() has no parameters declared in its signature'],
+      a: 0,
+      why: 'Once hasCache() is true, the || is already decided — computeExpensive() and any side effect inside it never executes.' },
+
+    { q: 'Why is that last question a genuine source of bugs, not just a curiosity?', supp: true,
+      opts: ['Because code sometimes wrongly assumes the right-hand call always runs and relies on its side effect',
+             'Because computeExpensive() might return a different data type than hasCache() does',
+             'Because || is deprecated in modern C++ in favour of the bitwise | operator instead',
+             'Because the compiler prints a warning every single time it skips a function call'],
+      a: 0,
+      why: 'The danger is invisible: the code compiles and often "looks" correct, but a side effect the programmer counted on silently never happens.' },
+
+    { q: 'An <code>&amp;&amp;</code> chain of four checks turns out to be true, true, true, true. How many are evaluated?', supp: true,
+      opts: ['All four — nothing is false, so short-circuiting never gets a chance to trigger',
+             'Just the first one — after that && assumes the rest must also be true',
+             'Just the last one — C++ checks the end of the chain before the beginning',
+             'None of them — an all-true chain is optimized away at compile time entirely'],
+      a: 0,
+      why: '&& only skips terms once it hits a false. If every term is true, the chain pays the full cost of checking all of them.' },
+
+    { q: 'What guarantees short-circuit evaluation in C++ — is it something every compiler happens to agree on by convention?', supp: true,
+      opts: ['No — it is required by the C++ standard itself, not a compiler-specific choice',
+             'Yes — the standard leaves it undefined, and every mainstream compiler just agrees',
+             'No — only some compilers short-circuit; others always evaluate both operands',
+             'Yes — but only when compiler optimizations are turned on during compilation'],
+      a: 0,
+      why: '&& and || are the two operators the C++ standard specifically guarantees a left-to-right, short-circuit order of evaluation for.' }
+  ]
+};
+</script>
+<script src="../assets/short-circuit.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

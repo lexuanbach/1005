@@ -50,6 +50,8 @@
     <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
     <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
     <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="../supplementary/short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="../supplementary/loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
   </nav>
   <h4>On this page</h4>
   <nav aria-label="On this page">
@@ -151,6 +153,13 @@
           <span class="mono">(a==b) || (c==d) || (e==f)</span>, if <span class="mono">(a==b)</span>
           is true the rest is skipped; in an <span class="mono">&amp;&amp;</span> chain, one
           false operand skips the rest.
+        </div>
+        <div class="note tip" style="max-width:44rem">
+          <span class="note-tag">Not just fast — skipped entirely</span>
+          "The rest is skipped" means the skipped part is never called at all, which is exactly
+          what makes the guard pattern <span class="mono">idx &gt;= 0 &amp;&amp; arr[idx] &gt; 0</span>
+          safe. Supplementary topic <a href="../supplementary/short-circuit.html">S9 — Short-circuit
+          evaluation</a> runs real conditions term by term and shows precisely which ones never execute.
         </div>
       </div>
 

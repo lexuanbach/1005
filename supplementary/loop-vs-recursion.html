@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loop vs. Recursion · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-6.html">Chapter 6</a>
+      <a href="../playground.html">Playground</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="loop-vs-recursion.html" aria-current="page"><span class="ch-num">S10</span>Loop vs. recursion</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#idea">The idea</a>
+    <a href="#lab">Loop vs. Recursion Race</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Supplementary Topic S10 · goes with Chapter 6</span>
+      <h1>Loop vs. Recursion<span class="supp-tag">Supplementary</span></h1>
+      <p class="lede">
+        Chapter 4 taught you one way to repeat something: a loop. Chapter 6 quietly opened a
+        second one — a function is allowed to call <strong>itself</strong>. This topic runs a
+        real iterative program and a real recursive program that compute the exact same
+        answer side by side, so you can watch, statement by statement, what each one is
+        actually doing underneath: one mutates a couple of variables in place, the other
+        builds a real stack of pending calls — the same call stack from S7.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#idea">4 ideas</a>
+        <a class="chip" href="#lab">Loop vs. Recursion Race mini-app</a>
+        <a class="chip" href="#quiz">8-question quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="idea">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · The idea</span>
+        <h2>Two mechanisms, one job: making something happen more than once</h2>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S10.1</span>The anatomy of a recursive function</h3>
+        <p style="max-width:46rem">
+          Every correct recursive function needs exactly two parts: a <strong>base case</strong>
+          that stops the recursion outright, and a <strong>recursive case</strong> that does a
+          small piece of work and then calls itself on a <em>smaller</em> version of the same
+          problem. Side by side with the loop that does the same job:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">factorial — iterative</span></div>
+          <pre><span class="kw">int</span> <span class="fn">factLoop</span>(<span class="kw">int</span> n) {
+    <span class="kw">int</span> result = 1;
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt;= n; i++)
+        result = result * i;
+    <span class="kw">return</span> result;
+}</pre>
+        </div>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">factorial — recursive</span></div>
+          <pre><span class="kw">int</span> <span class="fn">factRec</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= 1)          <span class="cm">// base case — stops it</span>
+        <span class="kw">return</span> 1;
+    <span class="kw">return</span> n * <span class="fn">factRec</span>(n - 1);  <span class="cm">// recursive case — smaller n</span>
+}</pre>
+        </div>
+        <p style="max-width:46rem">
+          Both compute <code>5! = 120</code>. The loop counts <em>up</em> from 1, multiplying
+          as it goes. The recursive version does the opposite: it keeps deferring the actual
+          multiplication (“I'll give you the answer once I know <code>factRec(n-1)</code>”)
+          until it hits <code>n &lt;= 1</code>, and then all those deferred multiplications
+          resolve on the way back out.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S10.2</span>What a recursive call actually costs</h3>
+        <p style="max-width:46rem">
+          Recall S7: every function call — recursive or not — pushes a real
+          <strong>stack frame</strong> holding its own parameters and locals. A loop reuses the
+          <em>same</em> frame and the same few variables for every pass; recursion keeps every
+          pending call's frame alive, stacked underneath the one currently running, until it
+          returns. Measured for real by this page's own lab:
+        </p>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th></th><th class="mono">sum 1..5</th><th class="mono">factorial(5)</th></tr>
+            <tr><td>Loop — variables in use, ever</td><td class="mono ok">3 (n, i, total) — constant</td><td class="mono ok">3 (n, i, result) — constant</td></tr>
+            <tr><td>Recursion — peak stack depth</td><td class="mono">7 frames</td><td class="mono">6 frames</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          That gap only widens as the input grows: a loop summing 1..1,000,000 still uses 3
+          variables; the matching recursion would try to stack up roughly a million frames.
+          This is exactly why C++ programs really do run out of stack memory on deep,
+          large-input recursion — a cost a loop simply never pays.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">S10.3</span>Same bug, two different failures</h3>
+        <p style="max-width:46rem">
+          A loop with a broken condition and a recursive function with an unreachable base case
+          are the <em>same mistake</em> — “forgot to move toward stopping” — but they fail in
+          genuinely different ways, both captured for real in the Lab's third preset:
+        </p>
+        <div class="tbl-scroll" style="max-width:46rem">
+          <table class="tbl">
+            <tr><th>Missing terminating step in…</th><th>What actually happens</th></tr>
+            <tr><td>a loop</td><td>keeps looping forever in <strong>one</strong> frame — constant memory, just never stops (S5's infinite loop, from the other side)</td></tr>
+            <tr><td>a recursive function</td><td>keeps calling itself, pushing a <strong>new</strong> frame every time, until it runs out of stack memory and crashes: <span class="mono">"stack overflow"</span></td></tr>
+          </table>
+        </div>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">A genuinely different failure mode</span>
+          An infinite loop hangs. Unterminated recursion <strong>crashes</strong> — and it
+          usually crashes fast, because real stack memory is much smaller than the memory
+          available for ordinary variables. Always ask: for this call, is the argument
+          <em>guaranteed</em> to get closer to the base case?
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">S10.4</span>Where recursion earns its keep</h3>
+        <p>
+          If recursion costs more memory, why use it? Sometimes the recursive version is simply
+          the more <em>honest</em> translation of how the problem is already defined — and
+          sometimes it does something a straightforward loop cannot do as directly. Move the
+          print to <em>after</em> the recursive call instead of before it:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">printAscending.cpp</span></div>
+          <pre><span class="kw">void</span> <span class="fn">printAscending</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == 0) <span class="kw">return</span>;
+    <span class="fn">printAscending</span>(n - 1);   <span class="cm">// go all the way down FIRST</span>
+    cout &lt;&lt; n &lt;&lt; <span class="str">" "</span>;      <span class="cm">// then print, on the way back OUT</span>
+}
+<span class="cm">// printAscending(5) prints: 1 2 3 4 5</span></pre>
+        </div>
+        <p>
+          Nothing here reversed anything by hand: the calls dive down to <code>n == 0</code>
+          first, and the <code>cout</code> lines execute in the exact reverse order the calls
+          were made — for free, using the call stack itself as the "storage" that remembers
+          what still needs printing. A loop can do this too, but only by first storing the
+          values somewhere (an array, Chapter 5) and then printing that storage backwards.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Mini app</span>
+        <h2>Loop vs. Recursion Race — the exact same program, two ways, run for real</h2>
+        <p>
+          Every run below is a real C++ program executed by MiniCPP (the same interpreter as
+          the rest of this site), replayed from a real execution trace — nothing here is
+          simulated by hand. One shared <strong>Step</strong> advances both sides by one
+          recorded statement at a time.
+        </p>
+      </div>
+      <div id="rc-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Step the Sum 1..5 preset slowly and watch the recursion column's stack grow to 6 frames
+        deep before a single addition actually happens — then watch them resolve on the way
+        back up. Run the "missing base case" preset to the end on both sides and compare the
+        two real error messages. Notice the loop's variable table never grows past 3 rows,
+        no matter which preset you pick.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Quick check — 8 questions</h2>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="call-stack.html">
+          <span class="rc-kind">Supplementary</span>
+          <h4>S7 — The call stack</h4>
+          <p>Where the "one frame per pending call" idea this page relies on is introduced and visualized in full, including statics and pass-by-reference.</p>
+        </a>
+        <a class="read-card" href="loops-are-jumps.html">
+          <span class="rc-kind">Supplementary</span>
+          <h4>S5 — Loops are just jumps</h4>
+          <p>The other side of S10.3's infinite-loop story: what an unterminated while loop actually does at machine level.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Recursion_(computer_science)" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Recursion (computer science)</h4>
+          <p>Base cases, recursive cases, mutual recursion, and the classic examples beyond factorial and sum.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Tail_call" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Tail call</h4>
+          <p>Some recursive functions can, in principle, run in constant memory like a loop — if the compiler performs tail-call elimination. C++ does not guarantee it.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Topic navigation">
+        <a href="short-circuit.html"><span class="dir">← Previous topic</span>Short-circuit evaluation</a>
+        <a href="../chapters/chapter-6.html" style="text-align:right"><span class="dir">Related chapter →</span>Functions</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Supplementary Topic S10 · Loop vs. Recursion</p>
+  </div>
+</footer>
+
+<script>
+window.CHAPTER_DATA = {
+  id: 'S10',
+  quiz: [
+    { q: 'Every correct recursive function needs which two parts?', supp: true,
+      opts: ['A base case that stops it, and a recursive case that calls itself on a smaller problem',
+             'A loop counter that tracks how many times the function has been called so far',
+             'A global variable that remembers the very first argument the function received',
+             'A return type of void, since recursive functions are not allowed to return a value'],
+      a: 0,
+      why: 'The base case guarantees the recursion eventually stops; the recursive case must move the problem closer to that base case each time.' },
+
+    { q: 'What actually happens if a recursive function\'s base case is missing or unreachable?', supp: true,
+      opts: ['It keeps calling itself, pushing a new stack frame each time, until it runs out of stack memory',
+             'C++ detects the missing base case at compile time and refuses to build the program',
+             'It silently returns 0 the first time it notices the base case will never be reached',
+             'It runs exactly once and then behaves like an ordinary, non-recursive function call'],
+      a: 0,
+      why: 'Without a reachable base case the calls never stop nesting — each one is a real stack frame, and stack memory is finite.' },
+
+    { q: 'In terms of memory, what is the key difference between a loop and a recursive function computing the same result?', supp: true,
+      opts: ['The loop reuses a fixed set of variables; the recursion keeps one stack frame alive per pending call',
+             'They use exactly the same amount of memory, because both eventually visit every value once',
+             'The loop needs more memory, since it must remember every value of its counter variable',
+             'The recursion needs less memory, because each call only stores a single integer, n'],
+      a: 0,
+      why: 'A loop\'s variables live in one frame reused every pass (constant memory). Recursion keeps a whole frame per call waiting on the stack — memory that grows with depth.' },
+
+    { q: 'Measured for real in this page\'s lab, sum(5) implemented recursively reaches a peak call-stack depth of how many frames?', supp: true,
+      opts: ['7 frames — sum(5) down through sum(0), plus main',
+             '5 frames — exactly one for each number being added together',
+             '1 frame — recursive calls are optimized into the same frame automatically',
+             '25 frames — one frame is created for every pair of numbers compared'],
+      a: 0,
+      why: 'sum(5), sum(4), sum(3), sum(2), sum(1), sum(0), and main — six recursive frames plus main is 7, exactly what the trace recorded.' },
+
+    { q: 'A loop with a broken condition and a recursive function with an unreachable base case are the same underlying mistake. Do they fail the same way?', supp: true,
+      opts: ['No — the loop just keeps running in one frame forever; the recursion runs out of stack memory and crashes',
+             'Yes — both immediately crash the program with an identical "stack overflow" error message',
+             'Yes — both simply keep running forever, using more and more memory at the exact same rate',
+             'No — the loop crashes with a stack overflow, while the recursion merely runs forever unnoticed'],
+      a: 0,
+      why: 'The loop\'s memory footprint never grows (it hangs). The recursion\'s footprint grows with every call, until it exhausts stack memory and crashes — a genuinely different failure.' },
+
+    { q: 'Why might a programmer deliberately choose a recursive solution that costs more memory than an equivalent loop?', supp: true,
+      opts: ['Because it can be the more direct translation of how the problem is already defined, making the code clearer',
+             'Because recursive functions always run faster than loops on every modern C++ compiler',
+             'Because recursion is required by the C++ standard whenever a function calls itself once',
+             'Because a recursive function never needs a base case if the loop version already has one'],
+      a: 0,
+      why: 'Clarity, not speed or memory, is usually the reason: some problems are already defined in terms of smaller copies of themselves.' },
+
+    { q: 'In <code>printAscending</code>, the recursive call happens BEFORE the <code>cout</code> line. What does that ordering achieve?', supp: true,
+      opts: ['The numbers print in the reverse order of the calls, using the call stack as storage',
+             'It has no effect on the output — moving the cout line only changes how long the program takes',
+             'It causes the function to print each number twice, once per direction of the recursion',
+             'It makes the recursion stop one level earlier than the base case would otherwise allow'],
+      a: 0,
+      why: 'Because the print happens only after the recursive call returns, the last call to finish diving down is the first to print — output comes out in reverse call order, for free.' },
+
+    { q: 'Can every loop be rewritten as an equivalent recursive function, and vice versa?', supp: true,
+      opts: ['Yes — iteration and recursion are equally powerful ways to repeat; the choice is about clarity and cost, not capability',
+             'No — some repeated computations can only ever be expressed as a loop, never as a function calling itself',
+             'No — recursion can only repeat a fixed number of times known in advance, unlike a while loop',
+             'Yes, but only for functions that return void and take no parameters at all'],
+      a: 0,
+      why: 'Loop and recursion are two mechanisms for the same underlying idea (repetition); either can express what the other does. This page is about their different costs and failure modes, not different capabilities.' }
+  ]
+};
+</script>
+<script src="../assets/minicpp.js"></script>
+<script src="../assets/recursion-lab.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

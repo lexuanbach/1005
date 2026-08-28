@@ -35,6 +35,8 @@ PAGES = [
     'supplementary/arrays-in-memory.html',
     'supplementary/call-stack.html',
     'supplementary/text-encoding.html',
+    'supplementary/short-circuit.html',
+    'supplementary/loop-vs-recursion.html',
 ]
 
 def load_mapping():
