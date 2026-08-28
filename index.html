@@ -14,6 +14,12 @@
   } catch (error) {
     // The page still follows the system theme when storage is unavailable.
   }
+  try {
+    const savedCodeTheme = localStorage.getItem("co1005-code-theme");
+    if (savedCodeTheme && savedCodeTheme !== "midnight") {
+      document.documentElement.dataset.codeTheme = savedCodeTheme;
+    }
+  } catch (error) {}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
@@ -31,13 +37,36 @@
     --teal-ink: #0B6E63;
     --amber: #B45309;           /* Thi giữa kỳ */
     --red: #C23A3A;             /* Nghỉ lễ */
-    --code-bg: #0F1A2E;
+    --shadow: 0 1px 2px rgba(19, 28, 46, 0.05), 0 8px 24px rgba(19, 28, 46, 0.06);
+
+    /* Code colors are independent of the light/dark site theme — see #code-theme-toggle. */
+    --code-bg: #0A111E;
     --code-text: #D9E4F5;
+    --code-caret: #E8EDF6;
     --code-kw: #7DA2FF;
     --code-str: #6FD3A6;
     --code-fn: #F0B45C;
     --code-cm: #6B7A94;
-    --shadow: 0 1px 2px rgba(19, 28, 46, 0.05), 0 8px 24px rgba(19, 28, 46, 0.06);
+  }
+
+  :root[data-code-theme="paper"] {
+    --code-bg: #F6F8FA;
+    --code-text: #24292F;
+    --code-caret: #24292F;
+    --code-kw: #0550AE;
+    --code-str: #116329;
+    --code-fn: #8A5300;
+    --code-cm: #6E7781;
+  }
+
+  :root[data-code-theme="contrast"] {
+    --code-bg: #000000;
+    --code-text: #FFFFFF;
+    --code-caret: #FFFFFF;
+    --code-kw: #6AB8FF;
+    --code-str: #8CFFC1;
+    --code-fn: #FFD866;
+    --code-cm: #B0BAC9;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -54,12 +83,6 @@
       --teal-ink: #6ED6C5;
       --amber: #E0A64B;
       --red: #E57B7B;
-      --code-bg: #0A111E;
-      --code-text: #D9E4F5;
-      --code-kw: #8CACFF;
-      --code-str: #7BDCB0;
-      --code-fn: #F0B45C;
-      --code-cm: #64748D;
       --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
     }
   }
@@ -77,12 +100,6 @@
     --teal-ink: #6ED6C5;
     --amber: #E0A64B;
     --red: #E57B7B;
-    --code-bg: #0A111E;
-    --code-text: #D9E4F5;
-    --code-kw: #8CACFF;
-    --code-str: #7BDCB0;
-    --code-fn: #F0B45C;
-    --code-cm: #64748D;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
   }
 
@@ -478,6 +495,10 @@
           <span class="icon" id="theme-icon" aria-hidden="true">☾</span>
           <span id="theme-label">Dark</span>
         </button>
+        <button class="control-btn" id="code-theme-toggle" type="button" aria-label="Code color theme: Midnight — click to change">
+          <span class="icon" aria-hidden="true">◐</span>
+          <span id="code-theme-label">Midnight</span>
+        </button>
       </div>
     </div>
   </div>
@@ -867,6 +888,8 @@
     const themeButton = document.getElementById("theme-toggle");
     const themeLabel = document.getElementById("theme-label");
     const themeIcon = document.getElementById("theme-icon");
+    const codeThemeButton = document.getElementById("code-theme-toggle");
+    const codeThemeLabel = document.getElementById("code-theme-label");
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
 
     const vietnamese = {
@@ -1051,6 +1074,28 @@
       );
     }
 
+    const CODE_THEMES = [
+      { key: "midnight", en: "Midnight", vi: "Đêm khuya" },
+      { key: "paper", en: "Paper", vi: "Giấy trắng" },
+      { key: "contrast", en: "Contrast", vi: "Tương phản cao" }
+    ];
+
+    function activeCodeTheme() {
+      return root.dataset.codeTheme || "midnight";
+    }
+
+    function updateCodeThemeControl() {
+      const t = CODE_THEMES.find((t) => t.key === activeCodeTheme()) || CODE_THEMES[0];
+      const name = currentLanguage === "vi" ? t.vi : t.en;
+      codeThemeLabel.textContent = name;
+      codeThemeButton.setAttribute(
+        "aria-label",
+        currentLanguage === "vi"
+          ? `Màu code: ${name} — bấm để đổi`
+          : `Code color theme: ${name} — click to change`
+      );
+    }
+
     function setLanguage(language) {
       currentLanguage = language === "vi" ? "vi" : "en";
       root.lang = currentLanguage;
@@ -1083,6 +1128,7 @@
         currentLanguage === "en" ? "Switch to Vietnamese" : "Chuyển sang tiếng Anh"
       );
       updateThemeControl();
+      updateCodeThemeControl();
     }
 
     languageButton.addEventListener("click", () => {
@@ -1096,6 +1142,15 @@
       root.dataset.theme = nextTheme;
       try { localStorage.setItem("co1005-theme", nextTheme); } catch (error) {}
       updateThemeControl();
+    });
+
+    codeThemeButton.addEventListener("click", () => {
+      const idx = CODE_THEMES.findIndex((t) => t.key === activeCodeTheme());
+      const next = CODE_THEMES[(idx + 1) % CODE_THEMES.length].key;
+      if (next === "midnight") delete root.dataset.codeTheme;
+      else root.dataset.codeTheme = next;
+      try { localStorage.setItem("co1005-code-theme", next); } catch (error) {}
+      updateCodeThemeControl();
     });
 
     systemTheme.addEventListener("change", () => {
