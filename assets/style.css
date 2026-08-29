@@ -917,16 +917,17 @@ section.block.folded { padding-bottom: 0.4rem; }
 .et-k-logic { background: color-mix(in srgb, var(--amber) 14%, var(--surface)); border: 1.8px solid var(--amber); }
 .et-k-leaf  { background: var(--surface); border: 1.6px solid var(--ink-soft); }
 
-/* ── IEEE 754 Lab (supplementary S3) ── */
+/* ── IEEE 754 Lab (S3) & Two's Complement Lab (S4) — shared bit grid ── */
 .ieee-bits-scroll { overflow-x: auto; padding-bottom: 0.2rem; }
-.ieee-bits { display: flex; gap: 2px; width: max-content; }
+.ieee-bits { display: flex; gap: calc(2px * var(--bit-zoom, 1)); width: max-content; }
 .ieee-bit {
-  width: 1.15rem; height: 1.5rem;
-  font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; font-weight: 600;
+  width: calc(1.15rem * var(--bit-zoom, 1)); height: calc(1.5rem * var(--bit-zoom, 1));
+  font-family: "IBM Plex Mono", monospace; font-size: calc(0.8rem * var(--bit-zoom, 1)); font-weight: 600;
   border-radius: 4px; border: 1px solid var(--line);
-  cursor: pointer; color: var(--ink); padding: 0;
+  cursor: pointer; color: var(--ink); padding: 0; flex: none;
 }
-.ieee-bit.b-gap { margin-left: 7px; }
+.ieee-bit.b-gap { margin-left: calc(7px * var(--bit-zoom, 1)); }
+.bit-zoom-group { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
 .ieee-bit.b-sign { background: color-mix(in srgb, var(--red) 18%, var(--surface)); border-color: color-mix(in srgb, var(--red) 45%, var(--line)); }
 .ieee-bit.b-exp  { background: color-mix(in srgb, var(--amber) 18%, var(--surface)); border-color: color-mix(in srgb, var(--amber) 45%, var(--line)); }
 .ieee-bit.b-man  { background: color-mix(in srgb, var(--teal) 16%, var(--surface)); border-color: color-mix(in srgb, var(--teal) 40%, var(--line)); }
