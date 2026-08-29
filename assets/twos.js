@@ -105,7 +105,29 @@
     var incBtn = el('button', 'btn ghost small', '+ 1');
     var negBtn = el('button', 'btn ghost small', 'negate (invert + 1)');
     row.appendChild(decBtn); row.appendChild(incBtn); row.appendChild(negBtn);
+
+    var ZOOM_MIN = 0.5, ZOOM_MAX = 2, ZOOM_STEP = 0.25;
+    var zoom = 1;
+    var zoomGroup = el('div', 'bit-zoom-group');
+    var zoomOutBtn = el('button', 'btn ghost small', '−');
+    zoomOutBtn.type = 'button'; zoomOutBtn.setAttribute('aria-label', 'Shrink the bits');
+    var zoomLabel = el('span', 'zoom-label mono', '100%');
+    zoomLabel.setAttribute('aria-live', 'polite');
+    var zoomInBtn = el('button', 'btn ghost small', '+');
+    zoomInBtn.type = 'button'; zoomInBtn.setAttribute('aria-label', 'Enlarge the bits');
+    function setZoom(z) {
+      zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+      panel.style.setProperty('--bit-zoom', zoom);
+      zoomLabel.textContent = Math.round(zoom * 100) + '%';
+      zoomOutBtn.disabled = zoom <= ZOOM_MIN;
+      zoomInBtn.disabled = zoom >= ZOOM_MAX;
+    }
+    zoomOutBtn.addEventListener('click', function () { setZoom(zoom - ZOOM_STEP); });
+    zoomInBtn.addEventListener('click', function () { setZoom(zoom + ZOOM_STEP); });
+    zoomGroup.appendChild(zoomOutBtn); zoomGroup.appendChild(zoomLabel); zoomGroup.appendChild(zoomInBtn);
+    row.appendChild(zoomGroup);
     panel.appendChild(row);
+    setZoom(1);
 
     var presetRow = el('div', 'ex-actions');
     presetRow.appendChild(el('span', 'field-label', 'presets:'));
