@@ -61,6 +61,74 @@
     if (storedCodeTheme && storedCodeTheme !== 'midnight') root.dataset.codeTheme = storedCodeTheme;
   } catch (e) {}
 
+  // Program font size: a scale factor every code surface multiplies its font-size by.
+  var CODE_SCALES = [0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
+  function applyCodeScale(v) { root.style.setProperty('--code-scale', String(v)); }
+  function storedCodeScale() {
+    try { var v = parseFloat(localStorage.getItem('co1005-code-scale')); if (CODE_SCALES.indexOf(v) >= 0) return v; } catch (e) {}
+    return 1;
+  }
+  applyCodeScale(storedCodeScale());
+
+  function initFontSize() {
+    var tools = topbarTools();
+    if (!tools || !document.querySelector('pre, #exercises-root, #playground-root')) return;
+    var group = document.createElement('div');
+    group.className = 'font-size-group';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Program font size');
+    var minus = document.createElement('button'), plus = document.createElement('button');
+    minus.type = plus.type = 'button';
+    minus.className = plus.className = 'icon-btn';
+    minus.textContent = 'A−'; plus.textContent = 'A+';
+    group.appendChild(minus); group.appendChild(plus);
+    tools.insertBefore(group, tools.firstChild);
+    function paint() {
+      var v = storedCodeScale(), i = CODE_SCALES.indexOf(v), pct = Math.round(v * 100) + '%';
+      minus.disabled = i === 0; plus.disabled = i === CODE_SCALES.length - 1;
+      minus.title = 'Smaller program text (now ' + pct + ')'; plus.title = 'Larger program text (now ' + pct + ')';
+      minus.setAttribute('aria-label', minus.title); plus.setAttribute('aria-label', plus.title);
+    }
+    function step(d) {
+      var i = Math.min(CODE_SCALES.length - 1, Math.max(0, CODE_SCALES.indexOf(storedCodeScale()) + d));
+      try { localStorage.setItem('co1005-code-scale', String(CODE_SCALES[i])); } catch (e) {}
+      applyCodeScale(CODE_SCALES[i]);
+      paint();
+      window.dispatchEvent(new Event('co1005-wrap'));   // editors re-measure their wrapped rows
+    }
+    minus.addEventListener('click', function () { step(-1); });
+    plus.addEventListener('click', function () { step(1); });
+    paint();
+  }
+
+  // Soft-wrap in the code editors: on unless the reader switched it off.
+  try { if (localStorage.getItem('co1005-wrap') === 'off') root.dataset.codeWrap = 'off'; } catch (e) {}
+
+  function initWrapToggle() {
+    var tools = topbarTools();
+    if (!tools || !document.querySelector('#exercises-root, #playground-root')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'icon-btn';
+    btn.id = 'wrap-toggle';
+    tools.insertBefore(btn, tools.firstChild);
+    function paint() {
+      var on = root.dataset.codeWrap !== 'off';
+      btn.textContent = on ? '↩ Wrap' : '→ No wrap';
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.title = on ? 'Long code lines wrap inside the editor — click to scroll sideways instead'
+                     : 'Long code lines scroll sideways — click to wrap them';
+    }
+    btn.addEventListener('click', function () {
+      var turnOff = root.dataset.codeWrap !== 'off';
+      if (turnOff) root.dataset.codeWrap = 'off'; else delete root.dataset.codeWrap;
+      try { localStorage.setItem('co1005-wrap', turnOff ? 'off' : 'on'); } catch (e) {}
+      paint();
+      window.dispatchEvent(new Event('co1005-wrap'));
+    });
+    paint();
+  }
+
   function initCodeTheme() {
     var tools = topbarTools();
     if (!tools) return;
@@ -118,12 +186,19 @@
   var CPP_TYPE = new Set('int long short float double bool char string unsigned signed auto'.split(' '));
   var CPP_STREAM = new Set('cout cin endl fixed defaultfloat scientific showpoint std'.split(' '));
 
+  var HL_NEWLINE = '\u0000';   // never produced by escapeHtml
   function hlCpp(src) {
     var re = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\\n]|\\.)*"?)|('(?:[^'\\\n]|\\.)*'?)|(#[ \t]*\w+(?:[ \t]*<[^>\n]*>)?)|(\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?[fFlLuU]*)|([A-Za-z_]\w*)|(<<|>>|::|->|[+\-*/%=!<>&|^?:~])/g;
     var out = '', last = 0, m;
     function push(text, cls) {
-      var e = escapeHtml(text);
-      out += cls ? '<span class="' + cls + '">' + e + '</span>' : e;
+      // A token may span lines (block comments): close and reopen its span around each break.
+      var parts = text.split('\n');
+      for (var i = 0; i < parts.length; i++) {
+        if (i > 0) out += HL_NEWLINE;
+        if (parts[i] === '') continue;
+        var e = escapeHtml(parts[i]);
+        out += cls ? '<span class="' + cls + '">' + e + '</span>' : e;
+      }
     }
     while ((m = re.exec(src)) !== null) {
       if (m.index > last) push(src.slice(last, m.index), null);
@@ -146,12 +221,16 @@
       else if (m[7]) push(m[7], 'hl-op');
     }
     if (last < src.length) push(src.slice(last), null);
-    return out + '\n'; // trailing newline keeps pre and textarea the same height
+    return out.split(HL_NEWLINE);   // one HTML string per logical line
   }
 
   /* Editor = highlighted <pre> behind a transparent <textarea>. */
   function makeEditor(opts) {
+    var wrap = el('div', 'editor-wrap');
+    var bar = el('div', 'editor-bar');
     var shell = el('div', 'editor-shell');
+    wrap.appendChild(bar);
+    wrap.appendChild(shell);
     var pre = el('pre', 'hl-pre-layer');
     pre.setAttribute('aria-hidden', 'true');
     var code = el('code');
@@ -162,35 +241,168 @@
     if (opts && opts.minHeight) { shell.style.minHeight = opts.minHeight; }
     var gutter = el('div', 'ln-gutter');
     gutter.setAttribute('aria-hidden', 'true');
-    var gutterPre = el('pre');
-    gutter.appendChild(gutterPre);
+    var gutterList = el('div', 'ln-list');
+    gutter.appendChild(gutterList);
     shell.appendChild(pre);
     shell.appendChild(ta);
     shell.appendChild(gutter);
-    var shownLines = 0;
-    function refreshLineNumbers() {
-      var n = ta.value.split('\n').length;
-      if (n === shownLines) return;
-      shownLines = n;
-      var nums = '';
-      for (var i = 1; i <= n; i++) nums += i + '\n';
-      gutterPre.textContent = nums;
-      // 4+ digit line counts need a wider strip; both layers read the same variable
-      shell.style.setProperty('--gutter', (n > 999 ? 3.8 : 3) + 'rem');
+
+    var lineCount = 0, layoutQueued = false;
+    function wrapOn() { return root.dataset.codeWrap !== 'off'; }
+    /* Wrapping only lines up if both layers break at the same column, so the highlight layer
+       must lose exactly the width the textarea gives to its vertical scrollbar. Then size each
+       line number to the (possibly multi-row) height of its logical line. */
+    function layout() {
+      layoutQueued = false;
+      var scrollbar = (ta.offsetWidth - ta.clientWidth) - (pre.offsetWidth - pre.clientWidth);
+      pre.style.paddingRight = 'calc(1rem + ' + Math.max(0, scrollbar) + 'px)';
+      var rows = code.children, nums = gutterList.children, i;
+      if (nums.length !== lineCount) {
+        var html = '';
+        for (i = 1; i <= lineCount; i++) html += '<div>' + i + '</div>';
+        gutterList.innerHTML = html;
+        nums = gutterList.children;
+        shell.style.setProperty('--gutter', (lineCount > 999 ? 3.8 : 3) + 'rem');   // both layers read this
+      }
+      if (wrapOn()) {
+        var heights = [];
+        for (i = 0; i < rows.length; i++) heights.push(rows[i].getBoundingClientRect().height);   // read first…
+        for (i = 0; i < nums.length; i++) nums[i].style.height = heights[i] + 'px';               // …then write
+      } else {
+        for (i = 0; i < nums.length; i++) nums[i].style.height = '';
+      }
+      syncScroll();
     }
-    function refresh() { code.innerHTML = hlCpp(ta.value); refreshLineNumbers(); }
+    function queueLayout() {
+      if (layoutQueued) return;
+      layoutQueued = true;
+      (window.requestAnimationFrame || setTimeout)(layout);
+    }
+    function refresh() {
+      var lines = hlCpp(ta.value);
+      lineCount = lines.length;
+      code.innerHTML = lines.map(function (l) { return '<div class="cl">' + l + '</div>'; }).join('');
+      layout();
+    }
     function syncScroll() {
       pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft;
-      gutterPre.style.transform = 'translateY(' + (-ta.scrollTop) + 'px)';
+      gutterList.style.transform = 'translateY(' + (-ta.scrollTop) + 'px)';
     }
-    ta.addEventListener('input', refresh);
+    // Wrap points move whenever the box changes width (resize handle, window, folded section opening).
+    if (window.ResizeObserver) new ResizeObserver(queueLayout).observe(shell);
+    window.addEventListener('co1005-wrap', queueLayout);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueLayout);
+    // ── undo / redo ──
+    /* Our own history: the page rewrites textarea.value itself (Tab key, Reset, Load solution,
+       Open file…), and every such write wipes the browser's native undo stack. */
+    var hist = [{ v: '', s: 0, e: 0 }], hi = 0, lastTyped = 0, lastWasTyping = false, pristine = true;
+    function snapshot() { return { v: ta.value, s: ta.selectionStart, e: ta.selectionEnd }; }
+    function record(typing) {
+      var cur = snapshot(), now = Date.now();
+      if (cur.v === hist[hi].v) { hist[hi] = cur; return; }
+      // keystrokes less than 0.7 s apart collapse into one undo step
+      if (typing && lastWasTyping && hi === hist.length - 1 && hi > 0 && now - lastTyped < 700) {
+        hist[hi] = cur;
+      } else {
+        hist = hist.slice(0, hi + 1);
+        hist.push(cur);
+        if (hist.length > 400) hist.shift();
+        hi = hist.length - 1;
+      }
+      lastTyped = now; lastWasTyping = typing;
+      paintBar();
+    }
+    function restore(i) {
+      hi = i; lastWasTyping = false;
+      ta.value = hist[hi].v;
+      refresh();
+      ta.focus();
+      ta.setSelectionRange(hist[hi].s, hist[hi].e);
+      paintBar();
+    }
+    function undo() { if (hi > 0) restore(hi - 1); }
+    function redo() { if (hi < hist.length - 1) restore(hi + 1); }
+    function setValue(v) {
+      ta.value = v; refresh(); syncScroll();
+      if (pristine) { hist = [snapshot()]; hi = 0; pristine = false; paintBar(); }   // initial content is not an edit
+      else record(false);
+    }
+
+    // ── save to / open from the reader's computer ──
+    var fileName = (opts && opts.fileName) || 'program.cpp';
+    function saveFile() {
+      var blob = new Blob([ta.value], { type: 'text/x-c++src;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      flash(saveBtn, 'Saved ' + fileName);
+    }
+    var picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = '.cpp,.cc,.cxx,.c,.h,.hpp,.txt,text/plain';
+    picker.hidden = true;
+    picker.addEventListener('change', function () {
+      var f = picker.files && picker.files[0];
+      picker.value = '';
+      if (!f) return;
+      if (f.size > 512 * 1024) { flash(openBtn, 'File too large (max 512 KB)'); return; }
+      var reader = new FileReader();
+      reader.onload = function () {
+        setValue(String(reader.result).replace(/\r\n?/g, '\n'));
+        flash(openBtn, 'Opened ' + f.name);
+      };
+      reader.onerror = function () { flash(openBtn, 'Could not read that file'); };
+      reader.readAsText(f);
+    });
+
+    function barButton(label, title, fn) {
+      var b = el('button', 'ed-btn', label);
+      b.type = 'button'; b.title = title; b.setAttribute('aria-label', title);
+      b.addEventListener('click', fn);
+      bar.appendChild(b);
+      return b;
+    }
+    var undoBtn = barButton('↶ Undo', 'Undo (Ctrl/Cmd+Z)', undo);
+    var redoBtn = barButton('↷ Redo', 'Redo (Ctrl+Y or Shift+Ctrl/Cmd+Z)', redo);
+    bar.appendChild(el('span', 'ed-sep'));
+    var saveBtn = barButton('⤓ Save', 'Save this program to your computer as ' + fileName + ' (Ctrl/Cmd+S)', saveFile);
+    var openBtn = barButton('⤒ Open…', 'Open a .cpp file from your computer', function () { picker.click(); });
+    bar.appendChild(picker);
+    var note = el('span', 'ed-note');
+    note.setAttribute('aria-live', 'polite');
+    bar.insertBefore(note, bar.firstChild);
+    var noteTimer = null;
+    function flash(btn, text) {
+      note.textContent = text;
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(function () { note.textContent = ''; }, 2500);
+    }
+    function paintBar() {
+      undoBtn.disabled = hi === 0;
+      redoBtn.disabled = hi >= hist.length - 1;
+    }
+    paintBar();
+
+    ta.addEventListener('input', function (ev) {
+      refresh();
+      record(ev.inputType === 'insertText' || ev.inputType === 'deleteContentBackward' || ev.inputType === 'deleteContentForward');
+    });
     ta.addEventListener('scroll', syncScroll);
+    ta.addEventListener('keydown', function (ev) {
+      if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
+      var k = ev.key.toLowerCase();
+      if (k === 'z') { ev.preventDefault(); if (ev.shiftKey) redo(); else undo(); }
+      else if (k === 'y') { ev.preventDefault(); redo(); }
+      else if (k === 's') { ev.preventDefault(); saveFile(); }
+    });
     enableTabKey(ta);
     return {
-      root: shell,
+      root: wrap,
       textarea: ta,
       get value() { return ta.value; },
-      set value(v) { ta.value = v; refresh(); syncScroll(); }
+      set value(v) { setValue(v); }
     };
   }
   function runCode(code, stdin) {
@@ -459,7 +671,8 @@
 
     var left = el('div');
     left.appendChild(el('label', 'field-label', 'Your code'));
-    var editor = makeEditor({ label: 'C++ code editor for ' + ex.title, minHeight: '15rem' });
+    var editor = makeEditor({ label: 'C++ code editor for ' + ex.title, minHeight: '15rem',
+      fileName: (String(ex.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'exercise') + '.cpp' });
     editor.value = ex.starter;
     left.appendChild(editor.root);
     cols.appendChild(left);
@@ -569,7 +782,7 @@
     var cols = el('div', 'ex-cols');
     var left = el('div');
     left.appendChild(el('label', 'field-label', 'Code — the CO1005 C++ subset'));
-    var editor = makeEditor({ label: 'C++ code editor', minHeight: '22rem' });
+    var editor = makeEditor({ label: 'C++ code editor', minHeight: '22rem', fileName: 'playground.cpp' });
     left.appendChild(editor.root);
     cols.appendChild(left);
     var right = el('div');
@@ -663,6 +876,8 @@
   document.addEventListener('DOMContentLoaded', function () {
     initTheme();
     initCodeTheme();
+    initWrapToggle();
+    initFontSize();
     var data = window.CHAPTER_DATA;
     initQuiz(data);
     initExercises(data);

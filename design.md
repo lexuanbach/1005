@@ -34,6 +34,9 @@ Màu code (`--code-bg/--code-text/--code-caret/--code-kw/--code-str/--code-fn/--
 
 - **Midnight** (mặc định, không cần attribute): navy đậm, giữ nguyên giao diện gốc.
 - **Paper**: nền **xám nhạt** (`#E6E9ED`, gutter `#D6DBE1`), chữ gần đen — cho người thấy nền tối khó đọc. Mọi màu token đạt tương phản ≥ 4.5:1 trên nền xám này; đổi màu nào thì phải kiểm lại.
+- **Điều khiển đọc code trên topbar** (chỉ trang có code; ẩn dưới 720px): `A− / A+` đổi `--code-scale` (0.85–2, key `co1005-code-scale`) — mọi bề mặt code nhân font-size với biến này (editor, gutter, stdin, output, code-card, snippet quiz, lời giải); `↩ Wrap` bật/tắt soft-wrap (`data-code-wrap="off"` trên `<html>`, key `co1005-wrap`, mặc định bật).
+- **Thanh công cụ editor** (`.editor-bar`): Undo / Redo (lịch sử riêng vì trang tự ghi `textarea.value` — Tab, Reset, Load solution, Open — làm mất undo gốc của trình duyệt; gõ liên tục < 0,7 s gộp thành một bước), Save (tải file `.cpp` về máy, Ctrl/Cmd+S), Open… (đọc file từ máy, ≤ 512 KB, chuẩn hoá CRLF).
+- **Soft-wrap**: lớp tô màu dựng **một `<div class="cl">` cho mỗi dòng logic**; gutter đo chiều cao từng div để một dòng bị wrap vẫn chỉ có một số dòng. Hai lớp phải wrap cùng cột → `course.js` cộng bề rộng scrollbar của textarea vào `padding-right` của lớp tô màu, và đo lại khi đổi kích thước/font (ResizeObserver).
 - **Editor sống** (mọi theme): chữ `font-weight: 500`, keyword 600, có **cột số dòng** (`.ln-gutter`, token `--code-gutter`). Lớp tô màu `<pre><code>` và `<textarea>` phải có metric chữ **giống hệt nhau** — quy tắc `code {}` toàn cục (0.85em + padding) đã được reset riêng cho `.hl-pre-layer code`; đừng bao giờ bù lệch con trỏ bằng `letter-spacing`.
 - **Contrast**: nền đen tuyệt đối, màu cực rực để phân biệt token dễ hơn.
 

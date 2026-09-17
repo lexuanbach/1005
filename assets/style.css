@@ -272,7 +272,7 @@ code {
 .code-card pre {
   padding: 1rem 1.2rem; overflow-x: auto;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.83rem; line-height: 1.7;
+  font-size: calc(0.83rem * var(--code-scale, 1)); line-height: 1.7;
   color: var(--code-text);
 }
 .code-card pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
@@ -466,7 +466,7 @@ table.tbl td.bad { color: var(--red); font-weight: 600; }
 .quiz-q .qtext code { font-weight: 500; }
 .quiz-q pre.qcode {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.82rem; line-height: 1.6;
+  font-size: calc(0.82rem * var(--code-scale, 1)); line-height: 1.6;
   background: var(--code-bg); color: var(--code-text);
   border-radius: 8px; padding: 0.7rem 0.9rem;
   overflow-x: auto; margin: 0 0 0.8rem;
@@ -541,7 +541,7 @@ table.tbl td.bad { color: var(--red); font-weight: 600; }
 textarea.code-edit, textarea.stdin-edit {
   width: 100%; resize: vertical;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.84rem; line-height: 1.6;
+  font-size: calc(0.84rem * var(--code-scale, 1)); line-height: 1.6;
   color: var(--code-text); background: var(--code-bg);
   border: 1px solid color-mix(in srgb, var(--code-bg) 55%, var(--line));
   border-radius: 10px; padding: 0.8rem 1rem;
@@ -555,7 +555,7 @@ textarea.stdin-edit { min-height: 4.2rem; }
 .zoom-label { min-width: 3.2rem; text-align: center; font-size: 0.8rem; color: var(--ink-soft); }
 .term {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.84rem; line-height: 1.6;
+  font-size: calc(0.84rem * var(--code-scale, 1)); line-height: 1.6;
   background: var(--code-bg); color: var(--code-text);
   border-radius: 10px; padding: 0.8rem 1rem;
   min-height: 4.2rem; max-height: 40rem; overflow: auto;
@@ -590,7 +590,7 @@ details.solution summary {
 details.solution[open] summary { margin-bottom: 0.6rem; }
 details.solution pre {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.82rem; line-height: 1.6;
+  font-size: calc(0.82rem * var(--code-scale, 1)); line-height: 1.6;
   background: var(--code-bg); color: var(--code-text);
   border-radius: 8px; padding: 0.7rem 0.9rem; overflow-x: auto;
 }
@@ -599,7 +599,7 @@ details.solution pre {
 .ex .reveal-body { padding: 0 1.3rem 1.2rem; }
 .ex .reveal-body pre.plain {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.84rem; line-height: 1.7;
+  font-size: calc(0.84rem * var(--code-scale, 1)); line-height: 1.7;
   background: var(--paper); color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 8px; padding: 0.8rem 1rem; overflow-x: auto;
@@ -875,7 +875,7 @@ section.block.folded { padding-bottom: 0.4rem; }
   position: absolute; inset: 0;
   margin: 0; width: 100%; height: 100%;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.84rem; line-height: 1.6; font-weight: 500;
+  font-size: calc(0.84rem * var(--code-scale, 1)); line-height: 1.6; font-weight: 500;
   tab-size: 4; white-space: pre; overflow: auto;
   padding: 0.8rem 1rem 0.8rem calc(var(--gutter) + 0.9rem);
   border-radius: 10px; border: 1px solid transparent;
@@ -914,14 +914,48 @@ section.block.folded { padding-bottom: 0.4rem; }
   border-right: 1px solid color-mix(in srgb, var(--code-cm) 35%, transparent);
   border-radius: 9px 0 0 9px;
 }
-.editor-shell .ln-gutter pre {
+.editor-shell .ln-gutter .ln-list {
   margin: 0; padding: 0.8rem 0.6rem 0.8rem 0;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.84rem; line-height: 1.6; font-weight: 500;
+  font-size: calc(0.84rem * var(--code-scale, 1)); line-height: 1.6; font-weight: 500;
   text-align: right; color: var(--code-cm);
   font-variant-numeric: tabular-nums;
   will-change: transform;
 }
+/* editor toolbar: undo / redo / save / open */
+.editor-bar { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.35rem; }
+.ed-btn {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; font-weight: 600;
+  color: var(--ink-soft); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 7px;
+  padding: 0.22rem 0.55rem; cursor: pointer; white-space: nowrap;
+}
+.ed-btn:hover:not(:disabled) { color: var(--ink); border-color: var(--ink-soft); }
+.ed-btn:disabled { opacity: 0.4; cursor: default; }
+.ed-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ed-sep { width: 1px; height: 1.1rem; background: var(--line); margin: 0 0.2rem; }
+.ed-note { margin-right: auto; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--teal); }
+
+/* autographs under signed pull-quotes: dark ink on transparent; flipped to light ink in dark mode */
+.pullquote .autograph { display: block; height: 3.2rem; width: auto; max-width: min(16rem, 100%); margin: 0.7rem 0 0.1rem; object-fit: contain; object-position: left center; opacity: 0.9; }
+:root[data-theme="dark"] .pullquote .autograph { filter: invert(1) brightness(1.15); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pullquote .autograph { filter: invert(1) brightness(1.15); } }
+
+/* one block per logical line, so a wrapped line keeps a single line number */
+.editor-shell .hl-pre-layer code { display: block; }
+.editor-shell .hl-pre-layer .cl { min-height: 1.6em; }
+/* soft wrap (default). Both layers must wrap identically: same rules, and course.js gives the
+   highlight layer the textarea's scrollbar width as extra right padding. */
+:root:not([data-code-wrap="off"]) .editor-shell .hl-pre-layer,
+:root:not([data-code-wrap="off"]) .editor-shell textarea.code-edit {
+  white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: hidden;
+}
+.font-size-group { display: flex; }
+.font-size-group .icon-btn { padding-left: 0.6rem; padding-right: 0.6rem; }
+.font-size-group .icon-btn:first-child { border-radius: 999px 0 0 999px; }
+.font-size-group .icon-btn:last-child { border-radius: 0 999px 999px 0; margin-left: -1px; }
+.font-size-group .icon-btn:disabled { opacity: 0.4; cursor: default; }
+@media (max-width: 720px) { #wrap-toggle, .font-size-group { display: none; } }
 .editor-shell textarea.code-edit::selection { background: rgba(125, 162, 255, 0.32); color: transparent; }
 .editor-shell textarea.code-edit:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
