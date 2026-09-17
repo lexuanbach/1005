@@ -562,6 +562,7 @@ textarea.stdin-edit { min-height: 4.2rem; }
 .term .t-err { color: #FF8A80; }
 .term .t-status { color: var(--code-cm); }
 .term .t-empty { color: var(--code-cm); font-style: italic; }
+.term .t-warn { color: var(--code-fn); margin-top: 0.5rem; }
 .tests { display: grid; gap: 0.4rem; }
 .test-row {
   display: flex; gap: 0.7rem; align-items: baseline; flex-wrap: wrap;

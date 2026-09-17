@@ -1,7 +1,11 @@
 /* CO1005 shared page engine: theme toggle, MCQ quiz, runnable exercises,
-   and the standalone playground. Depends on assets/minicpp.js for running C++. */
+   and the standalone playground. Depends on assets/minicpp.js for running C++;
+   optionally lazy-loads a real compiler from vendor/wasm-clang (see RealCpp). */
 (function () {
   'use strict';
+
+  // URL of this file — used to locate vendor/wasm-clang. Empty when the script is inlined (dist/ builds).
+  var SCRIPT_SRC = (document.currentScript && document.currentScript.src) || '';
 
   // ───────────── Theme toggle (same storage key as index.html) ─────────────
   var root = document.documentElement;
@@ -188,6 +192,110 @@
     }
   }
 
+  // ───────────── real C++ (clang compiled to WebAssembly, lazy-loaded) ─────────────
+  /* ▶ Run uses the instant MiniCPP interpreter. “Run with real compiler” downloads clang + libc++
+     (≈18 MB, once — see vendor/wasm-clang/README.md) into a Web Worker the first time it is
+     clicked, then compiles, links and runs the program entirely in the browser. */
+  var RealCpp = (function () {
+    var RUN_LIMIT_MS = 10000;      // a program still running after this is assumed to loop forever
+    var TOOL_LIMIT_MS = 180000;    // download + compile budget (slow connections)
+    var base = /^https?:/.test(SCRIPT_SRC) ? new URL('../vendor/wasm-clang/', SCRIPT_SRC).href : null;
+    var worker = null, job = null, nextId = 1;
+
+    function finish(result) {
+      var j = job;
+      job = null;
+      if (j) { clearTimeout(j.timer); j.resolve(result); }
+    }
+    function kill(result) {
+      if (worker) { worker.terminate(); worker = null; }
+      finish(result);
+    }
+    function arm(ms, result) {
+      clearTimeout(job.timer);
+      job.timer = setTimeout(function () { kill(result); }, ms);
+    }
+    function ensureWorker() {
+      if (worker) return;
+      worker = new Worker(base + 'cpp-worker.js');
+      worker.onmessage = function (ev) {
+        var m = ev.data;
+        if (!job || m.id !== job.id) return;
+        if (m.type === 'progress') {
+          var pct = m.total ? ' ' + Math.round(100 * m.loaded / m.total) + '%' : '';
+          job.onStatus('Downloading the ' + m.label + '…' + pct + '  (about 18 MB in total, first time only)');
+        } else if (m.type === 'stage') {
+          job.onStatus({ load: 'Starting the compiler…', compile: 'Compiling with clang…', link: 'Linking…', run: 'Running…' }[m.stage]);
+          if (m.stage === 'run') {
+            arm(RUN_LIMIT_MS, { ok: false, stage: 'run', out: '', diagnostics: '', exit: null,
+              error: 'time limit exceeded — the program was still running after ' + (RUN_LIMIT_MS / 1000) + ' s (infinite loop?)' });
+          }
+        } else if (m.type === 'result') {
+          finish(m);
+        }
+      };
+      worker.onerror = function (ev) {
+        kill({ ok: false, stage: 'load', out: '', diagnostics: '', exit: null,
+          error: 'the compiler could not start: ' + (ev.message || 'worker failed to load') });
+      };
+    }
+    return {
+      available: !!base && typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined',
+      busy: function () { return !!job; },
+      run: function (code, stdin, onStatus) {
+        return new Promise(function (resolve) {
+          job = { id: nextId++, resolve: resolve, onStatus: onStatus || function () {}, timer: null };
+          ensureWorker();
+          arm(TOOL_LIMIT_MS, { ok: false, stage: 'load', out: '', diagnostics: '', exit: null,
+            error: 'the compiler took too long to download or start — check your connection and try again' });
+          worker.postMessage({ id: job.id, code: code, stdin: stdin });
+        });
+      }
+    };
+  })();
+
+  function renderRealTerm(term, r) {
+    term.innerHTML = '';
+    if (r.error && (r.stage === 'compile' || r.stage === 'link')) {
+      term.appendChild(el('div', 't-err', 'compile error — clang says:'));
+      term.appendChild(el('span', '', escapeHtml(r.diagnostics || r.error)));
+      term.appendChild(el('div', 't-status', '── real compiler: clang 8 · nothing was run ──'));
+      return;
+    }
+    if (r.out) term.appendChild(el('span', '', escapeHtml(r.out)));
+    else if (!r.error) term.appendChild(el('span', 't-empty', '(no output)'));
+    if (r.truncated) term.appendChild(el('div', 't-warn', '… output cut off after 200 KB'));
+    if (r.error) term.appendChild(el('div', 't-err', escapeHtml((r.stage === 'run' ? 'runtime error — ' : 'error — ') + r.error)));
+    if (r.diagnostics) term.appendChild(el('div', 't-warn', escapeHtml('compiler warnings (-Wall):\n' + r.diagnostics)));
+    if (!r.error) {
+      var ms = r.times && r.times.compile ? ' · compiled in ' + Math.round(r.times.compile + (r.times.link || 0)) + ' ms' : '';
+      term.appendChild(el('div', 't-status', '── real compiler: clang 8, C++17 · exit code ' + r.exit + ms + ' ──'));
+    }
+  }
+
+  /* A “Run with real compiler” button wired to an editor / stdin / output box. Returns null where
+     the compiler cannot be loaded (file://, self-contained dist builds). */
+  function makeRealRunButton(editor, stdin, term) {
+    if (!RealCpp.available) return null;
+    var btn = el('button', 'btn ghost', '⚙ Run with real compiler');
+    btn.type = 'button';
+    btn.title = 'Compile with real clang (C++17) inside your browser. The first click downloads about 18 MB; after that it is cached.';
+    btn.addEventListener('click', function () {
+      if (RealCpp.busy()) return;
+      btn.disabled = true;
+      function status(text) {
+        term.innerHTML = '';
+        term.appendChild(el('span', 't-empty', text));
+      }
+      status('Starting the compiler…');
+      RealCpp.run(editor.value, stdin.value, status).then(function (r) {
+        btn.disabled = false;
+        renderRealTerm(term, r);
+      });
+    });
+    return btn;
+  }
+
   // ───────────── MCQ quiz ─────────────
   function initQuiz(data) {
     var mount = document.getElementById('quiz-root');
@@ -359,6 +467,8 @@
       testBtn = el('button', 'btn ghost', 'Run sample tests (' + ex.tests.length + ')');
       actions.appendChild(testBtn);
     }
+    var realBtn = makeRealRunButton(editor, stdin, term);
+    if (realBtn) actions.appendChild(realBtn);
     var resetBtn = el('button', 'btn ghost small', 'Reset code');
     actions.appendChild(resetBtn);
     body.appendChild(actions);
@@ -455,6 +565,8 @@
     right.appendChild(term);
     cols.appendChild(right);
     mount.appendChild(cols);
+    var realBtn = makeRealRunButton(editor, stdin, term);
+    if (realBtn) bar.appendChild(realBtn);
 
     function loadPreset(i) {
       var p = presets[i];
