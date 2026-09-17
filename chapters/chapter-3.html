@@ -91,6 +91,18 @@
         <h2>Teaching the program to choose</h2>
       </div>
 
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch3-fork-in-the-road.jpg" width="1100" height="825"
+             alt="A narrow country lane splitting into two lanes between hedges, with a large oak tree at the fork">
+        <figcaption>
+          <strong>Every <code>if</code> is a fork in the road.</strong> The program arrives carrying a value,
+          a condition is checked once, and exactly one lane is taken. The other lane is simply never driven.
+          <span class="credit">Photo: “Fork in the road” by Jonathan Billinger ·
+            <a href="https://commons.wikimedia.org/wiki/File:Fork_in_the_road_-_geograph.org.uk_-_3185222.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener">CC BY-SA 2.0</a> (resized)</span>
+        </figcaption>
+      </figure>
+
       <div class="concept">
         <h3><span class="idx">3.1</span>Program flow of control</h3>
         <p>
@@ -100,10 +112,17 @@
           <strong>selection</strong> (this chapter), <strong>repetition</strong> (Chapter 4),
           and <strong>function invocation</strong> (Chapter 6).
         </p>
+        <blockquote class="pullquote">
+          <p>Two roads diverged in a yellow wood,<br>And sorry I could not travel both…</p>
+          <footer>Robert Frost, <a href="https://en.wikipedia.org/wiki/The_Road_Not_Taken" target="_blank" rel="noopener">“The Road Not Taken”</a> (1916) —
+            a program can't travel both either. Selection is how it decides.</footer>
+        </blockquote>
       </div>
 
       <div class="concept wide">
         <h3><span class="idx">3.2</span>The bool type and comparison operators</h3>
+        <div class="media-row" style="--media-w:15rem">
+        <div>
         <p style="max-width:46rem">
           C++ has a built-in Boolean type, <code>bool</code>, holding <code>true</code> or
           <code>false</code> — actually stored as the integers <strong>1</strong> and
@@ -126,6 +145,23 @@
           Writing <span class="mono">if (x = 5)</span> stores 5 into x and the condition is
           always true. Read your conditions twice.
         </div>
+        </div>
+        <figure class="photo portrait">
+          <img src="../assets/lecture-images/ch3-george-boole.jpg" width="420" height="560" loading="lazy"
+               alt="Hand-coloured engraved portrait of George Boole, a Victorian man in a dark coat and bow tie">
+          <figcaption>
+            <strong>Why is it called <code>bool</code>?</strong> After
+            <a href="https://en.wikipedia.org/wiki/George_Boole" target="_blank" rel="noopener">George Boole</a> (1815–1864),
+            a largely self-taught English mathematician. His 1854 book
+            <a href="https://www.gutenberg.org/ebooks/15114" target="_blank" rel="noopener"><em>The Laws of Thought</em></a>
+            showed that reasoning can be <em>calculated</em> with just two values. In 1937
+            <a href="https://en.wikipedia.org/wiki/A_Symbolic_Analysis_of_Relay_and_Switching_Circuits" target="_blank" rel="noopener">Claude Shannon's master's thesis</a>
+            wired that algebra into switching circuits — and every computer since.
+            <span class="credit">Portrait: unknown artist, public domain ·
+              <a href="https://commons.wikimedia.org/wiki/File:George_Boole_color.jpg" target="_blank" rel="noopener">Wikimedia Commons</a></span>
+          </figcaption>
+        </figure>
+        </div>
       </div>
 
       <div class="concept wide">
@@ -134,6 +170,8 @@
           Combine conditions with <code>&amp;&amp;</code> (AND), <code>||</code> (OR), and
           <code>!</code> (NOT):
         </p>
+        <div class="media-row" style="--media-w:21rem">
+        <div>
         <div class="tbl-scroll" style="max-width:44rem">
           <table class="tbl">
             <tr><th class="mono">A</th><th class="mono">B</th><th class="mono">A &amp;&amp; B</th><th class="mono">A || B</th><th class="mono">!A</th></tr>
@@ -147,6 +185,27 @@
           With <code>age = 45, term = 5</code>: <code>(age &gt; 40) &amp;&amp; (term &lt; 10)</code>
           → true; <code>!(age &gt; 40)</code> → false.
         </p>
+        <p style="max-width:46rem">
+          A negated compound condition can always be rewritten with
+          <a href="https://en.wikipedia.org/wiki/De_Morgan%27s_laws" target="_blank" rel="noopener">De Morgan's laws</a>:
+          <code>!(A &amp;&amp; B)</code> equals <code>!A || !B</code>, and <code>!(A || B)</code> equals
+          <code>!A &amp;&amp; !B</code>. So “not a valid grade”,
+          <code>!(grade &gt;= 0 &amp;&amp; grade &lt;= 100)</code>, is exactly Example 3.3.3's
+          <code>grade &lt; 0 || grade &gt; 100</code>.
+        </p>
+        </div>
+        <figure class="comic" style="--comic-w:21rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch3-xkcd-1033-formal-logic.png" width="386" height="304" loading="lazy"
+               alt="xkcd comic: the back of a car with a bumper sticker reading 'Honk IFF you love formal logic'"></div>
+          <figcaption>
+            <strong>“iff” = if and only if.</strong> Honk when you love logic, stay silent when you don't —
+            both directions. For two bools that is simply <code>honk == lovesLogic</code>.
+            A plain <code>if</code> promises only one direction.
+            <span class="credit">Comic: <a href="https://xkcd.com/1033/" target="_blank" rel="noopener">xkcd 1033 “Formal Logic”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
         <div class="note tip" style="max-width:44rem">
           <span class="note-tag">Short-circuit evaluation</span>
           Evaluation stops as soon as the result is determined. In
@@ -160,6 +219,12 @@
           what makes the guard pattern <span class="mono">idx &gt;= 0 &amp;&amp; arr[idx] &gt; 0</span>
           safe. Supplementary topic <a href="../supplementary/short-circuit.html">S9 — Short-circuit
           evaluation</a> runs real conditions term by term and shows precisely which ones never execute.
+        </div>
+        <div class="note" style="max-width:44rem">
+          <span class="note-tag">Watch · 10 minutes</span>
+          <a href="https://www.youtube.com/watch?v=gI-qXk7XojA" target="_blank" rel="noopener">Crash Course Computer Science #3 —
+          Boolean Logic &amp; Logic Gates</a> builds AND, OR and NOT out of transistors: the same three
+          operators you just met, implemented in hardware.
         </div>
       </div>
 
@@ -193,8 +258,10 @@
         </p>
       </div>
 
-      <div class="concept">
+      <div class="concept wide">
         <h3><span class="idx">3.5</span>The if-else statement</h3>
+        <div class="media-row" style="--media-w:15rem">
+        <div style="max-width:46rem">
         <p>
           <code>if</code> directs the computer to select between two sequences of statements —
           the decision diamond of Chapter 1 in code:
@@ -216,6 +283,42 @@
           Example 3.3.1 turns the two-rate income-tax rule into exactly one
           <code>if-else</code> — you will build it in Exercise 3.
         </p>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">True story · the “goto fail” bug, 2014</span>
+          “The braces may be omitted” once broke the security of hundreds of millions of iPhones and Macs.
+          Inside Apple's code for checking a website's certificate, one line was accidentally duplicated:
+        </div>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">sslKeyExchange.c (simplified)</span></div>
+          <pre><span class="kw">if</span> ((err = SSLHashSHA1.update(&amp;hashCtx, &amp;signedParams)) != <span class="str">0</span>)
+    <span class="kw">goto</span> fail;      <span class="cm">// belongs to the if</span>
+    <span class="kw">goto</span> fail;      <span class="cm">// indented like it belongs — but it ALWAYS runs</span>
+<span class="cm">/* ...the real signature check below was never reached... */</span></pre>
+        </div>
+        <p style="max-width:46rem">
+          Without braces only the <em>first</em> statement belongs to the <code>if</code>. The second
+          <code>goto fail;</code> jumped over the final check every time, with <code>err</code> still saying
+          “no error” — so forged certificates were accepted. With <code>{ }</code> the duplicate line would
+          have been harmless. Read <a href="https://www.imperialviolet.org/2014/02/22/applebug.html" target="_blank" rel="noopener">Adam
+          Langley's analysis</a> or the
+          <a href="https://en.wikipedia.org/wiki/Unreachable_code#goto_fail_bug" target="_blank" rel="noopener">Wikipedia summary</a>.
+          <strong>In this course: always write the braces.</strong> The same habit protects you from the
+          <a href="https://en.wikipedia.org/wiki/Dangling_else" target="_blank" rel="noopener">dangling else</a>.
+        </p>
+        </div>
+        <figure class="comic" style="--comic-w:15rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch3-xkcd-1652-conditionals.png" width="513" height="761" loading="lazy"
+               alt="xkcd comic. Text messages: 'I'll be in your city tomorrow if you want to hang out.' 'But where will you be if I don't want to hang out?!' 'You know, I just remembered I'm busy.' Caption: Why I try not to be pedantic about conditionals."></div>
+          <figcaption>
+            <strong>A one-way <code>if</code> says nothing about the false case</strong> — the program just moves on.
+            People fill the gap with common sense; a compiler never will. Whenever you read an
+            <code>if</code>, ask: <em>and otherwise?</em>
+            <span class="credit">Comic: <a href="https://xkcd.com/1652/" target="_blank" rel="noopener">xkcd 1652 “Conditionals”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
+
       </div>
 
       <div class="concept">
@@ -258,10 +361,17 @@
           <code>del == 0</code>, then <code>del &gt; 0</code>, and the final <code>else</code>
           covers <code>del &lt; 0</code> — “There is no solution”.
         </p>
+        <blockquote class="pullquote teal">
+          <p>Program testing can be used to show the presence of bugs, but never to show their absence!</p>
+          <footer>Edsger W. Dijkstra, <em>Notes on Structured Programming</em> (1970) — so spend your few tests
+            where bugs live: on the rungs of the ladder. Try 90, 89.9, 80, 60 and 59.9, not just 75.</footer>
+        </blockquote>
       </div>
 
-      <div class="concept">
+      <div class="concept wide">
         <h3><span class="idx">3.8</span>The switch statement</h3>
+        <div class="media-row" style="--media-w:17rem">
+        <div style="max-width:46rem">
         <p>
           When one <strong>integer</strong> expression (int, char, long, short — never a double
           or a string) selects among many fixed values, <code>switch</code> reads better than a
@@ -287,6 +397,40 @@
           Example 3.5.1 builds a four-function calculator on a <code>char op</code> —
           you will complete it in Exercise 4.
         </p>
+        </div>
+        <figure class="photo">
+          <img src="../assets/lecture-images/ch3-railway-turnout.jpg" width="691" height="825" loading="lazy"
+               alt="View through a rail vehicle's front window of a railway turnout where one track splits into three">
+          <figcaption>
+            <strong>The name is literal.</strong> A
+            <a href="https://en.wikipedia.org/wiki/Railroad_switch" target="_blank" rel="noopener">railway switch</a>
+            is set <em>once</em>, from one lever, and the train rolls onto one of several tracks —
+            just as <code>switch</code> evaluates one expression once and jumps to the matching <code>case</code>.
+            <span class="credit">Photo: “Treskensväxel vid Jenny” by Mikael Johansson ·
+              <a href="https://commons.wikimedia.org/wiki/File:Treskensv%C3%A4xel_vid_Jenny.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+              <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a> (cropped)</span>
+          </figcaption>
+        </figure>
+        </div>
+
+        <div class="media-row" style="--media-w:17rem">
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Always write the default</span>
+          “That value can never happen” is a prediction, not a guarantee: users mistype, and next month
+          someone adds a fifth operator. A <code>default:</code> (or the final <code>else</code> of a chain)
+          that prints a clear message turns a silent wrong answer into a bug you can see — exactly what
+          <span class="mono">Invalid operator!</span> does in Example 3.5.1.
+        </div>
+        <figure class="comic" style="--comic-w:17rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch3-xkcd-2200-unreachable-state.png" width="710" height="931" loading="lazy"
+               alt="xkcd comic: an error dialog reading 'If you're seeing this, the code is in what I thought was an unreachable state...' Caption: Never write error messages tired."></div>
+          <figcaption>
+            What a <code>default:</code> branch sounds like at 3 a.m.
+            <span class="credit">Comic: <a href="https://xkcd.com/2200/" target="_blank" rel="noopener">xkcd 2200 “Unreachable State”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
       </div>
     </div>
   </section>
@@ -323,6 +467,11 @@
         <h2>Group discussion: design a decision policy</h2>
         <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation with a live demo. Counts toward the class-activities 10%.</p>
       </div>
+      <blockquote class="pullquote">
+        <p>Programs must be written for people to read, and only incidentally for machines to execute.</p>
+        <footer>Harold Abelson &amp; Gerald Jay Sussman, <em>Structure and Interpretation of Computer Programs</em> (1985) —
+          keep it in mind when your team argues about which version “reads better”.</footer>
+      </blockquote>
       <div class="concept wide">
         <h3>The task</h3>
         <p style="max-width:46rem">
@@ -382,6 +531,26 @@
           <span class="rc-kind">Reference</span>
           <h4>cppreference — Operator precedence</h4>
           <p>Where the comparison and logical operators really sit in the full C++ table.</p>
+        </a>
+        <a class="read-card" href="https://www.imperialviolet.org/2014/02/22/applebug.html" target="_blank" rel="noopener">
+          <span class="rc-kind">True story</span>
+          <h4>Adam Langley — Apple's SSL/TLS bug</h4>
+          <p>The “goto fail” bug explained by a security engineer: one <code>if</code> without braces, one duplicated line.</p>
+        </a>
+        <a class="read-card" href="https://www.youtube.com/watch?v=gI-qXk7XojA" target="_blank" rel="noopener">
+          <span class="rc-kind">Video</span>
+          <h4>Crash Course CS #3 — Boolean Logic &amp; Logic Gates</h4>
+          <p>Ten minutes from George Boole's algebra to AND, OR and NOT built out of transistors.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Decision_table" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Decision table</h4>
+          <p>The tool for the team activity: list every combination of conditions before writing a single <code>if</code>.</p>
+        </a>
+        <a class="read-card" href="https://www.gutenberg.org/ebooks/15114" target="_blank" rel="noopener">
+          <span class="rc-kind">Classic</span>
+          <h4>George Boole — The Laws of Thought (1854)</h4>
+          <p>The book the <code>bool</code> type is named after, free on Project Gutenberg.</p>
         </a>
         <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
           <span class="rc-kind">Textbook</span>

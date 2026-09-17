@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Build self-contained pages for Claude Artifact publishing.
 
-For each page: inline local <link rel="stylesheet"> and <script src> assets,
-drop elements marked class="local-only" (links that only work on disk, e.g.
+For each page: inline local <link rel="stylesheet"> and <script src> assets
+(and local <img src> files as data: URIs), drop elements marked class="local-only" (links that only work on disk, e.g.
 the lecture-slide PDFs), strip the document wrapper tags (the artifact host
 supplies its own <html>/<head>/<body> skeleton), and rewrite internal links
 using an optional page→URL mapping (dist/urls.json) so pages published as
@@ -11,7 +11,9 @@ separate artifacts can link to each other.
 Usage:  python3 build.py            # build all pages into dist/
         dist/urls.json (optional):  {"index.html": "https://claude.ai/...", ...}
 """
+import base64
 import json
+import mimetypes
 import posixpath
 import re
 from pathlib import Path
@@ -56,8 +58,15 @@ def inline_assets(html: str, page_dir: Path) -> str:
         path = (page_dir / src).resolve()
         return '<script>\n' + path.read_text() + '\n</script>'
 
+    def img_repl(m):
+        path = (page_dir / m.group(2)).resolve()
+        mime = mimetypes.guess_type(path.name)[0] or 'application/octet-stream'
+        data = base64.b64encode(path.read_bytes()).decode('ascii')
+        return f'{m.group(1)}data:{mime};base64,{data}"'
+
     html = re.sub(r'<link rel="stylesheet" href="((?!https?:)[^"]+)">', css_repl, html)
     html = re.sub(r'<script src="((?!https?:)[^"]+)"></script>', js_repl, html)
+    html = re.sub(r'(<img\b[^>]*?\bsrc=")((?!https?:|data:)[^"]+)"', img_repl, html)
     return html
 
 def strip_wrapper(html: str) -> str:
