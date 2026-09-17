@@ -538,4 +538,17 @@
     initPlayground();
     initFolds();
   });
+
+  // ───────────── exposed for standalone pages (e.g. tutorials/*.html) ─────────────
+  // Tutorial pages use window.TUTORIAL_DATA instead of window.CHAPTER_DATA, so the
+  // DOMContentLoaded auto-render above (which only looks at CHAPTER_DATA) skips them
+  // by design. They call CO1005.renderExercises themselves in a small inline <script>.
+  // Purely additive: does not change how chapter pages render via CHAPTER_DATA.
+  window.CO1005 = window.CO1005 || {};
+  window.CO1005.buildCodeExercise = buildCodeExercise;
+  window.CO1005.renderExercises = function (container, exercises) {
+    (exercises || []).forEach(function (ex, i) {
+      container.appendChild(buildCodeExercise(ex, i));
+    });
+  };
 })();

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tutorial 3: Selection Structures · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="../chapters/chapter-1.html">Chapter 1</a>
+      <a href="../chapters/chapter-2.html">Chapter 2</a>
+      <a href="../chapters/chapter-3.html">Chapter 3</a>
+      <a href="../chapters/chapter-4.html">Chapter 4</a>
+      <a href="../chapters/chapter-5.html">Chapter 5</a>
+      <a href="../chapters/chapter-6.html">Chapter 6</a>
+      <a href="../playground.html">Playground</a>
+      <a href="tutorial-1.html">Tutorials</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="../chapters/chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="../chapters/chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="../chapters/chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="../chapters/chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="../chapters/chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="../chapters/chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts</a>
+    <a href="tutorial-2.html"><span class="ch-num">T2</span>Basic Elements of C++</a>
+    <a href="tutorial-3.html" aria-current="page"><span class="ch-num">T3</span>Selection Structures</a>
+    <a href="tutorial-4.html"><span class="ch-num">T4</span>Repetition Structures</a>
+    <a href="tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings</a>
+    <a href="tutorial-6.html"><span class="ch-num">T6</span>Functions</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="../supplementary/loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="../supplementary/short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="../supplementary/loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#exercises">Exercises</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Tutorial 3 · Practice</span>
+      <h1>Selection Structures</h1>
+      <p class="lede">
+        Five decision-making problems, from a single comparison up to a full
+        quadratic-equation solver — practice reading conditions carefully and
+        laying out <code>if</code>/<code>else</code> and <code>switch</code> chains cleanly.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#exercises">5 exercises</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Practice</span>
+        <h2>Programming exercises</h2>
+        <p>
+          Every exercise below gives you a starter skeleton — fill in the TODOs,
+          press <strong>Run</strong>, and check the output yourself. No solutions
+          are shown for these; use them to practice independently.
+        </p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <nav class="pagenav" aria-label="Tutorial navigation">
+      <a href="tutorial-2.html"><span class="dir">← Previous tutorial</span>Basic Elements of C++</a>
+      <a href="tutorial-4.html" style="text-align:right"><span class="dir">Next tutorial →</span>Repetition Structures</a>
+    </nav>
+  </div>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Tutorial 3 · Selection Structures</p>
+  </div>
+</footer>
+
+<script src="../assets/minicpp.js"></script>
+<script src="../assets/tut3-data.js"></script>
+<script src="../assets/course.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var mount = document.getElementById('exercises-root');
+    if (mount && window.TUTORIAL_DATA && window.CO1005) {
+      window.CO1005.renderExercises(mount, window.TUTORIAL_DATA.exercises);
+    }
+  });
+</script>
+</body>
+</html>
