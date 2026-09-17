@@ -402,6 +402,33 @@
     }
     paintBar();
 
+    // ── full screen: the whole code window (editor, input, output, run buttons) fills the viewport ──
+    var fsBtn = null;
+    function fullscreenTarget() { return (opts && opts.fullscreen && opts.fullscreen()) || null; }
+    function setFullscreen(on) {
+      var target = fullscreenTarget();
+      if (!target) return;
+      target.classList.toggle('code-fullscreen', on);
+      document.body.classList.toggle('code-fullscreen-open', on);
+      fsBtn.textContent = on ? '✕ Exit full screen' : '⛶ Full screen';
+      fsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      fsBtn.title = on ? 'Back to the page (Esc)' : 'Make this code window fill the screen (Esc to leave)';
+      queueLayout();
+      if (on) ta.focus();
+      else target.scrollIntoView({ block: 'nearest' });
+    }
+    if (opts && opts.fullscreen) {
+      bar.appendChild(el('span', 'ed-sep'));
+      fsBtn = barButton('⛶ Full screen', 'Make this code window fill the screen (Esc to leave)', function () {
+        setFullscreen(!fullscreenTarget().classList.contains('code-fullscreen'));
+      });
+      fsBtn.setAttribute('aria-pressed', 'false');
+      document.addEventListener('keydown', function (ev) {
+        var t = fullscreenTarget();
+        if (ev.key === 'Escape' && t && t.classList.contains('code-fullscreen')) setFullscreen(false);
+      });
+    }
+
     ta.addEventListener('input', function (ev) {
       refresh();
       record(ev.inputType === 'insertText' || ev.inputType === 'deleteContentBackward' || ev.inputType === 'deleteContentForward');
@@ -868,7 +895,8 @@
     var left = el('div');
     left.appendChild(el('label', 'field-label', 'Your code'));
     var editor = makeEditor({ label: 'C++ code editor for ' + ex.title, minHeight: '15rem',
-      fileName: (String(ex.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'exercise') + '.cpp' });
+      fileName: (String(ex.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'exercise') + '.cpp',
+      fullscreen: function () { return card; } });
     editor.value = ex.starter;
     left.appendChild(editor.root);
     cols.appendChild(left);
@@ -978,7 +1006,8 @@
     var cols = el('div', 'ex-cols');
     var left = el('div');
     left.appendChild(el('label', 'field-label', 'Code — the CO1005 C++ subset'));
-    var editor = makeEditor({ label: 'C++ code editor', minHeight: '22rem', fileName: 'playground.cpp' });
+    var editor = makeEditor({ label: 'C++ code editor', minHeight: '22rem', fileName: 'playground.cpp',
+      fullscreen: function () { return mount; } });
     left.appendChild(editor.root);
     cols.appendChild(left);
     var right = el('div');
