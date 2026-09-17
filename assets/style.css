@@ -960,11 +960,12 @@ section.block.folded { padding-bottom: 0.4rem; }
   display: block; width: 5.2rem; height: 5.2rem; object-fit: cover; border-radius: 50%;
   border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--surface);
 }
-.pullquote .quote-photos .quote-photo + .quote-photo { width: 4.2rem; height: 4.2rem; margin-left: 0.5rem; }
+/* two authors: equal circles, slightly smaller, stacked */
+.pullquote .quote-photos .quote-photo:not(:only-child) { width: 4.4rem; height: 4.4rem; }
 @media (max-width: 560px) {
   .pullquote.with-photo { column-gap: 0.8rem; }
   .pullquote .quote-photo { width: 3.6rem; height: 3.6rem; }
-  .pullquote .quote-photos .quote-photo + .quote-photo { width: 3rem; height: 3rem; margin-left: 0.3rem; }
+  .pullquote .quote-photos .quote-photo:not(:only-child) { width: 3.2rem; height: 3.2rem; }
 }
 
 /* autographs under signed pull-quotes: dark ink on transparent; flipped to light ink in dark mode */

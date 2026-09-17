@@ -127,13 +127,15 @@
           Those three structures are not just convenient — they are <em>enough</em>. The <strong>Böhm–Jacopini theorem</strong> (1966) states that any computable function can be programmed using only <strong>sequence, selection and iteration</strong> to combine sub-programs. Everything software has ever done can, in principle, be built from the contents of Chapters 2, 3 and 4.
           <a href="https://en.wikipedia.org/wiki/Structured_program_theorem" target="_blank" rel="noopener">Source: Wikipedia — Structured program theorem</a>.
         </div>
-        <blockquote class="pullquote signed">
+        <blockquote class="pullquote with-photo">
+          <div class="quote-photos">
+            <img class="quote-photo" src="../assets/lecture-images/portrait-frost.jpg" width="240" height="240" loading="lazy"
+                 alt="Portrait of Robert Frost">
+          </div>
           <p>Two roads diverged in a yellow wood,<br>And sorry I could not travel both…</p>
-          <img class="autograph" src="../assets/lecture-images/sig-frost.png" width="640" height="130" loading="lazy"
-               alt="Autograph of Robert Frost">
           <footer>Robert Frost, <a href="https://en.wikipedia.org/wiki/The_Road_Not_Taken" target="_blank" rel="noopener">“The Road Not Taken”</a> (1916) —
             a program can't travel both either. Selection is how it decides.
-            <span class="credit">Autograph: <a href="https://commons.wikimedia.org/wiki/File:Robert_Frost_Signature.svg" target="_blank" rel="noopener">Wikimedia Commons</a> · Public domain</span></footer>
+            <span class="credit">Portrait: <a href="https://commons.wikimedia.org/wiki/File:Robert_Frost_NYWTS_2.jpg" target="_blank" rel="noopener">Walter Albertin, <em>New York World-Telegram</em>, 1961</a> · Public domain</span></footer>
         </blockquote>
       </div>
 
@@ -279,13 +281,15 @@
           Characters join in as numbers: <code>'a' + 1 == 'b'</code> is true, while with
           <code>i = 5, key = 'm'</code>, <code>i + 2 == key − 1</code> compares 7 with 108 — false.
         </p>
-        <blockquote class="pullquote teal signed" style="max-width:46rem">
+        <blockquote class="pullquote teal with-photo" style="max-width:46rem">
+          <div class="quote-photos">
+            <img class="quote-photo" src="../assets/lecture-images/portrait-shakespeare.jpg" width="240" height="240" loading="lazy"
+                 alt="Portrait of William Shakespeare">
+          </div>
           <p>To be or not to be—that is the question</p>
-          <img class="autograph" src="../assets/lecture-images/sig-shakespeare.png" width="640" height="125" loading="lazy"
-               alt="Autograph of William Shakespeare">
           <footer>William Shakespeare, <a href="https://www.folger.edu/explore/shakespeares-works/hamlet/read/3/1/" target="_blank" rel="noopener"><em>Hamlet</em>, Act 3, Scene 1</a> (c. 1600) — to a C++ compiler it is no question at all.
             Write it as <code>toBe || !toBe</code>: the table above applies <code>!</code> first, then <code>||</code>, and the result is <code>true</code> whatever <code>toBe</code> holds — a condition that can never choose is not a selection.
-            <span class="credit">Autograph: <a href="https://commons.wikimedia.org/wiki/File:William_Shakespeare_Signature.svg" target="_blank" rel="noopener">Wikimedia Commons</a> · Public domain</span></footer>
+            <span class="credit">Portrait: <a href="https://commons.wikimedia.org/wiki/File:William_Shakespeare_by_John_Taylor,_edited.jpg" target="_blank" rel="noopener">the Chandos portrait, attributed to John Taylor, c. 1610</a> · Public domain</span></footer>
         </blockquote>
       </div>
 
@@ -397,10 +401,15 @@
           <code>del == 0</code>, then <code>del &gt; 0</code>, and the final <code>else</code>
           covers <code>del &lt; 0</code> — “There is no solution”.
         </p>
-        <blockquote class="pullquote teal">
+        <blockquote class="pullquote teal with-photo">
+          <div class="quote-photos">
+            <img class="quote-photo" src="../assets/lecture-images/portrait-dijkstra.jpg" width="240" height="240" loading="lazy"
+                 alt="Portrait of Edsger W. Dijkstra">
+          </div>
           <p>Program testing can be used to show the presence of bugs, but never to show their absence!</p>
           <footer>Edsger W. Dijkstra, <em>Notes on Structured Programming</em> (1970) — so spend your few tests
-            where bugs live: on the rungs of the ladder. Try 90, 89.9, 80, 60 and 59.9, not just 75.</footer>
+            where bugs live: on the rungs of the ladder. Try 90, 89.9, 80, 60 and 59.9, not just 75.
+            <span class="credit">Portrait: <a href="https://commons.wikimedia.org/wiki/File:Edsger_Wybe_Dijkstra.jpg" target="_blank" rel="noopener">Hamilton Richards, 2002</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a> (cropped)</span></footer>
         </blockquote>
       </div>
 
@@ -508,10 +517,17 @@
         <h2>Group discussion: design a decision policy</h2>
         <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation with a live demo. Counts toward the class-activities 10%.</p>
       </div>
-      <blockquote class="pullquote">
+      <blockquote class="pullquote with-photo">
+        <div class="quote-photos">
+          <img class="quote-photo" src="../assets/lecture-images/portrait-abelson.jpg" width="240" height="240" loading="lazy"
+               alt="Portrait of Harold Abelson">
+          <img class="quote-photo" src="../assets/lecture-images/portrait-sussman.jpg" width="240" height="240" loading="lazy"
+               alt="Portrait of Gerald Jay Sussman">
+        </div>
         <p>Programs must be written for people to read, and only incidentally for machines to execute.</p>
         <footer>Harold Abelson &amp; Gerald Jay Sussman, <em>Structure and Interpretation of Computer Programs</em> (1985) —
-          keep it in mind when your team argues about which version “reads better”.</footer>
+          keep it in mind when your team argues about which version “reads better”.
+          <span class="credit">Portraits: Harold Abelson — <a href="https://commons.wikimedia.org/wiki/File:HalAbelsonJI1.jpg" target="_blank" rel="noopener">Joi Ito, 2007</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped); Gerald Jay Sussman — <a href="https://commons.wikimedia.org/wiki/File:Gerald_Sussman_1_(crop).jpg" target="_blank" rel="noopener">Phoebe, 2024</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (cropped)</span></footer>
       </blockquote>
       <div class="concept wide">
         <h3>The task</h3>

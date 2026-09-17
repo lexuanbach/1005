@@ -160,10 +160,17 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           </figcaption>
         </figure>
         </div>
-        <blockquote class="pullquote">
+        <blockquote class="pullquote with-photo">
+          <div class="quote-photos">
+            <img class="quote-photo" src="../assets/lecture-images/portrait-kernighan.jpg" width="240" height="240" loading="lazy"
+                 alt="Portrait of Brian Kernighan">
+            <img class="quote-photo" src="../assets/lecture-images/portrait-ritchie.jpg" width="240" height="240" loading="lazy"
+                 alt="Portrait of Dennis Ritchie">
+          </div>
           <p>Functions break large computing tasks into smaller ones, and enable people to build on what others have done instead of starting over from scratch.</p>
           <footer>Brian W. Kernighan &amp; Dennis M. Ritchie, <em>The C Programming Language</em>, opening line of Chapter 4, “Functions and Program Structure” —
-            written about C, but it is the whole reason this chapter exists.</footer>
+            written about C, but it is the whole reason this chapter exists.
+            <span class="credit">Portraits: Brian Kernighan — <a href="https://commons.wikimedia.org/wiki/File:Brian_Kernighan_at_VCF_East_2.jpg" target="_blank" rel="noopener">Jw12321, 2025</a> · CC0 (public domain dedication); Dennis Ritchie — <a href="https://commons.wikimedia.org/wiki/File:Dennis_Ritchie_2011.jpg" target="_blank" rel="noopener">Denise Panyik-Dale, 2011</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped)</span></footer>
         </blockquote>
         <div class="note tip">
           <span class="note-tag">A function can call itself</span>
@@ -190,13 +197,15 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           Here the child taught the parent. Classic “K&amp;R” C had no prototypes, so the arguments of a call were not type-checked. When C was standardized in 1989, the committee added function prototypes <strong>borrowed from C++</strong> — one of the few features that flowed from the younger language back into the older one.
           <a href="https://en.wikipedia.org/wiki/C_(programming_language)#ANSI_C_and_ISO_C" target="_blank" rel="noopener">Source: Wikipedia — C (ANSI C and ISO C)</a>.
         </div>
-        <blockquote class="pullquote signed" style="max-width:46rem">
+        <blockquote class="pullquote with-photo" style="max-width:46rem">
+          <div class="quote-photos">
+            <img class="quote-photo" src="../assets/lecture-images/portrait-newton.jpg" width="240" height="240" loading="lazy"
+                 alt="Portrait of Isaac Newton">
+          </div>
           <p>If I have seen further it is by standing on ye sholders of Giants.</p>
-          <img class="autograph" src="../assets/lecture-images/sig-newton.png" width="442" height="140" loading="lazy"
-               alt="Autograph of Isaac Newton, signed “Is. Newton”">
           <footer>Isaac Newton, <a href="https://en.wikiquote.org/wiki/Isaac_Newton" target="_blank" rel="noopener">letter to Robert Hooke</a> (February 1676), in his own spelling — a prototype is how a programmer climbs up.
             One line such as <code>double sqrt(double);</code> is all you need to know to call a function somebody else wrote, tested and perfected; how it works inside can stay their business.
-            <span class="credit">Autograph: <a href="https://commons.wikimedia.org/wiki/File:Isaac_Newton_signature_ws.svg" target="_blank" rel="noopener">Wikimedia Commons</a> · Public domain</span></footer>
+            <span class="credit">Portrait: <a href="https://commons.wikimedia.org/wiki/File:Portrait_of_Sir_Isaac_Newton,_1689_(brightened).jpg" target="_blank" rel="noopener">Godfrey Kneller, 1689</a> · Public domain</span></footer>
         </blockquote>
       </div>
 
@@ -333,11 +342,16 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           when its job is to <em>change</em> its arguments — like <code>swap</code>, or a
           function that must hand back more than one result.
         </p>
-        <blockquote class="pullquote teal">
+        <blockquote class="pullquote teal with-photo">
+          <div class="quote-photos">
+            <img class="quote-photo" src="../assets/lecture-images/portrait-liskov.jpg" width="240" height="240" loading="lazy"
+                 alt="Portrait of Barbara Liskov">
+          </div>
           <p>Data abstractions provide the same benefits as procedures, but for data.</p>
           <footer>Barbara Liskov, keynote “Data Abstraction and Hierarchy”, OOPSLA (1987) —
             a function already abstracts over <em>how</em>; a reference parameter is how that
-            abstraction reaches back out and touches the caller's own data.</footer>
+            abstraction reaches back out and touches the caller's own data.
+            <span class="credit">Portrait: <a href="https://commons.wikimedia.org/wiki/File:Barbara_Liskov_MIT_computer_scientist_2010.jpg" target="_blank" rel="noopener">Kenneth C. Zirkel, 2010</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a> (cropped)</span></footer>
         </blockquote>
       </div>
 
@@ -386,13 +400,15 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           </figcaption>
         </figure>
         </div>
-        <blockquote class="pullquote teal signed" style="max-width:46rem">
+        <blockquote class="pullquote teal with-photo" style="max-width:46rem">
+          <div class="quote-photos">
+            <img class="quote-photo" src="../assets/lecture-images/portrait-feynman.jpg" width="240" height="240" loading="lazy"
+                 alt="Portrait of Richard Feynman">
+          </div>
           <p>What I cannot create, I do not understand.</p>
-          <img class="autograph" src="../assets/lecture-images/sig-feynman.png" width="418" height="140" loading="lazy"
-               alt="Autograph of Richard P. Feynman">
           <footer>Richard Feynman, <a href="https://digital.archives.caltech.edu/collections/Images/1.10-29/" target="_blank" rel="noopener">written on his Caltech blackboard</a>, still there when he died in February 1988 —
             the standard library already ships a linear search, <code>std::find</code>. You write <code>linearSearch</code> by hand first for Feynman's reason: once you have built it yourself, no search function is a black box again.
-            <span class="credit">Autograph: <a href="https://commons.wikimedia.org/wiki/File:Richard_Feynman_signature.svg" target="_blank" rel="noopener">Wikimedia Commons</a> · Public domain</span></footer>
+            <span class="credit">Portrait: <a href="https://commons.wikimedia.org/wiki/File:Richard_Feynman_Los_Alamos_ID_badge.jpg" target="_blank" rel="noopener">United States Army, Los Alamos ID badge, c. 1943</a> · Public domain</span></footer>
         </blockquote>
       </div>
     </div>
@@ -430,11 +446,18 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
         <h2>Group discussion: the great refactor</h2>
         <p>Teams of 3–4 · one class period to prepare · a 5-minute before/after presentation. Counts toward the class-activities 10%.</p>
       </div>
-      <blockquote class="pullquote">
+      <blockquote class="pullquote with-photo">
+        <div class="quote-photos">
+          <img class="quote-photo" src="../assets/lecture-images/portrait-hunt.jpg" width="240" height="240" loading="lazy"
+               alt="Portrait of Andy Hunt">
+          <img class="quote-photo" src="../assets/lecture-images/portrait-thomas.jpg" width="240" height="240" loading="lazy"
+               alt="Portrait of Dave Thomas">
+        </div>
         <p>Every piece of knowledge must have a single, unambiguous, authoritative representation within a system.</p>
         <footer>Andy Hunt &amp; Dave Thomas, <em>The Pragmatic Programmer</em> (the DRY principle) —
           a duplicated loop, copy-pasted three times across your Chapter 4/5 program, is exactly
-          the knowledge this refactor is meant to give a single home: one function.</footer>
+          the knowledge this refactor is meant to give a single home: one function.
+          <span class="credit">Portraits: Andy Hunt — <a href="https://commons.wikimedia.org/wiki/File:Andy_Hunt_programmer.jpg" target="_blank" rel="noopener">Kittie Rue</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a> (cropped); Dave Thomas — <a href="https://commons.wikimedia.org/wiki/File:Dave_Thomas_speaking_at_the_Pasadena_Rails_Studio.jpg" target="_blank" rel="noopener">James Davidson, 2006</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped)</span></footer>
       </blockquote>
       <div class="concept wide">
         <h3>The task</h3>
