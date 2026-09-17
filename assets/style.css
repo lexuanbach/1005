@@ -952,6 +952,20 @@ section.block.folded { padding-bottom: 0.4rem; }
 .ed-sep { width: 1px; height: 1.1rem; background: var(--line); margin: 0 0.2rem; }
 .ed-note { flex: 1 1 auto; min-width: 0; text-align: right; margin-right: 0.3rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--teal); }
 
+/* “Did you know?” notes with a picture: text on the left, a small image with its credit on the right */
+.note.with-media { display: grid; grid-template-columns: minmax(0, 1fr) 8.5rem; column-gap: 1.1rem; align-items: start; }
+.note.with-media > .note-text { min-width: 0; }
+.note.with-media > .note-media { margin: 0; }
+.note-media img {
+  display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+}
+.note-media img.contain { object-fit: contain; background: #FFFFFF; padding: 0.3rem; }
+.note-media figcaption { margin-top: 0.3rem; font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; line-height: 1.35; color: var(--ink-soft); }
+@media (max-width: 560px) {
+  .note.with-media { grid-template-columns: minmax(0, 1fr) 5.5rem; column-gap: 0.8rem; }
+}
+
 /* pull-quotes with the author's portrait: photo(s) in a left column, quote and footer beside them */
 .pullquote.with-photo { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 1.1rem; align-items: start; }
 .pullquote.with-photo > .quote-photos { grid-column: 1; grid-row: 1 / span 2; display: flex; flex-direction: column; gap: 0.5rem; }
