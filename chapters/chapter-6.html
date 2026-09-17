@@ -123,10 +123,17 @@
           four parts: the return data type, the name, any parameters within
           <code>( )</code>, and the body in <code>{ }</code>:
         </p>
-        <div class="note">
-          <span class="note-tag">Did you know?</span>
-          The function is older than every programming language you have heard of. Maurice Wilkes, <strong>David Wheeler</strong> and Stanley Gill — authors of the 1951 book <em>Preparation of Programs for an Electronic Digital Computer</em> — are generally credited with inventing what they called the “closed sub-routine” — although Alan Turing had already described subroutines, down to a stack of return addresses, in a 1945 design paper.
-          <a href="https://en.wikipedia.org/wiki/Function_(computer_programming)#History" target="_blank" rel="noopener">Source: Wikipedia — Function (history)</a>.
+        <div class="note with-media">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            The function is older than every programming language you have heard of. Maurice Wilkes, <strong>David Wheeler</strong> and Stanley Gill — authors of the 1951 book <em>Preparation of Programs for an Electronic Digital Computer</em> — are generally credited with inventing what they called the “closed sub-routine” — although Alan Turing had already described subroutines, down to a stack of return addresses, in a 1945 design paper.
+            <a href="https://en.wikipedia.org/wiki/Function_(computer_programming)#History" target="_blank" rel="noopener">Source: Wikipedia — Function (history)</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-edsac-wilkes.jpg" width="320" height="320" loading="lazy"
+                 alt="Maurice Wilkes and Bill Renwick standing in front of the racks of the EDSAC computer in Cambridge">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:EDSAC_(12).jpg" target="_blank" rel="noopener">Computer Laboratory, University of Cambridge</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped)</figcaption>
+          </figure>
         </div>
         <div class="media-row" style="--media-w:19rem">
         <div>
@@ -192,10 +199,17 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           <code>main</code>, the call inside it, and the definition below — the standard
           layout you will use in Exercise 2.
         </p>
-        <div class="note" style="max-width:46rem">
-          <span class="note-tag">Did you know?</span>
-          Here the child taught the parent. Classic “K&amp;R” C had no prototypes, so the arguments of a call were not type-checked. When C was standardized in 1989, the committee added function prototypes <strong>borrowed from C++</strong> — one of the few features that flowed from the younger language back into the older one.
-          <a href="https://en.wikipedia.org/wiki/C_(programming_language)#ANSI_C_and_ISO_C" target="_blank" rel="noopener">Source: Wikipedia — C (ANSI C and ISO C)</a>.
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Here the child taught the parent. Classic “K&amp;R” C had no prototypes, so the arguments of a call were not type-checked. When C was standardized in 1989, the committee added function prototypes <strong>borrowed from C++</strong> — one of the few features that flowed from the younger language back into the older one.
+            <a href="https://en.wikipedia.org/wiki/C_(programming_language)#ANSI_C_and_ISO_C" target="_blank" rel="noopener">Source: Wikipedia — C (ANSI C and ISO C)</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-dennis-ritchie.jpg" width="320" height="320" loading="lazy"
+                 alt="Dennis Ritchie, creator of C and the “R” of K&amp;R, in 2011">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Dennis_Ritchie_(right)_Receiving_Japan_Prize.jpeg" target="_blank" rel="noopener">Denise Panyik-Dale, 2011</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped)</figcaption>
+          </figure>
         </div>
         <blockquote class="pullquote with-photo" style="max-width:46rem">
           <div class="quote-photos">
@@ -380,10 +394,17 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           works on the caller's elements, so modifications are visible after the call.
           Arrays are effectively passed by reference.
         </div>
-        <div class="note">
-          <span class="note-tag">Did you know?</span>
-          Even a search routine can hide a bug for decades. The faster cousin of this function, <em>binary search</em>, was first published in 1946, yet according to Jon Bentley the first version correct for all sizes appeared only in 1962. In 2006 Joshua Bloch found that the one he had written for Java's standard library had been wrong for <strong>nine years</strong>: <code>(low + high) / 2</code> overflows <code>int</code> once an array holds about a billion elements.
-          <a href="https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/" target="_blank" rel="noopener">Source: Joshua Bloch, Google Research blog (2006)</a>.
+        <div class="note with-media">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Even a search routine can hide a bug for decades. The faster cousin of this function, <em>binary search</em>, was first published in 1946, yet according to Jon Bentley the first version correct for all sizes appeared only in 1962. In 2006 Joshua Bloch found that the one he had written for Java's standard library had been wrong for <strong>nine years</strong>: <code>(low + high) / 2</code> overflows <code>int</code> once an array holds about a billion elements.
+            <a href="https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/" target="_blank" rel="noopener">Source: Joshua Bloch, Google Research blog (2006)</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-joshua-bloch.jpg" width="320" height="320" loading="lazy"
+                 alt="Joshua Bloch in 2008, wearing a Google T-shirt">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Joshuabloch.jpg" target="_blank" rel="noopener">Bob Lee, 2008</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped)</figcaption>
+          </figure>
         </div>
         </div>
         <figure class="photo">

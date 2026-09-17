@@ -136,10 +136,17 @@
           <strong>string</strong>, and class/struct (a later course). This chapter covers
           the first two.
         </p>
-        <div class="note">
-          <span class="note-tag">Did you know?</span>
-          Why is text called a <strong>“string”</strong>? The word has meant “items arranged in a line” for centuries, and 19th-century typesetters used it for a length of printed type — a compositor's “string” was measured to work out his pay. Mathematicians and logicians later adopted it for “a sequence of symbols in a definite order”, and programming inherited the word from them.
-          <a href="https://en.wikipedia.org/wiki/String_(computer_science)#History" target="_blank" rel="noopener">Source: Wikipedia — String (history)</a>.
+        <div class="note with-media">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Why is text called a <strong>“string”</strong>? The word has meant “items arranged in a line” for centuries, and 19th-century typesetters used it for a length of printed type — a compositor's “string” was measured to work out his pay. Mathematicians and logicians later adopted it for “a sequence of symbols in a definite order”, and programming inherited the word from them.
+            <a href="https://en.wikipedia.org/wiki/String_(computer_science)#History" target="_blank" rel="noopener">Source: Wikipedia — String (history)</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-metal-type.jpg" width="320" height="320" loading="lazy"
+                 alt="A composing stick holding lines of metal type, lying on a compositor’s case full of loose letters">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Metal_movable_type.jpg" target="_blank" rel="noopener">Willi Heidelbach, 2004</a> · <a href="https://creativecommons.org/licenses/by/2.5/" target="_blank" rel="noopener">CC BY 2.5</a> (cropped)</figcaption>
+          </figure>
         </div>
         <blockquote class="pullquote with-photo">
           <div class="quote-photos">
@@ -172,10 +179,17 @@
           write elements with <code>name[index]</code>. In a 5-element array the valid
           indices are 0…4 — <code>arStuGrade[3]</code> is the <em>4th</em> element.
         </p>
-        <div class="note" style="max-width:46rem">
-          <span class="note-tag">Did you know?</span>
-          Going past the last index powered one of the first attacks on the Internet. The <strong>Morris worm</strong> of 2 November 1988 spread partly through a buffer overrun in the Unix <em>finger</em> service: send it more characters than its array could hold, and the extra bytes overwrote neighbouring memory. The often-quoted “6,000 machines infected” was itself a guess — 10% of an estimated 60,000 computers on the Internet.
-          <a href="https://en.wikipedia.org/wiki/Morris_worm" target="_blank" rel="noopener">Source: Wikipedia — Morris worm</a>.
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Going past the last index powered one of the first attacks on the Internet. The <strong>Morris worm</strong> of 2 November 1988 spread partly through a buffer overrun in the Unix <em>finger</em> service: send it more characters than its array could hold, and the extra bytes overwrote neighbouring memory. The often-quoted “6,000 machines infected” was itself a guess — 10% of an estimated 60,000 computers on the Internet.
+            <a href="https://en.wikipedia.org/wiki/Morris_worm" target="_blank" rel="noopener">Source: Wikipedia — Morris worm</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-morris-worm-disk.jpg" width="320" height="320" loading="lazy"
+                 alt="Floppy disk containing the source code of the Morris worm, displayed in a glass case in a museum">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Morris_Worm.jpg" target="_blank" rel="noopener">Go Card USA, 2006</a> · <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener">CC BY-SA 2.0</a> (cropped)</figcaption>
+          </figure>
         </div>
         <div class="code-card">
           <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">examples_5_2_1_and_5_2_2.cpp</span></div>
@@ -263,10 +277,17 @@
           a 3×3 matrix and tests <code>a[i][j] != a[j][i]</code> to decide whether it is
           symmetric, and Example 5.3.2 stores a whole student score table, one row per student.
         </p>
-        <div class="note" style="max-width:46rem">
-          <span class="note-tag">Did you know?</span>
-          “Row after row” is a choice, not a law of nature. C and C++ store a 2-D array in <strong>row-major</strong> order — <code>b[0][0], b[0][1], b[0][2], b[1][0]</code>… — but Fortran stores the same grid <strong>column by column</strong>, and counts from 1. The same matrix therefore sits in memory in a different order depending on the language that created it.
-          <a href="https://en.wikipedia.org/wiki/Row-_and_column-major_order" target="_blank" rel="noopener">Source: Wikipedia — Row- and column-major order</a>.
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            “Row after row” is a choice, not a law of nature. C and C++ store a 2-D array in <strong>row-major</strong> order — <code>b[0][0], b[0][1], b[0][2], b[1][0]</code>… — but Fortran stores the same grid <strong>column by column</strong>, and counts from 1. The same matrix therefore sits in memory in a different order depending on the language that created it.
+            <a href="https://en.wikipedia.org/wiki/Row-_and_column-major_order" target="_blank" rel="noopener">Source: Wikipedia — Row- and column-major order</a>.
+          </div>
+          <figure class="note-media">
+            <img class="contain" src="../assets/lecture-images/fact-row-column-major.png" width="320" height="320" loading="lazy"
+                 alt="Diagram of a 3 by 3 matrix traversed row by row (row-major order) and column by column (column-major order)">
+            <figcaption>Diagram: <a href="https://commons.wikimedia.org/wiki/File:Row_and_column_major_order.svg" target="_blank" rel="noopener">Cmglee</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (scaled)</figcaption>
+          </figure>
         </div>
         </div>
         <figure class="photo portrait">
@@ -337,10 +358,17 @@
           <li><code>length()</code> and <code>size()</code> both return the number of characters.</li>
           <li><code>at(i)</code> returns the character at index i — <code>s.at(s.length() - 1)</code> is the last one.</li>
         </ul>
-        <div class="note" style="max-width:46rem">
-          <span class="note-tag">Did you know?</span>
-          Tiếng Việt is a hard case for a one-byte <code>char</code>. On top of the 52 letters already in ASCII, Vietnamese writing needs <strong>134 more</strong> accented letters (ằ, ễ, ự, …), but an 8-bit character set has only 128 spare slots — <strong>six too few</strong>. Early Vietnamese encodings such as VISCII solved this by overwriting rarely used control codes; today UTF-8 simply spends two or three bytes on such letters, which is why <code>length()</code> can report more than the number of letters you see.
-          <a href="https://en.wikipedia.org/wiki/Vietnamese_language_and_computers#Approaches_to_character_encoding" target="_blank" rel="noopener">Source: Wikipedia — Vietnamese language and computers</a>.
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Tiếng Việt is a hard case for a one-byte <code>char</code>. On top of the 52 letters already in ASCII, Vietnamese writing needs <strong>134 more</strong> accented letters (ằ, ễ, ự, …), but an 8-bit character set has only 128 spare slots — <strong>six too few</strong>. Early Vietnamese encodings such as VISCII solved this by overwriting rarely used control codes; today UTF-8 simply spends two or three bytes on such letters, which is why <code>length()</code> can report more than the number of letters you see.
+            <a href="https://en.wikipedia.org/wiki/Vietnamese_language_and_computers#Approaches_to_character_encoding" target="_blank" rel="noopener">Source: Wikipedia — Vietnamese language and computers</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-vietnamese-sign.jpg" width="320" height="320" loading="lazy"
+                 alt="Blue Hanoi street sign reading “PHỐ NHÀ CHUNG”, with Vietnamese accent marks on the capital letters">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Nha_Chung_street_signs.jpg" target="_blank" rel="noopener">Nam-ho Park, 2009</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped)</figcaption>
+          </figure>
         </div>
         <div class="media-row" style="--media-w:21rem">
         <div>

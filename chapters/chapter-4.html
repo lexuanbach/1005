@@ -281,10 +281,17 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           but the header also initializes the counter and changes it each iteration. The
           slides draw its life cycle like this:
         </p>
-        <div class="note" style="max-width:46rem">
-          <span class="note-tag">Did you know?</span>
-          At NASA's Jet Propulsion Laboratory, a loop that <em>might</em> never end is not allowed to fly. Rule 2 of Gerard Holzmann's <em>Power of 10</em> rules for safety-critical code (2006) reads: <strong>“Give all loops a fixed upper bound”</strong> — and a checking tool must be able to prove that bound without running the program. A <code>for</code> loop whose header states its start, its limit and its step is the easiest kind to prove.
-          <a href="https://en.wikipedia.org/wiki/The_Power_of_10:_Rules_for_Developing_Safety-Critical_Code" target="_blank" rel="noopener">Source: Wikipedia — The Power of 10 rules</a>.
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            At NASA's Jet Propulsion Laboratory, a loop that <em>might</em> never end is not allowed to fly. Rule 2 of Gerard Holzmann's <em>Power of 10</em> rules for safety-critical code (2006) reads: <strong>“Give all loops a fixed upper bound”</strong> — and a checking tool must be able to prove that bound without running the program. A <code>for</code> loop whose header states its start, its limit and its step is the easiest kind to prove.
+            <a href="https://en.wikipedia.org/wiki/The_Power_of_10:_Rules_for_Developing_Safety-Critical_Code" target="_blank" rel="noopener">Source: Wikipedia — The Power of 10 rules</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-holzmann-jpl.jpg" width="320" height="320" loading="lazy"
+                 alt="Gerard Holzmann of NASA’s Jet Propulsion Laboratory giving a talk on software in spacecraft, 2006">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Gerard_J._Holzmann_FLoC_2006.jpg" target="_blank" rel="noopener">Dennis Hamilton, 2006</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped)</figcaption>
+          </figure>
         </div>
         <figure class="fig">
           <svg viewBox="0 0 460 400" width="460" height="400" role="img" aria-label="Flowchart of the for statement: initialization once, then test the condition; if true run the body then the update and retest; if false exit">
@@ -354,10 +361,17 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           body 5 × 4 = 20 times. You already met the pattern in Chapter 1's flowcharts; in
           Chapter 5 it becomes the standard way to walk a 2-D array.
         </p>
-        <div class="note">
-          <span class="note-tag">Did you know?</span>
-          In the original FORTRAN there were no type declarations at all: any variable whose name began with <strong>I, J, K, L, M or N</strong> was automatically an integer, and everything else was floating point. Counters therefore <em>had</em> to be called something like <code>I</code> and <code>J</code> — one reason, together with the mathematicians' habit of writing subscripts as <em>i</em>, <em>j</em>, <em>k</em>, that nested loops still use <code>i</code> and <code>j</code> today.
-          <a href="https://en.wikipedia.org/wiki/Fortran#Simple_FORTRAN_II_program" target="_blank" rel="noopener">Source: Wikipedia — Fortran</a>.
+        <div class="note with-media">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            In the original FORTRAN there were no type declarations at all: any variable whose name began with <strong>I, J, K, L, M or N</strong> was automatically an integer, and everything else was floating point. Counters therefore <em>had</em> to be called something like <code>I</code> and <code>J</code> — one reason, together with the mathematicians' habit of writing subscripts as <em>i</em>, <em>j</em>, <em>k</em>, that nested loops still use <code>i</code> and <code>j</code> today.
+            <a href="https://en.wikipedia.org/wiki/Fortran#Simple_FORTRAN_II_program" target="_blank" rel="noopener">Source: Wikipedia — Fortran</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-fortran-punch-card.jpg" width="320" height="320" loading="lazy"
+                 alt="Punched cards from 1971 holding FORTRAN statements, one statement printed along the top edge of each card">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Punch_card_with_Fortran_-_20091211.jpg" target="_blank" rel="noopener">Tangopaso, 2009</a> · public domain</figcaption>
+          </figure>
         </div>
         <blockquote class="pullquote teal with-photo">
           <div class="quote-photos">
@@ -385,10 +399,17 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           sum 2 + 4 + … + n — and “ask until the answer is valid” problems fit it naturally,
           because you must ask once before there is anything to test.
         </p>
-        <div class="note">
-          <span class="note-tag">Did you know?</span>
-          Pac-Man's famous unbeatable <strong>level 256</strong> is a post-test loop gone wrong. The level number lives in a single byte, so 255 + 1 wraps around to 0. The routine that draws the bonus fruit then uses that 0 as its counter in a loop that decrements <em>first</em> and tests for zero <em>afterwards</em>: 0 − 1 wraps to 255, and the loop draws 256 symbols instead of at most seven — burying the right half of the maze in garbage.
-          <a href="https://pacman.holenet.info/#Chapter_5" target="_blank" rel="noopener">Source: Jamey Pittman — The Pac-Man Dossier</a>.
+        <div class="note with-media">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Pac-Man's famous unbeatable <strong>level 256</strong> is a post-test loop gone wrong. The level number lives in a single byte, so 255 + 1 wraps around to 0. The routine that draws the bonus fruit then uses that 0 as its counter in a loop that decrements <em>first</em> and tests for zero <em>afterwards</em>: 0 − 1 wraps to 255, and the loop draws 256 symbols instead of at most seven — burying the right half of the maze in garbage.
+            <a href="https://pacman.holenet.info/#Chapter_5" target="_blank" rel="noopener">Source: Jamey Pittman — The Pac-Man Dossier</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-pacman-cabinet.jpg" width="320" height="320" loading="lazy"
+                 alt="An original Pac-Man arcade cabinet by Midway with its yellow marquee, on display in a museum">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Me_and_Pac-Man.jpg" target="_blank" rel="noopener">Laura Blankenship, 2006</a> · <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener">CC BY-SA 2.0</a> (cropped)</figcaption>
+          </figure>
         </div>
       </div>
 

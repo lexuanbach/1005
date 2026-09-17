@@ -122,10 +122,17 @@
           <strong>selection</strong> (this chapter), <strong>repetition</strong> (Chapter 4),
           and <strong>function invocation</strong> (Chapter 6).
         </p>
-        <div class="note">
-          <span class="note-tag">Did you know?</span>
-          Those three structures are not just convenient — they are <em>enough</em>. The <strong>Böhm–Jacopini theorem</strong> (1966) states that any computable function can be programmed using only <strong>sequence, selection and iteration</strong> to combine sub-programs. Everything software has ever done can, in principle, be built from the contents of Chapters 2, 3 and 4.
-          <a href="https://en.wikipedia.org/wiki/Structured_program_theorem" target="_blank" rel="noopener">Source: Wikipedia — Structured program theorem</a>.
+        <div class="note with-media">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Those three structures are not just convenient — they are <em>enough</em>. The <strong>Böhm–Jacopini theorem</strong> (1966) states that any computable function can be programmed using only <strong>sequence, selection and iteration</strong> to combine sub-programs. Everything software has ever done can, in principle, be built from the contents of Chapters 2, 3 and 4.
+            <a href="https://en.wikipedia.org/wiki/Structured_program_theorem" target="_blank" rel="noopener">Source: Wikipedia — Structured program theorem</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-corrado-bohm.jpg" width="320" height="320" loading="lazy"
+                 alt="Corrado Böhm cutting the cake at his 90th-birthday celebration at the ETAPS conference in 2013">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:CorradoBoemETAPS2013_2013-03-22_0.33.36.jpg" target="_blank" rel="noopener">Marco Carbone, 2013</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (cropped)</figcaption>
+          </figure>
         </div>
         <blockquote class="pullquote with-photo">
           <div class="quote-photos">
@@ -272,10 +279,17 @@
        1      ||          0
        1</pre>
         </div>
-        <div class="note" style="max-width:46rem">
-          <span class="note-tag">Did you know?</span>
-          To the computer, characters are small numbers: in ASCII, <code>'A'</code> is 65 (binary <span class="mono">1000001</span>) and <code>'a'</code> is 97 (<span class="mono">1100001</span>). The gap of 32 is deliberate — in 1963 the ASCII committee placed the lowercase letters so that each differs from its capital by <strong>a single bit</strong>, which simplified case-insensitive matching and the construction of keyboards and printers.
-          <a href="https://en.wikipedia.org/wiki/ASCII#History" target="_blank" rel="noopener">Source: Wikipedia — ASCII (history)</a>.
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            To the computer, characters are small numbers: in ASCII, <code>'A'</code> is 65 (binary <span class="mono">1000001</span>) and <code>'a'</code> is 97 (<span class="mono">1100001</span>). The gap of 32 is deliberate — in 1963 the ASCII committee placed the lowercase letters so that each differs from its capital by <strong>a single bit</strong>, which simplified case-insensitive matching and the construction of keyboards and printers.
+            <a href="https://en.wikipedia.org/wiki/ASCII#History" target="_blank" rel="noopener">Source: Wikipedia — ASCII (history)</a>.
+          </div>
+          <figure class="note-media">
+            <img class="contain" src="../assets/lecture-images/fact-ascii-chart.png" width="320" height="320" loading="lazy"
+                 alt="The 1967 US-ASCII code chart: a grid of 128 characters arranged by their bit patterns, with capital letters in columns 4–5 and lowercase letters in columns 6–7">
+            <figcaption>Chart: <a href="https://commons.wikimedia.org/wiki/File:USASCII_code_chart.svg" target="_blank" rel="noopener">U.S. Government, 1967</a> · public domain</figcaption>
+          </figure>
         </div>
         <p style="max-width:46rem">
           Characters join in as numbers: <code>'a' + 1 == 'b'</code> is true, while with
@@ -310,10 +324,17 @@
     &lt;statements-2&gt;;      <span class="cm">// runs when it is false</span>
 }</pre>
         </div>
-        <div class="note" style="max-width:46rem">
-          <span class="note-tag">Did you know?</span>
-          The first <code>IF</code> in a high-level language had <strong>three</strong> exits and no <code>else</code>. The original FORTRAN for the IBM 704 offered only the “arithmetic IF”: <code>IF (X) 10, 20, 30</code> jumps to statement 10 if <code>X</code> is negative, 20 if it is zero and 30 if it is positive. The true/false “logical IF” you are learning now only arrived with FORTRAN IV in 1962.
-          <a href="https://en.wikipedia.org/wiki/Fortran#FORTRAN" target="_blank" rel="noopener">Source: Wikipedia — Fortran</a>.
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            The first <code>IF</code> in a high-level language had <strong>three</strong> exits and no <code>else</code>. The original FORTRAN for the IBM 704 offered only the “arithmetic IF”: <code>IF (X) 10, 20, 30</code> jumps to statement 10 if <code>X</code> is negative, 20 if it is zero and 30 if it is positive. The true/false “logical IF” you are learning now only arrived with FORTRAN IV in 1962.
+            <a href="https://en.wikipedia.org/wiki/Fortran#FORTRAN" target="_blank" rel="noopener">Source: Wikipedia — Fortran</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-ibm-704.jpg" width="320" height="320" loading="lazy"
+                 alt="A man and a woman operating an IBM 704 computer at NACA Langley in 1957">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:IBM_Electronic_Data_Processing_Machine_-_GPN-2000-001881.jpg" target="_blank" rel="noopener">NASA, 1957</a> · public domain</figcaption>
+          </figure>
         </div>
         <p>
           With only one statement in a branch, the braces may be omitted. The
@@ -442,10 +463,17 @@
           Example 3.5.1 builds a four-function calculator on a <code>char op</code> —
           you will complete it in Exercise 4.
         </p>
-        <div class="note" style="max-width:46rem">
-          <span class="note-tag">Did you know?</span>
-          A <code>break</code> that did not mean what its author thought took down a telephone network. On <strong>15 January 1990</strong>, new C code running on all 114 of AT&amp;T's long-distance switches contained a <code>break</code> inside an <code>if</code> nested inside a <code>switch</code>; it left the whole <code>switch</code>, not just the <code>if</code>, skipping code that had to run. For nine hours almost 50% of calls placed through AT&amp;T failed, costing the company more than $60 million.
-          <a href="https://users.csc.calpoly.edu/~jdalbey/SWE/Papers/att_collapse" target="_blank" rel="noopener">Source: D. Burke, “All Circuits are Busy Now” (Cal Poly)</a>.
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            A <code>break</code> that did not mean what its author thought took down a telephone network. On <strong>15 January 1990</strong>, new C code running on all 114 of AT&amp;T's long-distance switches contained a <code>break</code> inside an <code>if</code> nested inside a <code>switch</code>; it left the whole <code>switch</code>, not just the <code>if</code>, skipping code that had to run. For nine hours almost 50% of calls placed through AT&amp;T failed, costing the company more than $60 million.
+            <a href="https://users.csc.calpoly.edu/~jdalbey/SWE/Papers/att_collapse" target="_blank" rel="noopener">Source: D. Burke, “All Circuits are Busy Now” (Cal Poly)</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-att-long-lines.jpg" width="320" height="320" loading="lazy"
+                 alt="The windowless concrete tower of the former AT&amp;T Long Lines Building, a long-distance telephone switching centre at 33 Thomas Street, New York">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:33_thomas_st.jpg" target="_blank" rel="noopener">Marcin Wichary, 2007</a> · <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a> (cropped)</figcaption>
+          </figure>
         </div>
         </div>
         <figure class="photo">
