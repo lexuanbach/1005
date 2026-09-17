@@ -70,92 +70,84 @@
   }
   applyCodeScale(storedCodeScale());
 
-  function initFontSize() {
-    var tools = topbarTools();
-    if (!tools || !document.querySelector('pre, #exercises-root, #playground-root')) return;
+  // Soft-wrap in the code editors: on unless the reader switched it off.
+  try { if (localStorage.getItem('co1005-wrap') === 'off') root.dataset.codeWrap = 'off'; } catch (e) {}
+
+  /* View controls — program font size (A− / A+), soft wrap, code colour theme. They are site-wide
+     preferences, but they live on each code window's own toolbar (`mountViewControls(bar, …)` from
+     makeEditor). Any click fires 'co1005-view', on which every copy repaints and every editor
+     re-measures its wrapped rows. Pages that show code but have no editor get font size + theme in
+     the top bar instead. */
+  function mountViewControls(container, o) {   // o: { cls, wrap, before }
+    function add(node) { if (o.before) container.insertBefore(node, o.before); else container.appendChild(node); }
+    function button(extraCls) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = o.cls + (extraCls ? ' ' + extraCls : '');
+      return b;
+    }
     var group = document.createElement('div');
     group.className = 'font-size-group';
     group.setAttribute('role', 'group');
     group.setAttribute('aria-label', 'Program font size');
-    var minus = document.createElement('button'), plus = document.createElement('button');
-    minus.type = plus.type = 'button';
-    minus.className = plus.className = 'icon-btn';
+    var minus = button(), plus = button();
     minus.textContent = 'A−'; plus.textContent = 'A+';
     group.appendChild(minus); group.appendChild(plus);
-    tools.insertBefore(group, tools.firstChild);
+    add(group);
+    var wrapBtn = null;
+    if (o.wrap) { wrapBtn = button('wrap-toggle'); add(wrapBtn); }
+    var themeBtn = button('code-theme-toggle');
+    add(themeBtn);
+
+    function currentTheme() { return root.dataset.codeTheme || 'midnight'; }
     function paint() {
       var v = storedCodeScale(), i = CODE_SCALES.indexOf(v), pct = Math.round(v * 100) + '%';
       minus.disabled = i === 0; plus.disabled = i === CODE_SCALES.length - 1;
       minus.title = 'Smaller program text (now ' + pct + ')'; plus.title = 'Larger program text (now ' + pct + ')';
       minus.setAttribute('aria-label', minus.title); plus.setAttribute('aria-label', plus.title);
+      if (wrapBtn) {
+        var on = root.dataset.codeWrap !== 'off';
+        wrapBtn.textContent = on ? '↩ Wrap' : '→ No wrap';
+        wrapBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        wrapBtn.title = on ? 'Long code lines wrap inside the editor — click to scroll sideways instead'
+                           : 'Long code lines scroll sideways — click to wrap them';
+      }
+      var t = CODE_THEMES.filter(function (t) { return t.key === currentTheme(); })[0] || CODE_THEMES[0];
+      themeBtn.textContent = '◐ ' + t.label;
+      themeBtn.title = 'Code color theme: ' + t.label + ' — click to change';
+      themeBtn.setAttribute('aria-label', themeBtn.title);
     }
+    function changed() { window.dispatchEvent(new Event('co1005-view')); }
     function step(d) {
       var i = Math.min(CODE_SCALES.length - 1, Math.max(0, CODE_SCALES.indexOf(storedCodeScale()) + d));
       try { localStorage.setItem('co1005-code-scale', String(CODE_SCALES[i])); } catch (e) {}
       applyCodeScale(CODE_SCALES[i]);
-      paint();
-      window.dispatchEvent(new Event('co1005-wrap'));   // editors re-measure their wrapped rows
+      changed();
     }
     minus.addEventListener('click', function () { step(-1); });
     plus.addEventListener('click', function () { step(1); });
-    paint();
-  }
-
-  // Soft-wrap in the code editors: on unless the reader switched it off.
-  try { if (localStorage.getItem('co1005-wrap') === 'off') root.dataset.codeWrap = 'off'; } catch (e) {}
-
-  function initWrapToggle() {
-    var tools = topbarTools();
-    if (!tools || !document.querySelector('#exercises-root, #playground-root')) return;
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'icon-btn';
-    btn.id = 'wrap-toggle';
-    tools.insertBefore(btn, tools.firstChild);
-    function paint() {
-      var on = root.dataset.codeWrap !== 'off';
-      btn.textContent = on ? '↩ Wrap' : '→ No wrap';
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      btn.title = on ? 'Long code lines wrap inside the editor — click to scroll sideways instead'
-                     : 'Long code lines scroll sideways — click to wrap them';
-    }
-    btn.addEventListener('click', function () {
+    if (wrapBtn) wrapBtn.addEventListener('click', function () {
       var turnOff = root.dataset.codeWrap !== 'off';
       if (turnOff) root.dataset.codeWrap = 'off'; else delete root.dataset.codeWrap;
       try { localStorage.setItem('co1005-wrap', turnOff ? 'off' : 'on'); } catch (e) {}
-      paint();
-      window.dispatchEvent(new Event('co1005-wrap'));
+      changed();
     });
+    themeBtn.addEventListener('click', function () {
+      var idx = CODE_THEMES.map(function (t) { return t.key; }).indexOf(currentTheme());
+      var next = CODE_THEMES[(idx + 1) % CODE_THEMES.length].key;
+      if (next === 'midnight') delete root.dataset.codeTheme; else root.dataset.codeTheme = next;
+      try { localStorage.setItem('co1005-code-theme', next); } catch (e) {}
+      changed();
+    });
+    window.addEventListener('co1005-view', paint);
     paint();
   }
 
-  function initCodeTheme() {
+  // Top bar fallback: only on pages that show code but have no code window of their own.
+  function initTopbarViewControls() {
     var tools = topbarTools();
-    if (!tools) return;
-    var siteThemeBtn = document.getElementById('theme-toggle');
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'icon-btn';
-    btn.id = 'code-theme-toggle';
-    if (siteThemeBtn) tools.insertBefore(btn, siteThemeBtn);
-    else tools.appendChild(btn);
-
-    function current() { return root.dataset.codeTheme || 'midnight'; }
-    function paint() {
-      var t = CODE_THEMES.filter(function (t) { return t.key === current(); })[0] || CODE_THEMES[0];
-      btn.textContent = '◐ ' + t.label;
-      btn.setAttribute('aria-label', 'Code color theme: ' + t.label + ' — click to change');
-      btn.title = 'Code color theme: ' + t.label;
-    }
-    btn.addEventListener('click', function () {
-      var idx = CODE_THEMES.map(function (t) { return t.key; }).indexOf(current());
-      var next = CODE_THEMES[(idx + 1) % CODE_THEMES.length].key;
-      if (next === 'midnight') delete root.dataset.codeTheme;
-      else root.dataset.codeTheme = next;
-      try { localStorage.setItem('co1005-code-theme', next); } catch (e) {}
-      paint();
-    });
-    paint();
+    if (!tools || document.querySelector('#exercises-root, #playground-root') || !document.querySelector('pre')) return;
+    mountViewControls(tools, { cls: 'icon-btn', wrap: false, before: document.getElementById('theme-toggle') });
   }
 
   // ───────────── helpers ─────────────
@@ -290,7 +282,7 @@
     }
     // Wrap points move whenever the box changes width (resize handle, window, folded section opening).
     if (window.ResizeObserver) new ResizeObserver(queueLayout).observe(shell);
-    window.addEventListener('co1005-wrap', queueLayout);
+    window.addEventListener('co1005-view', queueLayout);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueLayout);
     // ── undo / redo ──
     /* Our own history: the page rewrites textarea.value itself (Tab key, Reset, Load solution,
@@ -330,14 +322,36 @@
 
     // ── save to / open from the reader's computer ──
     var fileName = (opts && opts.fileName) || 'program.cpp';
-    function saveFile() {
+    var lastHandle = null;   // so the next “Save” dialog opens in the folder used last time
+    function downloadFile() {
       var blob = new Blob([ta.value], { type: 'text/x-c++src;charset=utf-8' });
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = fileName;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-      flash(saveBtn, 'Saved ' + fileName);
+      flash(saveBtn, 'Saved ' + fileName + ' to your Downloads folder');
+    }
+    /* Where the browser supports it (Chrome, Edge), ask where to save — folder and file name.
+       Safari and Firefox have no such API, so there the file goes to the Downloads folder. */
+    function saveFile() {
+      if (typeof window.showSaveFilePicker !== 'function') { downloadFile(); return; }
+      var options = {
+        suggestedName: lastHandle ? lastHandle.name : fileName,
+        types: [{ description: 'C++ source file', accept: { 'text/x-c++src': ['.cpp', '.cc', '.cxx', '.h', '.hpp'] } }]
+      };
+      if (lastHandle) options.startIn = lastHandle;
+      var content = ta.value;
+      window.showSaveFilePicker(options).then(function (handle) {
+        lastHandle = handle;
+        return handle.createWritable().then(function (w) {
+          return w.write(content).then(function () { return w.close(); });
+        }).then(function () { flash(saveBtn, 'Saved ' + handle.name); });
+      }).catch(function (e) {
+        if (e && e.name === 'AbortError') return;                       // the reader pressed Cancel
+        if (e && e.name === 'SecurityError') { downloadFile(); return; } // e.g. inside a sandboxed frame
+        flash(saveBtn, 'Could not save: ' + ((e && e.message) || e));
+      });
     }
     var picker = document.createElement('input');
     picker.type = 'file';
@@ -367,12 +381,15 @@
     var undoBtn = barButton('↶ Undo', 'Undo (Ctrl/Cmd+Z)', undo);
     var redoBtn = barButton('↷ Redo', 'Redo (Ctrl+Y or Shift+Ctrl/Cmd+Z)', redo);
     bar.appendChild(el('span', 'ed-sep'));
-    var saveBtn = barButton('⤓ Save', 'Save this program to your computer as ' + fileName + ' (Ctrl/Cmd+S)', saveFile);
+    var saveBtn = barButton('⤓ Save…', typeof window.showSaveFilePicker === 'function'
+      ? 'Save this program to your computer — you choose the folder and the name (Ctrl/Cmd+S)'
+      : 'Save this program to your Downloads folder as ' + fileName + ' (Ctrl/Cmd+S)', saveFile);
     var openBtn = barButton('⤒ Open…', 'Open a .cpp file from your computer', function () { picker.click(); });
     bar.appendChild(picker);
     var note = el('span', 'ed-note');
     note.setAttribute('aria-live', 'polite');
     bar.insertBefore(note, bar.firstChild);
+    mountViewControls(bar, { cls: 'ed-btn', wrap: true, before: note });
     var noteTimer = null;
     function flash(btn, text) {
       note.textContent = text;
@@ -1056,9 +1073,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     initTheme();
-    initCodeTheme();
-    initWrapToggle();
-    initFontSize();
+    initTopbarViewControls();
     var data = window.CHAPTER_DATA;
     initQuiz(data);
     initExercises(data);

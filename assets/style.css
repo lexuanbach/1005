@@ -939,7 +939,7 @@ section.block.folded { padding-bottom: 0.4rem; }
   will-change: transform;
 }
 /* editor toolbar: undo / redo / save / open */
-.editor-bar { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.35rem; }
+.editor-bar { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.35rem; }
 .ed-btn {
   font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; font-weight: 600;
   color: var(--ink-soft); background: var(--surface);
@@ -950,7 +950,7 @@ section.block.folded { padding-bottom: 0.4rem; }
 .ed-btn:disabled { opacity: 0.4; cursor: default; }
 .ed-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ed-sep { width: 1px; height: 1.1rem; background: var(--line); margin: 0 0.2rem; }
-.ed-note { margin-right: auto; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--teal); }
+.ed-note { flex: 1 1 auto; min-width: 0; text-align: right; margin-right: 0.3rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--teal); }
 
 /* autographs under signed pull-quotes: dark ink on transparent; flipped to light ink in dark mode */
 .pullquote .autograph { display: block; height: 3.2rem; width: auto; max-width: min(16rem, 100%); margin: 0.7rem 0 0.1rem; object-fit: contain; object-position: left center; opacity: 0.9; }
@@ -971,7 +971,9 @@ section.block.folded { padding-bottom: 0.4rem; }
 .font-size-group .icon-btn:first-child { border-radius: 999px 0 0 999px; }
 .font-size-group .icon-btn:last-child { border-radius: 0 999px 999px 0; margin-left: -1px; }
 .font-size-group .icon-btn:disabled { opacity: 0.4; cursor: default; }
-@media (max-width: 720px) { #wrap-toggle, .font-size-group { display: none; } }
+.font-size-group .ed-btn:first-child { border-radius: 7px 0 0 7px; }
+.font-size-group .ed-btn:last-child { border-radius: 0 7px 7px 0; margin-left: -1px; }
+@media (max-width: 720px) { .topbar-tools .font-size-group { display: none; } }
 .editor-shell textarea.code-edit::selection { background: rgba(125, 162, 255, 0.32); color: transparent; }
 .editor-shell textarea.code-edit:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
