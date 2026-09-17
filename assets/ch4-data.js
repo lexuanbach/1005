@@ -263,3 +263,33 @@ window.CHAPTER_DATA = {
       ] }
   ]
 };
+
+/* Runnable versions of the lecture examples: code-card file label -> complete program.
+   Generated content; every program is checked with MiniCPP and with real clang. */
+window.CHAPTER_DATA.examples = {
+  "example_4_2_1.cpp": {
+    "note": "The fragment above inside a complete program.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int count;\n    count = 1;                  // 2. initial value\n    while (count <= 10) {       // 3. condition testing the final value\n        cout << count << \" \";\n        count++;                // 4. the increment\n    }                           // (1. the control variable: count)\n    cout << endl;\n    return 0;\n}\n"
+  },
+  "clock driver, Freescale/Microsoft": {
+    "note": "The real bug, runnable. 10592 = 30 Dec 2008 works. Now type 10593 (31 Dec 2008, day 366 of a leap year) and run again: the loop never ends, and the page has to stop your program — exactly what froze every Zune.",
+    "stdin": "10592\n",
+    "code": "#include <iostream>\nusing namespace std;\n\nconst int ORIGINYEAR = 1980;\n\nbool IsLeapYear(int year) {\n    return (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0);\n}\n\nint main() {\n    int days;\n    cout << \"Days since 1 Jan 1980 (1 = that day): \";\n    cin >> days;\n\n    int year = ORIGINYEAR;\n    while (days > 365) {\n        if (IsLeapYear(year)) {\n            if (days > 366) {\n                days -= 366;\n                year += 1;\n            }\n            // no else here — on day 366 of a leap year, nothing happens at all\n        } else {\n            days -= 365;\n            year += 1;\n        }\n    }\n\n    cout << \"Year \" << year << \", day \" << days << endl;\n    return 0;\n}\n"
+  },
+  "example_4_2_2.cpp": {
+    "note": "Any grade above 100 is the sentinel that ends the input.",
+    "stdin": "80 90 70 101\n",
+    "code": "#include <iostream>\nusing namespace std;\n\nconst int HIGHGRADE = 100;   // sentinel boundary\n\nint main() {\n    int grade, total = 0;\n\n    cout << \"Enter grades (a value above 100 stops): \";\n    cin >> grade;                // read the FIRST value…\n    while (grade <= HIGHGRADE) { // …test it…\n        total = total + grade;\n        cin >> grade;            // …then read the next before retesting\n    }\n\n    cout << \"The total of the grades is \" << total << endl;\n    return 0;\n}\n"
+  },
+  "example_4_3_1.cpp": {
+    "note": "The fragment above inside a complete program.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int count;\n    for (count = 2; count <= 20; count = count + 2)\n        cout << count << \" \";\n    cout << endl;\n    return 0;\n}\n"
+  },
+  "do_while.cpp": {
+    "note": "A concrete do-while: keep asking until the answer is valid. The body must run once before there is anything to test.",
+    "stdin": "150\n-3\n85\n",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int grade;\n    do {\n        cout << \"Enter a grade (0-100): \";\n        cin >> grade;                       // runs BEFORE the first test\n    }\n    while (grade < 0 || grade > 100);       // note the semicolon!\n\n    cout << endl << \"Accepted: \" << grade << endl;\n    return 0;\n}\n"
+  }
+};

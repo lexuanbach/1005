@@ -193,3 +193,33 @@ window.CHAPTER_DATA = {
       ] }
   ]
 };
+
+/* Runnable versions of the lecture examples: code-card file label -> complete program.
+   Generated content; every program is checked with MiniCPP and with real clang. */
+window.CHAPTER_DATA.examples = {
+  "payroll.pseudo": {
+    "note": "The three pseudocode lines above, written in C++.",
+    "stdin": "Lan 40 5.5\n",
+    "code": "#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string name;\n    double hours, rate;\n\n    cout << \"Name, hours, rate: \";\n    cin >> name >> hours >> rate;      // Input the three values\n\n    double pay = hours * rate;         // Calculate Pay = Hours * Rate\n\n    cout << name << \" earns \" << pay << endl;   // Display Name and Pay\n    return 0;\n}\n"
+  },
+  "example_1_4_1.pseudo": {
+    "note": "Example 1.4.1 in C++ — try a negative number too.",
+    "stdin": "16\n",
+    "code": "#include <iostream>\n#include <cmath>\nusing namespace std;\n\nint main() {\n    double A;\n    cout << \"A = \";\n    cin >> A;\n\n    if (A > 0) {\n        double B = sqrt(A);\n        cout << B << endl;\n    } else {\n        cout << \"A is negative\" << endl;\n    }\n    return 0;\n}\n"
+  },
+  "example_1_4_2.pseudo": {
+    "note": "Example 1.4.2 in C++ — try 1 5 6, then 1 2 1, then 1 0 1.",
+    "stdin": "1 5 6\n",
+    "code": "#include <iostream>\n#include <cmath>\nusing namespace std;\n\nint main() {\n    double a, b, c;\n    cout << \"a b c = \";\n    cin >> a >> b >> c;\n\n    double del = b * b - 4 * a * c;\n    if (del > 0) {\n        double x1 = (-b + sqrt(del)) / (2 * a);\n        double x2 = (-b - sqrt(del)) / (2 * a);\n        cout << x1 << \" \" << x2 << endl;\n    } else if (del == 0) {\n        double x = -b / (2 * a);\n        cout << x << endl;\n    } else {\n        cout << \"No solution\" << endl;\n    }\n    return 0;\n}\n"
+  },
+  "example_1_5_1.pseudo": {
+    "note": "Example 1.5.1 in C++ — the flowchart loop becomes a do-while.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int NUM = 4;\n    do {\n        int SQNUM = NUM * NUM;\n        cout << NUM << \" \" << SQNUM << endl;\n        NUM = NUM + 1;\n    } while (NUM <= 9);\n    return 0;\n}\n"
+  },
+  "example_1_5_2.pseudo": {
+    "note": "Example 1.5.2 in C++ — “count is even” becomes count % 2 == 0.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int sum = 0;\n    int count = 1;\n    do {\n        if (count % 2 == 0) {\n            sum = sum + count;\n        }\n        count = count + 1;\n    } while (count <= 20);\n    cout << sum << endl;\n    return 0;\n}\n"
+  }
+};

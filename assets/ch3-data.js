@@ -208,3 +208,33 @@ window.CHAPTER_DATA = {
       ] }
   ]
 };
+
+/* Runnable versions of the lecture examples: code-card file label -> complete program.
+   Generated content; every program is checked with MiniCPP and with real clang. */
+window.CHAPTER_DATA.examples = {
+  "order_of_evaluation.txt": {
+    "note": "Let C++ evaluate the same expression — 1 means true.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << ((6*3 == 36/2) || (13 < 3*3 + 4) && !(6-2 < 5)) << endl;\n\n    // the pieces, in the order the table evaluates them:\n    cout << (6*3 == 36/2) << \" \" << (13 < 3*3 + 4) << \" \" << !(6-2 < 5) << endl;\n    return 0;\n}\n"
+  },
+  "if_else.cpp": {
+    "note": "A concrete if-else: the income-tax rule of Example 3.3.1. Try 10000, then 30000.",
+    "stdin": "30000\n",
+    "code": "#include <iostream>\nusing namespace std;\n\nconst double LOWRATE = 0.02;      // lower tax rate\nconst double HIGHRATE = 0.025;    // higher tax rate\nconst double CUTOFF = 20000.0;    // cut off for the low rate\nconst double FIXEDAMT = 400;\n\nint main() {\n    double taxable, taxes;\n    cout << \"Please type in the taxable income: \";\n    cin >> taxable;\n\n    if (taxable <= CUTOFF) {\n        taxes = LOWRATE * taxable;\n    }\n    else {\n        taxes = HIGHRATE * (taxable - CUTOFF) + FIXEDAMT;\n    }\n\n    cout << \"Taxes are $ \" << taxes << endl;\n    return 0;\n}\n"
+  },
+  "example_3_3_2.cpp": {
+    "note": "Example 3.3.2 as a complete program.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    {   // outer block\n        int a = 25;\n        int b = 17;\n        cout << \"The value of a is \" << a << \" and b is \" << b << endl;\n        {   // inner block\n            float a = 46.25;\n            int c = 10;\n            cout << \"a is now \" << a << \" b is now \" << b << \" and c is \" << c << endl;\n        }\n        cout << \"a is now \" << a << \" b is now \" << b << endl;\n    }\n    return 0;\n}\n"
+  },
+  "grade_ladder.cpp": {
+    "note": "Test the rungs: 90, 89.9, 80, 60, 59.9.",
+    "stdin": "85\n",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    double score;\n    char grade;\n    cout << \"Score: \";\n    cin >> score;\n\n    if (score >= 90.0)      grade = 'A';\n    else if (score >= 80.0) grade = 'B';\n    else if (score >= 70.0) grade = 'C';\n    else if (score >= 60.0) grade = 'D';\n    else                    grade = 'F';\n\n    cout << \"Grade: \" << grade << endl;\n    return 0;\n}\n"
+  },
+  "switch.cpp": {
+    "note": "A concrete switch: the calculator of Example 3.5.1. Delete a break and watch the fallthrough.",
+    "stdin": "12 4\n/\n",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int num1, num2;\n    char op;\n    cout << \"Enter two numbers: \";\n    cin >> num1 >> num2;\n    cout << \"Enter an operator: \";\n    cin >> op;\n\n    switch (op) {\n        case '+':\n            cout << \"Result: \" << num1 + num2 << endl;\n            break;\n        case '-':\n            cout << \"Result: \" << num1 - num2 << endl;\n            break;\n        case '*':\n            cout << \"Result: \" << num1 * num2 << endl;\n            break;\n        case '/':\n            if (num2 != 0)\n                cout << \"Result: \" << num1 / num2 << endl;\n            else\n                cout << \"Division by zero!\" << endl;\n            break;\n        default:\n            cout << \"Invalid operator!\" << endl;\n    }\n    return 0;\n}\n"
+  }
+};

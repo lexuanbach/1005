@@ -209,3 +209,27 @@ window.CHAPTER_DATA = {
       ] }
   ]
 };
+
+/* Runnable versions of the lecture examples: code-card file label -> complete program.
+   Generated content; every program is checked with MiniCPP and with real clang. */
+window.CHAPTER_DATA.examples = {
+  "hello.cpp": {
+    "stdin": "",
+    "code": "#include <iostream>   // header file: gives the program I/O capabilities\nusing namespace std;  // tells the compiler where to find cout, cin, endl\n\nint main()            // the function header line — the entry point\n{\n    cout << \"Hello world!\";\n    return 0;         // 0 = the program terminated successfully\n}\n"
+  },
+  "example_2_4_2.cpp": {
+    "note": "The fragment above inside a complete program.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int c = 5;\n    cout << c++ << endl;  // prints 5 — print first, THEN increment\n    cout << c << endl;    // prints 6\n\n    c = 5;\n    cout << ++c << endl;  // prints 6 — increment FIRST, then print\n    cout << c << endl;    // prints 6\n    return 0;\n}\n"
+  },
+  "average3.cpp": {
+    "note": "Change 3.0 to 3 and run again — that is the “why?”.",
+    "stdin": "22 56 73\n",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int num1, num2, num3;\n    float average;\n\n    cout << \"Enter three integer numbers: \";\n    cin >> num1 >> num2 >> num3;\n    average = (num1 + num2 + num3) / 3.0;   // 3.0, not 3 — why?\n    cout << \"The average of the numbers is \" << average << endl;\n    return 0;\n}\n"
+  },
+  "example_2_7_1.cpp": {
+    "note": "Needs <iomanip> for setw and setprecision.",
+    "stdin": "",
+    "code": "#include <iostream>\n#include <iomanip>\nusing namespace std;\n\nint main() {\n    cout << \"|\" << setw(10)\n         << setprecision(3) << fixed << 25.67 << \"|\" << endl;\n\n    // setw applies to the NEXT item only; fixed and setprecision stay on\n    cout << \"|\" << setw(10) << 3.14159 << \"|\" << 2.5 << \"|\" << endl;\n    return 0;\n}\n"
+  }
+};

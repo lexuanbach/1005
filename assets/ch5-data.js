@@ -241,3 +241,18 @@ window.CHAPTER_DATA = {
       ] }
   ]
 };
+
+/* Runnable versions of the lecture examples: code-card file label -> complete program.
+   Generated content; every program is checked with MiniCPP and with real clang. */
+window.CHAPTER_DATA.examples = {
+  "examples_5_2_1_and_5_2_2.cpp": {
+    "note": "Both examples in one program. Change i < arraySize to i <= arraySize and see what each Run button says.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint main() {\n    char arStuGrade[5] = {'A', 'B', 'C', 'D', 'F'};\n    for (int i = 0; i < 5; i++)\n        cout << arStuGrade[i] << endl;\n\n    const int arraySize = 12;    // one name for the size — used twice below\n    int a[arraySize] = {1, 3, 5, 4, 7, 2, 99, 16, 45, 67, 89, 45};\n    int total = 0;\n    for (int i = 0; i < arraySize; i++)\n        total += a[i];\n    cout << \"Total of array element values is \" << total << endl;\n    return 0;\n}\n"
+  },
+  "example_5_4_2.cpp": {
+    "note": "The seven constructors, each printed between [ ].",
+    "stdin": "",
+    "code": "#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string str1;                    // an empty string\n    string str2(\"Good Morning\");    // from a literal\n    string str3 = \"Hot Dog\";        // assignment form\n    string str4(str3);              // a copy\n    string str5(str4, 4);           // from index 4\n    string str6 = \"linear\";\n    string str7(str6, 3, 3);        // 3 chars from idx 3\n\n    cout << \"[\" << str1 << \"]\" << endl;\n    cout << \"[\" << str2 << \"]\" << endl;\n    cout << \"[\" << str3 << \"]\" << endl;\n    cout << \"[\" << str4 << \"]\" << endl;\n    cout << \"[\" << str5 << \"]\" << endl;\n    cout << \"[\" << str6 << \"]\" << endl;\n    cout << \"[\" << str7 << \"]\" << endl;\n    return 0;\n}\n"
+  }
+};

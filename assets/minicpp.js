@@ -33,7 +33,9 @@
       if (c === '#') {
         var j = i, dir = '';
         while (j < n && src[j] !== '\n') { dir += src[j]; j++; }
-        if (!/^#\s*include\s*[<"][A-Za-z0-9_.\/]+[>"]\s*$/.test(dir))
+        // a trailing comment is fine:  #include <iostream>   // gives the program I/O
+        var bare = dir.replace(/\/\/.*$/, '').replace(/\/\*.*?\*\/\s*$/, '');
+        if (!/^#\s*include\s*[<"][A-Za-z0-9_.\/]+[>"]\s*$/.test(bare))
           throw new CompileError(line, 'unsupported preprocessor directive: ' + dir.trim() + ' (only #include is available in the playground)');
         i = j; continue;
       }

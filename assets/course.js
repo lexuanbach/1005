@@ -982,6 +982,87 @@
     return card;
   }
 
+  // ───────────── runnable lecture examples ─────────────
+  /* Most code cards in the lectures are fragments, pseudocode or syntax templates, so they cannot
+     be executed as displayed. CHAPTER_DATA.examples maps a card's file label (the text before
+     " — " or " (") to a complete, checked program that embeds it. Cards with an entry get a
+     ▶ Run button that opens a full code window (editor, input, output, both engines) under the card. */
+  function initRunnableExamples(data) {
+    var programs = data && data.examples;
+    if (!programs) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.code-card'), function (cardEl) {
+      var fileEl = cardEl.querySelector('.bar .file');
+      if (!fileEl) return;
+      var key = fileEl.textContent.split(/ — | \(/)[0].trim();
+      var prog = programs[key];
+      if (!prog) return;
+
+      var btn = el('button', 'card-run', '▶ Run');
+      btn.type = 'button';
+      btn.setAttribute('aria-expanded', 'false');
+      btn.title = 'Open this example in a code window and run it';
+      cardEl.querySelector('.bar').appendChild(btn);
+
+      var runner = null, io = null;
+      function build() {
+        runner = el('article', 'ex example-runner');
+        if (cardEl.style.maxWidth) runner.style.maxWidth = cardEl.style.maxWidth;
+        var body = el('div', 'ex-body');
+        if (prog.note) body.appendChild(el('div', 'example-note', escapeHtml(prog.note)));
+        var cols = el('div', 'ex-cols');
+        var left = el('div');
+        left.appendChild(el('label', 'field-label', 'Try it — edit freely'));
+        var slug = key.replace(/\.[a-z]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'example';
+        var editor = makeEditor({ label: 'Code editor for ' + key, minHeight: '14rem', fileName: slug + '.cpp',
+          fullscreen: function () { return runner; } });
+        editor.value = prog.code;
+        left.appendChild(editor.root);
+        cols.appendChild(left);
+        var right = el('div');
+        var stdinLabel = el('label', 'field-label', 'Input (stdin)');
+        right.appendChild(stdinLabel);
+        var stdin = el('textarea', 'stdin-edit');
+        stdin.spellcheck = false;
+        stdin.value = prog.stdin || '';
+        stdin.setAttribute('aria-label', 'Program input for ' + key);
+        right.appendChild(stdin);
+        var outLabel = el('label', 'field-label', 'Output');
+        right.appendChild(outLabel);
+        var term = el('div', 'term');
+        right.appendChild(term);
+        cols.appendChild(right);
+        body.appendChild(cols);
+        io = makeIo({ editor: editor, stdinLabel: stdinLabel, stdin: stdin, outLabel: outLabel, term: term });
+        io.reset();
+
+        var actions = el('div', 'ex-actions');
+        var runBtn = el('button', 'btn primary', '▶ Run');
+        runBtn.type = 'button';
+        runBtn.addEventListener('click', function () { io.run('mini'); });
+        actions.appendChild(runBtn);
+        var realBtn = makeRealRunButton(io);
+        if (realBtn) actions.appendChild(realBtn);
+        var resetBtn = el('button', 'btn ghost small', 'Reset to the example');
+        resetBtn.type = 'button';
+        resetBtn.addEventListener('click', function () { editor.value = prog.code; stdin.value = prog.stdin || ''; io.reset(); });
+        actions.appendChild(resetBtn);
+        body.appendChild(actions);
+        editor.textarea.addEventListener('keydown', function (ev) {
+          if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); runBtn.click(); }
+        });
+        runner.appendChild(body);
+        cardEl.parentNode.insertBefore(runner, cardEl.nextSibling);
+      }
+      btn.addEventListener('click', function () {
+        var opening = !runner || runner.hidden;
+        if (!runner) build(); else runner.hidden = !opening;
+        btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+        btn.textContent = opening ? '▾ Hide' : '▶ Run';
+        if (opening) io.run('mini');          // show the result straight away
+      });
+    });
+  }
+
   // ───────────── standalone playground ─────────────
   function initPlayground() {
     var mount = document.getElementById('playground-root');
@@ -1106,6 +1187,7 @@
     var data = window.CHAPTER_DATA;
     initQuiz(data);
     initExercises(data);
+    initRunnableExamples(data);
     initPlayground();
     initFolds();
   });

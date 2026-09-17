@@ -972,6 +972,24 @@ section.block.folded { padding-bottom: 0.4rem; }
 :root[data-theme="dark"] .pullquote .autograph { filter: invert(1) brightness(1.15); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pullquote .autograph { filter: invert(1) brightness(1.15); } }
 
+/* ▶ Run on a lecture example (code card) and the code window it opens */
+.code-card .bar .card-run {
+  margin-left: 0.7rem; flex: 0 0 auto;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; font-weight: 600;
+  color: var(--code-bg); background: var(--code-str);
+  border: 0; border-radius: 999px; padding: 0.2rem 0.7rem; cursor: pointer;
+}
+.code-card .bar .card-run:hover { filter: brightness(1.1); }
+.code-card .bar .card-run:focus-visible { outline: 2px solid var(--code-caret); outline-offset: 2px; }
+.code-card .bar .card-run[aria-expanded="true"] { background: transparent; color: var(--code-text); box-shadow: inset 0 0 0 1px var(--code-cm); }
+.example-runner { margin: -0.4rem 0 1.4rem; }
+.example-runner .ex-body { padding-top: 1rem; }
+.example-runner[hidden] { display: none; }
+/* lecture columns are narrow: give the editor the full width and put input/output underneath */
+.example-runner:not(.code-fullscreen) .ex-cols { grid-template-columns: minmax(0, 1fr); }
+.example-runner:not(.code-fullscreen) .term { min-height: 3.2rem; }
+.example-note { font-size: 0.88rem; color: var(--ink-soft); border-left: 3px solid var(--teal); padding-left: 0.7rem; }
+
 /* full-screen code window: the exercise card / playground block is lifted over the page */
 body.code-fullscreen-open { overflow: hidden; }
 .code-fullscreen {

@@ -250,3 +250,28 @@ window.CHAPTER_DATA = {
       ] }
   ]
 };
+
+/* Runnable versions of the lecture examples: code-card file label -> complete program.
+   Generated content; every program is checked with MiniCPP and with real clang. */
+window.CHAPTER_DATA.examples = {
+  "example_6_1_1.cpp": {
+    "note": "The function and its call in a complete program.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nvoid FindMax(int x, int y) {        // x, y: FORMAL parameters\n    int maxnum;\n    maxnum = (x >= y) ? x : y;\n    cout << \"The maximum of the 2 numbers is \" << maxnum << endl;\n}\n\nint main() {\n    int firstNum = 5, secNum = 8;\n    FindMax(firstNum, secNum);      // firstNum, secNum: ACTUAL parameters\n    return 0;\n}\n"
+  },
+  "auto_vs_static.cpp": {
+    "note": "Three calls each — one word changes everything.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nvoid testauto()   { int num = 0;        cout << num << \" \"; num++; }\n\nvoid teststatic() { static int num = 0; cout << num << \" \"; num++; }\n\nint main() {\n    cout << \"auto:   \";\n    testauto(); testauto(); testauto();\n    cout << endl << \"static: \";\n    teststatic(); teststatic(); teststatic();\n    cout << endl;\n    return 0;\n}\n"
+  },
+  "example_6_5_1.cpp": {
+    "note": "Example 6.5.1 with the main() that produces the two comment lines.",
+    "stdin": "",
+    "code": "#include <iostream>\nusing namespace std;\n\nint squareByValue(int a) {\n    return a *= a;      // squares a COPY — caller's x unchanged\n}\n\nvoid squareByReference(int &cRef) {\n    cRef *= cRef;       // squares the caller's own variable\n}\n\nint main() {\n    int x = 2, z = 4;\n\n    cout << \"squareByValue(x) returned \" << squareByValue(x) << endl;\n    cout << \"x is still \" << x << endl;\n\n    squareByReference(z);\n    cout << \"z is now \" << z << endl;\n    return 0;\n}\n"
+  },
+  "example_6_6_1.cpp": {
+    "note": "Search for a value that is there (45) and one that is not (50).",
+    "stdin": "45\n",
+    "code": "#include <iostream>\nusing namespace std;\n\nint linearSearch(int array[], int key, int sizeofArray) {\n    for (int n = 0; n < sizeofArray; n++)\n        if (array[n] == key)\n            return n;       // found: its position\n    return -1;              // a sentinel: no valid index is -1\n}\n\nint main() {\n    const int SIZE = 8;\n    int a[SIZE] = {12, 7, 45, 3, 99, 16, 45, 60};\n    int key;\n    cout << \"Search for: \";\n    cin >> key;\n\n    int position = linearSearch(a, key, SIZE);\n    if (position != -1)\n        cout << \"Found value in element \" << position << endl;\n    else\n        cout << \"Value not found\" << endl;\n    return 0;\n}\n"
+  }
+};
