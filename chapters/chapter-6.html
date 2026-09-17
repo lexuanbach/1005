@@ -123,6 +123,11 @@
           four parts: the return data type, the name, any parameters within
           <code>( )</code>, and the body in <code>{ }</code>:
         </p>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          The function is older than every programming language you have heard of. Maurice Wilkes, <strong>David Wheeler</strong> and Stanley Gill — authors of the 1951 book <em>Preparation of Programs for an Electronic Digital Computer</em> — are generally credited with inventing what they called the “closed sub-routine” — although Alan Turing had already described subroutines, down to a stack of return addresses, in a 1945 design paper.
+          <a href="https://en.wikipedia.org/wiki/Function_(computer_programming)#History" target="_blank" rel="noopener">Source: Wikipedia — Function (history)</a>.
+        </div>
         <div class="media-row" style="--media-w:19rem">
         <div>
         <div class="code-card">
@@ -180,6 +185,11 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           <code>main</code>, the call inside it, and the definition below — the standard
           layout you will use in Exercise 2.
         </p>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          Here the child taught the parent. Classic “K&amp;R” C had no prototypes, so the arguments of a call were not type-checked. When C was standardized in 1989, the committee added function prototypes <strong>borrowed from C++</strong> — one of the few features that flowed from the younger language back into the older one.
+          <a href="https://en.wikipedia.org/wiki/C_(programming_language)#ANSI_C_and_ISO_C" target="_blank" rel="noopener">Source: Wikipedia — C (ANSI C and ISO C)</a>.
+        </div>
         <blockquote class="pullquote signed" style="max-width:46rem">
           <p>If I have seen further it is by standing on ye sholders of Giants.</p>
           <img class="autograph" src="../assets/lecture-images/sig-newton.png" width="442" height="140" loading="lazy"
@@ -249,6 +259,11 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
 <span class="kw">void</span> <span class="fn">teststatic</span>() { <span class="kw">static int</span> num = 0; cout &lt;&lt; num; num++; }
 <span class="cm">// three calls print: 0 1 2   — created ONCE, remembered for the</span>
 <span class="cm">//                              life of the program</span></pre>
+        </div>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          Two of these four keywords have since changed their lives. Since <strong>C++11</strong>, <code>auto</code> no longer names a storage class — it now asks the compiler to work out a variable's type, as in <code>auto x = 3.5;</code>. And <code>register</code> stopped being a storage class specifier in <strong>C++17</strong>: the word is still reserved, but it no longer does anything.
+          <a href="https://en.cppreference.com/w/cpp/language/storage_duration" target="_blank" rel="noopener">Source: cppreference — Storage class specifiers</a>.
         </div>
         <ul>
           <li>A <strong>static</strong> local's initialization happens only once; with no explicit initializer, statics are set to zero. Example 6.4.4's <code>static int sum = 100;</code> accumulates: 101, 103, 106, 110…</li>
@@ -350,6 +365,11 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           Unlike single values, an array is <em>not</em> copied into the function — the callee
           works on the caller's elements, so modifications are visible after the call.
           Arrays are effectively passed by reference.
+        </div>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          Even a search routine can hide a bug for decades. The faster cousin of this function, <em>binary search</em>, was first published in 1946, yet according to Jon Bentley the first version correct for all sizes appeared only in 1962. In 2006 Joshua Bloch found that the one he had written for Java's standard library had been wrong for <strong>nine years</strong>: <code>(low + high) / 2</code> overflows <code>int</code> once an array holds about a billion elements.
+          <a href="https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/" target="_blank" rel="noopener">Source: Joshua Bloch, Google Research blog (2006)</a>.
         </div>
         </div>
         <figure class="photo">

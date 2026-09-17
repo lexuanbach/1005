@@ -136,6 +136,11 @@
           <strong>string</strong>, and class/struct (a later course). This chapter covers
           the first two.
         </p>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          Why is text called a <strong>“string”</strong>? The word has meant “items arranged in a line” for centuries, and 19th-century typesetters used it for a length of printed type — a compositor's “string” was measured to work out his pay. Mathematicians and logicians later adopted it for “a sequence of symbols in a definite order”, and programming inherited the word from them.
+          <a href="https://en.wikipedia.org/wiki/String_(computer_science)#History" target="_blank" rel="noopener">Source: Wikipedia — String (history)</a>.
+        </div>
         <blockquote class="pullquote">
           <p>Show me your flowcharts and conceal your tables, and I shall continue to be mystified. Show me your tables, and I won't usually need your flowcharts; they'll be obvious.</p>
           <footer>Fred Brooks, <a href="https://en.wikiquote.org/wiki/Fred_Brooks" target="_blank" rel="noopener"><em>The Mythical Man-Month</em></a> (1975, pp.102–3) —
@@ -162,6 +167,11 @@
           write elements with <code>name[index]</code>. In a 5-element array the valid
           indices are 0…4 — <code>arStuGrade[3]</code> is the <em>4th</em> element.
         </p>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          Going past the last index powered one of the first attacks on the Internet. The <strong>Morris worm</strong> of 2 November 1988 spread partly through a buffer overrun in the Unix <em>finger</em> service: send it more characters than its array could hold, and the extra bytes overwrote neighbouring memory. The often-quoted “6,000 machines infected” was itself a guess — 10% of an estimated 60,000 computers on the Internet.
+          <a href="https://en.wikipedia.org/wiki/Morris_worm" target="_blank" rel="noopener">Source: Wikipedia — Morris worm</a>.
+        </div>
         <div class="code-card">
           <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">examples_5_2_1_and_5_2_2.cpp</span></div>
           <pre><span class="kw">char</span> arStuGrade[5] = {<span class="str">'A'</span>, <span class="str">'B'</span>, <span class="str">'C'</span>, <span class="str">'D'</span>, <span class="str">'F'</span>};
@@ -241,6 +251,11 @@
           a 3×3 matrix and tests <code>a[i][j] != a[j][i]</code> to decide whether it is
           symmetric, and Example 5.3.2 stores a whole student score table, one row per student.
         </p>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          “Row after row” is a choice, not a law of nature. C and C++ store a 2-D array in <strong>row-major</strong> order — <code>b[0][0], b[0][1], b[0][2], b[1][0]</code>… — but Fortran stores the same grid <strong>column by column</strong>, and counts from 1. The same matrix therefore sits in memory in a different order depending on the language that created it.
+          <a href="https://en.wikipedia.org/wiki/Row-_and_column-major_order" target="_blank" rel="noopener">Source: Wikipedia — Row- and column-major order</a>.
+        </div>
         </div>
         <figure class="photo portrait">
           <img src="../assets/lecture-images/ch5-card-catalog.jpg" width="420" height="560" loading="lazy"
@@ -303,6 +318,11 @@
           <li><code>length()</code> and <code>size()</code> both return the number of characters.</li>
           <li><code>at(i)</code> returns the character at index i — <code>s.at(s.length() - 1)</code> is the last one.</li>
         </ul>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          Tiếng Việt is a hard case for a one-byte <code>char</code>. On top of the 52 letters already in ASCII, Vietnamese writing needs <strong>134 more</strong> accented letters (ằ, ễ, ự, …), but an 8-bit character set has only 128 spare slots — <strong>six too few</strong>. Early Vietnamese encodings such as VISCII solved this by overwriting rarely used control codes; today UTF-8 simply spends two or three bytes on such letters, which is why <code>length()</code> can report more than the number of letters you see.
+          <a href="https://en.wikipedia.org/wiki/Vietnamese_language_and_computers#Approaches_to_character_encoding" target="_blank" rel="noopener">Source: Wikipedia — Vietnamese language and computers</a>.
+        </div>
         <div class="media-row" style="--media-w:21rem">
         <div>
         <p style="max-width:46rem">

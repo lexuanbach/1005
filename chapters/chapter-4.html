@@ -247,6 +247,11 @@ count = 1;                  <span class="cm">// 2. initial value</span>
           grade-totalling program, grades run 0–100, so <em>any number greater than 100</em>
           ends the input.
         </p>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          You have relied on a sentinel since your very first program. In C and C++ every string literal ends with an invisible <strong>null character</strong>, <code>'\0'</code>, whose only job is to say “the text stops here” — so <code>"Hello"</code> really occupies <strong>six</strong> characters, not five. It works for exactly the reason on this page: <code>'\0'</code> can never be mistaken for a printable letter.
+          <a href="https://en.wikipedia.org/wiki/Sentinel_value#Examples" target="_blank" rel="noopener">Source: Wikipedia — Sentinel value</a>.
+        </div>
         <div class="code-card">
           <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_4_2_2.cpp — the shape of sentinel input</span></div>
           <pre><span class="kw">const int</span> HIGHGRADE = 100;   <span class="cm">// sentinel boundary</span>
@@ -274,6 +279,11 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           but the header also initializes the counter and changes it each iteration. The
           slides draw its life cycle like this:
         </p>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          At NASA's Jet Propulsion Laboratory, a loop that <em>might</em> never end is not allowed to fly. Rule 2 of Gerard Holzmann's <em>Power of 10</em> rules for safety-critical code (2006) reads: <strong>“Give all loops a fixed upper bound”</strong> — and a checking tool must be able to prove that bound without running the program. A <code>for</code> loop whose header states its start, its limit and its step is the easiest kind to prove.
+          <a href="https://en.wikipedia.org/wiki/The_Power_of_10:_Rules_for_Developing_Safety-Critical_Code" target="_blank" rel="noopener">Source: Wikipedia — The Power of 10 rules</a>.
+        </div>
         <figure class="fig">
           <svg viewBox="0 0 460 400" width="460" height="400" role="img" aria-label="Flowchart of the for statement: initialization once, then test the condition; if true run the body then the update and retest; if false exit">
             <defs><marker id="fl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>
@@ -342,6 +352,11 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           body 5 × 4 = 20 times. You already met the pattern in Chapter 1's flowcharts; in
           Chapter 5 it becomes the standard way to walk a 2-D array.
         </p>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          In the original FORTRAN there were no type declarations at all: any variable whose name began with <strong>I, J, K, L, M or N</strong> was automatically an integer, and everything else was floating point. Counters therefore <em>had</em> to be called something like <code>I</code> and <code>J</code> — one reason, together with the mathematicians' habit of writing subscripts as <em>i</em>, <em>j</em>, <em>k</em>, that nested loops still use <code>i</code> and <code>j</code> today.
+          <a href="https://en.wikipedia.org/wiki/Fortran#Simple_FORTRAN_II_program" target="_blank" rel="noopener">Source: Wikipedia — Fortran</a>.
+        </div>
         <blockquote class="pullquote teal signed">
           <p>Machines take me by surprise with great frequency. This is largely because I do not do sufficient calculation to decide what to expect them to do…</p>
           <img class="autograph" src="../assets/lecture-images/sig-turing.png" width="640" height="129" loading="lazy"
@@ -366,6 +381,11 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           sum 2 + 4 + … + n — and “ask until the answer is valid” problems fit it naturally,
           because you must ask once before there is anything to test.
         </p>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          Pac-Man's famous unbeatable <strong>level 256</strong> is a post-test loop gone wrong. The level number lives in a single byte, so 255 + 1 wraps around to 0. The routine that draws the bonus fruit then uses that 0 as its counter in a loop that decrements <em>first</em> and tests for zero <em>afterwards</em>: 0 − 1 wraps to 255, and the loop draws 256 symbols instead of at most seven — burying the right half of the maze in garbage.
+          <a href="https://pacman.holenet.info/#Chapter_5" target="_blank" rel="noopener">Source: Jamey Pittman — The Pac-Man Dossier</a>.
+        </div>
       </div>
 
       <div class="concept">

@@ -137,6 +137,11 @@
     <span class="kw">return</span> 0;         <span class="cm">// 0 = the program terminated successfully</span>
 }</pre>
         </div>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          <code>main</code> is the one place where C++ lets you forget the <code>return</code>. In Bjarne Stroustrup's own words: “In C++, <code>main()</code> need not contain an explicit return statement. In that case, the value returned is <strong>0</strong>, meaning successful execution.” What is <em>not</em> allowed, he adds, is <code>void main()</code> — it has never been legal C++ or legal C.
+          <a href="https://www.stroustrup.com/bs_faq2.html#void-main" target="_blank" rel="noopener">Source: Stroustrup — C++ Style and Technique FAQ</a>.
+        </div>
         <ul>
           <li><strong>Header files</strong> notify the compiler that the program uses run-time libraries; the <strong>preprocessor</strong> (which runs <em>before</em> the compiler) pastes the entire contents of the included file into yours.</li>
           <li><code>main()</code> runs automatically when the program executes. Every C++ program must include exactly one — all other functions are executed from it.</li>
@@ -158,6 +163,11 @@
           stream, and you can chain it: <code>cout &lt;&lt; "Hello " &lt;&lt; "C++";</code>.
           The <code>endl</code> <strong>i/o manipulator</strong> represents a new line.
         </p>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          <code>cout</code> is pronounced <strong>“see-out”</strong>, and the inventor of C++ says the “c” stands for <strong>“character”</strong> — because iostreams turn values into sequences of characters and back. So <code>cout</code> is “character output” and <code>cin</code> is “character input”.
+          <a href="https://www.stroustrup.com/bs_faq2.html#cout" target="_blank" rel="noopener">Source: Stroustrup — C++ Style and Technique FAQ</a>.
+        </div>
         <p>
           Comments are for humans: <code>// a line comment</code> runs to the end of the line;
           <code>/* a block comment */</code> can span several lines. The compiler ignores both.
@@ -173,6 +183,11 @@
           −6.16, 2.7541, <code>90.1e3</code> = 90.1 × 10³), and
           <strong>characters</strong> (<code>char cLetter = 'A';</code> — single quotes).
         </p>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          The largest value a 32-bit signed <code>int</code> can hold is <strong>2,147,483,647</strong>. On 1 December 2014 YouTube announced that Psy's <em>Gangnam Style</em> had been watched more often than that, so its view counter had to move to a 64-bit integer — room for about 9.22 quintillion views. In the spokesperson's words: “We never thought a video would be watched in numbers greater than a 32-bit integer, but that was before we met Psy.”
+          <a href="https://en.wikipedia.org/wiki/Gangnam_Style" target="_blank" rel="noopener">Source: Wikipedia — Gangnam Style</a>.
+        </div>
         <p style="max-width:46rem">
           Floating point values are stored in the <strong>IEEE 754</strong> standard, which
           splits the bits into a sign, an exponent (the scale), and a mantissa (the fraction):
@@ -365,6 +380,11 @@ cout &lt;&lt; c &lt;&lt; endl;    <span class="cm">// prints 6</span>
 c = 5;
 cout &lt;&lt; ++c &lt;&lt; endl;  <span class="cm">// prints 6 — increment FIRST, then print</span>
 cout &lt;&lt; c &lt;&lt; endl;    <span class="cm">// prints 6</span></pre>
+        </div>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          The <code>++</code> you just met is where the language gets its name. <strong>“C++”</strong> was suggested by Rick Mascitti in 1983: <code>++</code> is C's increment operator, so the name reads as “the successor of C”. Stroustrup notes that the slightly shorter name “C+” would have been a syntax error.
+          <a href="https://www.stroustrup.com/bs_faq.html#name" target="_blank" rel="noopener">Source: Stroustrup — FAQ, “Where did the name C++ come from?”</a>.
         </div>
       </div>
 
