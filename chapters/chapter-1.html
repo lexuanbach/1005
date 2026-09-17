@@ -22,6 +22,7 @@
       <a href="chapter-5.html">Chapter 5</a>
       <a href="chapter-6.html">Chapter 6</a>
       <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
       <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
     </nav>
   </div>
@@ -39,6 +40,15 @@
     <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
     <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
     <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
   </nav>
   <h4>Supplementary</h4>
   <nav aria-label="Supplementary topics">
@@ -93,6 +103,21 @@
         <h2>From problem to plan</h2>
       </div>
 
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch1-ford-assembly-line.jpg" width="1100" height="419"
+             alt="Black-and-white 1913 photograph of workers on the Ford Motor Company assembly line, each bent over the same repeated task on a moving line of wheel hubs">
+        <figcaption>
+          <strong>The same fixed steps, run again for every piece of data.</strong> Each worker on Ford's
+          1913 assembly line repeats one exact procedure — pick up a part, perform the same operation, pass
+          it on — on a new wheel every time. That repeatable precision is exactly what an algorithm is:
+          a sequence of steps clear enough to follow the same way twice.
+          <span class="credit">Photo: “Ford assembly line, 1913” · U.S. National Archives
+            (<a href="https://catalog.archives.gov/id/1633486" target="_blank" rel="noopener">NARA ID 1633486</a>) ·
+            <a href="https://commons.wikimedia.org/wiki/File:Ford_assembly_line_-_1913.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            public domain (cropped)</span>
+        </figcaption>
+      </figure>
+
       <div class="concept">
         <h3><span class="idx">1.1</span>What is an algorithm?</h3>
         <p>
@@ -106,6 +131,12 @@
           <li>a <strong>flowchart</strong> — an outline of the basic structure or logic of the program, drawn with standard symbols;</li>
           <li><strong>pseudocode</strong> — the same steps written as English-like phrases.</li>
         </ul>
+        <blockquote class="pullquote">
+          <p>An algorithm must be seen to be believed, and the best way to learn what an algorithm is all about is to try it.</p>
+          <footer>Donald E. Knuth, <em>The Art of Computer Programming, Vol. 1: Fundamental Algorithms</em> (1968) —
+            his advice was to take pencil and paper and trace one by hand. That is exactly what the worked
+            examples below, and the Flowchart Studio's <strong>Step</strong> button, let you do.</footer>
+        </blockquote>
       </div>
 
       <div class="concept wide">
@@ -147,6 +178,54 @@
             <h4>Predefined process</h4>
             <p>A named sub-algorithm defined elsewhere — a preview of <em>functions</em> (Chapter 6).</p>
           </div>
+        </div>
+
+        <p style="max-width:46rem">
+          These symbols aren't an arbitrary invention. The idea of drawing a procedure as small boxes joined
+          by arrows was standardized for industrial work decades before the first electronic computer existed.
+        </p>
+        <div class="media-row" style="--media-w:16rem">
+        <div style="max-width:46rem">
+        <p>
+          In 1921, industrial engineers <a href="https://en.wikipedia.org/wiki/Frank_Bunker_Gilbreth_Sr." target="_blank" rel="noopener">Frank</a>
+          and Lillian Gilbreth presented <em>“Process Charts: First Steps in Finding the One Best Way to Do
+          Work”</em> to the American Society of Mechanical Engineers — a way to draw a factory procedure as
+          a chain of symbols joined by lines, so a wasted or repeated step became visible on paper before it
+          cost a minute on the floor. In 1947, ASME adopted a symbol set derived from that paper as a formal
+          standard; it grew, through later revisions, into the ANSI/ISO notation you just learned.
+        </p>
+        </div>
+        <figure class="photo">
+          <img src="../assets/lecture-images/ch1-gilbreth-process-chart.jpg" width="700" height="912" loading="lazy"
+               alt="1921 process chart diagram titled 'Process Chart for Loading Rifle Grenades', showing a legend of symbols (triangle for components, diamond for quality inspection, square for quantity inspection, numbered circles for operations) and a long chain of labelled steps connected by lines">
+          <figcaption>
+            <strong>An actual flowchart from 1921.</strong> The Gilbreths' process chart for loading rifle
+            grenades — components enter from the sides, each numbered circle is one operation, and the lines
+            are exactly today's flowlines.
+            <span class="credit">Diagram: Frank B. &amp; Lillian M. Gilbreth, <em>Process Charts</em>, ASME (1921), Fig. 5 ·
+              <a href="https://commons.wikimedia.org/wiki/File:Process_Chart_for_Loading_Rifle_Grenades,1921.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+              public domain</span>
+          </figcaption>
+        </figure>
+        </div>
+
+        <div class="media-row" style="--media-w:15rem">
+        <div style="max-width:46rem">
+        <p>
+          A century later, flowcharts are common enough in software culture to be the setup for a joke about
+          the process of writing software itself.
+        </p>
+        </div>
+        <figure class="comic" style="--comic-w:15rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch1-xkcd-844-good-code.png" width="455" height="695" loading="lazy"
+               alt="xkcd comic titled 'How to write good code': a flowchart starting at Start Project, through a decision between doing things fast or right, both paths eventually reaching 'Throw it all out and start over', which loops back to Start Project. A separate, disconnected box labelled 'Good code' has a question mark pointing at it."></div>
+          <figcaption>
+            Every shape here is one you just learned — and both branches loop back to
+            <span class="mono">Start Project</span>. Section 1.6 explains exactly what that backward arrow means.
+            <span class="credit">Comic: <a href="https://xkcd.com/844/" target="_blank" rel="noopener">xkcd 844 “Good Code”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
         </div>
       </div>
 
@@ -196,6 +275,25 @@ Display Name and Pay</pre>
         <p>
           Both notations describe the <em>same</em> algorithm — you should be able to convert
           in either direction. In exams, both directions are asked.
+        </p>
+        <div class="note warn">
+          <span class="note-tag">True story · the first algorithm, 1843</span>
+          Ada Lovelace did all of this a century before a computer existed to run it. Translating an Italian
+          mathematician's article about Charles Babbage's unbuilt <em>Analytical Engine</em>, she added her
+          own notes — nearly three times the length of the original. The last one, “Note G”, works out,
+          operation by operation, exactly how the Engine would compute the Bernoulli numbers. It is widely
+          considered the first algorithm ever published for a general-purpose computing machine.
+        </div>
+        <p>
+          Note G's own diagram marks a block of steps — Operations 13 to 23 — to repeat once for every new
+          number, exactly the idea Section 1.6 calls a loop (its pull-quote below is Lovelace's own words for
+          it). Modern researchers tracing her diagram by hand also found what may be the oldest bug in
+          computing: one division step has two working variables the wrong way round — possibly a
+          typesetter's slip, but the result would have been wrong regardless. Read the full trace in
+          <a href="https://twobithistory.org/2018/08/18/ada-lovelace-note-g.html" target="_blank" rel="noopener">Two-Bit
+          History's “What Did Ada Lovelace's Program Actually Do?”</a>, or the algorithm itself in the 1843
+          <a href="https://www.fourmilab.ch/babbage/sketch.html" target="_blank" rel="noopener">“Sketch of the
+          Analytical Engine, with Notes by A.A.L.”</a>
         </p>
       </div>
 
@@ -350,6 +448,32 @@ Display sum</pre>
           Because the test sits <em>after</em> the body, the body always runs at least once
           (a <em>do-while</em> shape — you will meet it again in Chapter 4).
         </div>
+        <blockquote class="pullquote teal">
+          <p>A cycle of operations… must be understood to signify any set of operations which is repeated more than once.</p>
+          <footer>Ada Lovelace, <em>Notes on the Analytical Engine</em> (1843), Note E — her own definition of
+            a loop, a century before this diagram existed. Note G marks exactly such a group of steps to repeat
+            when computing the Bernoulli numbers (the true story in Section 1.4).</footer>
+        </blockquote>
+        <div class="media-row" style="--media-w:14rem">
+        <div style="max-width:46rem">
+        <p>
+          Nothing stops the “No” arrow from pointing back to itself forever. If a loop's body never changes the
+          value being tested — here, if the step <span class="mono">NUM ← NUM + 1</span> were missing — the
+          condition <span class="mono">NUM &gt; 9</span> would never become true, and the flowchart would spin
+          in the same small circle for as long as the machine kept running.
+        </p>
+        </div>
+        <figure class="comic" style="--comic-w:14rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch1-xkcd-1195-flowchart.png" width="201" height="224" loading="lazy"
+               alt="xkcd comic titled 'Flowchart'. A box labelled START has an arrow to a diamond reading 'Hey, wait, this flowchart is a trap!' with a 'YES' arrow looping back to itself."></div>
+          <figcaption>
+            The decision never has a way out — its <span class="mono">YES</span> arrow points straight back to
+            itself. The exact failure mode above: a loop with no path to <span class="mono">NUM &gt; 9</span>.
+            <span class="credit">Comic: <a href="https://xkcd.com/1195/" target="_blank" rel="noopener">xkcd 1195 “Flowchart”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
       </div>
     </div>
   </section>
@@ -480,6 +604,26 @@ Display sum</pre>
           <span class="rc-kind">Lecture</span>
           <h4>Harvard CS50x — Lecture 0</h4>
           <p>Computational thinking, algorithms, and pseudocode — the famous phone-book demonstration.</p>
+        </a>
+        <a class="read-card" href="https://twobithistory.org/2018/08/18/ada-lovelace-note-g.html" target="_blank" rel="noopener">
+          <span class="rc-kind">True story</span>
+          <h4>Two-Bit History — What Did Ada Lovelace's Program Actually Do?</h4>
+          <p>A line-by-line walk through Note G, including the loop she called a “cycle of operations” and its one small bug.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Note_G" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Note G</h4>
+          <p>What the algorithm computes, why it's called the first published computer program, and the historical debate around that claim.</p>
+        </a>
+        <a class="read-card" href="https://www.fourmilab.ch/babbage/sketch.html" target="_blank" rel="noopener">
+          <span class="rc-kind">Primary source</span>
+          <h4>Sketch of the Analytical Engine, with Notes by A.A.L. (1843)</h4>
+          <p>Menabrea's original paper and all seven of Ada Lovelace's notes, free online — Note E defines a “cycle”, Note G is the algorithm.</p>
+        </a>
+        <a class="read-card" href="https://www.youtube.com/watch?v=rL8X2mlNHPM" target="_blank" rel="noopener">
+          <span class="rc-kind">Video</span>
+          <h4>Crash Course Computer Science #13 — Intro to Algorithms</h4>
+          <p>What makes a procedure an algorithm, with sorting and pathfinding as running examples.</p>
         </a>
         <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
           <span class="rc-kind">Textbook</span>

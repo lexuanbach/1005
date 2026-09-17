@@ -30,6 +30,7 @@
       <a href="chapter-5.html">Chapter 5</a>
       <a href="chapter-6.html">Chapter 6</a>
       <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
       <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
     </nav>
   </div>
@@ -47,6 +48,15 @@
     <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
     <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
     <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
   </nav>
   <h4>Supplementary</h4>
   <nav aria-label="Supplementary topics">
@@ -99,6 +109,21 @@
         <h2>The building blocks of every program</h2>
       </div>
 
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch2-slide-rule.jpg" width="1100" height="825"
+             alt="Extreme close-up of a Faber-Castell Darmstadt slide rule, showing its many parallel logarithmic scales and a cursor with a hairline">
+        <figcaption>
+          <strong>Every value in this chapter is a promise about precision.</strong> For three centuries
+          this was how people multiplied, divided and found square roots: by sliding two logarithmic
+          scales and <em>reading off</em> an answer good to three or four digits. A <code>double</code> is
+          the same bargain formalized — enormous range, in exchange for a value that is only ever
+          <em>approximately</em> right.
+          <span class="credit">Photo: “Faber Castell 67/54 Darmstadt slide rule” by Slashme ·
+            <a href="https://commons.wikimedia.org/wiki/File:Faber_Castell_67_54_Darmstadt_slide_rule_1.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            CC0 (cropped)</span>
+        </figcaption>
+      </figure>
+
       <div class="concept">
         <h3><span class="idx">2.1</span>A simple program, line by line</h3>
         <div class="code-card">
@@ -118,6 +143,11 @@
           <li>Its header line tells you three things: what type it returns (<code>int</code>), its name, and what data it receives (here: nothing).</li>
           <li><strong>All statements in C++ must end with a semicolon.</strong></li>
         </ul>
+        <blockquote class="pullquote">
+          <p>The only way to learn a new programming language is by writing programs in it.</p>
+          <footer>Brian W. Kernighan &amp; Dennis M. Ritchie, <em>The C Programming Language</em>, 2nd ed. (1988), §1.1 —
+            the very next sentence is “The first program to write is the same for all languages: print the words hello, world.” Sound familiar?</footer>
+        </blockquote>
       </div>
 
       <div class="concept">
@@ -147,6 +177,8 @@
           Floating point values are stored in the <strong>IEEE 754</strong> standard, which
           splits the bits into a sign, an exponent (the scale), and a mantissa (the fraction):
         </p>
+        <div class="media-row" style="--media-w:15rem">
+        <div>
         <div style="max-width:44rem">
           <div class="bits" role="img" aria-label="32-bit float layout: 1 sign bit, 8 exponent bits, 23 mantissa bits">
             <span class="b-sign" style="flex:2">1</span><span class="b-exp" style="flex:8">exponent · 8</span><span class="b-man" style="flex:23">mantissa · 23</span>
@@ -167,6 +199,57 @@
           Integers have a bit story of their own — negative numbers and overflow live in
           <a href="../supplementary/twos-complement.html">S4 — Inside integers</a>.
         </div>
+        </div>
+        <figure class="comic" style="--comic-w:15rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch2-xkcd-3228-day-counter.png" width="319" height="287" loading="lazy"
+               alt="xkcd comic: a workplace sign reading 'It has been -0.00000000000000044 days since our last floating point error', with stick figures walking by a programmer at a desk"></div>
+          <figcaption>
+            The sign that is supposed to track the mistake <em>is</em> the mistake.
+            Resetting a counter to exactly 0.0 is exactly the kind of promise floating point can't keep.
+            <span class="credit">Comic: <a href="https://xkcd.com/3228/" target="_blank" rel="noopener">xkcd 3228 “Day Counter”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
+
+        <blockquote class="pullquote teal" style="max-width:46rem">
+          <p>Floating-point arithmetic is considered an esoteric subject by many people. This is rather
+          surprising because floating-point is ubiquitous in computer systems.</p>
+          <footer>David Goldberg, <a href="https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html" target="_blank" rel="noopener">“What
+            Every Computer Scientist Should Know About Floating-Point Arithmetic”</a> (1991) — opening line of the
+            paper every serious numerics course still assigns. You just met the “esoteric” part above.</footer>
+        </blockquote>
+
+        <div class="note danger" style="max-width:46rem">
+          <span class="note-tag">True story · Ariane 5 Flight 501, 4 June 1996</span>
+          Thirty-seven seconds after launch, Europe's brand-new Ariane 5 rocket veered off course and was
+          destroyed by its own flight-termination system — with its ESA/CNES payload, a cluster of four
+          uninsured Cluster science satellites, on board. Cost: roughly $370 million. The cause, per the
+          official Inquiry Board report, was a data type.
+        </div>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">sri_alignment.cpp (simplified from the Ada original)</span></div>
+          <pre><span class="kw">double</span> BH = computeHorizontalBias();  <span class="cm">// 64-bit floating point</span>
+
+<span class="cm">// narrow to a 16-bit signed integer — this conversion was NOT protected</span>
+<span class="kw">short</span> bhInt = (<span class="kw">short</span>) BH;
+<span class="cm">// Ariane 5's climb was steeper than Ariane 4's, so BH grew far larger than</span>
+<span class="cm">// anyone tested for. It no longer fit in 16 bits: "Operand Error".</span></pre>
+        </div>
+        <p style="max-width:46rem">
+          Reused guidance software from the earlier Ariane 4 tried to convert a 64-bit float — a
+          <em>horizontal bias</em> value meaningful only during pre-launch alignment — into a 16-bit
+          integer. Ariane 5's flight path made that value far bigger than Ariane 4's ever was; it
+          overflowed the 16 bits, the conversion raised an exception, and <strong>both</strong> of the
+          rocket's redundant inertial-reference computers shut themselves down within milliseconds of
+          each other. The flight computer then steered on the resulting diagnostic bit pattern as if it
+          were real attitude data, commanding a full nozzle swing that tore the rocket apart. Read the
+          <a href="https://agimcami.wordpress.com/wp-content/uploads/2013/05/ariane-5-flight-501-failure.pdf" target="_blank" rel="noopener">Inquiry
+          Board's report</a> (§2, “Flight 501 failure”) or the <a href="https://en.wikipedia.org/wiki/Ariane_flight_V88" target="_blank" rel="noopener">Wikipedia
+          summary</a>. <strong>The type you choose is not a formality — it is a claim about the largest
+          value your program will ever need to hold.</strong>
+        </p>
+
         <p style="max-width:46rem">
           Useful <strong>escape sequences</strong> for characters and strings:
           <code>\n</code> moves to the next line, <code>\t</code> moves to the next tab stop.
@@ -175,6 +258,8 @@
 
       <div class="concept wide">
         <h3><span class="idx">2.4</span>Arithmetic operators — and two traps</h3>
+        <div class="media-row" style="--media-w:15rem">
+        <div>
         <div class="tbl-scroll" style="max-width:44rem">
           <table class="tbl">
             <tr><th class="mono">Operator</th><th>Description</th><th class="mono">Example</th></tr>
@@ -203,6 +288,23 @@
           Want to see <em>why</em> that expression is 12? Supplementary topic
           <a href="../supplementary/expression-trees.html">S2 — Expression trees</a> turns any
           expression into its computation tree and lets you evaluate it one operator at a time.
+        </div>
+        </div>
+        <figure class="photo portrait">
+          <img src="../assets/lecture-images/ch2-curta-calculator.jpg" width="420" height="560" loading="lazy"
+               alt="A Curta mechanical calculator, a small cylindrical hand-crank device covered in numbered setting sliders and dial rings">
+          <figcaption>
+            <strong>Before <code>+</code> was a keystroke, it was a crank.</strong> The
+            <a href="https://en.wikipedia.org/wiki/Curta" target="_blank" rel="noopener">Curta</a>, designed by
+            Curt Herzstark while he was a prisoner at Buchenwald concentration camp and produced from 1948,
+            adds, subtracts, multiplies and divides by turning the top handle — the sliders on its side set
+            the operands, and the rings on top show the result. No <span class="mono">%</span> shortcut:
+            every remainder was cranked out by hand, one digit at a time.
+            <span class="credit">Photo: “Curta II Mechanical Calculator” by Oldsoft ·
+              <a href="https://commons.wikimedia.org/wiki/File:Curta_II_Mechanical_Calculator.JPG" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+              <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (cropped)</span>
+          </figcaption>
+        </figure>
         </div>
       </div>
 
@@ -297,22 +399,36 @@ cout &lt;&lt; <span class="str">"The average of the numbers is "</span> &lt;&lt;
         <p style="max-width:46rem">Except <code>abs</code>, all take a <code>double</code> argument and return a <code>double</code>.</p>
       </div>
 
-      <div class="concept">
+      <div class="concept wide">
         <h3><span class="idx">2.9</span>Formatting the output</h3>
-        <p>
+        <div class="media-row" style="--media-w:17rem">
+        <div>
+        <p style="max-width:46rem">
           A program should present results attractively. <strong>Stream manipulators</strong>
           from <code>#include &lt;iomanip&gt;</code> control the format:
           <code>setw(n)</code> sets the minimum field width <em>for the next item only</em>
           (right-aligned), and <code>setprecision(n)</code> controls digits — with the
           <code>fixed</code> flag enabled, that means n digits after the decimal point.
         </p>
-        <div class="code-card">
+        <div class="code-card" style="max-width:46rem">
           <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_2_7_1.cpp</span></div>
           <pre>cout &lt;&lt; <span class="str">"|"</span> &lt;&lt; setw(10)
      &lt;&lt; setprecision(3) &lt;&lt; fixed &lt;&lt; <span class="str">25.67</span> &lt;&lt; <span class="str">"|"</span>;
 
 <span class="cm">// prints:   |    25.670|</span>
 <span class="cm">// to reset the fixed behaviour afterwards, use defaultfloat</span></pre>
+        </div>
+        </div>
+        <figure class="comic" style="--comic-w:17rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch2-xkcd-2170-coordinate-precision.png" width="540" height="538" loading="lazy"
+               alt="xkcd comic table: 'What the number of digits in your coordinates means', from whole-degree precision ('you're probably doing something space-related') down to sub-millimeter precision ('either you're handing out raw floating point variables, or you've built a database to track individual atoms — in either case, please stop')"></div>
+          <figcaption>
+            <code>setprecision(n)</code> lets you print far more digits than your measurement — or your
+            <code>float</code> — actually earned. More decimals on screen is not more truth.
+            <span class="credit">Comic: <a href="https://xkcd.com/2170/" target="_blank" rel="noopener">xkcd 2170 “Coordinate Precision”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
         </div>
       </div>
     </div>
@@ -416,6 +532,26 @@ cout &lt;&lt; <span class="str">"The average of the numbers is "</span> &lt;&lt;
           <span class="rc-kind">Reference</span>
           <h4>cppreference — I/O manipulators</h4>
           <p>setw, setprecision, fixed, and the rest of the iomanip toolbox.</p>
+        </a>
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/introduction-to-fundamental-data-types/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Fundamental data types</h4>
+          <p>A deeper tour of int, float, double, char and the rest, with exact sizes and ranges.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/types.html" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — Fundamental types</h4>
+          <p>The authoritative list of C++'s built-in types, their guaranteed minimum sizes, and their ranges.</p>
+        </a>
+        <a class="read-card" href="https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html" target="_blank" rel="noopener">
+          <span class="rc-kind">Paper</span>
+          <h4>Goldberg — What Every Computer Scientist Should Know About Floating-Point Arithmetic</h4>
+          <p>The classic 1991 tutorial on rounding error, why it happens, and how to live with it.</p>
+        </a>
+        <a class="read-card" href="https://agimcami.wordpress.com/wp-content/uploads/2013/05/ariane-5-flight-501-failure.pdf" target="_blank" rel="noopener">
+          <span class="rc-kind">True story</span>
+          <h4>Ariane 5 Flight 501 — Inquiry Board report</h4>
+          <p>The official 1996 report: a 64-bit-to-16-bit conversion, an unprotected line of code, and a $370M rocket.</p>
         </a>
         <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
           <span class="rc-kind">Textbook</span>
