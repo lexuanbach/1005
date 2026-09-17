@@ -22,6 +22,7 @@
       <a href="chapter-5.html">Chapter 5</a>
       <a href="chapter-6.html">Chapter 6</a>
       <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
       <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
     </nav>
   </div>
@@ -39,6 +40,15 @@
     <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
     <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
     <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
   </nav>
   <h4>Supplementary</h4>
   <nav aria-label="Supplementary topics">
@@ -92,18 +102,34 @@
         <h2>Doing it again, and again, and again</h2>
       </div>
 
-      <div class="concept">
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch4-conveyor-banner.jpg" width="1100" height="825"
+             alt="A blue industrial roller conveyor curving through a factory, with rows of identical rollers repeating around the bend">
+        <figcaption>
+          <strong>A loop is a body that runs once per item, over and over.</strong> Every station on this line
+          performs the exact same action on whatever arrives next — which is exactly what the statements inside a
+          <code>while</code>, <code>for</code>, or <code>do-while</code> body do on every pass, until the condition
+          finally says stop.
+          <span class="credit">Photo: “Conveyor system in a factory” by falco, via Pixabay ·
+            <a href="https://commons.wikimedia.org/wiki/File:Conveyor_system_in_a_factory.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            <a href="http://creativecommons.org/publicdomain/zero/1.0/deed.en" target="_blank" rel="noopener">CC0</a> (resized)</span>
+        </figcaption>
+      </figure>
+
+      <div class="concept wide">
         <h3><span class="idx">4.1</span>Three loops, two tests, two kinds of counting</h3>
-        <p>
+        <div class="media-row" style="--media-w:19rem">
+        <div>
+        <p style="max-width:46rem">
           C++ has three repetition structures — <code>while</code>, <code>for</code>, and
           <code>do-while</code> — and each needs a condition. Two classifications tell you
           which to reach for:
         </p>
-        <ul>
+        <ul style="max-width:46rem">
           <li><strong>Where is the test?</strong> At the beginning → a <strong>pre-test</strong> loop (while, for): the body may run zero times. At the end → a <strong>post-test</strong> loop (do-while): the body always runs at least once.</li>
           <li><strong>How does it stop?</strong> A <strong>fixed count loop</strong> performs a set number of repetitions, tracked by the condition. When the number of repetitions is not known in advance, a <strong>variable condition loop</strong> stops when a specified value appears — however many passes that takes.</li>
         </ul>
-        <div class="note">
+        <div class="note" style="max-width:46rem">
           <span class="note-tag">Finite vs infinite</span>
           A <em>finite</em> loop stops when its condition is met. An <em>infinite</em> loop runs
           until something external stops it — <strong>intentionally</strong> in servers,
@@ -111,10 +137,34 @@
           that burns CPU and freezes the program. (The exercise boxes here detect the
           unintentional kind and stop them for you.)
         </div>
+        </div>
+        <figure class="comic" style="--comic-w:19rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch4-xkcd-1319-automation.png" width="620" height="628" loading="lazy"
+               alt="xkcd comic titled Automation. Someone says: I spend a lot of time on this task. I should write a program automating it! In Theory, writing code briefly spikes work before automation takes over and work drops to free time. In Reality, writing code leads to debugging, rethinking and ongoing development forever, with no time for the original task anymore."></div>
+          <figcaption>
+            <strong>Every loop starts as a promise to stop doing something by hand.</strong> The “Theory” curve is
+            why <code>while</code> and <code>for</code> exist at all; the “Reality” curve is why “debugging” is a
+            normal word in this chapter and not a sign you did something wrong.
+            <span class="credit">Comic: <a href="https://xkcd.com/1319/" target="_blank" rel="noopener">xkcd 1319 “Automation”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
+        <blockquote class="pullquote">
+          <p>Insanity is doing the same thing over and over again and expecting different results.</p>
+          <footer>Widely attributed to Albert Einstein — but
+            <a href="https://quoteinvestigator.com/2017/03/23/same/" target="_blank" rel="noopener">no record of him
+            ever saying it exists</a>; the earliest known copies are anonymous sayings from 1981 recovery-program
+            literature, and his name was only attached decades later. Whoever said it first described an
+            unintentional infinite loop precisely: a repeating condition that never changes stops nothing and
+            gains nothing.</footer>
+        </blockquote>
       </div>
 
-      <div class="concept">
+      <div class="concept wide">
         <h3><span class="idx">4.2</span>while — and counter-controlled repetition</h3>
+        <div class="media-row" style="--media-w:15rem">
+        <div>
         <div class="code-card">
           <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_4_2_1.cpp — prints 1 to 10</span></div>
           <pre><span class="kw">int</span> count;
@@ -130,6 +180,63 @@ count = 1;                  <span class="cm">// 2. initial value</span>
           final value, and the increment (or decrement) applied on every pass. Forget number 4
           and you have written an unintentional infinite loop.
         </p>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">True story · the Zune “leap-day freeze”, 2008</span>
+          “Forget the increment and you get an unintentional infinite loop” is exactly what happened, at scale,
+          inside every first-generation Microsoft Zune. At midnight on 31 December 2008 — the 366th day of a leap
+          year — every 30&nbsp;GB Zune froze solid. The cause was this <code>while</code> loop, in the device's
+          clock driver, converting “days since 1 Jan 1980” into a year:
+        </div>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">clock driver, Freescale/Microsoft (simplified)</span></div>
+          <pre><span class="kw">int</span> year = ORIGINYEAR;
+<span class="kw">while</span> (days &gt; <span class="str">365</span>) {
+    <span class="kw">if</span> (IsLeapYear(year)) {
+        <span class="kw">if</span> (days &gt; <span class="str">366</span>) {
+            days -= <span class="str">366</span>;
+            year += <span class="str">1</span>;
+        }
+        <span class="cm">// no else here — on day 366 of a leap year, nothing happens at all</span>
+    } <span class="kw">else</span> {
+        days -= <span class="str">365</span>;
+        year += <span class="str">1</span>;
+    }
+}</pre>
+        </div>
+        <p style="max-width:46rem">
+          On day 10,593 — 31 December 2008 — <code>days</code> reached exactly 366 inside a leap year.
+          <code>days &gt; 365</code> was true, so the loop kept going; <code>days &gt; 366</code> was false, so the
+          inner <code>if</code> had nothing to do and no <code>else</code> to fall back on. Neither <code>days</code>
+          nor <code>year</code> ever changed again — the device spun in the same four instructions until the clock
+          finally ticked over to 1 January. Read the reconstructed source and the attempted fixes in
+          <a href="http://bit-player.org/2009/the-zune-bug/" target="_blank" rel="noopener">Brian Hayes' “The Zune Bug”</a>,
+          or Microsoft's own account of the freeze at
+          <a href="https://www.theregister.com/2008/12/31/zune_death/" target="_blank" rel="noopener">The Register</a>.
+          <strong>Every loop condition needs a path where it eventually becomes false — trace what happens on the
+          exact boundary value, not just “before” and “after” it.</strong>
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Watch · 11 minutes</span>
+          <a href="https://www.youtube.com/watch?v=l26oaHV7D40" target="_blank" rel="noopener">Crash Course Computer
+          Science #12 — Programming Basics: Statements &amp; Functions</a> picks up right where #3 (Chapter 3) left
+          off: conditionals, then a <code>while</code> loop restocking a shelf, then a <code>for</code> loop
+          computing an exponent one multiplication at a time.
+        </div>
+        </div>
+        <figure class="photo portrait">
+          <img src="../assets/lecture-images/ch4-tally-counter.jpg" width="420" height="560" loading="lazy"
+               alt="A black hand-tally clicker counter with its display showing the number 0042">
+          <figcaption>
+            <strong>A physical <code>count++</code>.</strong> Every click of the lever advances the display by
+            exactly one — the control variable, its initial value, and the increment, all in one hand. What it
+            doesn't have is a built-in condition: nothing stops you clicking past whatever number you meant to
+            stop at. That check is the <code>while</code>'s entire job.
+            <span class="credit">Photo: “Hand tally and knitting row counter” by Linda Spashett (Storye book) ·
+              <a href="https://commons.wikimedia.org/wiki/File:Hand_tally_and_knitting_row_counter_007.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+              <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a> (cropped)</span>
+          </figcaption>
+        </figure>
+        </div>
       </div>
 
       <div class="concept">
@@ -183,6 +290,8 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           </svg>
           <figcaption>Initialization runs once; then test → body → update → test again, until the condition is false.</figcaption>
         </figure>
+        <div class="media-row" style="--media-w:14rem">
+        <div>
         <div class="code-card">
           <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_4_3_1.cpp — even numbers 2 to 20</span></div>
           <pre><span class="kw">for</span> (count = 2; count &lt;= 20; count = count + 2)
@@ -195,6 +304,25 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           <span class="mono">a = p(1 + r)ⁿ</span> for each of 10 years in neat
           <code>setw</code> columns — you will build it in Exercise 4.
         </p>
+        </div>
+        <figure class="comic" style="--comic-w:14rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch4-xkcd-3062-off-by-one.png" width="400" height="666" loading="lazy"
+               alt="xkcd comic: a programmer tells two people 'Any time an integer is stored or read, its value is adjusted upward or downward by a random amount between 40 and 50.' Caption: My new language almost completely eliminates off-by-one errors."></div>
+          <figcaption>
+            The joke only lands because off-by-one is the loop bug everyone already recognizes: swap
+            <code>count &lt;= 20</code> for <code>count &lt; 20</code> above and the loop quietly stops one
+            iteration early — no crash, no warning, just a wrong last value.
+            <span class="credit">Comic: <a href="https://xkcd.com/3062/" target="_blank" rel="noopener">xkcd 3062 “Off By One”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
+        <blockquote class="pullquote teal">
+          <p>There are only two hard things in Computer Science: cache invalidation and naming things.</p>
+          <footer>Phil Karlton, Netscape (attributed, c. 1990s) — programmers have been tacking on a third one as a
+            joke ever since: “…and off-by-one errors,” which is itself an off-by-one error, since that makes three.
+            Every loop condition on this page is a place that joke bites for real.</footer>
+        </blockquote>
       </div>
 
       <div class="concept">
@@ -280,8 +408,15 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
         <h2>Group discussion: the class survey machine</h2>
         <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation with a live run. Counts toward the class-activities 10%.</p>
       </div>
+      <blockquote class="pullquote">
+        <p>Beware of bugs in the above code; I have only proved it correct, not tried it.</p>
+        <footer>Donald Knuth, closing line of a 1977 memo on the van Emde Boas priority-deque construction — the
+          whole point of your team's “boundary hunter” role below.</footer>
+      </blockquote>
       <div class="concept wide">
         <h3>The task</h3>
+        <div class="media-row" style="--media-w:18rem">
+        <div>
         <p style="max-width:46rem">
           Design and build a <strong>sentinel-controlled survey program</strong>: it reads a
           stream of responses (e.g. daily study hours, canteen ratings 1–5, commute minutes)
@@ -289,6 +424,19 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           largest and smallest. The team chooses the survey topic, the valid range, and the
           sentinel — and must defend all three.
         </p>
+        </div>
+        <figure class="comic" style="--comic-w:18rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch4-xkcd-1205-worth-the-time.png" width="820" height="666" loading="lazy"
+               alt="xkcd chart titled 'Is It Worth the Time?' comparing how long you can spend automating a task against how often you do it and how much time each run saves, across five years."></div>
+          <figcaption>
+            A sentinel-controlled survey program replaces tallying responses by hand, every single time someone
+            runs it. Before your team writes a line of code, use this chart's logic on your own idea: how often
+            will the program actually run, and does the loop you're about to write really save more than it costs?
+            <span class="credit">Comic: <a href="https://xkcd.com/1205/" target="_blank" rel="noopener">xkcd 1205 “Is It Worth the Time?”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
         <h3>Constraints that force Chapter 4 thinking</h3>
         <ul style="max-width:46rem">
           <li>The main loop must be <strong>sentinel-controlled</strong> (a variable condition loop) — teams must explain why a fixed count loop cannot work here.</li>
@@ -346,6 +494,26 @@ cin &gt;&gt; grade;                <span class="cm">// read the FIRST value…</
           <span class="rc-kind">Reference</span>
           <h4>Wikipedia — Infinite loop</h4>
           <p>Intentional and unintentional infinite loops — including famous ones that shipped.</p>
+        </a>
+        <a class="read-card" href="http://bit-player.org/2009/the-zune-bug/" target="_blank" rel="noopener">
+          <span class="rc-kind">True story</span>
+          <h4>Brian Hayes — The Zune Bug</h4>
+          <p>The actual firmware source behind the 2008 Zune leap-day freeze, plus three attempted fixes — and why most of them are still wrong.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Off-by-one_error" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Off-by-one error</h4>
+          <p>Why <code>&lt;</code> vs <code>&lt;=</code> is the single most common loop-boundary bug, with real-world examples.</p>
+        </a>
+        <a class="read-card" href="https://en.cppreference.com/w/cpp/language/do" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>cppreference — do-while statement</h4>
+          <p>The precise definition of the post-test loop, alongside while and for on the same reference site.</p>
+        </a>
+        <a class="read-card" href="https://www.youtube.com/watch?v=l26oaHV7D40" target="_blank" rel="noopener">
+          <span class="rc-kind">Video</span>
+          <h4>Crash Course CS #12 — Statements &amp; Functions</h4>
+          <p>~11 minutes from conditionals to while and for loops — the direct sequel to Chapter 3's episode #3.</p>
         </a>
         <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
           <span class="rc-kind">Textbook</span>

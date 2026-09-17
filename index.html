@@ -407,6 +407,7 @@
   }
   .week.holiday { --wk-c: var(--red); }
   .week.midterm { --wk-c: var(--amber); }
+  .badge.due { --wk-c: var(--red); }
   .badge {
     display: inline-block;
     font-family: "IBM Plex Mono", monospace;
@@ -485,6 +486,7 @@
         <a href="#schedule" data-i18n="nav-schedule">Schedule</a>
         <a href="#materials" data-i18n="nav-materials">Materials</a>
         <a href="playground.html" data-i18n="nav-playground">Playground</a>
+        <a href="tutorials/tutorial-1.html" data-i18n="nav-tutorials">Tutorials</a>
       </nav>
       <div class="display-controls">
         <button class="control-btn" id="language-toggle" type="button" aria-label="Switch to Vietnamese">
@@ -644,7 +646,7 @@
         <article class="grade-card">
           <div class="dot-row"><span class="dot c30b"></span><span class="pct">30%</span></div>
           <h3 data-i18n="grade-assignment-title">Final assignment</h3>
-          <p data-i18n="grade-assignment-description">A computing topic or an integrated programming task.</p>
+          <p data-i18n="grade-assignment-description">A computing topic or an integrated programming task, released in three checkpoints (A1, A2, A3) from Week 44.</p>
         </article>
         <article class="grade-card">
           <div class="dot-row"><span class="dot c30c"></span><span class="pct">30%</span></div>
@@ -660,7 +662,7 @@
       <div class="sec-head">
         <span class="eyebrow" data-i18n="schedule-eyebrow">04 · Course schedule</span>
         <h2 data-i18n="schedule-title">16 weeks at a glance</h2>
-        <p data-i18n="schedule-description">Week 36 runs as normal. Week 42 has no classes and is reserved for the midterm exam.</p>
+        <p data-i18n="schedule-description">Week 42 has no classes and is reserved for the midterm exam.</p>
       </div>
 
       <div class="phase-label">
@@ -671,32 +673,38 @@
         <div class="week">
           <span class="no" data-week="35">Week 35</span>
           <span class="topic"><span data-i18n="week-35-topic">Course introduction · Computational thinking</span>
-            <span class="sub" data-i18n="week-35-sub">What computing is and how a program executes</span>
+            <span class="sub" data-i18n="week-35-sub">What computing is, how a program executes, and a first look at C++</span>
           </span>
         </div>
         <div class="week">
           <span class="no" data-week="36">Week 36</span>
-          <span class="topic"><span data-i18n="week-36-topic">Regular class</span>
-            <span class="sub" data-i18n="week-36-sub">Please review the materials provided by Prof. Ida on the LMS.</span>
+          <span class="topic"><span data-i18n="week-36-topic">Basics of C++ · Your first program · Variables, data types, I/O</span>
+            <span class="sub" data-i18n="week-36-sub">Taught by Prof. Ida (CC sections)</span>
           </span>
         </div>
         <div class="week">
           <span class="no" data-week="37">Week 37</span>
-          <span class="topic"><span data-i18n="week-37-topic">Your first C++ program · Variables &amp; data types</span>
-            <span class="sub" data-i18n="week-37-sub">Please review the materials provided by Prof. Ida on the LMS.</span>
+          <span class="topic"><span data-i18n="week-37-topic">Expressions, operators, type casting · Program structure</span>
+            <span class="sub" data-i18n="week-37-sub">Basic C++ exercises · Taught by Prof. Ida (CC sections)</span>
           </span>
         </div>
         <div class="week">
           <span class="no" data-week="38">Week 38</span>
-          <span class="topic" data-i18n="week-38-topic">Input/output · Operators &amp; expressions</span>
+          <span class="topic"><span data-i18n="week-38-topic">Conditional statements (if / else, switch)</span>
+            <span class="sub" data-i18n="week-38-sub">Branching exercises</span>
+          </span>
         </div>
         <div class="week">
           <span class="no" data-week="39">Week 39</span>
-          <span class="topic" data-i18n="week-39-topic">Conditional statements (if / else, switch)</span>
+          <span class="topic"><span data-i18n="week-39-topic">Loops (for, while, do-while)</span>
+            <span class="sub" data-i18n="week-39-sub">Loop and simple-simulation exercises</span>
+          </span>
         </div>
         <div class="week">
           <span class="no" data-week="40">Week 40</span>
-          <span class="topic" data-i18n="week-40-topic">Loops (for, while, do-while)</span>
+          <span class="topic"><span data-i18n="week-40-topic">Arrays &amp; strings basics · Organizing data in C++</span>
+            <span class="sub" data-i18n="week-40-sub">Comprehensive exercise practice</span>
+          </span>
         </div>
         <div class="week">
           <span class="no" data-week="41">Week 41</span>
@@ -719,43 +727,55 @@
       <div class="sched">
         <div class="week ph2">
           <span class="no" data-week="43">Week 43</span>
-          <span class="topic" data-i18n="week-43-topic">Computer architecture · Von Neumann model</span>
-        </div>
-        <div class="week ph2">
-          <span class="no" data-week="44">Week 44</span>
-          <span class="topic"><span data-i18n="week-44-topic">Assembly &amp; compilers</span>
-            <span class="sub" data-i18n="week-44-sub">From C++ source code to machine code</span>
+          <span class="topic"><span data-i18n="week-43-topic">Computer architecture · Von Neumann model</span>
+            <span class="sub" data-i18n="week-43-sub">CPU, memory, the instruction cycle — connected back to your C++ programs</span>
           </span>
         </div>
-        <div class="week ph2">
+        <div class="week ph2 special">
+          <span class="no" data-week="44">Week 44</span>
+          <span class="topic"><span data-i18n="week-44-topic">Assembly &amp; compilers</span><span class="badge release" data-i18n="week-44-badge">A1 released</span>
+            <span class="sub" data-i18n="week-44-sub">From C++ source code to machine code · compiling, linking, execution</span>
+          </span>
+        </div>
+        <div class="week ph2 special">
           <span class="no" data-week="45">Week 45</span>
-          <span class="topic" data-i18n="week-45-topic">Computer networks</span>
+          <span class="topic"><span data-i18n="week-45-topic">Computer networks</span><span class="badge due" data-i18n="week-45-badge">A1 due</span>
+            <span class="sub" data-i18n="week-45-sub">IP, DNS, client–server, HTTP, the Internet</span>
+          </span>
         </div>
-        <div class="week ph2">
+        <div class="week ph2 special">
           <span class="no" data-week="46">Week 46</span>
-          <span class="topic" data-i18n="week-46-topic">Databases</span>
+          <span class="topic"><span data-i18n="week-46-topic">Databases</span><span class="badge release" data-i18n="week-46-badge">A2 released</span>
+            <span class="sub" data-i18n="week-46-sub">Tables, queries, indexes — what a query does and how to optimize one</span>
+          </span>
         </div>
-        <div class="week ph2">
+        <div class="week ph2 special">
           <span class="no" data-week="47">Week 47</span>
-          <span class="topic" data-i18n="week-47-topic">Artificial intelligence</span>
+          <span class="topic"><span data-i18n="week-47-topic">Artificial intelligence</span><span class="badge due" data-i18n="week-47-badge">A2 due</span>
+            <span class="sub" data-i18n="week-47-sub">Data, models, training, inference, applications</span>
+          </span>
         </div>
         <div class="week ph2">
           <span class="no" data-week="48">Week 48</span>
-          <span class="topic" data-i18n="week-48-topic">Large language models (LLMs)</span>
-        </div>
-        <div class="week ph2">
-          <span class="no" data-week="49">Week 49</span>
-          <span class="topic"><span data-i18n="week-49-topic">Information security · Academic citation</span>
-            <span class="sub" data-i18n="week-49-sub">Guidance on citations and completing assignments to academic standards</span>
+          <span class="topic"><span data-i18n="week-48-topic">Large language models &amp; security</span>
+            <span class="sub" data-i18n="week-48-sub">Prompts, security risks, privacy, misuse</span>
           </span>
         </div>
-        <div class="week ph2">
+        <div class="week ph2 special">
+          <span class="no" data-week="49">Week 49</span>
+          <span class="topic"><span data-i18n="week-49-topic">Academic citation · Responsible use of AI</span><span class="badge release" data-i18n="week-49-badge">A3 released</span>
+            <span class="sub" data-i18n="week-49-sub">Citation guidance, plagiarism, responsible use of sources and AI, assignment guidance</span>
+          </span>
+        </div>
+        <div class="week ph2 special">
           <span class="no" data-week="50">Week 50</span>
-          <span class="topic" data-i18n="week-50-topic">Course wrap-up · Final exam review</span>
+          <span class="topic"><span data-i18n="week-50-topic">Assignment work time · Final exam review</span><span class="badge due" data-i18n="week-50-badge">A3 due</span>
+            <span class="sub" data-i18n="week-50-sub">Student support · Final wrap-up</span>
+          </span>
         </div>
       </div>
 
-      <p class="sched-note" data-i18n="schedule-note">Weekly topics (except for the midterm milestone fixed in the syllabus) are tentative and may be adjusted to match the class's actual progress.</p>
+      <p class="sched-note" data-i18n="schedule-note">Weekly topics are tentative and may be adjusted to match the class's actual progress. The midterm exam (Week 42) and the A1/A2/A3 assignment milestones are fixed.</p>
     </div>
   </section>
 
@@ -808,6 +828,12 @@
           <h3 data-i18n="mat-pg-title">C++ Playground</h3>
           <p data-i18n="mat-pg-desc">Write and run C++ entirely in your browser — no installation. Covers the exact language subset taught in this course, including pass by reference.</p>
           <span class="mat-meta mono" data-i18n="mat-pg-meta">8 example programs · runs offline</span>
+        </a>
+        <a class="mat-card supp" href="textbook/Giao_trinh_Nhap_mon_Dien_toan.pdf">
+          <span class="mat-num mono">PDF</span>
+          <h3 data-i18n="mat-tb-title">Course Textbook</h3>
+          <p data-i18n="mat-tb-desc">The complete compiled textbook for this course (Vietnamese, PDF) — download it or open it directly in your browser.</p>
+          <span class="mat-meta mono" data-i18n="mat-tb-meta">Full textbook · PDF · ~21 MB</span>
         </a>
         <a class="mat-card supp" href="supplementary/compiling.html">
           <span class="mat-num mono">S1 · supplementary</span>
@@ -952,22 +978,25 @@
       "grade-midterm-title": "Thi giữa kỳ",
       "grade-midterm-description": "Tổ chức ở tuần 42, sau phần C++ cơ bản.",
       "grade-assignment-title": "Assignment cuối kỳ",
-      "grade-assignment-description": "Chủ đề computing hoặc bài tập tổng hợp.",
+      "grade-assignment-description": "Chủ đề computing hoặc bài tập tổng hợp, chia làm ba mốc (A1, A2, A3) bắt đầu từ tuần 44.",
       "grade-final-title": "Thi cuối kỳ / đánh giá cuối kỳ",
       "grade-final-description": "Tổng hợp C++ và các chủ đề điện toán.",
       "schedule-eyebrow": "04 · Lịch học",
       "schedule-title": "16 tuần, tuần nào làm gì",
-      "schedule-description": "Tuần 36 dạy bình thường. Tuần 42 không học, dành cho thi giữa kỳ.",
+      "schedule-description": "Tuần 42 không học, dành cho thi giữa kỳ.",
       "schedule-part-one": "Phần 1 · Tư duy lập trình &amp; C++",
       "week-35-topic": "Giới thiệu môn học · Tư duy lập trình",
-      "week-35-sub": "Điện toán là gì, cách một chương trình được thực thi",
-      "week-36-topic": "Dạy bình thường",
-      "week-36-sub": "Vui lòng xem các tài liệu do Thầy Ida cung cấp trên LMS.",
-      "week-37-topic": "Chương trình C++ đầu tiên · Biến &amp; kiểu dữ liệu",
-      "week-37-sub": "Vui lòng xem các tài liệu do Thầy Ida cung cấp trên LMS.",
-      "week-38-topic": "Nhập xuất · Toán tử &amp; biểu thức",
-      "week-39-topic": "Cấu trúc điều kiện (if / else, switch)",
-      "week-40-topic": "Vòng lặp (for, while, do-while)",
+      "week-35-sub": "Điện toán là gì, cách một chương trình được thực thi, và làm quen sơ bộ với C++",
+      "week-36-topic": "Sơ bộ về C++ · Chương trình đầu tiên · Biến, kiểu dữ liệu, input/output",
+      "week-36-sub": "Thầy Ida dạy (lớp CC)",
+      "week-37-topic": "Biểu thức, toán tử, ép kiểu · Cấu trúc chương trình",
+      "week-37-sub": "Bài tập C++ cơ bản · Thầy Ida dạy (lớp CC)",
+      "week-38-topic": "Cấu trúc điều kiện (if / else, switch)",
+      "week-38-sub": "Bài tập rẽ nhánh",
+      "week-39-topic": "Vòng lặp (for, while, do-while)",
+      "week-39-sub": "Bài tập lặp và mô phỏng đơn giản",
+      "week-40-topic": "Mảng &amp; chuỗi cơ bản · Tổ chức dữ liệu trong C++",
+      "week-40-sub": "Luyện bài tập tổng hợp",
       "week-41-topic": "Hàm · Pass by value vs pass by reference",
       "week-41-sub": "Kết hợp ôn tập chuẩn bị thi giữa kỳ",
       "week-42-topic": "Không học",
@@ -975,18 +1004,31 @@
       "week-42-sub": "Nội dung thi: phần C++ cơ bản · chiếm 30% tổng điểm",
       "schedule-part-two": "Phần 2 · Chủ đề điện toán",
       "week-43-topic": "Kiến trúc máy tính · Mô hình Von Neumann",
+      "week-43-sub": "CPU, bộ nhớ, chu trình lệnh — liên hệ với chương trình C++",
       "week-44-topic": "Assembly &amp; Compiler",
-      "week-44-sub": "Từ mã nguồn C++ đến mã máy",
+      "week-44-badge": "Ra đề A1",
+      "week-44-sub": "Từ mã nguồn C++ đến mã máy · biên dịch, linking, execution",
       "week-45-topic": "Mạng máy tính",
+      "week-45-badge": "Hạn nộp A1",
+      "week-45-sub": "IP, DNS, client–server, HTTP, Internet",
       "week-46-topic": "Cơ sở dữ liệu",
+      "week-46-badge": "Ra đề A2",
+      "week-46-sub": "Bảng, query, index — ý nghĩa và cách tối ưu truy vấn",
       "week-47-topic": "Trí tuệ nhân tạo",
-      "week-48-topic": "Mô hình ngôn ngữ lớn (LLM)",
-      "week-49-topic": "An toàn thông tin · Trích dẫn học thuật",
-      "week-49-sub": "Hướng dẫn viết citation và làm assignment đúng chuẩn",
-      "week-50-topic": "Tổng kết môn học · Ôn tập cuối kỳ",
-      "schedule-note": "Chủ đề từng tuần (trừ mốc thi giữa kỳ đã cố định trong đề cương) là lịch dự kiến và có thể điều chỉnh theo tiến độ thực tế của lớp.",
+      "week-47-badge": "Hạn nộp A2",
+      "week-47-sub": "Dữ liệu, mô hình, huấn luyện, suy luận, ứng dụng",
+      "week-48-topic": "Mô hình ngôn ngữ lớn &amp; An toàn thông tin",
+      "week-48-sub": "Prompt, rủi ro bảo mật, privacy, misuse",
+      "week-49-topic": "Trích dẫn học thuật · Sử dụng AI có trách nhiệm",
+      "week-49-badge": "Ra đề A3",
+      "week-49-sub": "Hướng dẫn viết citation, đạo văn, sử dụng nguồn và AI có trách nhiệm, hướng dẫn assignment",
+      "week-50-topic": "Thời gian làm assignment · Ôn tập cuối kỳ",
+      "week-50-badge": "Hạn nộp A3",
+      "week-50-sub": "Hỗ trợ sinh viên · Tổng ôn cuối kỳ",
+      "schedule-note": "Chủ đề từng tuần là lịch dự kiến và có thể điều chỉnh theo tiến độ thực tế của lớp. Thi giữa kỳ (tuần 42) và các mốc assignment A1/A2/A3 là cố định.",
       "nav-materials": "Tài liệu",
       "nav-playground": "Playground",
+      "nav-tutorials": "Bài tập thực hành",
       "materials-eyebrow": "05 · Tài liệu học tập",
       "materials-title": "Học từng chương, rồi luyện tập ngay",
       "materials-description": "Mỗi trang chương dạy lại khái niệm từ slide bài giảng, kèm bộ quiz 25+ câu và bài tập lập trình chạy trực tiếp trong trình duyệt.",
@@ -1011,6 +1053,9 @@
       "mat-pg-title": "Sân chơi C++",
       "mat-pg-desc": "Viết và chạy C++ ngay trong trình duyệt — không cần cài đặt. Phủ đúng tập con ngôn ngữ của môn học, bao gồm cả pass by reference.",
       "mat-pg-meta": "8 chương trình mẫu · chạy offline",
+      "mat-tb-title": "Giáo trình đầy đủ",
+      "mat-tb-desc": "Giáo trình biên soạn đầy đủ cho môn học (tiếng Việt, PDF) — tải về hoặc xem trực tiếp trong trình duyệt.",
+      "mat-tb-meta": "Giáo trình đầy đủ · PDF · ~21 MB",
       "mat-s1-title": "Từ mã nguồn đến chương trình chạy",
       "mat-s1-desc": "Chương trình C++ được biên dịch và chạy từng bước ra sao — preprocessor, compiler, assembler, linker — và interpreter của Playground đi một con đường hoàn toàn khác như thế nào.",
       "mat-s1-meta": "chủ đề bổ trợ · 8 câu hỏi",

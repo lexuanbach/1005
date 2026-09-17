@@ -35,6 +35,7 @@
       <a href="chapter-5.html" aria-current="page">Chapter 5</a>
       <a href="chapter-6.html">Chapter 6</a>
       <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
       <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
     </nav>
   </div>
@@ -52,6 +53,15 @@
     <a href="chapter-5.html" aria-current="page"><span class="ch-num">05</span>Arrays &amp; Strings</a>
     <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
     <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
   </nav>
   <h4>Supplementary</h4>
   <nav aria-label="Supplementary topics">
@@ -105,6 +115,19 @@
         <h2>Many values, one name</h2>
       </div>
 
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch5-po-boxes-banner.jpg" width="1100" height="785"
+             alt="A grand hall of numbered brass post-office boxes arranged in rows and columns along three walls">
+        <figcaption>
+          <strong>One wall, hundreds of names.</strong> Every box has the same kind of door and the same kind of
+          lock — what makes it <em>this</em> box and not another is nothing but its number. That is exactly what
+          an array is: one variable name holding many elements, each one reached only by its index.
+          <span class="credit">Photo: “PO boxes at the historic Chico Post Office (2024)” by Frank Schulenburg ·
+            <a href="https://commons.wikimedia.org/wiki/File:PO_boxes_at_the_historic_Chico_Post_Office_(2024)-L1005460.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized)</span>
+        </figcaption>
+      </figure>
+
       <div class="concept">
         <h3><span class="idx">5.1</span>Compound types</h3>
         <p>
@@ -113,6 +136,11 @@
           <strong>string</strong>, and class/struct (a later course). This chapter covers
           the first two.
         </p>
+        <blockquote class="pullquote">
+          <p>Show me your flowcharts and conceal your tables, and I shall continue to be mystified. Show me your tables, and I won't usually need your flowcharts; they'll be obvious.</p>
+          <footer>Fred Brooks, <a href="https://en.wikiquote.org/wiki/Fred_Brooks" target="_blank" rel="noopener"><em>The Mythical Man-Month</em></a> (1975, pp.102–3) —
+            an array is C++'s first "table". Get the shape of the data right and the loop that walks it is nearly self-explanatory.</footer>
+        </blockquote>
       </div>
 
       <div class="concept wide">
@@ -159,10 +187,31 @@
           <a href="../supplementary/arrays-in-memory.html">S6 — Arrays in memory</a> shows
           the address arithmetic live, including a safe out-of-bounds crash scene.
         </div>
+        <div class="media-row" style="--media-w:15rem">
+        <div>
+        <blockquote class="pullquote teal">
+          <p>So let us let our ordinals start at zero: an element's ordinal (subscript) equals the number of elements preceding it in the sequence.</p>
+          <footer>Edsger W. Dijkstra, <a href="https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD831.html" target="_blank" rel="noopener">“Why numbering should start at zero”</a> (EWD831, 1982) —
+            the actual reason <code>arStuGrade[0]</code> is the <em>first</em> element, not an off-by-one oddity.</footer>
+        </blockquote>
+        </div>
+        <figure class="comic" style="--comic-w:15rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch5-xkcd-163-donald-knuth.png" width="640" height="339" loading="lazy"
+               alt="xkcd comic: two programmers at computers. One says &quot;Man, you're being inconsistent with your array indices. Some are from one, some are from zero.&quot; The other says different tasks call for different conventions, citing a joke Donald Knuth quote."></div>
+          <figcaption>
+            Real-world code mixes conventions constantly — which is exactly why C++ enforces just <em>one</em>:
+            every array and every <code>string</code> starts at index 0, full stop.
+            <span class="credit">Comic: <a href="https://xkcd.com/163/" target="_blank" rel="noopener">xkcd 163 “Donald Knuth”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
       </div>
 
       <div class="concept wide">
         <h3><span class="idx">5.3</span>Multidimensional arrays</h3>
+        <div class="media-row" style="--media-w:16rem">
+        <div>
         <p style="max-width:46rem">
           C++ allows arrays of arrays: each extra bracket pair adds a dimension.
           <code>int b[4][3];</code> is a two-dimensional array of 4 × 3 = 12 elements —
@@ -184,6 +233,41 @@
           a 3×3 matrix and tests <code>a[i][j] != a[j][i]</code> to decide whether it is
           symmetric, and Example 5.3.2 stores a whole student score table, one row per student.
         </p>
+        </div>
+        <figure class="photo portrait">
+          <img src="../assets/lecture-images/ch5-card-catalog.jpg" width="420" height="560" loading="lazy"
+               alt="Close view of a wooden library card-catalog cabinet: a grid of small labeled drawers arranged in rows and columns">
+          <figcaption>
+            <strong>Row, then column.</strong> Each drawer's identity is really two numbers — which row, which
+            column — exactly like <code>b[row][col]</code>. And the cabinet isn't one grid nested inside another:
+            it's built flat, one row of drawers after the next, which is precisely how C++ actually stores
+            <code>b[4][3]</code> in memory — contiguously, not as four separate little arrays.
+            <span class="credit">Photo: “Wooden Card Catalog Furniture” by MarkBuckawicki ·
+              <a href="https://commons.wikimedia.org/wiki/File:Wooden_Card_Catalog_Furniture.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+              <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0</a> (cropped)</span>
+          </figcaption>
+        </figure>
+        </div>
+
+        <div class="media-row" style="--media-w:15rem">
+        <div>
+        <blockquote class="pullquote">
+          <p>I will, in fact, claim that the difference between a bad programmer and a good one is whether he considers his code or his data structures more important. Bad programmers worry about the code. Good programmers worry about data structures and their relationships.</p>
+          <footer>Linus Torvalds, <a href="https://lwn.net/Articles/193245/" target="_blank" rel="noopener">git mailing list</a> (2006) —
+            a 2-D array is a data-structure decision made before a single loop is written: what does each row mean, what does each column mean?</footer>
+        </blockquote>
+        </div>
+        <figure class="comic" style="--comic-w:15rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch5-xkcd-3062-off-by-one.png" width="202" height="337" loading="lazy"
+               alt="xkcd comic: a person at a computer says 'Any time an integer is stored or read, its value is adjusted upward or downward by a random amount between 40 and 50.' Caption: 'My new language almost completely eliminates off-by-one errors.'"></div>
+          <figcaption>
+            Nested loops double the places an off-by-one error can hide — <span class="mono">i &lt; N</span> vs.
+            <span class="mono">i &lt;= N</span>, in <em>two</em> dimensions at once.
+            <span class="credit">Comic: <a href="https://xkcd.com/3062/" target="_blank" rel="noopener">xkcd 3062 “Off By One”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
       </div>
 
       <div class="concept wide">
@@ -217,6 +301,29 @@
           <li><code>length()</code> and <code>size()</code> both return the number of characters.</li>
           <li><code>at(i)</code> returns the character at index i — <code>s.at(s.length() - 1)</code> is the last one.</li>
         </ul>
+        <div class="media-row" style="--media-w:21rem">
+        <div>
+        <p style="max-width:46rem">
+          A <code>string</code> read with <code>getline</code> can hold <em>anything</em> the user types —
+          there is no rule that it looks like a name, or a number, or is even a sensible length. Every program
+          that reads a string from outside (a keyboard, a file, a network) has to treat it as data first and
+          decide afterwards whether it is well-formed. Trusting it blindly is exactly how "just a string" turns
+          into a security bug — this course doesn't touch databases, but the lesson generalises to any place a
+          raw string reaches code that interprets it:
+        </p>
+        </div>
+        <figure class="comic" style="--comic-w:21rem">
+          <div class="sheet"><img src="../assets/lecture-images/ch5-xkcd-327-exploits-of-a-mom.png" width="666" height="205" loading="lazy"
+               alt="xkcd comic: a school calls a mother to say they've lost this year's student records because her son is named Robert'); DROP TABLE Students;-- . The mother says 'Oh, yes. Little Bobby Tables, we call him,' and 'I hope you've learned to sanitize your database inputs.'"></div>
+          <figcaption>
+            “Little Bobby Tables.” This course never touches SQL, but the lesson is general: a string is just
+            characters until something else — a database, a shell, a format specifier — starts reading meaning
+            into it. Validate before you trust.
+            <span class="credit">Comic: <a href="https://xkcd.com/327/" target="_blank" rel="noopener">xkcd 327 “Exploits of a Mom”</a> by Randall Munroe ·
+              <a href="https://xkcd.com/license.html" target="_blank" rel="noopener">CC BY-NC 2.5</a></span>
+          </figcaption>
+        </figure>
+        </div>
         <div class="note tip" style="max-width:46rem">
           <span class="note-tag">And what about tiếng Việt?</span>
           Every example above is ASCII. The moment your strings contain <em>à</em> or
@@ -237,6 +344,42 @@
             <tr><td>fixed size — cannot be changed</td><td>dynamic size — grows and shrinks as needed</td></tr>
             <tr><td>contiguous memory, managed by you</td><td>memory managed automatically</td></tr>
           </table>
+        </div>
+        <div class="note danger" style="max-width:46rem">
+          <span class="note-tag">True story · the Heartbleed bug, 2014</span>
+          “Managed by you” is the whole story of one of the most damaging bugs in internet history. OpenSSL — the
+          library that encrypts a huge share of the web — had a “heartbeat” feature: a client sends some bytes
+          plus a number saying how many bytes it sent, and the server copies that many bytes back to prove it's
+          alive. The server code copied the number the client <em>claimed</em>, not the number that actually
+          arrived — a char-array bug, dressed up in C.
+        </div>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">t1_lib.c (OpenSSL, simplified from CVE-2014-0160)</span></div>
+          <pre>hbtype = *p++;
+n2s(p, payload);        <span class="cm">// "payload" is a length the CLIENT sent — up to 65535</span>
+pl = p;                  <span class="cm">// pl now points at the bytes that follow in the buffer</span>
+
+<span class="cm">/* ...no check here that "payload" actually fits inside the bytes received... */</span>
+
+memcpy(bp, pl, payload); <span class="cm">// copies "payload" bytes starting at pl — often past the end</span></pre>
+        </div>
+        <p style="max-width:46rem">
+          If the client claimed a 64&nbsp;KB payload but sent only one byte, <code>memcpy</code> still copied
+          64&nbsp;KB starting at <code>pl</code> into the reply — whatever else happened to be sitting in server
+          memory next to it, including passwords and private encryption keys. The one-line fix added the bounds
+          check that was missing: <code>if (1 + 2 + payload + 16 &gt; s-&gt;s3-&gt;rrec.length) return 0;</code> —
+          discard the request if the claimed length doesn't fit what actually arrived. Read the
+          <a href="https://en.wikipedia.org/wiki/Heartbleed" target="_blank" rel="noopener">Wikipedia summary</a>
+          (CVE-2014-0160) or the original <a href="https://heartbleed.com/" target="_blank" rel="noopener">heartbleed.com</a>,
+          written by the researchers who found it. <strong>The lesson for this course:</strong> a length that
+          comes from outside your program is a claim, not a fact — check it before you trust it, exactly like
+          Section 5.2's “no bounds checking” warning, just with higher stakes.
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Watch · 18 minutes</span>
+          <a href="https://www.youtube.com/watch?v=1S0aBV-Waeo" target="_blank" rel="noopener">Computerphile —
+          Running a Buffer Overflow Attack</a> turns “no bounds checking” into an actual exploit against a small
+          C program, live — the same missing check that caused Heartbleed, at a scale you can watch happen.
         </div>
       </div>
     </div>
@@ -337,6 +480,26 @@
           <span class="rc-kind">Reference</span>
           <h4>Wikipedia — Buffer overflow</h4>
           <p>What “no bounds checking” costs in the real world — the security bug class born from arrays.</p>
+        </a>
+        <a class="read-card" href="https://heartbleed.com/" target="_blank" rel="noopener">
+          <span class="rc-kind">True story</span>
+          <h4>heartbleed.com — the Heartbleed bug</h4>
+          <p>Written by the researchers who found CVE-2014-0160: a missing length check that leaked server memory to anyone who asked.</p>
+        </a>
+        <a class="read-card" href="https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD831.html" target="_blank" rel="noopener">
+          <span class="rc-kind">Classic</span>
+          <h4>Dijkstra — Why numbering should start at zero (EWD831)</h4>
+          <p>The 1982 note that explains, in one page, why every array and string in this course starts counting at 0.</p>
+        </a>
+        <a class="read-card" href="https://www.youtube.com/watch?v=1S0aBV-Waeo" target="_blank" rel="noopener">
+          <span class="rc-kind">Video</span>
+          <h4>Computerphile — Running a Buffer Overflow Attack</h4>
+          <p>Eighteen minutes turning “no bounds checking” into a real exploit against a small C program.</p>
+        </a>
+        <a class="read-card" href="https://www.learncpp.com/cpp-tutorial/multidimensional-arrays/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>learncpp.com — Multidimensional arrays</h4>
+          <p>Row-major memory layout, nested-loop iteration, and why b[4][3] is one block of 12, not four blocks of three.</p>
         </a>
         <a class="read-card" href="https://openlibrary.org/search?q=malik+c%2B%2B+programming+problem+analysis" target="_blank" rel="noopener">
           <span class="rc-kind">Textbook</span>
