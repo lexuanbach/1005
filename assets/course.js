@@ -160,10 +160,29 @@
     ta.spellcheck = false;
     if (opts && opts.label) ta.setAttribute('aria-label', opts.label);
     if (opts && opts.minHeight) { shell.style.minHeight = opts.minHeight; }
+    var gutter = el('div', 'ln-gutter');
+    gutter.setAttribute('aria-hidden', 'true');
+    var gutterPre = el('pre');
+    gutter.appendChild(gutterPre);
     shell.appendChild(pre);
     shell.appendChild(ta);
-    function refresh() { code.innerHTML = hlCpp(ta.value); }
-    function syncScroll() { pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft; }
+    shell.appendChild(gutter);
+    var shownLines = 0;
+    function refreshLineNumbers() {
+      var n = ta.value.split('\n').length;
+      if (n === shownLines) return;
+      shownLines = n;
+      var nums = '';
+      for (var i = 1; i <= n; i++) nums += i + '\n';
+      gutterPre.textContent = nums;
+      // 4+ digit line counts need a wider strip; both layers read the same variable
+      shell.style.setProperty('--gutter', (n > 999 ? 3.8 : 3) + 'rem');
+    }
+    function refresh() { code.innerHTML = hlCpp(ta.value); refreshLineNumbers(); }
+    function syncScroll() {
+      pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft;
+      gutterPre.style.transform = 'translateY(' + (-ta.scrollTop) + 'px)';
+    }
     ta.addEventListener('input', refresh);
     ta.addEventListener('scroll', syncScroll);
     enableTabKey(ta);
