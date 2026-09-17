@@ -405,14 +405,16 @@
       set value(v) { setValue(v); }
     };
   }
-  function runCode(code, stdin) {
+  function runCode(code, stdin, opts) {
     var out = '';
-    var res = window.MiniCPP.run(code, stdin, { write: function (s) { out += s; } });
-    return { out: out, exit: res.exit, error: res.error };
+    var res = window.MiniCPP.run(code, stdin, { write: function (s) { out += s; }, interactive: !!(opts && opts.interactive) });
+    return { out: out, exit: res.exit, error: res.error, needInput: !!res.needInput };
   }
-  function renderTerm(term, result) {
+  /* `body` (optional): an already-built transcript (interactive mode) shown instead of result.out. */
+  function renderTerm(term, result, body) {
     term.innerHTML = '';
-    if (result.out) term.appendChild(el('span', '', escapeHtml(result.out)));
+    if (body) term.appendChild(body);
+    else if (result.out) term.appendChild(el('span', '', escapeHtml(result.out)));
     else if (!result.error) term.appendChild(el('span', 't-empty', '(no output)'));
     if (result.error) {
       var e = result.error;
@@ -473,19 +475,19 @@
     return {
       available: !!base && typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined',
       busy: function () { return !!job; },
-      run: function (code, stdin, onStatus) {
+      run: function (code, stdin, onStatus, opts) {
         return new Promise(function (resolve) {
           job = { id: nextId++, resolve: resolve, onStatus: onStatus || function () {}, timer: null };
           ensureWorker();
           arm(TOOL_LIMIT_MS, { ok: false, stage: 'load', out: '', diagnostics: '', exit: null,
             error: 'the compiler took too long to download or start — check your connection and try again' });
-          worker.postMessage({ id: job.id, code: code, stdin: stdin });
+          worker.postMessage({ id: job.id, code: code, stdin: stdin, interactive: !!(opts && opts.interactive), eof: !!(opts && opts.eof) });
         });
       }
     };
   })();
 
-  function renderRealTerm(term, r) {
+  function renderRealTerm(term, r, body) {
     term.innerHTML = '';
     if (r.error && (r.stage === 'compile' || r.stage === 'link')) {
       term.appendChild(el('div', 't-err', 'compile error — clang says:'));
@@ -493,7 +495,8 @@
       term.appendChild(el('div', 't-status', '── real compiler: clang 8 · nothing was run ──'));
       return;
     }
-    if (r.out) term.appendChild(el('span', '', escapeHtml(r.out)));
+    if (body) term.appendChild(body);
+    else if (r.out) term.appendChild(el('span', '', escapeHtml(r.out)));
     else if (!r.error) term.appendChild(el('span', 't-empty', '(no output)'));
     if (r.truncated) term.appendChild(el('div', 't-warn', '… output cut off after 200 KB'));
     if (r.error) term.appendChild(el('div', 't-err', escapeHtml((r.stage === 'run' ? 'runtime error — ' : 'error — ') + r.error)));
@@ -504,26 +507,202 @@
     }
   }
 
-  /* A “Run with real compiler” button wired to an editor / stdin / output box. Returns null where
-     the compiler cannot be loaded (file://, self-contained dist builds). */
-  function makeRealRunButton(editor, stdin, term) {
+  // ───────────── input modes: batch box, or an interactive terminal ─────────────
+  /* Interactive mode uses re-execution: run with the lines typed so far; when the program reads
+     past them the engine answers needInput, we show the output up to there plus a live prompt, and
+     on Enter we run again with one more line. CO1005 programs are deterministic, so the student
+     simply sees a terminal. Works identically for MiniCPP and for real clang (which caches the
+     compiled program, so a re-run is a few milliseconds). Sample tests always use the batch path. */
+  var IO_KEY = 'co1005-io-mode';
+  function storedIoMode() { try { return localStorage.getItem(IO_KEY) === 'interactive' ? 'interactive' : 'batch'; } catch (e) { return 'batch'; } }
+
+  function makeIo(o) {   // o: { editor, stdinLabel, stdin, outLabel, term }
+    var editor = o.editor, stdin = o.stdin, term = o.term;
+    var mode = storedIoMode();
+    var session = null;            // { engine, inputs[] (consumed so far), pending[] (pasted, not yet fed), marks[], eof }
+    var runToken = 0;
+
+    // the switch
+    var sw = el('div', 'io-mode');
+    sw.setAttribute('role', 'group');
+    sw.setAttribute('aria-label', 'How the program receives its input');
+    var bBatch = el('button', '', 'Input box'), bInter = el('button', '', '⌨ Interactive terminal');
+    bBatch.type = bInter.type = 'button';
+    bBatch.title = 'Type all the input first, then run';
+    bInter.title = 'Run first, then type each value when the program asks — like a real terminal';
+    sw.appendChild(bBatch); sw.appendChild(bInter);
+    o.stdinLabel.parentNode.insertBefore(sw, o.stdinLabel);
+    var hint = el('div', 'term-hint');
+    term.parentNode.insertBefore(hint, term.nextSibling);
+
+    function idleMessage() {
+      term.innerHTML = '';
+      term.appendChild(el('span', 't-empty', mode === 'interactive'
+        ? 'Press “Run” — then type here whenever the program waits for input.'
+        : 'Press “Run” to execute your program.'));
+    }
+    function paintMode() {
+      var inter = mode === 'interactive';
+      bBatch.setAttribute('aria-pressed', inter ? 'false' : 'true');
+      bInter.setAttribute('aria-pressed', inter ? 'true' : 'false');
+      o.stdinLabel.hidden = inter; stdin.hidden = inter;
+      if (o.outLabel) o.outLabel.textContent = inter ? 'Terminal' : 'Output';
+      term.classList.toggle('is-terminal', inter);
+      hint.textContent = ''; hint.hidden = true;
+    }
+    function setMode(m) {
+      if (m === mode) return;
+      mode = m; session = null; runToken++;
+      try { localStorage.setItem(IO_KEY, m); } catch (e) {}
+      paintMode(); idleMessage();
+    }
+    bBatch.addEventListener('click', function () { setMode('batch'); });
+    bInter.addEventListener('click', function () { setMode('interactive'); });
+
+    // transcript = program output with each typed line echoed at the point it was asked for
+    function transcript(out) {
+      var frag = document.createDocumentFragment(), prev = 0, mark = 0;
+      session.inputs.forEach(function (line, i) {
+        if (typeof session.marks[i] === 'number') mark = Math.max(mark, Math.min(session.marks[i], out.length));
+        if (mark > prev) frag.appendChild(el('span', '', escapeHtml(out.slice(prev, mark))));
+        frag.appendChild(el('span', 't-in', escapeHtml(line)));
+        prev = mark;
+      });
+      if (out.length > prev) frag.appendChild(el('span', '', escapeHtml(out.slice(prev))));
+      return frag;
+    }
+    function showPrompt(out) {
+      term.innerHTML = '';
+      term.appendChild(transcript(out));
+      var field = el('span', 't-field');
+      field.setAttribute('contenteditable', 'plaintext-only');
+      if (field.contentEditable !== 'plaintext-only') field.setAttribute('contenteditable', 'true');
+      field.setAttribute('role', 'textbox');
+      field.setAttribute('aria-label', 'Program input — type a value and press Enter');
+      field.spellcheck = false;
+      term.appendChild(field);
+      hint.hidden = false;
+      hint.innerHTML = '';
+      hint.appendChild(el('span', '', 'The program is waiting — type and press <kbd>Enter</kbd>.'));
+      var eofBtn = el('button', '', 'End of input (Ctrl+D)'), stopBtn = el('button', '', 'Stop (Ctrl+C)');
+      eofBtn.type = stopBtn.type = 'button';
+      hint.appendChild(eofBtn); hint.appendChild(stopBtn);
+      // Freeze the terminal the moment a line is sent: the re-run may be asynchronous (real compiler),
+      // and keystrokes must not land in a field that is about to be replaced.
+      function freeze() {
+        hint.hidden = true; hint.innerHTML = '';
+        term.onclick = null;
+        term.innerHTML = '';
+        term.appendChild(transcript(out));
+      }
+      function send(text) {
+        if (!session) return;
+        text.replace(/\r/g, '').split('\n').forEach(function (l) { session.pending.push(l + '\n'); });
+        session.inputs.push(session.pending.shift());
+        freeze();
+        step();
+      }
+      function endInput() { if (!session) return; session.eof = true; freeze(); step(); }
+      function stop() {
+        if (!session) return;
+        var body = transcript(out);
+        session = null; runToken++;
+        hint.hidden = true;
+        term.innerHTML = '';
+        term.appendChild(body);
+        term.appendChild(el('div', 't-status', '^C  ── stopped ──'));
+      }
+      eofBtn.addEventListener('click', endInput);
+      stopBtn.addEventListener('click', stop);
+      field.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); send(field.textContent); }
+        else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'd') { ev.preventDefault(); endInput(); }
+        else if (ev.ctrlKey && ev.key.toLowerCase() === 'c' && String(window.getSelection()) === '') { ev.preventDefault(); stop(); }
+      });
+      field.addEventListener('paste', function (ev) {         // multi-line paste = several Enter presses
+        var text = (ev.clipboardData || window.clipboardData).getData('text');
+        if (text.indexOf('\n') < 0) return;
+        ev.preventDefault();
+        if (!session) return;
+        var lines = (field.textContent + text).replace(/\r/g, '').split('\n');
+        var rest = lines.pop();
+        lines.forEach(function (l) { session.pending.push(l + '\n'); });
+        session.inputs.push(session.pending.shift());
+        freeze();
+        step(rest);
+      });
+      term.onclick = function () { if (String(window.getSelection()) === '') field.focus(); };
+      term.scrollTop = term.scrollHeight;
+      field.focus({ preventScroll: true });
+      return field;
+    }
+    function finish(result) {
+      var body = session.inputs.length ? transcript(result.out) : null;
+      var engine = session.engine;
+      session = null;
+      hint.hidden = true; hint.innerHTML = '';
+      term.onclick = null;
+      if (engine === 'real') renderRealTerm(term, result, body); else renderTerm(term, result, body);
+      term.scrollTop = term.scrollHeight;
+    }
+    function status(text) { term.innerHTML = ''; term.appendChild(el('span', 't-empty', text)); }
+
+    function step(prefill) {
+      var mine = ++runToken, sess = session;
+      var text = sess.inputs.join('');
+      function done(result) {
+        if (mine !== runToken || sess !== session) return;          // superseded by a newer Run / Stop / mode switch
+        if (result.needInput) {
+          if (typeof sess.marks[sess.inputs.length] !== 'number') sess.marks[sess.inputs.length] = result.out.length;
+          if (sess.pending.length) {               // lines pasted together are fed one request at a time,
+            sess.inputs.push(sess.pending.shift());   // so each is echoed where the program asked for it
+            step(prefill);
+            return;
+          }
+          var field = showPrompt(result.out);
+          if (prefill) { field.textContent = prefill; }
+        } else finish(result);
+      }
+      if (sess.engine === 'real') {
+        hint.hidden = true;
+        RealCpp.run(editor.value, text, sess.inputs.length ? null : status, { interactive: true, eof: sess.eof }).then(done);
+      } else {
+        done(runCode(editor.value, text, { interactive: !sess.eof }));
+      }
+    }
+
+    function run(engine, btn) {
+      if (engine === 'real' && RealCpp.busy()) return;
+      if (mode === 'interactive') {
+        session = { engine: engine, inputs: [], pending: [], marks: [], eof: false };
+        if (engine === 'real') status('Starting the compiler…');
+        step();
+        return;
+      }
+      session = null; runToken++;
+      if (engine === 'real') {
+        if (btn) btn.disabled = true;
+        status('Starting the compiler…');
+        RealCpp.run(editor.value, stdin.value, status).then(function (r) {
+          if (btn) btn.disabled = false;
+          renderRealTerm(term, r);
+        });
+      } else {
+        renderTerm(term, runCode(editor.value, stdin.value));
+      }
+    }
+
+    paintMode();
+    return { run: run, reset: function () { session = null; runToken++; hint.hidden = true; idleMessage(); } };
+  }
+
+  /* “Run with real compiler” button; null where the compiler cannot be loaded (file://, dist builds). */
+  function makeRealRunButton(io) {
     if (!RealCpp.available) return null;
     var btn = el('button', 'btn ghost', '⚙ Run with real compiler');
     btn.type = 'button';
     btn.title = 'Compile with real clang (C++17) inside your browser. The first click downloads about 18 MB; after that it is cached.';
-    btn.addEventListener('click', function () {
-      if (RealCpp.busy()) return;
-      btn.disabled = true;
-      function status(text) {
-        term.innerHTML = '';
-        term.appendChild(el('span', 't-empty', text));
-      }
-      status('Starting the compiler…');
-      RealCpp.run(editor.value, stdin.value, status).then(function (r) {
-        btn.disabled = false;
-        renderRealTerm(term, r);
-      });
-    });
+    btn.addEventListener('click', function () { io.run('real', btn); });
     return btn;
   }
 
@@ -678,18 +857,21 @@
     cols.appendChild(left);
 
     var right = el('div');
-    right.appendChild(el('label', 'field-label', 'Input (stdin)'));
+    var stdinLabel = el('label', 'field-label', 'Input (stdin)');
+    right.appendChild(stdinLabel);
     var stdin = el('textarea', 'stdin-edit');
     stdin.spellcheck = false;
     stdin.value = (ex.tests && ex.tests.length) ? ex.tests[0].stdin : '';
     stdin.setAttribute('aria-label', 'Program input for ' + ex.title);
     right.appendChild(stdin);
-    right.appendChild(el('label', 'field-label', 'Output'));
+    var outLabel = el('label', 'field-label', 'Output');
+    right.appendChild(outLabel);
     var term = el('div', 'term');
-    term.appendChild(el('span', 't-empty', 'Press “Run” to execute your program.'));
     right.appendChild(term);
     cols.appendChild(right);
     body.appendChild(cols);
+    var io = makeIo({ editor: editor, stdinLabel: stdinLabel, stdin: stdin, outLabel: outLabel, term: term });
+    io.reset();
 
     var actions = el('div', 'ex-actions');
     var runBtn = el('button', 'btn primary', '▶ Run');
@@ -699,7 +881,7 @@
       testBtn = el('button', 'btn ghost', 'Run sample tests (' + ex.tests.length + ')');
       actions.appendChild(testBtn);
     }
-    var realBtn = makeRealRunButton(editor, stdin, term);
+    var realBtn = makeRealRunButton(io);
     if (realBtn) actions.appendChild(realBtn);
     var resetBtn = el('button', 'btn ghost small', 'Reset code');
     actions.appendChild(resetBtn);
@@ -721,17 +903,14 @@
     }
     card.appendChild(body);
 
-    runBtn.addEventListener('click', function () {
-      renderTerm(term, runCode(editor.value, stdin.value));
-    });
+    runBtn.addEventListener('click', function () { io.run('mini'); });
     editor.textarea.addEventListener('keydown', function (ev) {
       if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); runBtn.click(); }
     });
     resetBtn.addEventListener('click', function () {
       editor.value = ex.starter;
       testsBox.innerHTML = '';
-      term.innerHTML = '';
-      term.appendChild(el('span', 't-empty', 'Press “Run” to execute your program.'));
+      io.reset();
     });
     if (testBtn) testBtn.addEventListener('click', function () {
       testsBox.innerHTML = '';
@@ -786,18 +965,21 @@
     left.appendChild(editor.root);
     cols.appendChild(left);
     var right = el('div');
-    right.appendChild(el('label', 'field-label', 'Input (stdin) — values your program reads with cin'));
+    var stdinLabel = el('label', 'field-label', 'Input (stdin) — values your program reads with cin');
+    right.appendChild(stdinLabel);
     var stdin = el('textarea', 'stdin-edit');
     stdin.spellcheck = false;
     stdin.setAttribute('aria-label', 'Program input');
     right.appendChild(stdin);
-    right.appendChild(el('label', 'field-label', 'Output'));
+    var outLabel = el('label', 'field-label', 'Output');
+    right.appendChild(outLabel);
     var term = el('div', 'term');
     term.style.minHeight = '14rem';
     right.appendChild(term);
     cols.appendChild(right);
     mount.appendChild(cols);
-    var realBtn = makeRealRunButton(editor, stdin, term);
+    var io = makeIo({ editor: editor, stdinLabel: stdinLabel, stdin: stdin, outLabel: outLabel, term: term });
+    var realBtn = makeRealRunButton(io);
     if (realBtn) bar.appendChild(realBtn);
 
     function loadPreset(i) {
@@ -805,11 +987,10 @@
       if (!p) return;
       editor.value = p.code;
       stdin.value = p.stdin || '';
-      term.innerHTML = '';
-      term.appendChild(el('span', 't-empty', 'Press “Run” to execute the program.'));
+      io.reset();
     }
     sel.addEventListener('change', function () { loadPreset(+sel.value); });
-    runBtn.addEventListener('click', function () { renderTerm(term, runCode(editor.value, stdin.value)); });
+    runBtn.addEventListener('click', function () { io.run('mini'); });
     editor.textarea.addEventListener('keydown', function (ev) {
       if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); runBtn.click(); }
     });

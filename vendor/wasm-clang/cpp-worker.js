@@ -4,10 +4,13 @@
  * all compiled to WebAssembly; see README.md) to compile, link and run one C++
  * program with a fixed stdin. Nothing leaves the browser.
  *
- * Messages in:   { id, code, stdin }
+ * Messages in:   { id, code, stdin, interactive?, eof? }
+ *                interactive: a terminal is attached — if the program reads past `stdin`, stop and
+ *                answer { needInput: true } (the page re-sends the job with one more line; the compiled
+ *                program is cached, so that costs milliseconds). eof: the user pressed Ctrl+D.
  * Messages out:  { type: 'progress', id, label, loaded, total }
  *                { type: 'stage',    id, stage: 'load' | 'compile' | 'link' | 'run' }
- *                { type: 'result',   id, ok, stage, out, diagnostics, exit, error, truncated, times }
+ *                { type: 'result',   id, ok, stage, out, diagnostics, exit, error, needInput, truncated, times }
  */
 self.importScripts('shared.js');
 
@@ -74,6 +77,21 @@ var api = new API({
 api.hostLog = function () {};
 api.hostLogAsync = function (message, promise) { return promise; };
 
+/* Thrown from inside wasm-clang's host_read (through our stdin object below) when an interactive
+   program wants more input than has been typed so far. */
+function NeedInput() { this.needInput = true; this.message = 'waiting for input'; }
+function attachStdin(text, interactive) {
+  api.memfs.setStdinStr(text);
+  if (!interactive) return;
+  // host_read only ever asks this object for `.length` and `.substr()`; asking for the length once
+  // everything has been consumed means "the program is blocked on stdin".
+  api.memfs.stdinStr = {
+    get length() { if (api.memfs.stdinStrPos >= text.length) throw new NeedInput(); return text.length; },
+    substr: function (from, len) { return text.substr(from, len); }
+  };
+}
+var cache = { code: null, program: null, diagnostics: '' };
+
 function stripAnsi(s) { return s.replace(/\x1b\[[0-9;]*m/g, ''); }
 function cleanDiagnostics(s) {
   return stripAnsi(s).replace(/\r/g, '').split('\n')
@@ -97,29 +115,35 @@ self.onmessage = async function (ev) {
     var lld = await api.getModule(api.lldFilename);
     times.load = performance.now() - t;
 
-    stage = 'compile';
-    self.postMessage({ type: 'stage', id: job.id, stage: stage });
-    t = performance.now();
-    api.memfs.addFile('main.cpp', job.code);
-    // Upstream defaults we do not want: ANSI colours, and hard-wrapping diagnostics at 80 columns.
-    var commonArgs = api.clangCommonArgs.filter(function (a, i, all) {
-      return a !== '-fcolor-diagnostics' && a !== '-fmessage-length' && all[i - 1] !== '-fmessage-length';
-    });
-    await api.run.apply(api, [clang, 'clang', '-cc1', '-emit-obj'].concat(commonArgs,
-      ['-std=c++17', '-O0', '-Wall', '-o', 'main.o', '-x', 'c++', 'main.cpp']));
-    times.compile = performance.now() - t;
+    if (cache.code === job.code && cache.program) {
+      var program = cache.program;                          // same source as last time: skip clang and the linker
+    } else {
+      stage = 'compile';
+      self.postMessage({ type: 'stage', id: job.id, stage: stage });
+      t = performance.now();
+      cache.code = null; cache.program = null;
+      api.memfs.addFile('main.cpp', job.code);
+      // Upstream defaults we do not want: ANSI colours, and hard-wrapping diagnostics at 80 columns.
+      var commonArgs = api.clangCommonArgs.filter(function (a, i, all) {
+        return a !== '-fcolor-diagnostics' && a !== '-fmessage-length' && all[i - 1] !== '-fmessage-length';
+      });
+      await api.run.apply(api, [clang, 'clang', '-cc1', '-emit-obj'].concat(commonArgs,
+        ['-std=c++17', '-O0', '-Wall', '-o', 'main.o', '-x', 'c++', 'main.cpp']));
+      times.compile = performance.now() - t;
 
-    stage = 'link';
-    self.postMessage({ type: 'stage', id: job.id, stage: stage });
-    t = performance.now();
-    await api.link('main.o', 'main.wasm');
-    times.link = performance.now() - t;
-    var program = await WebAssembly.compile(api.memfs.getFileContents('main.wasm'));
+      stage = 'link';
+      self.postMessage({ type: 'stage', id: job.id, stage: stage });
+      t = performance.now();
+      await api.link('main.o', 'main.wasm');
+      times.link = performance.now() - t;
+      program = await WebAssembly.compile(api.memfs.getFileContents('main.wasm'));
+      cache.code = job.code; cache.program = program; cache.diagnostics = cleanDiagnostics(toolOut);
+    }
 
     stage = 'run';
     self.postMessage({ type: 'stage', id: job.id, stage: stage });
-    api.memfs.setStdinStr(job.stdin || '');
-    result.diagnostics = cleanDiagnostics(toolOut);       // warnings from a successful compile
+    attachStdin(job.stdin || '', !!job.interactive && !job.eof);
+    result.diagnostics = cache.diagnostics;               // warnings from a successful compile
     phase = 'prog';
     t = performance.now();
     await api.run(program, 'main.wasm');
@@ -130,7 +154,10 @@ self.onmessage = async function (ev) {
   } catch (e) {
     if (stage === 'run') {
       times.run = performance.now() - t;
-      if (e && typeof e.code === 'number') {
+      if (e && e.needInput) {
+        result.ok = true;
+        result.needInput = true;
+      } else if (e && typeof e.code === 'number') {
         result.ok = true;              // the program ran and chose a non-zero exit status
         result.exit = e.code;
       } else {

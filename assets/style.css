@@ -565,6 +565,22 @@ textarea.stdin-edit { min-height: 4.2rem; }
 .term .t-err { color: #FF8A80; }
 .term .t-status { color: var(--code-cm); }
 .term .t-empty { color: var(--code-cm); font-style: italic; }
+/* interactive terminal */
+.field-label[hidden], textarea.stdin-edit[hidden] { display: none; }
+.term .t-in { color: var(--code-hl-stream, var(--code-kw)); font-weight: 600; }
+.term .t-field { display: inline-block; min-width: 1ch; outline: none; color: var(--code-hl-stream, var(--code-kw)); font-weight: 600; caret-color: var(--code-caret); white-space: pre-wrap; }
+.term.is-terminal { cursor: text; }
+.term.is-terminal:focus-within { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
+.term-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin-top: 0.4rem; font-size: 0.78rem; color: var(--ink-soft); }
+.term-hint[hidden] { display: none; }
+.term-hint kbd { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 0.3rem; background: var(--surface); }
+.term-hint button { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 0.15rem 0.45rem; cursor: pointer; }
+.term-hint button:hover { color: var(--ink); border-color: var(--ink-soft); }
+.io-mode { display: inline-flex; margin-bottom: 0.55rem; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.io-mode button { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; font-weight: 600; color: var(--ink-soft); background: none; border: 0; padding: 0.28rem 0.65rem; cursor: pointer; }
+.io-mode button + button { border-left: 1px solid var(--line); }
+.io-mode button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-ink); }
+.io-mode button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .term .t-warn { color: var(--code-fn); margin-top: 0.5rem; }
 .tests { display: grid; gap: 0.4rem; }
 .test-row {

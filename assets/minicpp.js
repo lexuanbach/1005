@@ -117,7 +117,7 @@
       var t = this.peek();
       if (t.t !== 'id') return false;
       if (t.v === 'const' || t.v === 'static' || t.v === 'auto' || t.v === 'register' || t.v === 'extern') return true;
-      if (t.v === 'std') return this.peek(1) && this.peek(1).v === '::';
+      if (t.v === 'std') return !!(this.peek(1) && this.peek(1).v === '::' && this.peek(2) && TYPE_WORDS.indexOf(this.peek(2).v) >= 0);
       return TYPE_WORDS.indexOf(t.v) >= 0;
     },
 
@@ -1076,6 +1076,7 @@
       var re = /\S+/g;
       re.lastIndex = this.ipos;
       var m = re.exec(this.input);
+      if (!m && this.interactive) throw { __needInput: true };
       if (!m) throw new RuntimeError(line, 'cin: ran out of input — type the values your program reads into the Input (stdin) box, then run again');
       this.ipos = m.index + m[0].length;
       return m[0];
@@ -1319,6 +1320,7 @@
       if (cell.t !== 'string') throw new RuntimeError(l, 'getline() expects a string variable as its second argument');
       // C++ semantics: read up to the next '\n' (consuming it); the line may
       // be empty — e.g. the leftover newline after `cin >> n`.
+      if (I.ipos >= I.input.length && I.interactive) throw { __needInput: true };
       if (I.ipos >= I.input.length)
         throw new RuntimeError(l, 'getline: ran out of input — type a line into the Input (stdin) box, then run again');
       var end = I.input.indexOf('\n', I.ipos);
@@ -1339,9 +1341,13 @@
         var prog = new Parser(toks).parseProgram();
         var interp = new Interp(prog, input, write);
         if (opts && opts.trace) interp.trace = opts.trace;
+        // opts.interactive: a terminal is attached. When the program reads past the input typed
+        // so far, stop and report needInput; the caller re-runs with the extra line appended.
+        if (opts && opts.interactive) interp.interactive = true;
         var exit = interp.run();
         return { exit: exit, error: null };
       } catch (e) {
+        if (e && e.__needInput) return { exit: null, error: null, needInput: true };
         if (e instanceof CompileError) return { exit: null, error: { stage: 'compile', line: e.line, msg: e.msg } };
         if (e instanceof RuntimeError) return { exit: null, error: { stage: 'runtime', line: e.line, msg: e.msg } };
         if (e && (e.__ret || e.__brk || e.__cont))
