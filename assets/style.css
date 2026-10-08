@@ -1273,3 +1273,65 @@ table.ieee-table td strong, table.ieee-table td code { color: var(--ink); }
 /* ── Loop vs. Recursion Race (S10) ── */
 .rc-stat { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.35rem; }
 .rc-note { margin-top: 0.4rem; font-size: 0.82rem; }
+
+/* ── Explained code (course.js initExplainedExamples) ─────────────
+   Marked parts of a code card explain themselves on hover, tap or focus. The tooltip is one
+   element on <body>, fixed to the viewport, so a card's horizontal scrolling cannot clip it. */
+.code-card .card-hint { font-size: 0.72rem; color: var(--code-cm); }
+.code-card .card-hint .xk-sample {
+  text-decoration: underline dotted; text-decoration-thickness: 1.5px; text-underline-offset: 0.25em;
+}
+.code-card .card-hint .when-touch { display: none; }
+@media (hover: none) {
+  .code-card .card-hint .when-hover { display: none; }
+  .code-card .card-hint .when-touch { display: inline; }
+}
+.code-card pre .xk {
+  cursor: help; border-radius: 4px;
+  text-decoration: underline dotted color-mix(in srgb, var(--code-text) 60%, transparent);
+  text-decoration-thickness: 1.5px; text-underline-offset: 0.3em;
+  background: color-mix(in srgb, var(--code-hl-kw) 13%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--code-hl-kw) 13%, transparent);
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+.code-card pre .xk:hover, .code-card pre .xk.is-active, .code-card pre .xk.is-linked {
+  background: color-mix(in srgb, var(--code-hl-kw) 32%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--code-hl-kw) 32%, transparent);
+}
+.code-card pre .xk:focus { outline: none; }
+.code-card pre .xk:focus-visible { outline: 2px solid var(--code-caret); outline-offset: 2px; }
+
+.code-card .explain-all {
+  background: var(--surface); color: var(--ink);
+  border-top: 1px solid var(--line); padding: 0.55rem 1rem; font-size: 0.88rem;
+}
+.code-card .explain-all summary { cursor: pointer; color: var(--ink-soft); font-weight: 600; font-size: 0.82rem; }
+.code-card .explain-all ol { margin: 0.6rem 0 0.3rem; padding-left: 1.5rem; display: grid; gap: 0.55rem; }
+.code-card .explain-all li > strong { margin-right: 0.35rem; }
+.code-card .explain-all li > div { display: inline; }
+.code-card .explain-all code { font-size: 0.85em; }
+.explain-ref {
+  display: block; font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem; color: var(--ink-soft);
+}
+
+.explain-tip {
+  position: fixed; top: 0; left: 0; z-index: 1000;
+  max-width: min(23rem, calc(100vw - 16px));
+  padding: 0.65rem 0.85rem; border-radius: 10px;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-top: 3px solid var(--accent);
+  box-shadow: 0 12px 32px rgba(19, 28, 46, 0.22);
+  font-size: 0.88rem; line-height: 1.5;
+}
+.explain-tip.above { border-top-width: 1px; border-bottom: 3px solid var(--accent); }
+.explain-tip[hidden] { display: none; }
+.explain-tip-title { display: block; margin-bottom: 0.2rem; color: var(--accent-ink); }
+.explain-tip-title[hidden] { display: none; }
+.explain-tip code { font-size: 0.85em; }
+@media print {
+  .code-card .card-hint, .explain-tip { display: none !important; }
+  .code-card .explain-all { display: block; }
+  .code-card .explain-all[open] summary, .code-card .explain-all summary { display: none; }
+  .code-card .explain-all ol { display: grid; }
+}

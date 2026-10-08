@@ -275,3 +275,79 @@ window.CHAPTER_DATA.examples = {
     "code": "#include <iostream>\nusing namespace std;\n\nint linearSearch(int array[], int key, int sizeofArray) {\n    for (int n = 0; n < sizeofArray; n++)\n        if (array[n] == key)\n            return n;       // found: its position\n    return -1;              // a sentinel: no valid index is -1\n}\n\nint main() {\n    const int SIZE = 8;\n    int a[SIZE] = {12, 7, 45, 3, 99, 16, 45, 60};\n    int key;\n    cout << \"Search for: \";\n    cin >> key;\n\n    int position = linearSearch(a, key, SIZE);\n    if (position != -1)\n        cout << \"Found value in element \" << position << endl;\n    else\n        cout << \"Value not found\" << endl;\n    return 0;\n}\n"
   }
 };
+
+/* Explained code: code-card file label -> notes that mark the exact text `match` on 1-based
+   `line` of the card's <pre> (course.js initExplainedExamples). Hover, tap or Tab to a marked
+   part to read its note; a match that is not found is skipped with a console warning. */
+window.CHAPTER_DATA.explain = {
+  "example_6_1_1.cpp": [
+    { line: 1, match: "void", title: "Return type: nothing comes back",
+      html: "<code>void</code> means the function hands nothing back to its caller. It does its job — printing — and that is all, so a call cannot be used as a value: <code>int m = FindMax(1, 2);</code> will not compile. Compare <code>int squareByValue</code> in 6.6, which returns a number." },
+    { line: 1, match: "FindMax", title: "The name",
+      html: "An identifier like any variable name (letters, digits, <code>_</code>; not a keyword). It is how <code>main</code> calls the function. Because the definition sits <em>above</em> the call here, no prototype (6.2) is needed." },
+    { line: 1, match: "int x, int y", title: "Formal parameters",
+      html: "Two brand-new variables that exist only while the function runs. Each is initialised with a <strong>copy</strong> of the matching actual parameter — in this call <code>x</code> = 5 and <code>y</code> = 8. Matching is by <strong>position</strong>, not by name." },
+    { line: 2, match: "int maxnum;", title: "A local variable",
+      html: "Declared inside the body, so it lives only inside <code>FindMax</code>: <code>main</code> cannot see it (scope, 6.4) and it is destroyed when the function returns (automatic storage, 6.5)." },
+    { line: 3, match: "(x >= y) ? x : y", title: "The conditional operator",
+      html: "An <code>if</code>–<code>else</code> squeezed into one expression (Chapter 3): the value is <code>x</code> when <code>x &gt;= y</code> is true, otherwise <code>y</code>. With 5 and 8 it picks 8." },
+    { line: 5, match: "}", title: "Where the function ends",
+      html: "Reaching the closing brace of a <code>void</code> function returns control to the caller — execution continues on the line <em>after</em> the call in <code>main</code>. No <code>return;</code> is needed." },
+    { line: 8, match: "int firstNum = 5, secNum = 8;", title: "The caller's variables",
+      html: "These belong to <code>main</code>. <code>FindMax</code> never touches them: it only receives copies of their values, which is what pass by value (6.3) means." },
+    { line: 9, match: "FindMax(firstNum, secNum)", title: "The call",
+      html: "Control jumps into the function; <code>firstNum</code> is copied into <code>x</code> and <code>secNum</code> into <code>y</code>, first to first, second to second. When the body finishes, execution resumes right here. Any expression can be an actual parameter: <code>FindMax(3, firstNum + 1)</code> is fine." }
+  ],
+  "auto_vs_static.cpp": [
+    { line: 1, match: "int num = 0;", title: "An automatic local",
+      html: "Created — and set to 0 — <em>every time</em> the function is entered, and destroyed at the closing brace. <code>auto</code> is the default storage class for locals, so no keyword is written." },
+    { line: 1, match: "num++;", title: "An increment that is thrown away",
+      html: "The increment happens, but the variable dies at the <code>}</code> a moment later. The next call creates a fresh <code>num</code> at 0 again, so the three calls print <code>0 0 0</code>." },
+    { line: 4, match: "static int num = 0;", title: "A static local",
+      html: "<code>static</code> gives the variable storage for the <strong>whole run of the program</strong>. The <code>= 0</code> happens only once, the first time control passes this line; later calls skip the initialisation and find the value left behind." },
+    { line: 4, match: "num++;", title: "This increment survives",
+      html: "The new value stays in the static variable until the next call reads it, so the three calls print <code>0 1 2</code>. Example 6.4.4's <code>static int sum = 100;</code> accumulates the same way." },
+    { line: 2, match: "created and destroyed every call", title: "Automatic storage duration",
+      html: "The lifetime of an auto variable is one execution of its block. That is also why a function cannot remember anything between calls unless it uses <code>static</code> (or a global, 6.4)." }
+  ],
+  "SMARS order router": [
+    { line: 1, match: "share-counting check", title: "State that outlived its function",
+      html: "Power Peg kept a running total of shares sent for a parent order and was meant to stop when the total was reached. Years before 2012 that check was moved earlier in the sequence and never retested — so the branch below could send orders <em>without ever stopping</em>." },
+    { line: 3, match: "repurposedFlag", title: "One flag, two meanings",
+      html: "The same variable once meant “use Power Peg” and was reused to mean “use the new RLP code”. On a server with the new code both meanings pointed at the right branch; on a server <em>without</em> it, the old meaning was still wired in." },
+    { line: 4, match: "runNewRLPCode(order)", title: "The call that should have run",
+      html: "A function call assumes the function exists on this machine. Seven of the eight servers had received the new code and ran this branch correctly." },
+    { line: 7, match: "else {", title: "The branch nobody expected to take",
+      html: "The eighth server never got the new code, so when the flag was set to <code>\"yes\"</code> the only thing it could switch on was the old path. An <code>if</code>–<code>else</code> always runs <em>one</em> of its branches." },
+    { line: 8, match: "runPowerPegCode(order)", title: "Dead code is still callable",
+      html: "Defined years earlier and never deleted. “Unreachable today” is not “gone”: anything still in the program can be called the moment a flag or a deployment goes wrong. Deleting retired code is safer than disabling it." }
+  ],
+  "example_6_5_1.cpp": [
+    { line: 1, match: "int", nth: 1, title: "Returns an int",
+      html: "The squared value travels back to the caller through <code>return</code>. The caller must catch it — <code>cout &lt;&lt; squareByValue(x)</code> prints 4 — because nothing else leaves the function." },
+    { line: 1, match: "int a", title: "By value: a is a copy",
+      html: "<code>a</code> is a new variable initialised with the caller's value (2). Whatever happens to <code>a</code> stays inside the function; the caller's <code>x</code> is still 2 afterwards. Like a photocopy of the original (6.3)." },
+    { line: 2, match: "return a *= a;", title: "Assign, then return",
+      html: "<code>a *= a</code> stores <code>a × a</code> back into <code>a</code>, and the value of that expression is the new <code>a</code> (4). <code>return</code> hands it out — the only way the result escapes a by-value function." },
+    { line: 5, match: "int &cRef", title: "By reference: another name for z",
+      html: "The <code>&amp;</code> makes <code>cRef</code> an <strong>alias</strong> of the caller's variable — no copy is made. Every read or write through <code>cRef</code> goes straight to <code>z</code>." },
+    { line: 6, match: "cRef *= cRef;", title: "Changes z itself",
+      html: "After this line the caller's <code>z</code> is 16. Nothing is returned — the function is <code>void</code> — because the result was written in place. That is how <code>swap</code> and functions that must hand back more than one result work." },
+    { line: 9, match: "(which returned 4)", title: "The copy died with the call",
+      html: "The 4 existed only in <code>a</code>, which was destroyed when <code>squareByValue</code> returned. If the caller does not use the returned value, the work is simply lost." }
+  ],
+  "example_6_6_1.cpp": [
+    { line: 1, match: "int array[]", title: "An array parameter",
+      html: "Empty brackets: the size is not part of the parameter. And unlike a single value, the array is <strong>not copied</strong> — the function works on the caller's own elements, so any change it made would be visible afterwards (6.7's warning)." },
+    { line: 1, match: "int sizeofArray", title: "The size travels separately",
+      html: "Because <code>array[]</code> carries no length, the caller passes it as its own parameter. The same function then serves 8 elements or 8,000 — the loop only needs to know how far to go." },
+    { line: 2, match: "n < sizeofArray", title: "Stay inside the array",
+      html: "The last valid index is <code>sizeofArray - 1</code> (Chapter 5). With <code>&lt;=</code> the loop would read one element past the end — a bug C++ does not report." },
+    { line: 3, match: "array[n] == key", title: "Compare, don't assign",
+      html: "<code>==</code> tests whether this element is the one we want. A single <code>=</code> here would overwrite the caller's array — and, because arrays are passed by reference, the damage would be permanent." },
+    { line: 4, match: "return n;", title: "return ends the loop too",
+      html: "Leaving the function abandons the <code>for</code> loop at once, so the <strong>first</strong> match wins: searching for 45 in <code>{12, 7, 45, 3, 99, 16, 45, 60}</code> returns 2, never 6." },
+    { line: 5, match: "return -1;", title: "A sentinel value",
+      html: "Reached only when the loop finished without a match. −1 can never be an index, so the caller can tell “not found” from “found at position 0” — compare the sentinel values of Chapter 4." }
+  ]
+};

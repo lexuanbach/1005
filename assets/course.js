@@ -983,6 +983,189 @@
   }
 
   // ───────────── runnable lecture examples ─────────────
+  /* Explained code: CHAPTER_DATA.explain maps a card's file label (same key as .examples) to
+     notes, each marking the exact text `match` on 1-based line `line` of the card's <pre>
+     (`nth` picks a later occurrence on that line). The marked parts are underlined; hovering,
+     tapping or tabbing to one shows its note in a single tooltip fixed to the viewport, so the
+     card's own horizontal scrolling cannot clip it. Click pins the note, Esc or a click
+     elsewhere closes it. The same notes are listed under the card ("All N explanations") for
+     print and screen readers. A note whose text is not found is skipped with a console
+     warning, so a typo in a data file never breaks a page. Modelled on the 41039 site's
+     explain.js; the card's existing highlight spans are kept, so this works on hand-marked
+     <pre> blocks without re-highlighting. */
+  function initExplainedExamples(data) {
+    var notesByCard = data && data.explain;
+    if (!notesByCard) return;
+
+    function mk(tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text !== undefined) n.textContent = text;
+      return n;
+    }
+
+    /* The card's highlight spans never cross a line break, but close and reopen one if it
+       does, so every line is complete on its own. */
+    function splitLines(html) {
+      var lines = [], cur = '', open = '', re = /(<span[^>]*>)|(<\/span>)|(\n)|([^<\n]+)/g, m;
+      while ((m = re.exec(html)) !== null) {
+        if (m[1]) { open = m[1]; cur += m[1]; }
+        else if (m[2]) { open = ''; cur += m[2]; }
+        else if (m[3]) { lines.push(cur + (open ? '</span>' : '')); cur = open; }
+        else cur += m[4];
+      }
+      lines.push(cur + (open ? '</span>' : ''));
+      return lines;
+    }
+
+    /* Wrap character ranges of one line of highlighted HTML in marker tags. A range may start
+       or end inside a highlight span, so the span is closed before the marker opens or closes
+       and reopened after — the nesting stays valid. Positions count characters of the visible
+       text, an entity such as &lt; as one, which matches textContent indices. */
+    function wrapRanges(html, ranges) {
+      var out = '', pos = 0, open = '', r = 0, inside = false;
+      var re = /(<span[^>]*>)|(<\/span>)|(&[a-z#0-9]+;|[^<&])/g, m;
+      function boundary() {
+        if (inside && pos === ranges[r].end) {
+          out += (open ? '</span>' : '') + '</span>' + open;
+          inside = false; r++;
+        }
+        if (!inside && r < ranges.length && pos === ranges[r].start) {
+          out += (open ? '</span>' : '') + ranges[r].tag + open;
+          inside = true;
+        }
+      }
+      while ((m = re.exec(html)) !== null) {
+        if (m[1]) { open = m[1]; out += m[1]; }
+        else if (m[2]) { open = ''; out += m[2]; }
+        else { boundary(); out += m[3]; pos++; }
+      }
+      boundary();
+      return out;
+    }
+
+    // ───────────── the one tooltip for the page ─────────────
+    var tip = null, tipTitle, tipBody, shownFor = null, pinned = false;
+    function ensureTip() {
+      if (tip) return;
+      tip = mk('div', 'explain-tip');
+      tip.id = 'explain-tip';
+      tip.setAttribute('role', 'tooltip');
+      tip.hidden = true;
+      tipTitle = mk('strong', 'explain-tip-title');
+      tipBody = mk('div', 'explain-tip-body');
+      tip.appendChild(tipTitle);
+      tip.appendChild(tipBody);
+      document.body.appendChild(tip);
+      document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && shownFor) hide(true); });
+      document.addEventListener('click', function (ev) {
+        if (pinned && !ev.target.closest('.xk') && !ev.target.closest('.explain-tip')) hide(true);
+      });
+      window.addEventListener('resize', place);
+      window.addEventListener('scroll', place, true);
+    }
+    function place() {
+      if (!shownFor) return;
+      var r = shownFor.getBoundingClientRect(), gap = 8, edge = 8;
+      var w = tip.offsetWidth, h = tip.offsetHeight, vw = document.documentElement.clientWidth;
+      var below = r.bottom + gap + h <= window.innerHeight || r.top - gap - h < 0;
+      tip.style.top = (below ? r.bottom + gap : r.top - gap - h) + 'px';
+      tip.style.left = Math.max(edge, Math.min(r.left, vw - w - edge)) + 'px';
+      tip.classList.toggle('above', !below);
+    }
+    function show(token, pin) {
+      ensureTip();
+      if (shownFor && shownFor !== token) shownFor.classList.remove('is-active');
+      var note = token._note;
+      tipTitle.textContent = note.title || '';
+      tipTitle.hidden = !note.title;
+      tipBody.innerHTML = note.html;
+      tip.hidden = false;
+      shownFor = token;
+      pinned = !!pin;
+      token.classList.add('is-active');
+      token.setAttribute('aria-describedby', tip.id);
+      place();
+    }
+    function hide(force) {
+      if (!shownFor || (pinned && !force)) return;
+      shownFor.classList.remove('is-active');
+      shownFor.removeAttribute('aria-describedby');
+      shownFor = null; pinned = false;
+      tip.hidden = true;
+    }
+
+    // ───────────── one card ─────────────
+    Array.prototype.forEach.call(document.querySelectorAll('.code-card'), function (cardEl) {
+      var fileEl = cardEl.querySelector('.bar .file'), pre = cardEl.querySelector('pre');
+      if (!fileEl || !pre) return;
+      var key = fileEl.textContent.split(/ — | \(/)[0].trim();
+      var spec = notesByCard[key];
+      if (!spec || !spec.length) return;
+
+      var raw = pre.textContent.split('\n');
+      var notes = [];
+      spec.forEach(function (n) {
+        var text = raw[n.line - 1], at = -1, nth = n.nth || 1;
+        for (var k = 0; text !== undefined && n.match && k < nth; k++) at = text.indexOf(n.match, at + 1);
+        if (at < 0) { console.warn('explain: "' + n.match + '" not found on line ' + n.line + ' of ' + key); return; }
+        notes.push({ line: n.line, start: at, end: at + n.match.length, match: n.match,
+                     title: n.title || '', html: n.html || '' });
+      });
+      if (!notes.length) return;
+      notes.sort(function (a, b) { return a.line - b.line || a.start - b.start; });
+
+      var tokens = [];
+      pre.innerHTML = splitLines(pre.innerHTML).map(function (lineHtml, i) {
+        var mine = notes.filter(function (n) { return n.line === i + 1; });
+        mine.forEach(function (n) {
+          n.index = notes.indexOf(n);
+          n.tag = '<span class="xk" tabindex="0" data-note="' + n.index + '">';
+        });
+        return mine.length ? wrapRanges(lineHtml, mine) : lineHtml;
+      }).join('\n');
+      pre.querySelectorAll('.xk').forEach(function (t) {
+        t._note = notes[+t.dataset.note];
+        tokens[+t.dataset.note] = t;
+        t.addEventListener('pointerenter', function (ev) { if (ev.pointerType === 'mouse' && shownFor !== t) show(t, false); });
+        t.addEventListener('pointerleave', function (ev) { if (ev.pointerType === 'mouse') hide(false); });
+        t.addEventListener('focus', function () { if (!pinned || shownFor !== t) show(t, false); });
+        t.addEventListener('blur', function () { hide(false); });
+        t.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          if (shownFor === t && pinned) hide(true); else show(t, true);
+        });
+      });
+
+      // the hint sits in the title bar, after the traffic lights
+      var hint = mk('span', 'card-hint');
+      hint.innerHTML = '<span class="when-hover">Hover</span><span class="when-touch">Tap</span> the ' +
+        '<span class="xk-sample">underlined</span> parts';
+      cardEl.querySelector('.bar').insertBefore(hint, fileEl);
+
+      // every note, in order — for print, screen readers, and reading straight through
+      var all = mk('details', 'explain-all');
+      all.appendChild(mk('summary', null, 'All ' + notes.length + ' explanations, in order'));
+      var ol = mk('ol');
+      notes.forEach(function (n, i) {
+        var li = mk('li');
+        var ref = mk('span', 'explain-ref');
+        ref.appendChild(document.createTextNode('line ' + n.line + ' '));
+        ref.appendChild(mk('code', null, n.match));
+        li.appendChild(ref);
+        if (n.title) li.appendChild(mk('strong', null, n.title));
+        var body = mk('div');
+        body.innerHTML = n.html;
+        li.appendChild(body);
+        li.addEventListener('mouseenter', function () { if (tokens[i]) tokens[i].classList.add('is-linked'); });
+        li.addEventListener('mouseleave', function () { if (tokens[i]) tokens[i].classList.remove('is-linked'); });
+        ol.appendChild(li);
+      });
+      all.appendChild(ol);
+      pre.insertAdjacentElement('afterend', all);
+    });
+  }
+
   /* Most code cards in the lectures are fragments, pseudocode or syntax templates, so they cannot
      be executed as displayed. CHAPTER_DATA.examples maps a card's file label (the text before
      " — " or " (") to a complete, checked program that embeds it. Cards with an entry get a
@@ -1187,6 +1370,7 @@
     var data = window.CHAPTER_DATA;
     initQuiz(data);
     initExercises(data);
+    initExplainedExamples(data);
     initRunnableExamples(data);
     initPlayground();
     initFolds();
