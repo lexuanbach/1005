@@ -160,14 +160,43 @@
   function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
+  /* Tab inserts four spaces. Enter keeps the current line's indentation, adds one level after
+     an opening brace, and — when the caret sits between "{" and "}" — puts the "}" on its own
+     line below. Typing "}" on a line that holds only whitespace dedents it one level first. */
+  var INDENT = '    ';
   function enableTabKey(ta) {
+    function replace(from, to, text, caretOffset) {
+      ta.value = ta.value.slice(0, from) + text + ta.value.slice(to);
+      ta.selectionStart = ta.selectionEnd = from + caretOffset;
+      ta.dispatchEvent(new Event('input'));
+    }
     ta.addEventListener('keydown', function (ev) {
+      var s = ta.selectionStart, epos = ta.selectionEnd, v = ta.value;
       if (ev.key === 'Tab' && !ev.shiftKey) {
         ev.preventDefault();
-        var s = ta.selectionStart, epos = ta.selectionEnd;
-        ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(epos);
-        ta.selectionStart = ta.selectionEnd = s + 4;
-        ta.dispatchEvent(new Event('input'));
+        replace(s, epos, INDENT, INDENT.length);
+      } else if (ev.key === 'Enter' && !ev.ctrlKey && !ev.metaKey && !ev.altKey && !ev.isComposing) {
+        ev.preventDefault();
+        var lineStart = v.lastIndexOf('\n', s - 1) + 1;
+        var indent = v.slice(lineStart, s).match(/^[ \t]*/)[0];
+        var before = v.slice(lineStart, s).replace(/\s+$/, '');
+        var opens = /\{$/.test(before);
+        var closesNext = opens && v.slice(epos).replace(/^[ \t]*/, '').charAt(0) === '}';
+        var text = '\n' + indent + (opens ? INDENT : '');
+        if (closesNext) {
+          // "{|}" → the "}" moves to its own line at the outer level
+          var after = v.slice(epos).match(/^[ \t]*/)[0].length;
+          replace(s, epos + after, text + '\n' + indent, text.length);
+        } else {
+          replace(s, epos, text, text.length);
+        }
+      } else if (ev.key === '}' && s === epos) {
+        var ls = v.lastIndexOf('\n', s - 1) + 1;
+        var ws = v.slice(ls, s);
+        if (/^[ \t]+$/.test(ws) && ws.length >= INDENT.length) {
+          ev.preventDefault();
+          replace(ls, s, ws.slice(0, ws.length - INDENT.length) + '}', ws.length - INDENT.length + 1);
+        }
       }
     });
   }
