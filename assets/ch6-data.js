@@ -351,3 +351,57 @@ window.CHAPTER_DATA.explain = {
       html: "Reached only when the loop finished without a match. −1 can never be an index, so the caller can tell “not found” from “found at position 0” — compare the sentinel values of Chapter 4." }
   ]
 };
+
+/* Sections 6.2–6.4: one typical example each (added 2026-10-08). Checked with MiniCPP and clang. */
+window.CHAPTER_DATA.examples["example_7_3_2.cpp"] = {
+  "note": "The prototype lets main() call maximum() before its definition.",
+  "stdin": "",
+  "code": "#include <iostream>\nusing namespace std;\n\nint maximum(int, int, int);     // prototype: promise now\n\nint main() {\n    int a = 7, b = 12, c = 9;\n    cout << \"Maximum is \" << maximum(a, b, c) << endl;\n    return 0;\n}\n\nint maximum(int x, int y, int z) {   // define later\n    int max = x;\n    if (y > max) max = y;\n    if (z > max) max = z;\n    return max;\n}\n"
+};
+window.CHAPTER_DATA.examples["pass_by_value.cpp"] = {
+  "note": "square() works on a copy; squared() returns the result for the caller to store.",
+  "stdin": "",
+  "code": "#include <iostream>\nusing namespace std;\n\nvoid square(int n) {\n    n = n * n;              // changes the COPY only\n}\n\nint squared(int n) {\n    return n * n;           // hands the result back\n}\n\nint main() {\n    int x = 3;\n    square(x);\n    cout << x << endl;      // still 3\n    x = squared(x);\n    cout << x << endl;      // now 9\n    return 0;\n}\n"
+};
+window.CHAPTER_DATA.examples["example_6_3_1.cpp"] = {
+  "note": "Prints 40 30, then 40 20: the global x changed, main's own y did not.",
+  "stdin": "",
+  "code": "#include <iostream>\nusing namespace std;\n\nint x = 10;                 // global: every function sees it\n\nvoid valfun() {\n    int y = 30;             // local to valfun\n    x = 40;                 // changes the global\n    cout << x << \" \" << y << endl;\n}\n\nint main() {\n    int y = 20;             // a different y, local to main\n    valfun();\n    cout << x << \" \" << y << endl;\n    return 0;\n}\n"
+};
+
+window.CHAPTER_DATA.explain["example_7_3_2.cpp"] = [
+  { line: 1, match: "int maximum(int, int, int);", title: "The prototype",
+    html: "Return type, name, the parameter <em>types</em>, and a semicolon instead of a body. Parameter names are optional here. It tells the compiler what a call to <code>maximum</code> must look like, before the definition exists." },
+  { line: 5, match: "maximum(a, b, c)", title: "A call above the definition",
+    html: "Legal only because of line 1. Delete the prototype and the compiler stops here with <em>use of undeclared identifier 'maximum'</em>: it reads the file top to bottom and has not met the function yet." },
+  { line: 9, match: "int maximum(int x, int y, int z)", title: "The definition",
+    html: "The header must match the prototype's return type and parameter types. Names appear now because the body needs them. Keeping definitions below <code>main</code> lets a reader see the program's outline first." },
+  { line: 10, match: "int max = x;", title: "Start with the first candidate",
+    html: "A local variable, so it lives only inside <code>maximum</code> (6.4). The two <code>if</code>s below replace it whenever a later value is bigger — the same pattern as the top-score trace in the revision deck." },
+  { line: 13, match: "return max;", title: "Back into the expression",
+    html: "The value replaces the call on line 5, so <code>cout</code> prints <code>Maximum is 12</code>. The function's own <code>max</code>, <code>x</code>, <code>y</code> and <code>z</code> are destroyed at the closing brace." }
+];
+window.CHAPTER_DATA.explain["pass_by_value.cpp"] = [
+  { line: 1, match: "int n", title: "A copy of the argument",
+    html: "<code>n</code> is a new variable initialised with the caller's value. The caller's <code>x</code> is not here at all — only its value, 3, was photocopied in." },
+  { line: 2, match: "n = n * n;", title: "Only the copy changes",
+    html: "<code>n</code> becomes 9, and then <code>n</code> is destroyed at the closing brace. Nothing travels back: the function is <code>void</code> and never touched <code>x</code>." },
+  { line: 6, match: "return n * n;", title: "The way out",
+    html: "A by-value function can hand back exactly one thing, through <code>return</code>. The expression's type (<code>int</code>) must match the declared return type." },
+  { line: 10, match: "square(x);", title: "x cannot change here",
+    html: "The call copies 3 into <code>n</code> and discards everything the function does to it. Printing <code>x</code> on the next line gives <code>3</code> — the favourite exam trap of this chapter." },
+  { line: 12, match: "x = squared(x);", title: "The caller stores the result",
+    html: "This is how a by-value function changes something: the caller assigns the returned value to its own variable. Now <code>x</code> is 9. Compare 6.6, where a reference parameter changes the caller's variable directly." }
+];
+window.CHAPTER_DATA.explain["example_6_3_1.cpp"] = [
+  { line: 1, match: "int x = 10;", title: "A global variable",
+    html: "Declared outside every function, so it has <strong>global scope</strong>: both <code>valfun</code> and <code>main</code> read and write this one <code>x</code>. It lives for the whole program." },
+  { line: 4, match: "int y = 30;", title: "valfun's own y",
+    html: "Local to <code>valfun</code>: created when the function is entered, invisible to <code>main</code>, destroyed at the closing brace. Its name clashes with nothing, because <code>main</code>'s <code>y</code> is out of scope here." },
+  { line: 5, match: "x = 40;", title: "Writing the global",
+    html: "There is no local <code>x</code>, so this reaches the global one. The change outlives the function — which is exactly what makes globals risky (see the note below this card)." },
+  { line: 10, match: "int y = 20;", title: "A different variable with the same name",
+    html: "Same name, different scope, different storage. <code>valfun</code>'s <code>y = 30</code> cannot touch it, so after the call this <code>y</code> is still 20." },
+  { line: 12, match: "cout << x << \" \" << y << endl;", title: "Prints 40 20",
+    html: "<code>x</code> is the global, changed to 40 by <code>valfun</code>; <code>y</code> is <code>main</code>'s own. The full output is <code>40 30</code> on the first line, <code>40 20</code> on the second." }
+];

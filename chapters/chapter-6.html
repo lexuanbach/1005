@@ -199,6 +199,23 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           <code>main</code>, the call inside it, and the definition below — the standard
           layout you will use in Exercise 2.
         </p>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_7_3_2.cpp — prototype above, definition below</span></div>
+          <pre><span class="kw">int</span> <span class="fn">maximum</span>(<span class="kw">int</span>, <span class="kw">int</span>, <span class="kw">int</span>);     <span class="cm">// prototype: promise now</span>
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">int</span> a = 7, b = 12, c = 9;
+    cout &lt;&lt; <span class="str">"Maximum is "</span> &lt;&lt; maximum(a, b, c) &lt;&lt; endl;
+    <span class="kw">return</span> 0;
+}
+
+<span class="kw">int</span> <span class="fn">maximum</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> z) {   <span class="cm">// define later</span>
+    <span class="kw">int</span> max = x;
+    <span class="kw">if</span> (y &gt; max) max = y;
+    <span class="kw">if</span> (z &gt; max) max = z;
+    <span class="kw">return</span> max;
+}</pre>
+        </div>
         <div class="note with-media" style="max-width:46rem">
           <div class="note-text">
             <span class="note-tag">Did you know?</span>
@@ -234,6 +251,22 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           <code>return;</code> in a void function) — and the value's type must match the
           function's declared return type.
         </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">pass_by_value.cpp — the copy and the return value</span></div>
+          <pre><span class="kw">void</span> <span class="fn">square</span>(<span class="kw">int</span> n) {
+    n = n * n;              <span class="cm">// changes the COPY only</span>
+}
+
+<span class="kw">int</span> <span class="fn">squared</span>(<span class="kw">int</span> n) {
+    <span class="kw">return</span> n * n;           <span class="cm">// hands the result back</span>
+}
+
+<span class="kw">int</span> x = 3;
+square(x);
+cout &lt;&lt; x &lt;&lt; endl;      <span class="cm">// still 3</span>
+x = squared(x);
+cout &lt;&lt; x &lt;&lt; endl;      <span class="cm">// now 9</span></pre>
+        </div>
         </div>
         <figure class="photo portrait">
           <img src="../assets/lecture-images/ch6-photostat-machine.jpg" width="420" height="560" loading="lazy"
@@ -259,6 +292,22 @@ FindMax(firstNum, secNum);            <span class="cm">// firstNum, secNum: ACTU
           <code>valfun()</code> stays changed for <code>main</code> (x = 40), while each
           function's local <code>y</code> is its own — main's y is still 20.
         </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">example_6_3_1.cpp — one global x, two local y's</span></div>
+          <pre><span class="kw">int</span> x = 10;                 <span class="cm">// global: every function sees it</span>
+
+<span class="kw">void</span> <span class="fn">valfun</span>() {
+    <span class="kw">int</span> y = 30;             <span class="cm">// local to valfun</span>
+    x = 40;                 <span class="cm">// changes the global</span>
+    cout &lt;&lt; x &lt;&lt; <span class="str">" "</span> &lt;&lt; y &lt;&lt; endl;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">int</span> y = 20;             <span class="cm">// a different y, local to main</span>
+    valfun();
+    cout &lt;&lt; x &lt;&lt; <span class="str">" "</span> &lt;&lt; y &lt;&lt; endl;
+}</pre>
+        </div>
         <div class="note tip">
           <span class="note-tag">Read next</span>
           <a href="https://www.learncpp.com/cpp-tutorial/why-non-const-global-variables-are-evil/" target="_blank" rel="noopener">learncpp.com — Why (non-const) global variables are evil</a>
