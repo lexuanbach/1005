@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Artificial Intelligence · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/ai-lab.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">C++ chapters</a>
+      <a href="chapter-7.html">Chapter 7</a>
+      <a href="chapter-8.html">Chapter 8</a>
+      <a href="chapter-9.html">Chapter 9</a>
+      <a href="chapter-10.html">Chapter 10</a>
+      <a href="chapter-11.html" aria-current="page">Chapter 11</a>
+      <a href="chapter-12.html">Chapter 12</a>
+      <a href="chapter-13.html">Chapter 13</a>
+      <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Computing topics</h4>
+  <nav aria-label="Computing topics">
+    <a href="chapter-7.html"><span class="ch-num">07</span>Von Neumann Architecture</a>
+    <a href="chapter-8.html"><span class="ch-num">08</span>Assembly &amp; Compilers</a>
+    <a href="chapter-9.html"><span class="ch-num">09</span>Computer Networks</a>
+    <a href="chapter-10.html"><span class="ch-num">10</span>Databases</a>
+    <a href="chapter-11.html" aria-current="page"><span class="ch-num">11</span>Artificial Intelligence</a>
+    <a href="chapter-12.html"><span class="ch-num">12</span>LLMs &amp; Security</a>
+    <a href="chapter-13.html"><span class="ch-num">13</span>Citation &amp; Responsible AI</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="../supplementary/loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="../supplementary/short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="../supplementary/loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#lab">Learn the Function lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 11 · Computing Track · Week 47</span>
+      <h1>Artificial Intelligence</h1>
+      <p class="lede">
+        Artificial intelligence sounds like magic until you see it as a <strong>function</strong>:
+        something goes in (<code>x</code>), something comes out (<code>Y</code>), and the part in between
+        (<code>F</code>) was not written line by line but <strong>learned from data</strong>. This chapter
+        says what AI is and is not, where it is used (including at HCMUT), and then opens the box with a
+        tiny example: a straight line that learns house prices. You will see the difference between
+        <strong>training</strong> and <strong>inference</strong> with your own eyes.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">9 concepts</a>
+        <a class="chip" href="#lab">Learn the Function lab</a>
+        <a class="chip" href="#quiz">28-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/4%20-%20AI.pptx">Slides (PPTX)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>From rules to learning: what AI is, and how it learns</h2>
+      </div>
+      
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch11-dartmouth-hall.jpg" width="1100" height="528"
+             alt="The white clapboard front of Dartmouth Hall at Dartmouth College, Hanover, New Hampshire, with its black shutters, small white cupola and a clock under the gable, photographed in early spring with patches of snow on the lawn">
+        <figcaption>
+          <strong>Where the name was born.</strong> In the summer of 1956 a small group of researchers met at
+          Dartmouth College in New Hampshire for a workshop whose proposal gave the new field its name:
+          <em>artificial intelligence</em>. (The photo shows Dartmouth Hall on the college campus.)
+          <span class="credit">Photo: “Dartmouth Hall at Dartmouth College” by Kenneth C. Zirkel ·
+            <a href="https://commons.wikimedia.org/wiki/File:Dartmouth_Hall_at_Dartmouth_College.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (resized)</span>
+        </figcaption>
+      </figure>
+
+      <div class="concept">
+        <h3><span class="idx">11.1</span>What is AI — and what it is not</h3>
+        <p>
+          <strong>Artificial intelligence</strong> is the field of building computer systems that perform tasks we normally
+          take as signs of intelligence: seeing and understanding the world, recognising speech, understanding language,
+          learning from experience, reasoning, making decisions, and acting. The usual starting point is the
+          <strong>Dartmouth workshop of 1956</strong>, whose proposal was written by John McCarthy, Marvin Minsky,
+          Nathaniel Rochester and Claude Shannon. The slides put it as “giving machines human capabilities”.
+        </p>
+        <p>
+          Two warnings from the textbook. First, AI is <strong>not a copy of the human brain</strong>: it is a collection of
+          computing methods, and a system that is superb at reading licence plates may understand nothing else.
+          Second, there is no single agreed definition; think of AI as a <em>general-purpose technology</em>, like electricity.
+        </p>
+        <p>
+          Why does AI exist at all? Because you already know what classical programs are good at: following clear
+          instructions. <code>if (temperature &lt; 18) heaterOn();</code> works perfectly. But try writing the rules that tell a dog from
+          a cat in <em>any</em> photo, or that capture what a vague sentence means. Every rule you write has exceptions
+          (a tiny dog, a cat with no visible whiskers, a blurry shot). That gap, tasks that are easy for people and
+          impossible to spell out as rules, is the AI problem. It is also why “doing arithmetic very fast” does not count as
+          intelligence: a calculator just runs one procedure someone wrote.
+        </p>
+        <blockquote class="pullquote teal">
+          <p>… every aspect of learning or any other feature of intelligence can in principle be so precisely described …</p>
+          <footer>From the 1955 proposal for the Dartmouth summer project by McCarthy, Minsky, Rochester and Shannon, quoted from
+            <a href="https://en.wikipedia.org/wiki/Dartmouth_workshop" target="_blank" rel="noopener">Wikipedia — Dartmouth workshop</a>. The sentence goes on to say that a machine could then be made to simulate it: the founding conjecture of AI.</footer>
+        </blockquote>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          The proposal asked for “a 2-month, 10-man study” in the summer of 1956, a modest plan for a field that now employs millions. Early programs from that era, such as the <strong>Logic Theorist</strong> (it proved mathematical theorems) and <strong>ELIZA</strong> (it imitated a therapist's chat), were impressive but worked only in very narrow, tidy situations. The founders did not fail because the idea was wrong; they underestimated how complicated intelligence is.
+          <a href="https://en.wikipedia.org/wiki/Dartmouth_workshop" target="_blank" rel="noopener">Source: Wikipedia — Dartmouth workshop</a>.
+        </div>
+      </div>
+
+      <div class="concept">
+        <h3><span class="idx">11.2</span>Six abilities of intelligence — and the size of the impact</h3>
+        <p>
+          If we ask what special abilities humans actually have, the textbook (and the slides) list six. Today's AI is
+          uneven across them:
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Ability</th><th>What it means</th><th>Where AI stands</th></tr>
+          <tr><td>Reasoning</td><td>Representing knowledge and deducing new facts from it: “all students submit before the deadline; An is a student, so An submits before the deadline”.</td><td>The weakest; long, consistent, <em>checkable</em> reasoning is the main research frontier.</td></tr>
+          <tr><td>Learning</td><td>Acquiring skills from experience, a lifelong process for people.</td><td>The key switch from ordinary programs to modern AI (see 11.6).</td></tr>
+          <tr><td>Vision</td><td>Seeing and <em>understanding</em> the physical world, not only capturing light.</td><td>Very strong, but can fail on noisy, rare or unfamiliar images.</td></tr>
+          <tr><td>Action</td><td>Robots, movement, physical coordination, driving.</td><td>Progressing, but the real world adds friction, delay, noisy sensors and surprises.</td></tr>
+          <tr><td>Language</td><td>Understanding documents, summarising, writing; hard because of ambiguity and context.</td><td>Very strong at fluent text; fluent is not always correct (hallucination).</td></tr>
+          <tr><td>Communication</td><td>Speech recognition, speaking, keeping a conversation going.</td><td>Strong; understanding intent and tone is still harder than transcription.</td></tr>
+        </table></div>
+        <p style="margin-top:0.8rem">
+          The slides also draw the chain <strong>data → information → knowledge → intelligence</strong>; we meet it again in 11.5.
+          The slides say reasoning from knowledge is the weakest ability, the one the research community is chasing hardest. (The slide also gives language and vision “8–9 out of 10”: that is an informal impression, not a measured score, so we do not repeat it as a number.)
+        </p>
+        <p>
+          <strong>Impact.</strong> AI could raise productivity, changes a large share of work tasks, and raises questions about inequality and
+          new skills. Everyone is not equally ready: many people still lack internet access or digital skills, so the benefits
+          are not shared automatically. The textbook cites an IMF analysis showing that richer economies have more jobs
+          <em>exposed</em> to AI, but <em>exposed</em> does not mean <em>replaced</em>.
+        </p>
+        <div class="note warn">
+          <span class="note-tag">Slide correction · a number without a source</span>
+          Slide 16 shows “+$2.6–4.4 trillion · projected annual boost to the global economy”, “expected increase in global GDP over the next decade”, and a claim about 80% of the global workforce, with no source. We traced them: the $2.6–4.4 trillion figure is from a 2023 McKinsey Global Institute report, which estimated that <em>generative AI</em> could add the equivalent of that much value <strong>per year across the 63 use cases it analysed</strong>; it is a potential with many assumptions, not a GDP forecast. A related OpenAI study said that about 80% of the <strong>U.S.</strong> workforce could have at least 10% of their tasks affected by large language models: a statement about exposure, in one country. The slide's “global GDP over the next decade” and “80% of the global workforce” are not what those sources say, and we could not find a source for them, so please do not quote them.
+          <a href="https://www.mckinsey.com/mgi/our-research/the-economic-potential-of-generative-ai-the-next-productivity-frontier" target="_blank" rel="noopener">McKinsey</a> ·
+          <a href="https://arxiv.org/abs/2303.10130" target="_blank" rel="noopener">“GPTs are GPTs” (Eloundou et al.)</a>.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">11.3</span>Where AI is used — from X-rays to Ba Na speech</h3>
+        <p style="max-width:46rem">
+          A common beginner mistake is to think AI means chatbots. The textbook groups applications by the kind of data:
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Area</th><th>Typical task</th><th>Why it is hard</th></tr>
+          <tr><td>Computer vision</td><td><strong>Classification</strong> (what is in the picture?), <strong>object detection</strong> (what and where: a bounding box), <strong>segmentation</strong> (a label for every pixel)</td><td>An image is just millions of numbers; light, angle, blur and occlusion all change them.</td></tr>
+          <tr><td>Natural language</td><td>Machine translation, summarising, sentiment analysis, question answering</td><td>Ambiguity (“I shot an elephant in my pajamas”), sarcasm, slang, context.</td></tr>
+          <tr><td>Generative AI</td><td>Creating text, images, audio, code from a prompt (11.4)</td><td>Output can be fluent and wrong.</td></tr>
+          <tr><td>Robots and action</td><td>Driving, walking, grasping</td><td>Friction, delay, noisy sensors, safety.</td></tr>
+          <tr><td>Speech, signals, time series</td><td>Denoising speech, ECG/EEG, predicting battery life</td><td>Patterns unfold over time, and noise changes constantly.</td></tr>
+          <tr><td>Edge AI</td><td>Running a model on a small device such as a camera</td><td>Little memory, power and speed; the model must be small yet accurate.</td></tr>
+        </table></div>
+        <h4 style="margin:1.4rem 0 0.5rem; font-size:1.02rem">At home: the URA Lab at HCMUT</h4>
+        <p style="max-width:46rem">
+          The lecture slides, by Assoc. Prof. Quan Thanh Tho, tour the work of the URA Lab (“Unlimited Research Group of AI”) at the
+          Faculty of Computer Science and Engineering, HCMUT. Each example is a nice <em>x → Y</em> story:
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Project</th><th>Input x → output Y</th><th>The point</th></tr>
+          <tr><td>HCMUT admissions chatbot (Vietnamese LLM, URA-LLaMa-2.1 8B)</td><td>A question about admissions → an answer built from admissions information</td><td>Time-sensitive answers must point to the official notice, and unsure questions should go to a human adviser.</td></tr>
+          <tr><td>Machine translation and speech synthesis for the Ba Na language (a state-level science project)</td><td>Text ↔ text; text → natural speech</td><td>Little data is the problem, so experts and native speakers must be in the loop; also language preservation.</td></tr>
+          <tr><td>Explainable knee-osteoarthritis diagnosis</td><td>A knee X-ray → a severity grade <em>plus</em> highlighted bone abnormalities</td><td>An explanation lets a doctor check the AI; the AI assists, the doctor decides.</td></tr>
+          <tr><td>Plant-leaf disease classification</td><td>A photo of a leaf → a disease class</td><td>Outdoor light, overlapping leaves and unrepresentative training photos.</td></tr>
+          <tr><td>Virtual try-on with Stable Diffusion</td><td>Person image + clothing → a new, realistic image</td><td>Generative AI in commerce (shown to the Prime Minister at VNU's 30th anniversary, as the slides report).</td></tr>
+          <tr><td>Smart retail</td><td>Camera frames → detected and counted products</td><td>Object detection in a warehouse; computer vision outside the lab.</td></tr>
+          <tr><td>Speech and signals</td><td>Noisy audio → clean speech; battery history → remaining capacity; EEG/ECG → predicted action or state</td><td>Not everything is images or text.</td></tr>
+          <tr><td>Edge AI on RISC-V</td><td>Camera frames → detections on the device (YOLOv5)</td><td>Lower delay and bandwidth; raw video can stay on the device.</td></tr>
+        </table></div>
+        <figure class="fig" style="max-width:46rem">
+          <svg class="ai-dg" viewBox="0 0 520 250" role="img" aria-label="Two pipelines. Cloud: camera sends all video over the network to a cloud GPU that runs the model, and the result comes back. Edge: the camera feeds a small chip that runs an optimised model on the device, and only the result, such as an alert, leaves the device.">
+            <defs><marker id="ai-ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="ai-dg-head"/></marker></defs>
+            <text class="ai-dg-h" x="10" y="18">CLOUD AI</text>
+            <rect class="ai-dg-box" x="10" y="28" width="100" height="48" rx="8"/><text class="ai-dg-t" x="60" y="50" text-anchor="middle">Camera</text><text class="ai-dg-s" x="60" y="66" text-anchor="middle">captures video</text>
+            <line class="ai-dg-line" x1="110" y1="52" x2="196" y2="52" marker-end="url(#ai-ar1)"/><text class="ai-dg-s" x="153" y="44" text-anchor="middle">all video</text>
+            <rect class="ai-dg-box alt" x="200" y="28" width="150" height="48" rx="8"/><text class="ai-dg-t" x="275" y="50" text-anchor="middle">Cloud GPU</text><text class="ai-dg-s" x="275" y="66" text-anchor="middle">runs the model</text>
+            <line class="ai-dg-line" x1="350" y1="52" x2="406" y2="52" marker-end="url(#ai-ar1)"/>
+            <rect class="ai-dg-box" x="410" y="28" width="100" height="48" rx="8"/><text class="ai-dg-t" x="460" y="56" text-anchor="middle">Result</text>
+            <text class="ai-dg-h" x="10" y="132">EDGE AI</text>
+            <rect class="ai-dg-box" x="10" y="142" width="100" height="48" rx="8"/><text class="ai-dg-t" x="60" y="164" text-anchor="middle">Camera</text><text class="ai-dg-s" x="60" y="180" text-anchor="middle">captures video</text>
+            <line class="ai-dg-line" x1="110" y1="166" x2="196" y2="166" marker-end="url(#ai-ar1)"/><text class="ai-dg-s" x="153" y="158" text-anchor="middle">stays local</text>
+            <rect class="ai-dg-box alt" x="200" y="142" width="150" height="48" rx="8"/><text class="ai-dg-t" x="275" y="164" text-anchor="middle">Small chip (RISC-V)</text><text class="ai-dg-s" x="275" y="180" text-anchor="middle">optimised model</text>
+            <line class="ai-dg-line dash" x1="350" y1="166" x2="406" y2="166" marker-end="url(#ai-ar1)"/><text class="ai-dg-s" x="378" y="158" text-anchor="middle">alert only</text>
+            <rect class="ai-dg-box" x="410" y="142" width="100" height="48" rx="8"/><text class="ai-dg-t" x="460" y="170" text-anchor="middle">Result</text>
+            <text class="ai-dg-s" x="10" y="222">Edge: lower delay, less bandwidth, raw data can stay on the device.</text>
+            <text class="ai-dg-s" x="10" y="240">Cost: the model must be small enough for a small chip.</text>
+          </svg>
+          <figcaption>Cloud versus edge AI (after the textbook's Figure 4.12). The same model task, a different place to run it.</figcaption>
+        </figure>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">11.4</span>Generative AI and four milestones</h3>
+        <p style="max-width:46rem">
+          A spam filter answers “is this email spam?”. A <strong>generative</strong> model <em>writes</em> a new email, draws a picture or
+          produces code from a <strong>prompt</strong> (the request you type). The distinction is the kind of output (a decision about existing data
+          versus new content), not a hard line between model designs. Four milestones from the slides, with dates we checked:
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>When</th><th>Milestone</th><th>Why it mattered</th></tr>
+          <tr><td>2012</td><td><strong>AlexNet</strong> (Krizhevsky, Sutskever, Hinton), a convolutional neural network, wins the ImageNet image-recognition challenge</td><td>Top-5 error 15.3%, more than 10.8 percentage points better than the runner-up: deep learning took over computer vision.</td></tr>
+          <tr><td>2017</td><td><strong>Transformer</strong> (“Attention Is All You Need”, Vaswani et al., on arXiv in June 2017)</td><td>Attention lets a model weigh every other word in the context; one architecture then served text, images and more.</td></tr>
+          <tr><td>30 Nov 2022</td><td><strong>ChatGPT</strong> released to the public</td><td>Millions of ordinary people could talk to an AI in plain language; generative AI went mainstream.</td></tr>
+          <tr><td>20 Jan 2025</td><td><strong>DeepSeek-R1</strong> released</td><td>Strong reasoning models at a lower cost than many earlier large models: AI is getting cheaper and easier to deploy.</td></tr>
+        </table></div>
+        <p style="margin-top:0.8rem;max-width:46rem">
+          Underneath, a large language model works by predicting the most likely next piece of text given the context, which is why
+          it can sound right without being right: that is <strong>hallucination</strong>. (For the textbook: <strong>GPT</strong> is mainly used to
+          generate text; <strong>BERT</strong> mainly to understand it, e.g. classify or extract.) Chapter 12 goes deeper into LLMs and their security.
+        </p>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">Slide corrections</span>
+          (1) Slide 12 credits the Transformer with “self-supervised learning that removed the labelling bottleneck”. The 2017 paper itself trained on labelled translation pairs; <strong>self-supervised</strong> pre-training (hide a word, predict it) is how <em>later</em> models such as BERT and GPT exploit Transformers. (2) Slide 14's “definitive rise of high-performance, low-cost AI” is a trend, and the textbook states it more carefully: R1 shows strong reasoning models at lower cost than many earlier large ones. (3) Slide 11 mentions “1D, 2D and 3D convolutions”: 1D and 3D convolutions exist (signals, video), but AlexNet's convolutions are 2D, over images.
+        </div>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          ChatGPT is reported to have gained <strong>one million users in five days</strong> and about <strong>100 million in two months</strong>, one of the fastest-growing consumer applications ever seen. Before that, AI already filtered your spam, recommended videos and unlocked phones; people just did not feel they were “talking to an AI”.
+          <a href="https://en.wikipedia.org/wiki/ChatGPT" target="_blank" rel="noopener">Source: Wikipedia — ChatGPT</a>.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">11.5</span>AI as a function: Y = F(x), training and inference</h3>
+        <p style="max-width:46rem">
+          The most useful sentence in the chapter: <strong>AI is a function</strong>. <code>x</code> is the input (an image, a sentence, a
+          signal), <code>F</code> is the model, and <code>Y</code> is the output (a prediction, a recommendation, new content, an action).
+          If you have written <code>int square(int n)</code> in Chapter 6, you already know what a function is; the new thing is that
+          here nobody writes the body of <code>F</code> by hand. Its <strong>parameters</strong> (numbers inside the model) are
+          <em>learned</em> from examples. That gives the two phases the syllabus asks for:
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th></th><th>Training</th><th>Inference</th></tr>
+          <tr><td>What happens</td><td>Show examples, measure the error, adjust the parameters, repeat</td><td>Give the finished model a new x and read off Y</td></tr>
+          <tr><td>Parameters</td><td><strong>Change</strong></td><td><strong>Frozen</strong></td></tr>
+          <tr><td>Needs</td><td>Lots of data, an error measure, lots of computing (GPUs for big models)</td><td>The model and the input, one pass</td></tr>
+          <tr><td>Cost and frequency</td><td>Expensive, done now and then (and again when the model needs updating)</td><td>Cheap, done every time someone uses it</td></tr>
+          <tr><td>Example</td><td>Fitting a spam filter on 100,000 labelled emails</td><td>Classifying the email that just arrived</td></tr>
+        </table></div>
+        <figure class="fig" style="max-width:46rem">
+          <svg class="ai-dg" viewBox="0 0 520 300" role="img" aria-label="Training: example data with known answers goes into the model F with parameters a and b; its prediction is compared with the known answer to give an error; the error is used to adjust the parameters, and the loop repeats. Inference: a new input x goes into the same model with frozen parameters and a prediction Y comes out.">
+            <defs><marker id="ai-ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="ai-dg-head"/></marker></defs>
+            <text class="ai-dg-h" x="10" y="18">TRAINING (many times, parameters change)</text>
+            <rect class="ai-dg-box" x="10" y="30" width="130" height="52" rx="8"/><text class="ai-dg-t" x="75" y="52" text-anchor="middle">Examples</text><text class="ai-dg-s" x="75" y="69" text-anchor="middle">x with known Y</text>
+            <line class="ai-dg-line" x1="140" y1="56" x2="176" y2="56" marker-end="url(#ai-ar2)"/>
+            <rect class="ai-dg-box soft" x="180" y="30" width="150" height="52" rx="8"/><text class="ai-dg-t" x="255" y="52" text-anchor="middle">Model F(x; a, b)</text><text class="ai-dg-s" x="255" y="69" text-anchor="middle">gives a prediction</text>
+            <line class="ai-dg-line" x1="330" y1="56" x2="366" y2="56" marker-end="url(#ai-ar2)"/>
+            <rect class="ai-dg-box alt" x="370" y="30" width="140" height="52" rx="8"/><text class="ai-dg-t" x="440" y="52" text-anchor="middle">Error L</text><text class="ai-dg-s" x="440" y="69" text-anchor="middle">prediction vs known Y</text>
+            <path class="ai-dg-line" d="M440 82 L440 112 L255 112 L255 86" marker-end="url(#ai-ar2)"/>
+            <text class="ai-dg-s" x="347" y="106" text-anchor="middle">adjust a, b to shrink L</text>
+            <line class="ai-dg-line dash" x1="10" y1="152" x2="510" y2="152"/>
+            <text class="ai-dg-h" x="10" y="182">INFERENCE (every use, parameters frozen)</text>
+            <rect class="ai-dg-box" x="10" y="194" width="130" height="52" rx="8"/><text class="ai-dg-t" x="75" y="216" text-anchor="middle">New input x</text><text class="ai-dg-s" x="75" y="233" text-anchor="middle">never seen before</text>
+            <line class="ai-dg-line" x1="140" y1="220" x2="176" y2="220" marker-end="url(#ai-ar2)"/>
+            <rect class="ai-dg-box soft frozen" x="180" y="194" width="150" height="52" rx="8"/><text class="ai-dg-t" x="255" y="216" text-anchor="middle">Same F(x; a, b)</text><text class="ai-dg-s" x="255" y="233" text-anchor="middle">a, b do not change</text>
+            <line class="ai-dg-line" x1="330" y1="220" x2="366" y2="220" marker-end="url(#ai-ar2)"/>
+            <rect class="ai-dg-box" x="370" y="194" width="140" height="52" rx="8"/><text class="ai-dg-t" x="440" y="216" text-anchor="middle">Output Y</text><text class="ai-dg-s" x="440" y="233" text-anchor="middle">label, number, text…</text>
+            <text class="ai-dg-s" x="10" y="282">Training is the school years; inference is the working life.</text>
+          </svg>
+          <figcaption>Training (top) changes the parameters; inference (bottom) only uses them. The lab below lets you do both.</figcaption>
+        </figure>
+        <p style="max-width:46rem">
+          <strong>From data to intelligence.</strong> The textbook separates four words people mix up. <em>Data</em> is raw observation (pixels, sensor readings, characters).
+          <em>Information</em> is data organised to answer a question (today's average temperature). <em>Knowledge</em> links information with context and rules (a sudden rise can mean a fault).
+          <em>Intelligence</em> uses knowledge to reason, decide and act. Modern systems are very good at the first steps, spotting patterns in data, and still struggle with reliable knowledge and reasoning.
+          Y = F(x) is also not magic: it is a computed mapping, and the hard part is making F generalise to new inputs and not produce dangerous or biased answers.
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Learning for life? Not always</span>
+          The slides compare machine learning with the Vietnamese saying “Học, học nữa, học mãi” and ABET's “lifelong learning”. Nice analogy, with a correction from the textbook: <strong>many deployed models do not keep learning</strong>. They are trained, then used as they are; to improve them, people update the data and retrain or fine-tune. And machine “learning” is optimisation of parameters on data, not the embodied, social learning people do.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">11.6</span>From rules to learning — a rule-based program versus a learned one</h3>
+        <p style="max-width:46rem">
+          <strong>Machine learning (ML)</strong> means the computer learns from data instead of only following rules a person wrote. Here is the contrast in the
+          language you know. The <em>rule-based</em> spam filter is pure Chapter 3: a human chooses every threshold. The
+          <em>learned</em> filter has the same shape (a function from two numbers to a yes/no) but the numbers inside it
+          come from training on labelled emails, such as the ones in Panel 2 of the lab:
+        </p>
+        <div style="max-width:46rem">
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">rule_based_filter.cpp — a human picks every number</span></div>
+          <pre><span class="kw">bool</span> <span class="fn">spamByRules</span>(<span class="kw">int</span> links, <span class="kw">int</span> capsWords) {
+    <span class="kw">if</span> (links &gt; 5)                    <span class="kw">return true</span>;
+    <span class="kw">if</span> (capsWords &gt; 6)                <span class="kw">return true</span>;
+    <span class="kw">if</span> (links &gt; 3 &amp;&amp; capsWords &gt; 3) <span class="kw">return true</span>;
+    <span class="kw">return false</span>;
+}   <span class="cm">// spammers adapt: now someone must rewrite the rules</span></pre>
+        </div>
+        <div class="code-card" style="margin-top:0.8rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">learned_filter.cpp — the numbers come from training</span></div>
+          <pre><span class="kw">bool</span> <span class="fn">spamByModel</span>(<span class="kw">double</span> links, <span class="kw">double</span> caps) {
+    <span class="kw">double</span> w1 = 10.14, w2 = 11.07, b = -11.00;   <span class="cm">// learned</span>
+    <span class="kw">return</span> w1 * links / 10 + w2 * caps / 10 + b &gt;= 0;
+}   <span class="cm">// retrain on new data: new w1, w2, b — same code</span></pre>
+        </div>
+        </div>
+        <p style="max-width:46rem;margin-top:0.8rem">
+          Try the email with 5 links and 4 capital words: the hand-written rules say <strong>spam</strong> (the third rule fires); the learned weights
+          (these are what logistic regression finds after 600 training steps on the lab's data) say <strong>not spam</strong>, because they learned
+          that <em>both</em> numbers must be high. Neither is “the truth”; each is only as good as the data or the rules behind it.
+          The learned program must also <strong>generalise</strong>: do well on new emails, not just remember the training ones.
+        </p>
+        <p style="max-width:46rem"><strong>Three (plus two) ways to learn:</strong></p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Kind</th><th>Data</th><th>Goal</th><th>Example</th></tr>
+          <tr><td>Supervised</td><td>Labelled: each example has the right answer</td><td>Predict the label for new inputs</td><td>Spam or not; house price; dog or cat</td></tr>
+          <tr><td>Unsupervised</td><td>No labels</td><td>Find structure in the data</td><td>Grouping shoppers into regulars, bargain hunters, big spenders</td></tr>
+          <tr><td>Reinforcement</td><td>Rewards and penalties from acting</td><td>Learn a strategy by trial and error</td><td>A game-playing AI; a robot learning to walk</td></tr>
+          <tr><td>Semi-supervised</td><td>A little labelled, a lot unlabelled</td><td>Cut the cost of labelling</td><td>Medical images</td></tr>
+          <tr><td>Self-supervised</td><td>Labels made from the data itself</td><td>Learn from huge unlabelled data</td><td>Hide a word, predict it: how BERT and GPT are pre-trained</td></tr>
+        </table></div>
+        <p style="margin-top:0.8rem;max-width:46rem">
+          <strong>Features and models.</strong> A model never sees the world, only a <em>representation</em> of it. In traditional ML people design the
+          <strong>features</strong> (links, ALL-CAPS words, email length, sender domain). In deep learning the model learns its own features from raw data: edges first, then parts, then whole objects. Deep models
+          are powerful for images, audio and language, but harder to explain, because their internal features do not always match concepts people understand.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">11.7</span>Training versus inference with a line — house prices</h3>
+        <p style="max-width:46rem">
+          The textbook's example: Mr X wants to buy a 140 m² house and has five recent sales (size in m², price in thousand $).
+          The more data points are bigger houses with higher prices, so he guesses a straight line <code>y = a·x + b</code>: here <code>F</code> is the line and
+          <code>a</code>, <code>b</code> are its two <strong>parameters</strong>. “Learning” means choosing them well.
+        </p>
+        <div class="media-row" style="--media-w:21rem">
+          <div>
+            <div class="tbl-scroll"><table class="tbl">
+              <tr><th>x (m²)</th><th>actual y</th><th>line y = 3x + 3</th><th>error = actual − predicted</th></tr>
+              <tr><td>90</td><td>280</td><td>273</td><td>7</td></tr>
+              <tr><td>100</td><td>295</td><td>303</td><td>−8</td></tr>
+              <tr><td>110</td><td>340</td><td>333</td><td>7</td></tr>
+              <tr><td>120</td><td>350</td><td>363</td><td>−13</td></tr>
+              <tr><td>130</td><td>400</td><td>393</td><td>7</td></tr>
+            </table></div>
+            <p style="margin-top:0.7rem">
+              The initial guess <code>y = 3x + 3</code> came from the slope between the first and last house, <code>(400 − 280)/(130 − 90) = 3</code>, and the intercept that makes the line pass
+              through the average point (110, 333). It misses every house a little (Table 4.2 of the textbook; the 120 m² house sold for 350 but the line says 363).
+            </p>
+            <p>
+              To score a line, square each error (so + and − cannot cancel, and big misses count more) and add:
+              <code>L = 7² + (−8)² + 7² + (−13)² + 7² = 380</code>. This <strong>loss</strong> is the number training wants to make small.
+            </p>
+          </div>
+          <figure class="fig" style="margin:0">
+            <svg class="ai-dg" viewBox="0 0 300 250" role="img" aria-label="Scatter plot of five houses: size 90 to 130 square metres on the horizontal axis, price 280 to 400 thousand dollars on the vertical axis. The line y equals 3x plus 3 passes close to the points, with short vertical segments showing the errors: plus 7, minus 8, plus 7, minus 13, plus 7.">
+              <line class="ai-dg-line dash" x1="46" y1="200" x2="288" y2="200"/><line class="ai-dg-line dash" x1="46" y1="20" x2="46" y2="200"/>
+              <text class="ai-dg-s" x="167" y="238" text-anchor="middle">size (m²)</text>
+              <text class="ai-dg-s" x="14" y="110" text-anchor="middle" transform="rotate(-90 14 110)">price (thousand $)</text>
+              <line class="ai-dg-line" style="stroke:var(--accent);stroke-width:2.5" x1="70.0" y1="185.4" x2="270.0" y2="50.4"/>
+              <g style="stroke:var(--red);stroke-width:2.5">
+                <line x1="70.0" y1="177.5" x2="70.0" y2="185.4"/>
+                <line x1="120.0" y1="160.6" x2="120.0" y2="151.6"/>
+                <line x1="170.0" y1="110.0" x2="170.0" y2="117.9"/>
+                <line x1="220.0" y1="98.8" x2="220.0" y2="84.1"/>
+                <line x1="270.0" y1="42.5" x2="270.0" y2="50.4"/>
+              </g>
+              <g style="fill:var(--ink)">
+                <circle cx="70.0" cy="177.5" r="4.5"/>
+                <circle cx="120.0" cy="160.6" r="4.5"/>
+                <circle cx="170.0" cy="110.0" r="4.5"/>
+                <circle cx="220.0" cy="98.8" r="4.5"/>
+                <circle cx="270.0" cy="42.5" r="4.5"/>
+              </g>
+              <text class="ai-dg-s" x="70" y="216" text-anchor="middle">90</text>
+              <text class="ai-dg-s" x="170" y="216" text-anchor="middle">110</text>
+              <text class="ai-dg-s" x="270" y="216" text-anchor="middle">130</text>
+              <text class="ai-dg-s" x="40" y="182" text-anchor="end">280</text>
+              <text class="ai-dg-s" x="40" y="114" text-anchor="end">340</text>
+              <text class="ai-dg-s" x="40" y="46" text-anchor="end">400</text>
+            </svg>
+            <figcaption>Five houses and one candidate line. The red segments are the errors; training moves the line to shrink them.</figcaption>
+          </figure>
+        </div>
+        <p style="max-width:46rem">
+          <strong>Training by gradient descent.</strong> Ask: if I nudge <code>a</code> up a little, does <code>L</code> go up or down? That slope is the <strong>gradient</strong>.
+          At <code>(a, b) = (3, 3)</code> the textbook finds <code>dL/da = 100</code> (positive: increasing a makes things worse) and <code>dL/db = 0</code>. So move a <em>against</em> the gradient with a small step
+          (the <strong>learning rate</strong> η = 0.00001): <code>a ← 3 − 0.00001·100 = 2.999</code>, b unchanged. Repeat. Here is exactly that loop in C++ (your Chapter 4 loops, plus a little calculus):
+        </p>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">learn_a_line.cpp — training, then inference</span></div>
+          <pre><span class="kw">double</span> x[5] = {90, 100, 110, 120, 130};      <span class="cm">// size in m2</span>
+<span class="kw">double</span> y[5] = {280, 295, 340, 350, 400};     <span class="cm">// price in thousand $</span>
+<span class="kw">double</span> a = 3, b = 3;                         <span class="cm">// the parameters: start at y = 3x + 3</span>
+<span class="kw">double</span> eta = 0.00001;                        <span class="cm">// learning rate</span>
+
+<span class="kw">for</span> (<span class="kw">int</span> step = 1; step &lt;= 5; step++) {      <span class="cm">// TRAINING</span>
+    <span class="kw">double</span> da = 0, db = 0, loss = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; 5; i++) {
+        <span class="kw">double</span> err = y[i] - (a * x[i] + b);  <span class="cm">// actual - predicted</span>
+        loss += err * err;
+        da += -2 * x[i] * err;           <span class="cm">// dL/da</span>
+        db += -2 * err;                  <span class="cm">// dL/db</span>
+    }
+    cout &lt;&lt; <span class="str">"step "</span> &lt;&lt; step &lt;&lt; <span class="str">": a="</span> &lt;&lt; a &lt;&lt; <span class="str">" b="</span> &lt;&lt; b &lt;&lt; <span class="str">" L="</span> &lt;&lt; loss &lt;&lt; endl;
+    a -= eta * da;                       <span class="cm">// move against the gradient</span>
+    b -= eta * db;
+}
+cout &lt;&lt; a * 140 + b &lt;&lt; endl;             <span class="cm">// INFERENCE: parameters frozen, new x = 140</span></pre>
+        </div>
+        <p style="max-width:46rem;margin-top:0.8rem">
+          Run (with <code>fixed</code> and <code>setprecision(5)</code>) it prints L = 380, 379.9615, 379.95945, … and the final line gives about 422.9 for the 140 m² house: after five tiny steps the line has barely moved, exactly
+          as in the textbook's Table 4.3. Real training runs thousands or millions of steps. The exact best line for these five houses, from a formula, is <code>a = 2.95, b = 8.5</code> with <code>L = 377.5</code>, which predicts <strong>421.5</strong> thousand $
+          (about $421,500). That last step, plugging in 140 without changing anything, is <strong>inference</strong>.
+        </p>
+        <p style="max-width:46rem">
+          <strong>Two more lessons from the textbook's exercise.</strong> (1) <em>Add data, retrain</em>: two more sales (95 m² for 300 and 125 m² for 360) change the best line to roughly <code>y = 2.66x + 40.1</code> and the 140 m² prediction to about 411.8. A model is only as current as its data. (2) <em>Choose the right shape</em>:
+          for the invented ultra-luxury villas (200 m² for $11.6 M up to 1,800 m² for $320.6 M) a straight line has big systematic errors, while a quadratic <code>y = ax² + bx + c</code> (three parameters, same training idea) follows the curve. Exercise 6 checks the textbook's villa example, and finds an error in it. Panel 1 of the lab below has both datasets.
+        </p>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know? <span class="supp-tag">Supplementary</span></span>
+          “Fit a line by minimising the squared errors” is older than computers by two centuries: Adrien-Marie Legendre published the method of <strong>least squares</strong> in 1805 (to fit comet orbits), and Gauss claimed to have used it since 1795 and published his own account in 1809, which started a priority dispute. For a line there is a closed formula, as the lab's “best line” button uses. Gradient descent earns its keep on models with no formula.
+          <a href="https://en.wikipedia.org/wiki/Least_squares#History" target="_blank" rel="noopener">Source: Wikipedia — Least squares (history)</a>.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">11.8</span>Data is the fuel — and biased data bends the model</h3>
+        <p style="max-width:46rem">
+          Data lets algorithms find patterns, and the explosion of data (messages, photos, sensors, phones, cars, factories) is a big reason modern AI took off.
+          But <strong>good data is not just a lot of data</strong>: it must be correct, representative, diverse and relevant to the goal. A million wrongly labelled photos can teach a worse model than ten thousand carefully labelled ones;
+          a leaf-disease model trained on a few dozen lab photos may fail in a muddy field. The textbook describes big data by four Vs:
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>V</th><th>Meaning</th><th>AI angle</th></tr>
+          <tr><td>Volume</td><td>How much data</td><td>More examples help, if they are good.</td></tr>
+          <tr><td>Velocity</td><td>How fast it arrives and must be processed</td><td>Streaming sensors, live traffic.</td></tr>
+          <tr><td>Variety</td><td>Text, images, video, audio, signals</td><td>Models must cope with many forms.</td></tr>
+          <tr><td>Veracity</td><td>How trustworthy and representative it is</td><td>Large but wrong or skewed data gives a wrong or skewed model.</td></tr>
+        </table></div>
+        <p style="margin-top:0.8rem;max-width:46rem">
+          <strong>Biased data, biased model.</strong> A model learns the patterns it is shown, including social bias. And removing the obvious column does not fix it: other features can act as
+          <strong>proxies</strong> for it (school names, activities, wording, career gaps may correlate with gender, region or income). The same worry applies to education: a model that predicts student ability from
+          past data can disadvantage students from under-resourced schools, students who work part-time, or those with poor internet. Panel 2 of the lab lets you watch this: switch on a skewed sample and watch the
+          boundary bend so that legitimate newsletters get blocked.
+        </p>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">True story · Amazon's recruiting experiment</span>
+          Reuters reported in 2018 that Amazon had built an experimental tool to rate job candidates from one to five stars. It was trained on patterns in resumes submitted over <strong>ten years</strong>, most of them from men, and Amazon's engineers found it did not rate candidates for technical roles in a gender-neutral way. The team was disbanded; Amazon said recruiters never relied on it alone. The lesson is not that “AI is evil”: the data was a faithful picture of an unequal past.
+          <a href="https://www.cnbc.com/2018/10/10/amazon-scraps-a-secret-ai-recruiting-tool-that-showed-bias-against-women.html" target="_blank" rel="noopener">Source: Reuters (via CNBC), 10 October 2018</a>.
+        </div>
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know? <span class="supp-tag">Supplementary</span></span>
+            Learning machines are older than deep learning. The <strong>Mark I Perceptron</strong>, built by Frank Rosenblatt's team at the Cornell Aeronautical Laboratory in 1959 and first shown to the public in June 1960, looked at a 20×20 grid of <strong>400 photocells</strong> to recognise images. It is the ancestor of the single “neuron” that the classifier in lab Panel 2 resembles.
+            <a href="https://en.wikipedia.org/wiki/Perceptron" target="_blank" rel="noopener">Source: Wikipedia — Perceptron</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-mark1-perceptron.jpg" width="320" height="259" loading="lazy"
+                 alt="Black-and-white photograph of the Mark I Perceptron: tall racks with a camera on a tripod at the left, labelled S-unit monitor, manual stimulus switches, association units, response panel and meter panel">
+            <figcaption>Figure from the <em>Mark I Perceptron Operators' Manual</em> (1960), John C. Hay &amp; Albert E. Murray · <a href="https://commons.wikimedia.org/wiki/File:Mark_I_Perceptron,_Figure_2_of_operator%27s_manual.png" target="_blank" rel="noopener">Wikimedia Commons</a> · public domain</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">11.9</span>AI, ML, DL — and using AI responsibly</h3>
+        <div class="media-row" style="--media-w:19rem">
+          <div>
+            <p>
+              These three words are not synonyms; they are nested. <strong>AI</strong> is the broad goal of machines showing intelligent behaviour, built by rules, search, logic, probability, learning,
+              or a mix. <strong>Machine learning</strong> is the way of building AI from data. <strong>Deep learning</strong> is machine learning with many-layered neural networks.
+              So not every AI system learns (a chess program that searches moves, or an expert system with hand-written rules, is AI but not ML), and not every ML model is deep.
+              A plain thermostat that follows “if below the threshold, heat” is a reflex agent but usually too simple to call AI today.
+            </p>
+            <p>
+              An artificial “neuron” is a big simplification of a biological one: it multiplies inputs by weights, adds them up, passes the sum through an activation function and hands the result on.
+              Deep learning is <strong>not a copy of the brain</strong>; it needs lots of data and computing, and is hard to explain.
+              AI is also classified by ability: <strong>narrow AI</strong> (good at specific tasks, all that exists today), <strong>AGI</strong> (any human-level intellectual task: not achieved), and <strong>ASI</strong> (hypothetical, beyond humans); and by function:
+              <em>expert systems</em>, <em>predictive AI</em>, <em>generative AI</em>.
+            </p>
+          </div>
+          <figure class="fig" style="margin:0">
+            <svg class="ai-dg" viewBox="0 0 300 260" role="img" aria-label="Nested circles: the large outer circle is Artificial Intelligence, inside it is Machine Learning, and inside that is Deep Learning. The area of AI outside machine learning includes rule-based, search and logic systems.">
+              <circle class="ai-dg-c1" cx="150" cy="130" r="120"/>
+              <circle class="ai-dg-c2" cx="150" cy="158" r="86"/>
+              <circle class="ai-dg-c3" cx="150" cy="186" r="52"/>
+              <text class="ai-dg-t" x="150" y="38" text-anchor="middle">Artificial Intelligence</text>
+              <text class="ai-dg-s" x="150" y="55" text-anchor="middle">rules, search, logic…</text>
+              <text class="ai-dg-t" x="150" y="108" text-anchor="middle">Machine Learning</text>
+              <text class="ai-dg-s" x="150" y="124" text-anchor="middle">learns from data</text>
+              <text class="ai-dg-t" x="150" y="186" text-anchor="middle">Deep Learning</text>
+              <text class="ai-dg-s" x="150" y="202" text-anchor="middle">many-layer networks</text>
+            </svg>
+            <figcaption>DL ⊂ ML ⊂ AI (after the textbook's Figure 4.16).</figcaption>
+          </figure>
+        </div>
+        <p style="max-width:46rem">
+          <strong>Using AI in your own studies.</strong> The textbook's rule: <em>AI can be an assistant, never the person responsible.</em> Good uses: ask it to explain a concept at several levels, then check the answer against the book, rewrite it in your own words, and ask “what is the weakness in that answer?” or “give a counter-example”;
+          generate review questions; compare concepts; find holes in your argument. Poor uses: letting it read for you, do the assignment for you, or giving you answers you do not understand. A fluent answer that is wrong in substance is more dangerous than an awkward one you verified.
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Risk</th><th>What it looks like</th><th>A sensible habit</th></tr>
+          <tr><td>Privacy</td><td>Face recognition in public places without consent; voice assistants recording more than you think</td><td>Ask who can access the data, where it is stored, and for what purpose.</td></tr>
+          <tr><td>Bias and fairness</td><td>Crime-prediction or hiring tools reproducing past inequality</td><td>Check results by group; do not assume a model is objective.</td></tr>
+          <tr><td>Misinformation</td><td>Hallucinated answers that sound certain</td><td>Verify important claims with real sources.</td></tr>
+          <tr><td>Copyright</td><td>Models trained on web content; outputs that closely resemble protected work</td><td>Cite and respect licences (see Chapter 13).</td></tr>
+          <tr><td>Jobs</td><td>Routine tasks automated, new jobs in data and AI governance</td><td>Learn the skills that change fastest.</td></tr>
+          <tr><td>Attention</td><td>Recommenders that only maximise time on the app</td><td>Notice what a system is optimising.</td></tr>
+        </table></div>
+        <p style="margin-top:0.8rem;max-width:46rem">
+          Chapter 12 returns to security and misuse of language models; Chapter 13 covers citation and what “responsible use” means for your assignments.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Lab</span>
+        <h2>Learn the Function — train a model, then use it</h2>
+        <p>
+          Two toy models you can steer. Panel 1 fits a line to house prices by hand and by gradient descent
+          (<strong>training</strong>), then predicts a new house with the frozen line (<strong>inference</strong>).
+          Panel 2 trains a two-feature spam classifier whose decision boundary moves as it learns, and shows what a
+          biased sample does to it. Everything is deterministic and runs in your browser.
+        </p>
+      </div>
+      <div id="ai-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        In Panel 1, fit the line by hand first and watch the squared error L; then jump to the best line and compare.
+        Train with η = 10<sup>−5</sup> and notice how slowly b moves; tick <em>Centre x</em> and compare. Push η too high on purpose
+        to watch the loss explode. Press <em>Predict</em> and check that a and b do not change. In Panel 2, train for
+        ×100 with and without the biased sample and compare the accuracy on the held-out newsletters.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Chapter 11 quiz</h2>
+        <p>28 questions: definitions, x/F/Y and training-versus-inference scenarios, learning types, a little regression arithmetic, and bias and responsible use.</p></p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Practice</span>
+        <h2>Exercises</h2>
+        <p>Six tasks: some on paper (including the textbook's house and villa examples), three in the lab. Lab tasks give the settings and the numbers you should see.</p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Team activity</span>
+        <h2>AI project canvas: a campus problem, on one page</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          Pick <strong>one real problem on campus</strong> that an AI function <code>Y = F(x)</code> could help with (examples: predicting which library
+          study rooms will be full, sorting student-service emails, spotting broken lab equipment from photos, helping new students find information,
+          estimating bus waiting time). Fill in the <strong>AI project canvas</strong> below on one page and present it in five minutes. You are <em>not</em> building anything:
+          you are showing that you can think about an AI system the way an engineer does.
+        </p>
+        <div class="tbl-scroll" style="max-width:48rem"><table class="tbl">
+          <tr><th>Canvas box</th><th>Your team writes</th></tr>
+          <tr><td>1. The problem and the user</td><td>Who is helped, and what decision or task gets easier?</td></tr>
+          <tr><td>2. Input x and output Y</td><td>Exactly what goes in (text, image, numbers?) and what comes out (a label, a number, text, an action?)</td></tr>
+          <tr><td>3. Rules or learning?</td><td>Could a rule-based C++ program do it? If not, why not? Which kind of learning (supervised, unsupervised, reinforcement)?</td></tr>
+          <tr><td>4. Data</td><td>Where does the training data come from, who labels it, and how many examples? Is it representative of <em>all</em> users? Any privacy concern?</td></tr>
+          <tr><td>5. Training versus inference</td><td>What would you train on, how often would you retrain, and what happens at inference time (on a server or on the device)?</td></tr>
+          <tr><td>6. What could go wrong</td><td>Bias and proxy features, hallucination or wrong answers, privacy, misuse. Name at least one for each of two groups of users.</td></tr>
+          <tr><td>7. Success and human in the loop</td><td>How will you measure success (and for which groups)? When must a human check or decide, and how can a user appeal?</td></tr>
+        </table></div>
+        <h3 style="margin-top:1.4rem">Constraints</h3>
+        <ul style="max-width:46rem">
+          <li>One page and five minutes: choose; do not list everything.</li>
+          <li>Boxes 2 and 4 must be concrete. “Student data” is not an answer; “each row = one booking: room, hour, weekday, exam week yes/no” is.</li>
+          <li>You must propose one measurable success target (for example “at least 90% of predicted-full rooms really are full”) and say how you would check it on data the model never trained on (generalisation).</li>
+          <li>You must include one place where a person overrules the AI.</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Problem owner</td><td>Defines the user, x and Y; keeps the project small and concrete</td></tr>
+            <tr><td>Data lead</td><td>Owns box 4: sources, labels, representativeness, privacy</td></tr>
+            <tr><td>Risk auditor</td><td>Owns box 6: asks “who loses if this is wrong or biased?”</td></tr>
+            <tr><td>Presenter</td><td>Tells the story in five minutes, from input to human oversight</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          Would a handful of if-statements have done the job? What feature could be a proxy for something you must not discriminate on? Which group is least represented in your data, and what does the model do for them? What is the cost of a false alarm versus a missed case? If you could only run the model on the user's own phone, what would you give up?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">06 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://developers.google.com/machine-learning/crash-course/linear-regression" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>Google ML Crash Course — Linear regression</h4>
+          <p>The same line, loss and gradient-descent story as 11.7, with interactive exercises.</p>
+        </a>
+        <a class="read-card" href="https://www.youtube.com/watch?v=IHZwWFHWa-w" target="_blank" rel="noopener">
+          <span class="rc-kind">Video</span>
+          <h4>3Blue1Brown — Gradient descent, how neural networks learn</h4>
+          <p>The picture behind “move the parameters against the gradient”, scaled up to a real network.</p>
+        </a>
+        <a class="read-card" href="https://developers.google.com/machine-learning/crash-course/overfitting/generalization" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>Google ML Crash Course — Generalization</h4>
+          <p>Why doing well on training data is not enough, and how to test on data the model has not seen.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Dartmouth_workshop" target="_blank" rel="noopener">
+          <span class="rc-kind">History</span>
+          <h4>Wikipedia — Dartmouth workshop</h4>
+          <p>The 1956 summer project that named the field: who proposed it, what they hoped, and what came next.</p>
+        </a>
+        <a class="read-card" href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">
+          <span class="rc-kind">Paper</span>
+          <h4>Attention Is All You Need (2017)</h4>
+          <p>The Transformer paper from 11.4. The abstract and introduction are readable even as a first-year student.</p>
+        </a>
+        <a class="read-card" href="https://www.cnbc.com/2018/10/10/amazon-scraps-a-secret-ai-recruiting-tool-that-showed-bias-against-women.html" target="_blank" rel="noopener">
+          <span class="rc-kind">True story</span>
+          <h4>Reuters (via CNBC) — Amazon scraps a secret AI recruiting tool</h4>
+          <p>How a model trained on ten years of resumes learned the bias in them.</p>
+        </a>
+        <a class="read-card" href="https://www.mckinsey.com/mgi/our-research/the-economic-potential-of-generative-ai-the-next-productivity-frontier" target="_blank" rel="noopener">
+          <span class="rc-kind">Report</span>
+          <h4>McKinsey — The economic potential of generative AI</h4>
+          <p>The real source of slide 16's “$2.6–4.4 trillion”: read what it actually claims, and its assumptions.</p>
+        </a>
+        <a class="read-card" href="https://arxiv.org/abs/2303.10130" target="_blank" rel="noopener">
+          <span class="rc-kind">Paper</span>
+          <h4>“GPTs are GPTs” — labour-market impact of LLMs</h4>
+          <p>Where the “80% of the workforce” statistic comes from (the U.S. workforce, 10% of tasks affected).</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-10.html"><span class="dir">← Previous chapter</span>Databases</a>
+        <a href="chapter-12.html" style="text-align:right"><span class="dir">Next chapter →</span>LLMs &amp; Security</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 11 · Artificial Intelligence</p>
+  </div>
+</footer>
+
+<script src="../assets/ai-lab.js"></script>
+<script src="../assets/ch11-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

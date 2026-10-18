@@ -1,0 +1,80 @@
+/* SQL Query Lab (Chapter 10) — uses only theme tokens, so light and dark both work. */
+#sql-root { display: block; }
+.sq-bar { display: flex; flex-wrap: wrap; gap: 0.7rem 1rem; align-items: center; }
+.sq-field { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+.sq-field select {
+  font: inherit; font-weight: 500; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.6rem; max-width: 100%;
+}
+.sq-sim { font-size: 0.78rem; color: var(--ink-soft); flex: 1 1 18rem; }
+.sq-blurb { margin: 0.6rem 0 0.9rem; color: var(--ink-soft); font-size: 0.9rem; max-width: 60rem; }
+.sq-grid { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 1.2rem; align-items: start; }
+.sq-left { min-width: 0; }
+.sq-examples { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.sq-ex {
+  font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; text-align: left;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 0.3rem 0.7rem;
+}
+.sq-ex:hover { border-color: var(--accent); color: var(--accent-ink); }
+.sq-ex:focus-visible, .sq-editor:focus-visible, .sq-field select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sq-exnote { min-height: 2.6rem; margin: 0.6rem 0; padding: 0.5rem 0.8rem; font-size: 0.86rem; color: var(--ink-soft);
+  border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); border-radius: 0 8px 8px 0; }
+.sq-exnote:empty { display: none; }
+.sq-label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--ink); margin-bottom: 0.3rem; }
+.sq-label span { font-weight: 500; color: var(--ink-soft); }
+.sq-editor {
+  width: 100%; box-sizing: border-box; resize: vertical; min-height: 7rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.86rem; line-height: 1.5; tab-size: 2;
+  color: var(--code-text); background: var(--code-bg); caret-color: var(--code-caret);
+  border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 0.85rem;
+}
+.sq-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0.6rem 0; }
+.sq-status { font-size: 0.82rem; color: var(--ink-soft); flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
+.sq-status.sq-bad { color: var(--red); }
+.sq-result { margin-top: 0.4rem; }
+.sq-msg { margin: 0.25rem 0; font-size: 0.85rem; color: var(--green); font-weight: 600; }
+.sq-err { margin: 0.4rem 0; padding: 0.6rem 0.8rem; font-size: 0.86rem; color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--red) 55%, var(--line)); background: color-mix(in srgb, var(--red) 8%, var(--surface)); border-radius: 8px; overflow-wrap: anywhere; }
+.sq-err strong { color: var(--red); }
+.sq-tablewrap { margin: 0.5rem 0; max-height: 22rem; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+.sq-table { margin: 0; font-size: 0.82rem; }
+.sq-table th { position: sticky; top: 0; text-transform: none; letter-spacing: 0; }
+.sq-table th, .sq-table td, .sq-plantable th, .sq-plantable td { padding: 0.35rem 0.6rem; }
+.sq-plantable th { text-transform: none; letter-spacing: 0; }
+.sq-cap { caption-side: top; text-align: left; font-size: 0.74rem; color: var(--ink-soft); padding: 0.35rem 0.6rem; }
+.sq-num { text-align: right; font-variant-numeric: tabular-nums; }
+.sq-null { color: var(--ink-soft); font-size: 0.74rem; }
+.sq-none { color: var(--ink-soft); font-style: italic; }
+.sq-more { font-size: 0.78rem; color: var(--ink-soft); margin: 0.3rem 0.6rem; }
+.sq-plan { margin-top: 1rem; padding: 0.8rem 1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.sq-plan h4, .sq-schema h4 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+.sq-sub { font-weight: 500; font-size: 0.76rem; color: var(--ink-soft); margin-left: 0.4rem; }
+.sq-meter-row { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.82rem; color: var(--ink-soft); }
+.sq-meter-row b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.sq-bar-track { height: 0.85rem; margin: 0.45rem 0 0.25rem; background: color-mix(in srgb, var(--red) 22%, var(--paper)); border-radius: 999px; overflow: hidden; }
+.sq-bar-fill { height: 100%; background: var(--red); border-radius: 999px; transition: width 0.4s ease; }
+.sq-bar-fill.sq-fast { background: var(--green); }
+.sq-meter-note { font-size: 0.8rem; color: var(--ink-soft); }
+.sq-plantable { font-size: 0.78rem; }
+.sq-plantable code { white-space: normal; overflow-wrap: anywhere; }
+.sq-planrow td { color: var(--ink-soft); font-style: italic; }
+.sq-plain { margin: 0.6rem 0 0 1.1rem; padding: 0; font-size: 0.84rem; color: var(--ink-soft); }
+.sq-plain li { margin: 0.3rem 0; }
+.sq-plain strong { color: var(--ink); }
+.sq-extra, .sq-empty { font-size: 0.8rem; color: var(--ink-soft); margin: 0.3rem 0; }
+.sq-schema { padding: 0.8rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.82rem; min-width: 0; }
+.sq-schema details { margin-bottom: 0.7rem; }
+.sq-schema summary { cursor: pointer; }
+.sq-count { color: var(--ink-soft); font-size: 0.74rem; margin-left: 0.3rem; }
+.sq-cols { list-style: none; margin: 0.35rem 0; padding: 0; }
+.sq-cols li { margin: 0.2rem 0; overflow-wrap: anywhere; }
+.sq-type { color: var(--ink-soft); font-size: 0.72rem; }
+.sq-badge {
+  display: inline-block; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.03em; padding: 0.05rem 0.4rem; margin: 0 0.15rem 0.1rem 0;
+  border-radius: 999px; border: 1px solid var(--line); color: var(--ink-soft); background: var(--paper);
+}
+.sq-pk { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 50%, var(--line)); background: color-mix(in srgb, var(--amber) 10%, var(--paper)); }
+.sq-fk { color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--paper)); }
+.sq-ix { color: var(--green); border-color: color-mix(in srgb, var(--green) 50%, var(--line)); background: color-mix(in srgb, var(--green) 8%, var(--paper)); }
+.sq-noidx { font-size: 0.72rem; font-style: italic; }
+@media (max-width: 860px) { .sq-grid { grid-template-columns: minmax(0, 1fr); } }

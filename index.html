@@ -451,7 +451,8 @@
     border-top: 3px solid var(--accent);
   }
   .mat-card:hover { border-color: var(--accent); }
-  .mat-card.playground { border-top-color: var(--teal); }
+  .mat-card.playground, .mat-card.computing { border-top-color: var(--teal); }
+  .mat-card.computing .mat-num { color: var(--teal); }
   .mat-card.supp { border-top-style: dashed; }
   .mat-card.supp .mat-num { color: var(--ink-soft); }
   .mat-card .mat-num {
@@ -823,6 +824,48 @@
           <p data-i18n="mat-ch6-desc">Definitions, prototypes, pass by value vs pass by reference, scope, static locals that remember, and passing whole arrays.</p>
           <span class="mat-meta mono" data-i18n="mat-ch6-meta">7 concepts · 26 MCQs · 6 exercises</span>
         </a>
+        <a class="mat-card computing" href="chapters/chapter-7.html">
+          <span class="mat-num mono">Ch 7</span>
+          <h3 data-i18n="mat-ch7-title">Von Neumann Architecture</h3>
+          <p data-i18n="mat-ch7-desc">Memory, CPU, I/O and the fetch–decode–execute cycle, with the stored-program idea that makes compilers possible. Step the lecturer's toy computer one register transfer at a time.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch7-meta">9 concepts · Von Neumann Machine lab · 28 MCQs · 6 exercises</span>
+        </a>
+        <a class="mat-card computing" href="chapters/chapter-8.html">
+          <span class="mat-num mono">Ch 8</span>
+          <h3 data-i18n="mat-ch8-title">Assembly &amp; Compilers</h3>
+          <p data-i18n="mat-ch8-desc">From machine language and assembly to what compiler, assembler, linker and loader each do, with real clang output for x86-64 and ARM64. Compile a tiny C++ subset to the toy machine and run it.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch8-meta">8 concepts · Tiny Compiler lab · 26 MCQs · 6 exercises</span>
+        </a>
+        <a class="mat-card computing" href="chapters/chapter-9.html">
+          <span class="mat-num mono">Ch 9</span>
+          <h3 data-i18n="mat-ch9-title">Computer Networks</h3>
+          <p data-i18n="mat-ch9-desc">From a typed URL to a web page: IP, DNS, client–server and HTTP, the TCP/IP layers, and the Internet of Things with edge AI. Includes a step-by-step packet simulation.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch9-meta">9 concepts · Packet Journey lab · 28 MCQs · 6 exercises</span>
+        </a>
+        <a class="mat-card computing" href="chapters/chapter-10.html">
+          <span class="mat-num mono">Ch 10</span>
+          <h3 data-i18n="mat-ch10-title">Databases</h3>
+          <p data-i18n="mat-ch10-desc">From files to tables: keys, SQL queries, table definitions, and how an index cuts the rows a query must read. Includes NoSQL and modern trends.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch10-meta">9 concepts · SQL Query Lab · 27 MCQs · 6 exercises</span>
+        </a>
+        <a class="mat-card computing" href="chapters/chapter-11.html">
+          <span class="mat-num mono">Ch 11</span>
+          <h3 data-i18n="mat-ch11-title">Artificial Intelligence</h3>
+          <p data-i18n="mat-ch11-desc">AI as a function Y = F(x): data, models, training versus inference, applications from X-rays to Ba Na speech, and responsible use. Train a line on house prices and a spam classifier in the browser.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch11-meta">9 concepts · Learn the Function lab · 28 MCQs · 6 exercises</span>
+        </a>
+        <a class="mat-card computing" href="chapters/chapter-12.html">
+          <span class="mat-num mono">Ch 12</span>
+          <h3 data-i18n="mat-ch12-title">LLMs &amp; Security</h3>
+          <p data-i18n="mat-ch12-desc">How an LLM turns a prompt into tokens and predicts one token at a time, then the security side: the CIA triad, phishing, malware, passwords, privacy, and the new risks of hallucination, data leakage, prompt injection and deepfakes.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch12-meta">9 concepts · LLM & Security Lab · 27 MCQs · 6 exercises</span>
+        </a>
+        <a class="mat-card computing" href="chapters/chapter-13.html">
+          <span class="mat-num mono">Ch 13</span>
+          <h3 data-i18n="mat-ch13-title">Citation &amp; Responsible AI</h3>
+          <p data-i18n="mat-ch13-desc">Why and how to cite: APA, MLA, Chicago and IEEE styles, in-text citations and references, quoting vs paraphrasing, plagiarism, and the current rules for citing or disclosing AI tools. Build real references in the Citation Workshop.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch13-meta">9 concepts · Citation Workshop · 27 MCQs · 6 exercises</span>
+        </a>
         <a class="mat-card playground" href="playground.html">
           <span class="mat-num mono">▶</span>
           <h3 data-i18n="mat-pg-title">C++ Playground</h3>
@@ -1050,6 +1093,27 @@
       "mat-ch6-title": "Hàm",
       "mat-ch6-desc": "Định nghĩa, prototype, pass by value vs pass by reference, phạm vi biến, biến static ghi nhớ giữa các lần gọi, và truyền cả mảng vào hàm.",
       "mat-ch6-meta": "7 khái niệm · 26 câu hỏi · 6 bài tập",
+      "mat-ch7-title": "Kiến trúc Von Neumann",
+      "mat-ch7-desc": "Bộ nhớ, CPU, I/O và chu kỳ fetch–decode–execute, cùng ý tưởng chương trình lưu trữ làm nên trình biên dịch. Chạy từng bước chuyển thanh ghi trên máy tính đồ chơi của bài giảng.",
+      "mat-ch7-meta": "9 khái niệm · lab Máy Von Neumann · 28 câu hỏi · 6 bài tập",
+      "mat-ch8-title": "Assembly và trình biên dịch",
+      "mat-ch8-desc": "Từ ngôn ngữ máy và assembly đến vai trò của compiler, assembler, linker và loader, kèm output clang thật cho x86-64 và ARM64. Biên dịch một tập con C++ nhỏ sang máy đồ chơi rồi chạy.",
+      "mat-ch8-meta": "8 khái niệm · lab Trình biên dịch mini · 26 câu hỏi · 6 bài tập",
+      "mat-ch9-title": "Mạng máy tính",
+      "mat-ch9-desc": "Từ địa chỉ gõ vào đến trang web: IP, DNS, client–server và HTTP, các tầng TCP/IP, và Internet vạn vật với edge AI. Có mô phỏng gói tin từng bước.",
+      "mat-ch9-meta": "9 khái niệm · lab Hành trình gói tin · 28 câu hỏi · 6 bài tập",
+      "mat-ch10-title": "Cơ sở dữ liệu",
+      "mat-ch10-desc": "Từ tệp đến bảng: khóa, truy vấn SQL, định nghĩa bảng, và cách chỉ mục giảm số dòng mà truy vấn phải đọc. Có NoSQL và các xu hướng hiện đại.",
+      "mat-ch10-meta": "9 khái niệm · lab Truy vấn SQL · 27 câu hỏi · 6 bài tập",
+      "mat-ch11-title": "Trí tuệ nhân tạo",
+      "mat-ch11-desc": "AI như một hàm Y = F(x): dữ liệu, mô hình, huấn luyện và suy luận, ứng dụng từ ảnh X-quang đến tiếng Ba Na, và sử dụng có trách nhiệm. Huấn luyện đường thẳng giá nhà và bộ lọc thư rác ngay trong trình duyệt.",
+      "mat-ch11-meta": "9 khái niệm · lab Học một hàm · 28 câu hỏi · 6 bài tập",
+      "mat-ch12-title": "LLM và An toàn thông tin",
+      "mat-ch12-desc": "Cách LLM biến prompt thành token và dự đoán từng token, rồi đến an toàn thông tin: bộ ba CIA, phishing, malware, mật khẩu, quyền riêng tư, và các rủi ro mới như hallucination, rò rỉ dữ liệu, prompt injection và deepfake.",
+      "mat-ch12-meta": "9 khái niệm · lab LLM & Bảo mật · 27 câu hỏi · 6 bài tập",
+      "mat-ch13-title": "Trích dẫn và sử dụng AI có trách nhiệm",
+      "mat-ch13-desc": "Vì sao và cách trích dẫn: chuẩn APA, MLA, Chicago và IEEE, trích dẫn trong văn bản và danh mục tham khảo, trích nguyên văn so với diễn đạt lại, đạo văn, và quy định hiện hành khi trích dẫn hoặc công khai việc dùng AI. Tạo tài liệu tham khảo thật trong Citation Workshop.",
+      "mat-ch13-meta": "9 khái niệm · Citation Workshop · 27 câu hỏi · 6 bài tập",
       "mat-pg-title": "Sân chơi C++",
       "mat-pg-desc": "Viết và chạy C++ ngay trong trình duyệt — không cần cài đặt. Phủ đúng tập con ngôn ngữ của môn học, bao gồm cả pass by reference.",
       "mat-pg-meta": "8 chương trình mẫu · chạy offline",

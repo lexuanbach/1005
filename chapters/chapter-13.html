@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Citation &amp; Responsible AI · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/cite-lab.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">C++ chapters</a>
+      <a href="chapter-7.html">Chapter 7</a>
+      <a href="chapter-8.html">Chapter 8</a>
+      <a href="chapter-9.html">Chapter 9</a>
+      <a href="chapter-10.html">Chapter 10</a>
+      <a href="chapter-11.html">Chapter 11</a>
+      <a href="chapter-12.html">Chapter 12</a>
+      <a href="chapter-13.html" aria-current="page">Chapter 13</a>
+      <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Computing topics</h4>
+  <nav aria-label="Computing topics">
+    <a href="chapter-7.html"><span class="ch-num">07</span>Von Neumann Architecture</a>
+    <a href="chapter-8.html"><span class="ch-num">08</span>Assembly &amp; Compilers</a>
+    <a href="chapter-9.html"><span class="ch-num">09</span>Computer Networks</a>
+    <a href="chapter-10.html"><span class="ch-num">10</span>Databases</a>
+    <a href="chapter-11.html"><span class="ch-num">11</span>Artificial Intelligence</a>
+    <a href="chapter-12.html"><span class="ch-num">12</span>LLMs &amp; Security</a>
+    <a href="chapter-13.html" aria-current="page"><span class="ch-num">13</span>Citation &amp; Responsible AI</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="../supplementary/loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="../supplementary/short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="../supplementary/loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#lab">Citation Workshop</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 13 · Computing Track · Week 49</span>
+      <h1>Citation &amp; Responsible AI</h1>
+      <p class="lede">
+        Every idea in a report is either yours or somebody else’s, and your reader should never have to guess which.
+        <strong>Citing</strong> is the habit that keeps the two apart: an in-text note plus a full reference, in APA, MLA, Chicago
+        or IEEE style. This week you also meet the new question of the AI era — what to cite, what to <em>disclose</em>, and why
+        a chatbot is never a source of facts — and you learn where plagiarism begins. Then build real references in the
+        Citation Workshop.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">9 concepts</a>
+        <a class="chip" href="#lab">Citation Workshop</a>
+        <a class="chip" href="#quiz">27-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/6%20-%20Citations%2C%20Referencing.pptx">Slides (PPTX)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>Give credit, and make it checkable</h2>
+      </div>
+      
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch13-card-catalog.jpg" width="966" height="620"
+             alt="Black-and-white photograph of a wall of wooden library card-catalog drawers, each with a small label holder and a pull knob">
+        <figcaption>
+          <strong>A card catalog is a citation system you can walk into.</strong> Every little card says
+          who made a work, what it is called, who published it and where to find it — exactly the facts a
+          reference-list entry carries today. Citing is the habit of leaving that trail for your reader.
+          <span class="credit">Photo: “2005 card catalog” by Sue Peacock, University of Illinois (Urbana-Champaign), 2005 ·
+            <a href="https://commons.wikimedia.org/wiki/File:2005_card_catalog_14586515.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener">CC BY-SA 2.0</a> (cropped)</span>
+        </figcaption>
+      </figure>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.1</span>What is a citation? — a promise the reader can check</h3>
+        <p style="max-width:46rem">
+          To <strong>cite</strong> a source is to give credit to the original source of a piece of information,
+          an idea, or a particular way of putting an idea — in a standard format that anybody can follow back
+          (textbook 6.1; slides 3–4). A working citation system always has <strong>two parts that point at each other</strong>:
+        </p>
+        <ul style="max-width:46rem">
+          <li><strong>In-text citation</strong> — a tiny note right after the borrowed sentence: an author and year such as
+            <span class="mono">(Allen et al., 2011)</span>, or a number such as <span class="mono">[3]</span>.</li>
+          <li><strong>Reference list</strong> (references / bibliography / works cited) — the full entries at the end:
+            authors, title, journal or publisher, year, pages, and a DOI or URL.</li>
+        </ul>
+        <figure class="fig">
+          <svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-label="Diagram: the in-text citation (Allen et al., 2011) in a sentence of your report points with an arrow to the matching full entry in the reference list at the end of the report">
+            <defs><marker id="cite-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" style="fill:var(--accent)"/></marker></defs>
+            <rect x="8" y="8" width="290" height="234" rx="10" style="fill:var(--surface);stroke:var(--line);stroke-width:1.5"/>
+            <text x="22" y="32" font-size="12" font-weight="700" style="fill:var(--ink-soft)">YOUR REPORT — the body text</text>
+            <text x="22" y="64" font-size="13" style="fill:var(--ink)">A sentence that uses an idea,</text>
+            <text x="22" y="84" font-size="13" style="fill:var(--ink)">a number or a figure taken from</text>
+            <text x="22" y="104" font-size="13" style="fill:var(--ink)">another work goes here</text>
+            <rect x="22" y="112" width="148" height="24" rx="6" style="fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent);stroke-width:1.5"/>
+            <text x="30" y="129" font-size="13" font-family="IBM Plex Mono, monospace" font-weight="600" style="fill:var(--accent-ink)">(Allen et al., 2011)</text>
+            <text x="176" y="129" font-size="13" style="fill:var(--ink)">.</text>
+            <text x="22" y="164" font-size="12" style="fill:var(--ink-soft)">short, right where the idea is used</text>
+            <text x="22" y="184" font-size="12" style="fill:var(--ink-soft)">IEEE style would show [1] instead</text>
+            <rect x="322" y="8" width="290" height="234" rx="10" style="fill:var(--surface);stroke:var(--line);stroke-width:1.5"/>
+            <text x="336" y="32" font-size="12" font-weight="700" style="fill:var(--ink-soft)">REFERENCES — the last page</text>
+            <text x="336" y="62" font-size="12" style="fill:var(--ink-soft)">Brown, K. (2019). …</text>
+            <rect x="332" y="76" width="270" height="86" rx="6" style="fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent);stroke-width:1.5"/>
+            <text x="340" y="96" font-size="12" style="fill:var(--ink)">Allen, J., Levintova, M., &amp; Mohatt,</text>
+            <text x="340" y="113" font-size="12" style="fill:var(--ink)">G. V. (2011). Suicide and alcohol-related</text>
+            <text x="340" y="130" font-size="12" style="fill:var(--ink)">disorders in the U.S. Arctic: … International</text>
+            <text x="340" y="147" font-size="12" style="fill:var(--ink)">Journal of Circumpolar Health, 70(5), 473–487.</text>
+            <text x="336" y="188" font-size="12" style="fill:var(--ink-soft)">Zhao, L. (2020). …</text>
+            <path d="M 174 124 C 240 124 250 118 326 118" fill="none" stroke-width="2" style="stroke:var(--accent)" marker-end="url(#cite-arrow)"/>
+          </svg>
+          <figcaption>The textbook’s Figures 6.1–6.2, redrawn: the short citation (left) is a pointer to one full entry (right). Entry shown: the article of the slides’ own example (APA 7 form).</figcaption>
+        </figure>
+        <div class="note warn">
+          <span class="note-tag">Slide and textbook figure, updated</span>
+          The figure in the slides (5–6) and in the textbook shows <span class="mono">(Allen, Levintova, &amp; Mohatt, 2011)</span> —
+          every author named, as the older APA 6 allowed. <strong>APA 7</strong> shortens a work with three or more authors to
+          the first author + <em>et al.</em> from the very first citation, so today the same sentence reads <span class="mono">(Allen et al., 2011)</span>.
+        </div>
+        <p style="max-width:46rem">
+          How a citation looks depends on what you are producing (textbook 6.1.1):
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>You are writing…</th><th>Credit it like this</th></tr>
+          <tr><td>an essay or report</td><td>in-text citation next to the borrowed text + full list of references at the end</td></tr>
+          <tr><td>a presentation</td><td>a source line on the slide under every borrowed chart, picture or key number</td></tr>
+          <tr><td>a program</td><td>a comment at the exact place naming where the code came from</td></tr>
+        </table></div>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">credit_in_code.cpp — a template, fill in the real source</span></div>
+          <pre><span class="cm">// Adapted from: &lt;author or user name&gt;, "&lt;page or answer title&gt;",</span>
+<span class="cm">//   &lt;URL&gt;, accessed &lt;date&gt;. Licence: &lt;as stated on the page&gt;.</span>
+<span class="cm">// What I changed: renamed variables, added the bounds check.</span>
+<span class="kw">int</span> <span class="fn">gcd</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) { <span class="cm">/* ... */</span> }</pre>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.2</span>Why bother? Three reasons</h3>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Reason</th><th>What it means</th><th>Textbook / slide</th></tr>
+          <tr><td><strong>Ethics</strong> — integrity</td><td>Without a citation you do not give credit to the people whose work you use. That is plagiarism, a serious offence in academic life. Citing is the clearest sign of honesty and self-respect in your work.</td><td>6.2.1 · slide 8</td></tr>
+          <tr><td><strong>Scholarly discourse</strong></td><td>Researchers cite so that colleagues can find the sources and so that each idea is credited. When you cite, you step into a global conversation and become a link in a chain of knowledge.</td><td>6.2.2 · slide 8</td></tr>
+          <tr><td><strong>Documenting your work</strong></td><td>Your reader (and your instructor) can see which ideas are yours and which build on others. A good list shows the effort you invested and strengthens your argument.</td><td>6.2.3 · slide 8</td></tr>
+        </table></div>
+        <div class="note with-media">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Citations are also <strong>data</strong>. Eugene Garfield — who helped create the <em>Science Citation Index</em>, <em>Current Contents</em> and <em>Journal Citation Reports</em> — built databases that record which papers cite which, so that a reader could follow an idea forwards as well as backwards in time. Every reference you write is one more link in such a map.
+            <a href="https://en.wikipedia.org/wiki/Eugene_Garfield" target="_blank" rel="noopener">Source: Wikipedia — Eugene Garfield</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-garfield.jpg" width="320" height="320" loading="lazy" alt="Portrait of Eugene Garfield at the Chemical Heritage Foundation in 2007">
+            <figcaption>Photo: Science History Institute (staff photographer, 2007) · <a href="https://commons.wikimedia.org/wiki/File:Eugene_Garfield_HD2007_portrait.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a> (cropped)</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.3</span>Your ideas, borrowed ideas — and three ways to borrow</h3>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Your own ideas — usually no citation</th><th>Borrowed ideas — always cite</th></tr>
+          <tr><td>results from <em>your</em> experiment, survey or simulation</td><td>books, journal articles, newspapers; web pages, blogs, e-mail, social-media posts</td></tr>
+          <tr><td>your analysis and interpretation of those results</td><td>computer source code taken or adapted from elsewhere</td></tr>
+          <tr><td>your conclusions and recommendations</td><td>data (maps, census, economic figures, survey results) and images (charts, diagrams, drawings, photos)</td></tr>
+          <tr><td></td><td>audio and video, podcasts, speeches; interviews, conversations, lectures, posters</td></tr>
+        </table></div>
+        <p style="max-width:46rem"><strong>Common knowledge</strong> — facts almost every reader in the field already knows, such as “the Internet is a global network” — needs no citation. The textbook’s safe rule: <em>if you are not sure how widely known something is, cite it.</em></p>
+        <figure class="fig">
+          <svg viewBox="0 0 610 530" width="610" height="530" role="img" aria-label="Decision flowchart: is it your own work? then no citation. Is it common knowledge for your readers? then no citation, and when unsure cite. Are they the exact words? then quotation marks plus citation plus page. Otherwise paraphrase or summarise in your own words plus citation. If an AI tool helped, also disclose and cite the real sources">
+            <defs><marker id="dec-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>
+            <rect class="fc-terminal" x="70" y="8" width="260" height="42" rx="21"/>
+            <text class="fc-text" x="200" y="29" text-anchor="middle" dominant-baseline="middle">A sentence, number, figure or code</text>
+            <line class="fc-line" x1="200" y1="50" x2="200" y2="74" marker-end="url(#dec-arrow)"/>
+            <polygon class="fc-decision" points="200,78 320,126 200,174 80,126"/>
+            <text class="fc-text" x="200" y="122" text-anchor="middle">Your own work?</text>
+            <text class="fc-text" x="200" y="139" text-anchor="middle" font-size="11">data · analysis</text>
+            <line class="fc-line" x1="320" y1="126" x2="392" y2="126" marker-end="url(#dec-arrow)"/>
+            <text class="fc-label" x="338" y="118">yes</text>
+            <rect class="fc-terminal" x="396" y="104" width="204" height="44" rx="22"/>
+            <text class="fc-text" x="498" y="126" text-anchor="middle" dominant-baseline="middle">No citation needed</text>
+            <line class="fc-line" x1="200" y1="174" x2="200" y2="200" marker-end="url(#dec-arrow)"/>
+            <text class="fc-label" x="210" y="192">no</text>
+            <polygon class="fc-decision" points="200,204 320,252 200,300 80,252"/>
+            <text class="fc-text" x="200" y="248" text-anchor="middle">Common knowledge</text>
+            <text class="fc-text" x="200" y="265" text-anchor="middle">for your readers?</text>
+            <line class="fc-line" x1="320" y1="252" x2="392" y2="252" marker-end="url(#dec-arrow)"/>
+            <text class="fc-label" x="338" y="244">yes</text>
+            <rect class="fc-terminal" x="396" y="226" width="204" height="52" rx="26"/>
+            <text class="fc-text" x="498" y="246" text-anchor="middle" dominant-baseline="middle">No citation —</text>
+            <text class="fc-text" x="498" y="263" text-anchor="middle" dominant-baseline="middle">but if unsure, cite</text>
+            <line class="fc-line" x1="200" y1="300" x2="200" y2="326" marker-end="url(#dec-arrow)"/>
+            <text class="fc-label" x="210" y="318">no / unsure</text>
+            <polygon class="fc-decision" points="200,330 320,378 200,426 80,378"/>
+            <text class="fc-text" x="200" y="382" text-anchor="middle">Exact words?</text>
+            <line class="fc-line" x1="320" y1="378" x2="392" y2="378" marker-end="url(#dec-arrow)"/>
+            <text class="fc-label" x="338" y="370">yes</text>
+            <rect class="fc-process" x="396" y="352" width="204" height="54"/>
+            <text class="fc-text" x="498" y="371" text-anchor="middle" dominant-baseline="middle">Quotation marks</text>
+            <text class="fc-text" x="498" y="388" text-anchor="middle" dominant-baseline="middle">+ citation + page</text>
+            <line class="fc-line" x1="200" y1="426" x2="200" y2="452" marker-end="url(#dec-arrow)"/>
+            <text class="fc-label" x="210" y="444">no</text>
+            <rect class="fc-process" x="50" y="456" width="300" height="42"/>
+            <text class="fc-text" x="200" y="477" text-anchor="middle" dominant-baseline="middle">Paraphrase or summarise + citation</text>
+            <text class="fc-label" x="200" y="520" text-anchor="middle">Used an AI tool anywhere? Also disclose it, and cite the real sources (13.8).</text>
+          </svg>
+          <figcaption>Deciding whether, and how, to cite — read top to bottom. The last line is the new rule of the AI era (13.8).</figcaption>
+        </figure>
+        <h4 style="margin:1.2rem 0 0.4rem">Quote, paraphrase, summarise</h4>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th></th><th>Quote</th><th>Paraphrase</th><th>Summary</th></tr>
+          <tr><td><strong>Words</strong></td><td>the author’s exact words, in quotation marks</td><td>your own words <em>and</em> your own sentence structure</td><td>your own words, much shorter</td></tr>
+          <tr><td><strong>Size of source</strong></td><td>a phrase or a sentence or two</td><td>a sentence or a passage</td><td>a paragraph, chapter or whole work</td></tr>
+          <tr><td><strong>Citation</strong></td><td>yes, with page or paragraph number</td><td>yes — the idea is still borrowed</td><td>yes</td></tr>
+          <tr><td><strong>Use it when…</strong></td><td>the exact wording matters (a definition, a famous line)</td><td>you need the idea, not the style</td><td>you need only the main point</td></tr>
+        </table></div>
+        <p style="max-width:46rem">A worked example. The source is the first sentence of the English Wikipedia article “Plagiarism” (version of 15 September 2026, text under CC BY-SA 4.0). Five ways to use it:</p>
+        <div class="before-after">
+          <div><span class="ba-tag">Source</span>“Plagiarism is the representation of another person’s language, thoughts, ideas, or expressions as one’s own original work.”</div>
+          <div class="ba-bad"><span class="ba-tag">✗ Verbatim copy</span>Plagiarism is the representation of another person’s language, thoughts, ideas, or expressions as your own original work.<br><small>Pasted, one word changed, no quotation marks, no citation. The Paraphrase check in the lab flags 13 identical words in a row.</small></div>
+          <div class="ba-bad"><span class="ba-tag">✗ Patchwork / “paraphrase” by synonym</span>Plagiarism means presenting the language, thoughts, ideas, or expressions of someone else as your own original work.<br><small>Same skeleton, same list of nouns; no citation. Still uses the author’s expression.</small></div>
+          <div class="ba-good"><span class="ba-tag">✓ Quotation</span>“Plagiarism” (2026) defines it as “the representation of another person’s language, thoughts, ideas, or expressions as one’s own original work” (para. 1).<br><small>Exact words in quotation marks + citation + locator. Fine in moderation.</small></div>
+          <div class="ba-good"><span class="ba-tag">✓ Paraphrase</span>Presenting somebody else’s words, thoughts or creative work as if it were your own is plagiarism (“Plagiarism,” 2026).<br><small>New words, new structure, idea still credited.</small></div>
+          <div class="ba-good"><span class="ba-tag">✓ Summary</span>Plagiarism is passing off others’ work as yours (“Plagiarism,” 2026).<br><small>Shortest form of the idea; still cited.</small></div>
+        </div>
+        <p class="note" style="max-width:46rem;margin-top:0">APA 7 gives the title in quotation marks when a web page has no author and is an encyclopedia-style entry; the full entry is in the table of 13.5. For web pages without page numbers APA asks for a paragraph number or heading instead of <span class="mono">p.</span></p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.4</span>Citation styles — one set of facts, several wrappers</h3>
+        <p style="max-width:46rem">
+          Different academic fields and publishers created different standards: <strong>MLA</strong> (humanities),
+          <strong>APA</strong> (social sciences, education, many engineering venues), <strong>Chicago</strong> (author-date
+          in the sciences; the slides show it) and <strong>IEEE</strong> (engineering, electronics, telecommunications and
+          computer science). Check with your instructor which one to use (slide 10) — and then use <em>one</em> style, consistently.
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th></th><th>MLA 9</th><th>APA 7</th><th>Chicago author-date</th><th>IEEE</th></tr>
+          <tr><td><strong>In-text system</strong></td><td>author–page</td><td>author–date</td><td>author–date</td><td>number in [ ]</td></tr>
+          <tr><td><strong>Author name</strong></td><td class="mono">Tanenbaum, Andrew S.</td><td class="mono">Nguyen, L. S. T.</td><td class="mono">Tanenbaum, Andrew S.</td><td class="mono">L. S. T. Nguyen</td></tr>
+          <tr><td><strong>Year</strong></td><td>late in the entry, no parentheses</td><td>right after the author, in ( )</td><td>right after the author, with periods</td><td>late in the entry</td></tr>
+          <tr><td><strong>Article title</strong></td><td>“in quotes”, Title Case</td><td>plain, sentence case</td><td>“in quotes”, Title Case</td><td>“in quotes,” sentence case</td></tr>
+          <tr><td><strong>Book / journal title</strong></td><td>italic, Title Case</td><td>italic (book: sentence case)</td><td>italic, Title Case</td><td>italic (journal usually abbreviated)</td></tr>
+          <tr><td><strong>DOI</strong></td><td class="mono">https://doi.org/…</td><td class="mono">https://doi.org/…</td><td class="mono">https://doi.org/…</td><td class="mono">doi: 10.xxxx/…</td></tr>
+        </table></div>
+        <p style="max-width:46rem">
+          Whatever the style, you need the same facts, so <strong>collect them as you read</strong> (textbook 6.4.1; slide 40):
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Source</th><th>Write down at the moment you find it</th></tr>
+          <tr><td>Book</td><td>author(s), title, edition, place of publication, publisher, year</td></tr>
+          <tr><td>Article</td><td>author(s), article title, journal title, volume, issue, date, page numbers, DOI or permalink</td></tr>
+          <tr><td>Web page</td><td>author or organisation, page title, website, date, URL, <em>the date you opened it</em></td></tr>
+        </table></div>
+        <p style="max-width:46rem">
+          <strong>Why consistency matters</strong> (textbook question 4): a reader scans the list for a pattern. If every entry follows the same
+          pattern, the reader finds the author, the year and the DOI without thinking — and mixed-up styles make an otherwise careful report look careless.
+          <strong>Reference managers</strong> help: <a href="https://www.zotero.org/" target="_blank" rel="noopener">Zotero</a> (browser plug-in that imports sources),
+          <a href="https://www.mendeley.com/" target="_blank" rel="noopener">Mendeley</a> (PDFs, notes, collaboration), EndNote (advanced Word integration), and the quick
+          <a href="https://zbib.org/" target="_blank" rel="noopener">ZoteroBib</a> generator (slides 41–43; textbook 6.4.11). They copy whatever data they are given, so a wrong
+          title or a missing DOI stays wrong — <em>always proofread what a tool writes</em>.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.5</span>Building a reference, element by element</h3>
+        <p style="max-width:46rem">Take the most common case, an <strong>APA 7 journal article</strong> (slides 17–21). The coloured pieces are the elements; the rules follow.</p>
+        <figure class="fig">
+          <p class="ref-line ref-anat"><span class="a-au">Dijkstra, E. W.</span> <span class="a-yr">(1968).</span> <span class="a-ti">Go to statement considered harmful.</span> <span class="a-co"><i>Communications of the ACM</i>, <i>11</i>(3), 147–148.</span> <span class="a-id">https://doi.org/10.1145/362929.362947</span></p>
+          <div class="ref-legend"><span><span class="ref-anat"><span class="a-au">Author</span></span></span><span><span class="ref-anat"><span class="a-yr">Year</span></span></span><span><span class="ref-anat"><span class="a-ti">Title of the article</span></span></span><span><span class="ref-anat"><span class="a-co">Container, volume(issue), pages</span></span></span><span><span class="ref-anat"><span class="a-id">DOI</span></span></span></div>
+        </figure>
+        <ul style="max-width:46rem">
+          <li><strong>Author:</strong> invert every name — family name, comma, initials with a space between them (<span class="mono">Nguyen, L. S. T.</span>); keep the authors in the order on the work; join the last two with <span class="mono">&amp;</span>.</li>
+          <li><strong>Year</strong> in parentheses, then a period.</li>
+          <li><strong>Article title:</strong> sentence case (only the first word, the first word after a colon, and proper nouns are capitalised); <em>not</em> italic.</li>
+          <li><strong>Journal name</strong> in italics with all major words capitalised; <strong>volume</strong> in italics, <strong>issue</strong> in plain type, in parentheses and with no space before it; then a comma.</li>
+          <li><strong>Pages</strong> with an <em>en dash</em> and no spaces (147–148). If the journal has an article number instead, write <span class="mono">Article 100578</span>.</li>
+          <li><strong>DOI</strong> as a full link, and <em>no period</em> after it. Give a DOI whenever one exists.</li>
+        </ul>
+        <p style="max-width:46rem">
+          Books follow the same logic — <span class="mono">Author. (Year). <i>Title in sentence case</i> (4th ed.). Publisher.</span> (slides 22–25) — and a chapter in an edited book adds
+          <span class="mono">In E. Y. Li &amp; T. C. Du (Eds.), <i>Book title</i> (pp. 93–115).</span> (slides 26–30). Here are five real works in three styles, produced by the same engine as the
+          lab below:
+        </p>
+        <div class="tbl-scroll"><table class="tbl" style="min-width:60rem">
+          <tr><th>Type</th><th>APA 7</th><th>MLA 9</th><th>IEEE</th></tr>
+          <tr><td><strong>Journal article</strong></td><td>Dijkstra, E. W. (1968). Go to statement considered harmful. <i>Communications of the ACM</i>, <i>11</i>(3), 147–148. https://doi.org/10.1145/362929.362947</td><td>Dijkstra, Edsger W. “Go To Statement Considered Harmful.” <i>Communications of the ACM</i>, vol. 11, no. 3, Mar. 1968, pp. 147–148, https://doi.org/10.1145/362929.362947.</td><td>[1] E. W. Dijkstra, “Go to statement considered harmful,” <i>Commun. ACM</i>, vol. 11, no. 3, pp. 147–148, Mar. 1968, doi: 10.1145/362929.362947.</td></tr>
+          <tr><td><strong>Book</strong></td><td>Russell, S. J., &amp; Norvig, P. (2021). <i>Artificial intelligence: A modern approach</i> (4th ed.). Pearson.</td><td>Russell, Stuart J., and Peter Norvig. <i>Artificial Intelligence: A Modern Approach</i>. 4th ed., Pearson, 2021.</td><td>[1] S. J. Russell and P. Norvig, <i>Artificial Intelligence: A Modern Approach</i>, 4th ed. Hoboken, NJ, USA: Pearson, 2021.</td></tr>
+          <tr><td><strong>Chapter in an edited book</strong></td><td>Quan, T. T., Hui, S. C., &amp; Fong, A. C. M. (2007). Semantic web support for customer services. In E. Y. Li &amp; T. C. Du (Eds.), <i>Advances in electronic business, volume 2</i> (pp. 93–115). IGI Global. https://doi.org/10.4018/978-1-59140-678-5.ch004</td><td>Quan, T. T., et al. “Semantic Web Support for Customer Services.” <i>Advances in Electronic Business, Volume 2</i>, edited by Eldon Y. Li and Timon C. Du, IGI Global, 2007, pp. 93–115, https://doi.org/10.4018/978-1-59140-678-5.ch004.</td><td>[1] T. T. Quan, S. C. Hui, and A. C. M. Fong, “Semantic web support for customer services,” in <i>Advances in Electronic Business, Volume 2</i>, E. Y. Li and T. C. Du, Eds., Hershey, PA, USA: IGI Global, 2007, pp. 93–115, doi: 10.4018/978-1-59140-678-5.ch004.</td></tr>
+          <tr><td><strong>Conference paper</strong></td><td>Nguyen, L. S. T., &amp; Quan, T. (2026). Which works best for Vietnamese? A practical study of information retrieval methods across domains. In <i>Findings of the Association for Computational Linguistics: EACL 2026</i> (pp. 2098–2119). Association for Computational Linguistics. https://doi.org/10.18653/v1/2026.findings-eacl.110</td><td>Nguyen, Long S. T., and Tho Quan. “Which Works Best for Vietnamese? A Practical Study of Information Retrieval Methods across Domains.” <i>Findings of the Association for Computational Linguistics: EACL 2026</i>, Association for Computational Linguistics, 2026, pp. 2098–2119, https://doi.org/10.18653/v1/2026.findings-eacl.110.</td><td>[1] L. S. T. Nguyen and T. Quan, “Which works best for Vietnamese? A practical study of information retrieval methods across domains,” in <i>Findings of the Association for Computational Linguistics: EACL 2026</i>, Rabat, Morocco, 2026, pp. 2098–2119, doi: 10.18653/v1/2026.findings-eacl.110.</td></tr>
+          <tr><td><strong>Web page</strong> (Wikipedia, archived version)</td><td>Plagiarism. (2026, September 15). In <i>Wikipedia</i>. https://en.wikipedia.org/w/index.php?title=Plagiarism&amp;oldid=1375097789</td><td>“Plagiarism.” <i>Wikipedia</i>, Wikimedia Foundation, 15 Sept. 2026, en.wikipedia.org/w/index.php?title=Plagiarism&amp;oldid=1375097789. Accessed 18 Oct. 2026.</td><td>[1] “Plagiarism,” Wikipedia, Sep. 15, 2026. Accessed: Oct. 18, 2026. [Online]. Available: https://en.wikipedia.org/w/index.php?title=Plagiarism&amp;oldid=1375097789</td></tr>
+        </table></div>
+        <div class="note with-media">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            The most-quoted letter in programming has a title its author did not choose. Dijkstra submitted it as “A Case Against the Goto Statement”; the editor of <em>Communications of the ACM</em>, Niklaus Wirth, changed it to the version in the reference above — and “… considered harmful” has been a template for essay titles ever since. That is why you copy a title <strong>exactly as printed</strong>, from the work itself or its DOI record.
+            <a href="https://en.wikipedia.org/wiki/Considered_harmful" target="_blank" rel="noopener">Source: Wikipedia — Considered harmful</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-dijkstra.jpg" width="320" height="320" loading="lazy" alt="Edsger Dijkstra lecturing at a blackboard covered with formulas at ETH Zurich in 1994">
+            <figcaption>Photo: Andreas F. Borchert, 1994 · <a href="https://commons.wikimedia.org/wiki/File:Edsger_Dijkstra_1994.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (cropped)</figcaption>
+          </figure>
+        </div>
+        <h4 style="margin:1.2rem 0 0.4rem">Web pages (textbook 6.4.9)</h4>
+        <ul style="max-width:46rem">
+          <li><strong>Who:</strong> the person if the page names one; otherwise the organisation that published it (and when neither exists, the style tells you to start with the title — textbook question 6).</li>
+          <li><strong>When:</strong> the date of the page or of the version; <strong>what:</strong> the exact page title, not a made-up one; <strong>where:</strong> the URL of <em>that page</em>, not just the home page.</li>
+          <li><strong>Access date</strong> for pages that change (wikis, statistics, dashboards): IEEE requires it, MLA treats it as optional but useful, and APA uses the date of an archived version — so a permanent “oldid” link replaces a retrieval date. APA falls back to “n.d.” plus <em>Retrieved …, from</em> for a live page with no date and no archive.</li>
+          <li><strong>Reliability:</strong> prefer official sources — institutions, universities, publishers, scientific organisations. A tertiary source such as Wikipedia is a good map to the primary sources in its own reference list.</li>
+        </ul>
+        <div class="note warn">
+          <span class="note-tag">Corrections to the course material</span>
+          <ul style="margin:0.4rem 0 0 1.1rem">
+            <li><strong>Textbook 6.4.7</strong> lists one editor (“E. Li”) for the 2007 chapter; the book <em>Advances in Electronic Business, Volume 2</em> has <em>two</em> editors, Eldon Y. Li and Timon C. Du, so APA says <span class="mono">(Eds.)</span> — the table above uses the corrected form (Crossref record 10.4018/978-1-59140-678-5).</li>
+            <li><strong>Textbook 6.4.6</strong> lists all three authors of <em>Computer Networks</em> in its MLA example; MLA 9 shortens three or more authors to <span class="mono">Tanenbaum, Andrew S., et al.</span> (the textbook’s own in-text rule already says “et al.”).</li>
+            <li>The journal in Dang et al. (2026) is <em>Computers and Education: Artificial Intelligence</em> (Elsevier/Crossref), not “Computers &amp; Education”. And a byline can differ between papers: Crossref prints this author as “Tho Quan” — the initials T. T. in textbook examples come from a fuller form of the name. <strong>Copy names the way the work itself prints them.</strong></li>
+            <li><strong>Textbook 6.4.9</strong> puts the IEEE access date last (<span class="mono">[Online]. Available: URL. [Accessed: …]</span>); the current IEEE guide writes <span class="mono">Accessed: Mon. D, YYYY. [Online]. Available: URL</span>, as in the table above.</li>
+            <li><strong>Slide 12:</strong> the URLs contain stray spaces and a typo from line wrapping (“…/ the-death-…-thecreative-…”) — a real URL never contains a space. <strong>Slide 43</strong> puts “has free subscription version, but free has ads” under EndNote, but it belongs to Citation Machine.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.6</span>In-text citations — short form in the sentence</h3>
+        <div class="tbl-scroll"><table class="tbl" style="min-width:48rem">
+          <tr><th>Case</th><th>APA 7 (author–date)</th><th>MLA 9 (author–page)</th><th>Chicago (author–date)</th><th>IEEE (number)</th></tr>
+          <tr><td>1 author</td><td class="mono">(Russell, 2021)</td><td class="mono">(Tanenbaum 45)</td><td class="mono">(Tanenbaum 2021)</td><td class="mono">[2]</td></tr>
+          <tr><td>2 authors</td><td class="mono">(Nguyen &amp; Quan, 2026)</td><td class="mono">(Tanenbaum and Wetherall 45)</td><td class="mono">(Tanenbaum and Wetherall 2021)</td><td class="mono">[3]</td></tr>
+          <tr><td>3 or more authors</td><td class="mono">(Dang et al., 2026)</td><td class="mono">(Tanenbaum et al. 45)</td><td class="mono">(Tanenbaum et al. 2021)</td><td class="mono">[1]</td></tr>
+          <tr><td>narrative form</td><td>Nguyen and Quan (2026) show …</td><td>Tanenbaum (45) states …</td><td>Tanenbaum (2021) states …</td><td>Nguyen and Quan [3] show …</td></tr>
+          <tr><td>direct quotation</td><td class="mono">(Dang et al., 2026, p. 5)</td><td class="mono">(Tanenbaum et al. 45)</td><td class="mono">(Tanenbaum 2021, 102)</td><td class="mono">[3, p. 2100]</td></tr>
+          <tr><td>several sources</td><td class="mono">(Dang et al., 2026; Nguyen &amp; Quan, 2026; Russell &amp; Norvig, 2021)</td><td class="mono">(Mantel 12; Tanenbaum 45)</td><td class="mono">(Grazer and Fishman 2015; Tanenbaum 2021)</td><td class="mono">[1], [3], [5]</td></tr>
+        </table></div>
+        <ul style="max-width:46rem">
+          <li><strong>APA</strong>: “&amp;” <em>inside</em> parentheses, “and” in running text; alphabetical order for several sources, separated by semicolons; verbatim quotations need a page.</li>
+          <li><strong>MLA</strong>: no year, no comma, only the page you used; list several sources alphabetically with semicolons.</li>
+          <li><strong>Chicago</strong>: never “&amp;” in parentheses; year and page are separated by a comma and no “p.”.</li>
+          <li><strong>IEEE</strong>: the number goes <em>before</em> the full stop; a source keeps its number for the whole document; a quotation adds the locator inside the brackets.</li>
+        </ul>
+        <div class="note warn">
+          <span class="note-tag">Textbook, updated</span>
+          The textbook writes consecutive IEEE sources as a range, <span class="mono">[1]–[5]</span>. The current <em>IEEE Reference Guide</em> (v. 3.28.2025) says that IEEE publications write every number out — <span class="mono">[1], [2], [3], [4], [5]</span> — so check what your target venue or course expects. The same guide asks for “et al.” when a narrative citation has three or more authors.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.7</span>IEEE style — the one computer scientists meet <span class="supp-tag">Supplementary</span></h3>
+        <p style="max-width:46rem">If you publish in or read computing papers you will meet <strong>IEEE numeric style</strong> daily. Its recipe, checked against the <a href="https://journals.ieeeauthorcenter.ieee.org/wp-content/uploads/sites/7/IEEE_Reference_Guide.pdf" target="_blank" rel="noopener">IEEE Reference Guide</a> (v. 3.28.2025):</p>
+        <ul style="max-width:46rem">
+          <li>Numbered in order of first citation: <span class="mono">[1]</span>, <span class="mono">[2]</span>… and the list is <em>not</em> alphabetical.</li>
+          <li>Initials <em>first</em>, family name last, no inversion; up to six authors, then the first author + <em>et al.</em></li>
+          <li>Article title in quotation marks, sentence case, with the comma <em>inside</em> the quotes; the journal name is standard-abbreviated and italic (<i>Commun. ACM</i>).</li>
+          <li>Then <span class="mono">vol.</span>, <span class="mono">no.</span>, <span class="mono">pp.</span>, an abbreviated month and the year, an article ID as <span class="mono">Art. no.</span>, and <span class="mono">doi: …</span> without a link.</li>
+          <li>Web pages end with <span class="mono">Accessed: Mon. D, YYYY. [Online]. Available: URL</span>; the whole entry ends with a full stop except when it ends with a URL.</li>
+        </ul>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">references.txt — IEEE, in order of first citation</span></div>
+          <pre style="white-space:pre-wrap;overflow-wrap:anywhere">[1] E. W. Dijkstra, “Go to statement considered harmful,” Commun. ACM, vol. 11, no. 3, pp. 147–148, Mar. 1968, doi: 10.1145/362929.362947.
+[2] S. J. Russell and P. Norvig, Artificial Intelligence: A Modern Approach, 4th ed. Hoboken, NJ, USA: Pearson, 2021.
+[3] “Plagiarism,” Wikipedia, Sep. 15, 2026. Accessed: Oct. 18, 2026. [Online]. Available: https://en.wikipedia.org/w/index.php?title=Plagiarism&amp;oldid=1375097789
+[4] A. Vaswani <span class="cm">et al.</span>, “Attention is all you need,” 2017, arXiv:1706.03762.</pre>
+        </div>
+        <p style="max-width:46rem"><small>Entry [4] follows the guide’s pattern for a preprint (<span class="mono">J. K. Author, “Title,” year, arXiv number</span>); the paper has eight authors, so “et al.”. It is a real work: <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">arxiv.org/abs/1706.03762</a>.</small></p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.8</span>AI tools: cite, disclose — and never cite as a source of facts</h3>
+        <p style="max-width:46rem">
+          Generative AI can help you learn — ask it to quiz you, give examples, find the weak spot in an argument (textbook 4.5.6) — but it can also give you fluent nonsense (<a href="chapter-11.html">Chapter 11</a>,
+          <a href="chapter-12.html">Chapter 12</a>: hallucination). The textbook’s <strong>golden rule</strong> (6.4.10): <em>AI may support your learning, but it does not replace your responsibility to verify sources, check facts and cite properly.</em> Six habits follow from it:
+        </p>
+        <ol style="max-width:46rem">
+          <li><strong>Acknowledge</strong> content that an AI tool created or substantially helped to create, the way your course, university, conference or publisher requires.</li>
+          <li><strong>AI is not an author</strong> and does not carry responsibility; you do — for the content, arguments, data and results.</li>
+          <li><strong>Verify</strong>: AI output can be wrong, out of date, or can contain <em>fabricated references</em>. It is not a verified source.</li>
+          <li><strong>Trace the original</strong>: if the AI states a fact that comes from a book, paper or dataset, find that work, read it, and cite it — not the chatbot.</li>
+          <li><strong>Code, images:</strong> check AI-assisted code for correctness, safety and licence; label AI-generated images as such (tool, model if required) and credit the original if one was edited.</li>
+          <li><strong>Follow the policy</strong> that applies to the specific work. Courses, universities and journals differ — this site cannot tell you yours; read your course and university rules.</li>
+        </ol>
+        <h4 style="margin:1.2rem 0 0.4rem">The current rules for citing a generative-AI answer</h4>
+        <div class="tbl-scroll"><table class="tbl" style="min-width:50rem">
+          <tr><th></th><th>MLA 9 (Style Center, updated 13 Aug 2025)</th><th>APA 7 (APA Style blog, 9 Sep 2025)</th><th>IEEE</th></tr>
+          <tr><td><strong>Author</strong></td><td>none — the tool is <em>not</em> an author</td><td>the company that made the tool (OpenAI)</td><td>no reference format</td></tr>
+          <tr><td><strong>Pieces</strong></td><td>description of the prompt (title of source) · tool (container) · <em>model</em> (version) · company · date generated · <em>stable share link</em> (else the tool’s general URL)</td><td>company · (date) · <i>chat title</i> · [Generative AI chat] · tool · share link; cite a <em>specific chat</em> when it helps readers</td><td>disclose AI-generated content in the Acknowledgments: which system, which parts</td></tr>
+          <tr><td><strong>Example</strong></td><td>“Describe the theme of nature in Jane Austen’s <i>Mansfield Park</i>” prompt. <i>ChatGPT</i>, model GPT-4o, OpenAI, 23 Sept. 2024, chatgpt.com/share/66f1b0a0-d704-8000-be9a-85f53c850607.</td><td>OpenAI. (2025, August 21). <i>High school grammar concepts</i> [Generative AI chat]. ChatGPT. https://chatgpt.com/share/68a77b60-0ee4-800c-9acc-cd3fd573c311</td><td>—</td></tr>
+          <tr><td><strong>In text</strong></td><td class="mono">(“Describe the theme”)</td><td class="mono">(OpenAI, 2025)</td><td>—</td></tr>
+        </table></div>
+        <p style="max-width:46rem"><small>Both examples are the style bodies’ <em>own</em> examples (MLA’s Austen prompt; APA’s grammar chat). If a tool gives you no shareable link, MLA says to give the tool’s general URL; APA treats output readers cannot retrieve as personal communication — mentioned in the text only.</small></p>
+        <div class="note warn">
+          <span class="note-tag">The slides, updated</span>
+          Slides 15 and 31 show the <strong>2023</strong> forms: MLA “ChatGPT, 13 Feb. version, OpenAI, 8 Mar. 2023, chat.openai.com/chat” and APA “OpenAI. (2023). ChatGPT (Mar 14 version) [Large language model]”. Both guides have since moved on — MLA now asks for the <em>model name</em> (e.g. GPT-4o) and a stable share link; APA now cites a specific chat instead of the tool in general. (Slide 38 shows Chicago’s 2023 pattern; check the current <em>Chicago Manual of Style</em> before using it.)
+        </div>
+        <h4 style="margin:1.2rem 0 0.4rem">Citing vs. disclosing</h4>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th></th><th>Citation</th><th>Disclosure (acknowledgement)</th></tr>
+          <tr><td><strong>Answers</strong></td><td>“Where does this <em>come from</em>?”</td><td>“How did a tool <em>help me work</em>?”</td></tr>
+          <tr><td><strong>Contains</strong></td><td>an exact source a reader could look up</td><td>tool and version · date · what it was used for · what you did yourself · (prompts, if asked)</td></tr>
+          <tr><td><strong>Example</strong></td><td class="mono">(OpenAI, 2025) + a reference-list entry</td><td>“I used ChatGPT (GPT-4o, 12 Oct 2026) for an outline; I wrote and checked the text.”</td></tr>
+          <tr><td><strong>Does it replace the other?</strong></td><td colspan="2">No. A disclosure never replaces citing the real source of a fact; a citation of a chatbot never replaces disclosure of how you used it. MLA: “Generative AI output is not a source in the traditional sense.”</td></tr>
+        </table></div>
+        <p style="max-width:46rem">Keep a small <strong>log</strong> while you work — tool, version, date, the prompt, what you took from the answer, how you verified it. When disclosure is needed (or an instructor asks), you will not be reconstructing it from memory.</p>
+        <div class="note danger">
+          <span class="note-tag">True story · Mata v. Avianca, 2023</span>
+          In a New York federal court, a plaintiff’s lawyers filed a brief that cited court cases generated by ChatGPT — cases that <strong>did not exist</strong>, with invented quotations and internal citations. The airline’s lawyers and then the judge could not find them. The court dismissed the case and fined the lawyers $5,000. This is exactly the case in textbook question 9: a confident AI answer with a source that does not exist.
+          <a href="https://en.wikipedia.org/wiki/Mata_v._Avianca,_Inc." target="_blank" rel="noopener">Source: Wikipedia — Mata v. Avianca, Inc.</a>
+        </div>
+        <p style="max-width:46rem"><strong>What to do with an AI-suggested reference:</strong> search the exact title and authors in <a href="https://search.crossref.org/" target="_blank" rel="noopener">Crossref</a> or a library catalogue; open the DOI and compare title, authors, venue and year. If anything disagrees — or nothing is found — drop it. Panel 2 of the lab has a reference that is perfectly formatted but fails this check.</p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">13.9</span>Academic integrity: what plagiarism is, and what it is not</h3>
+        <p style="max-width:46rem">
+          <strong>Plagiarism</strong> is using another person’s ideas, data, images or wording without giving proper credit or an accurate citation (textbook 6.5.1). It is not only word-for-word copying: weak paraphrasing skills cause a lot of it. Universities treat it as serious misconduct, and it damages a person’s reputation as well as the institution’s.
+        </p>
+        <div class="note">
+          <span class="note-tag">Did you know?</span>
+          The word comes from Latin <em>plagiarius</em> — literally “kidnapper”. In the 1st century the Roman poet Martial used it to complain that another poet had “kidnapped his verses”; the English word appeared around 1620.
+          <a href="https://en.wikipedia.org/wiki/Plagiarism#Etymology_and_ancient_history" target="_blank" rel="noopener">Source: Wikipedia — Plagiarism (etymology)</a>.
+        </div>
+        <h4 style="margin:1.2rem 0 0.4rem">A taxonomy of problems <span class="supp-tag">Supplementary</span></h4>
+        <div class="tbl-scroll"><table class="tbl" style="min-width:48rem">
+          <tr><th>Type</th><th>What it is</th><th>In a CS course</th><th>Fix</th></tr>
+          <tr><td><strong>Verbatim copy</strong></td><td>exact words without quotation marks and citation</td><td>pasting a paragraph from a web page or a classmate’s report</td><td>quote + cite, or rewrite</td></tr>
+          <tr><td><strong>Patchwork / mosaic</strong></td><td>stitching phrases from several sources, swapping a few words</td><td>a “literature review” made of lightly edited sentences</td><td>read, close the tab, write from understanding, cite each source</td></tr>
+          <tr><td><strong>Paraphrase without citation</strong></td><td>new words, borrowed idea, no credit</td><td>explaining Dijkstra’s argument as your own insight</td><td>paraphrase + citation</td></tr>
+          <tr><td><strong>Uncredited code</strong></td><td>code from a forum, repository or classmate without credit</td><td>a copied function in a graded program</td><td>comment with source and licence; check what the rules allow</td></tr>
+          <tr><td><strong>Self-plagiarism</strong></td><td>re-submitting your earlier work as new</td><td>reusing a graded report in another course</td><td>ask first; cite your earlier work</td></tr>
+          <tr><td><strong>Contract cheating</strong></td><td>someone else (a service, a friend) produces the work</td><td>paying for a program or report</td><td>not fixable by citing — it is not your work</td></tr>
+          <tr><td><strong>Unattributed AI text</strong></td><td>AI-produced text or code presented as your own</td><td>submitting a ChatGPT paragraph under your name</td><td>follow the AI policy: disclose, verify, own the content</td></tr>
+          <tr><td><strong>Fabrication</strong></td><td>invented sources, data or quotations</td><td>an AI-made reference with a non-existent DOI</td><td>never cite what you have not found and read</td></tr>
+        </table></div>
+        <p style="max-width:46rem"><small>The textbook defines plagiarism and the principles below; the taxonomy is a common way of sorting the cases, and the words differ from one institution to another.</small></p>
+        <h4 style="margin:1.2rem 0 0.4rem">Habits that prevent it (textbook 6.5.2)</h4>
+        <ul style="max-width:46rem">
+          <li><strong>Always cite:</strong> the moment you use an idea or data that is not yours, cite it right there.</li>
+          <li><strong>Use tools</strong> — Zotero, Mendeley or EndNote — to keep sources organised and avoid accidental mistakes.</li>
+          <li><strong>Verify:</strong> check that a source is reliable before you cite it, and prefer peer-reviewed work.</li>
+        </ul>
+        <h4 style="margin:1.2rem 0 0.4rem">Evaluating a source <span class="supp-tag">Supplementary</span></h4>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Ask…</th><th>Look at</th></tr>
+          <tr><td><strong>Authority</strong> — who says so?</td><td>named authors and institution; peer review; can you verify who actually wrote or said it?</td></tr>
+          <tr><td><strong>Accuracy</strong> — can it be checked?</td><td>references, data, other sources that agree; a DOI that resolves</td></tr>
+          <tr><td><strong>Currency</strong> — how old is it?</td><td>date of publication or update; has the field moved on?</td></tr>
+          <tr><td><strong>Relevance</strong> — does it answer <em>your</em> question?</td><td>depth, audience, scope</td></tr>
+          <tr><td><strong>Purpose</strong> — why was it written?</td><td>inform, teach, sell, persuade?</td></tr>
+        </table></div>
+        <p style="max-width:46rem">These five questions are often called the CRAAP test. The “quote card” rule goes with it: before you attribute a quotation to a famous person, find the original — an attribution is a claim like any other and can be wrong.</p>
+        <div class="note tip">
+          <span class="note-tag">Consequences — ask your own course</span>
+          What happens after a suspected violation depends on the institution and the assignment. This page deliberately does not guess: read the integrity and assessment rules of <em>your course syllabus and your university</em>, and ask the instructor in writing when something is unclear. Early disclosure — “I used X for Y” — is nearly always better than being found out.
+        </div>
+        <div class="note tip">
+          <span class="note-tag">Sources I checked for this chapter</span>
+          <ul style="margin:0.3rem 0 0 1.1rem">
+            <li>MLA Style Center: <a href="https://style.mla.org/citing-generative-ai-updated-revised/" target="_blank" rel="noopener">How do I cite generative AI in MLA style? (Updated and Revised)</a> and <a href="https://style.mla.org/describing-ai-use/" target="_blank" rel="noopener">Beyond Citation: Describing AI Use in Your Work</a> (both 13 Aug 2025); <a href="https://style.mla.org/journals-with-article-numbers/" target="_blank" rel="noopener">journals with article numbers</a>.</li>
+            <li>IEEE Reference Guide v. 3.28.2025 (opened in full); IEEE Author Center submission policies (as summarised in search results; the page blocks automatic download).</li>
+            <li>APA Style blog <a href="https://apastyle.apa.org/blog/cite-generative-ai-references" target="_blank" rel="noopener">Citing generative AI in APA Style, Part 1</a> (9 Sep 2025) — the page needs a browser to display; its example reference was confirmed in a university library guide that quotes it.</li>
+            <li>Every example work was looked up in Crossref (DOI), the publisher page, or Wikipedia’s API: Dijkstra 10.1145/362929.362947; Dang et al. 10.1016/j.caeai.2026.100578; Quan et al. 10.4018/978-1-59140-678-5.ch004; Nguyen &amp; Quan 10.18653/v1/2026.findings-eacl.110; Stroustrup (InformIT: 4th ed., 2013); Wikipedia “Plagiarism”, revision 1375097789.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Lab</span>
+        <h2>Citation Workshop — build it, spot the mistake, check the paraphrase</h2>
+        <p>
+          <strong>Panel 1</strong> turns one set of facts into APA 7, MLA 9 and IEEE references plus the in-text form, with
+          hints for the usual mistakes (missing DOI, un-inverted names, wrong capitalisation). <strong>Panel 2</strong> shows eight flawed
+          citations of the same real works. <strong>Panel 3</strong> is a small overlap checker. This is a <em>teaching tool built from the style guides listed above</em>,
+          not an authority: your course’s guide wins.
+        </p>
+      </div>
+      <div id="cite-root"></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Load the Dang et al. preset and compare how many authors each style prints. Load the Wikipedia preset and delete the access date.
+        Switch the Stroustrup book to IEEE and fill in the city. In panel 2, open the DOI of the last item yourself — then ask why a tidy reference can still be wrong.
+        In panel 3, rewrite the sample sentence until the checker is quiet, and then ask yourself what is still missing.
+      </div>
+    </div>
+  </section>
+
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Chapter 13 quiz</h2>
+        <p>27 questions — what and why of citing, quoting vs. paraphrasing, APA/MLA/IEEE forms, in-text citations, AI rules, and plagiarism. Check each answer; the explanation says why.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Practice</span>
+        <h2>Exercises</h2>
+        <p>Six exercises: two on paper, three that use the Citation Workshop (each with the expected result), and one realistic case. Try first, then open the sample solution.</p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Team activity</span>
+        <h2>Integrity case clinic</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation. Counts toward the class-activities 10%.</p>
+      </div>
+      
+      <div class="concept wide">
+        <h3>Task — integrity case clinic</h3>
+        <p style="max-width:46rem">
+          Your team is the “integrity advisory desk” for four student cases. For each case you write (1) a <strong>verdict</strong> using the rubric below,
+          (2) the <strong>reasoning</strong>, and (3) the <strong>correct way to cite or disclose</strong> — with the actual reference or sentence. Remember the
+          limit: you advise on what is <em>fixable</em> and what must go to the instructor; you do not decide penalties.
+        </p>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>Case</th><th>What happened</th></tr>
+          <tr><td><strong>A · The forum function</strong></td><td>For a graded sorting program, Minh pastes a 30-line function from an online forum answer. There is no comment and no mention in the report. The function is the core of the algorithm the assignment asks students to write.</td></tr>
+          <tr><td><strong>B · The tidy paragraph</strong></td><td>Lan lets ChatGPT write the “Discussion” paragraph of a lab report, edits two sentences, and submits it. (Assume the course allows AI for brainstorming and language help <em>if disclosed</em>, but not for writing the analysis.)</td></tr>
+          <tr><td><strong>C · The reference list</strong></td><td>Hung’s report has six references generated by an AI tool. One reads “Dijkstra, E. W. (1969). Go to statement considered harmful. <i>IEEE Transactions on Software Engineering</i>, <i>11</i>(3), 147–148.” with the DOI https://doi.org/10.1145/362929.362947. Another has a DOI that leads nowhere.</td></tr>
+          <tr><td><strong>D · The old report</strong></td><td>Mai reuses the methods and results sections of her graded report from last semester’s course in a new report, rewording a few sentences, and says nothing about it.</td></tr>
+        </table></div>
+        <h4 style="margin:1rem 0 0.4rem">Rubric — answer these five in order</h4>
+        <div class="tbl-scroll"><table class="tbl">
+          <tr><th>#</th><th>Question</th><th>Verdict options</th></tr>
+          <tr><td>1</td><td>What was borrowed (words, ideas, code, data, AI output) and from whom?</td><td>—</td></tr>
+          <tr><td>2</td><td>Is it credited at the point of use <em>and</em> in the reference list or acknowledgement?</td><td>yes / partly / no</td></tr>
+          <tr><td>3</td><td>Do the stated rules allow this kind of help, and was it declared?</td><td>allowed / allowed if declared / not allowed</td></tr>
+          <tr><td>4</td><td>Can every claimed source be verified (found, opened, matches its details)?</td><td>yes / no</td></tr>
+          <tr><td>5</td><td><strong>Verdict</strong></td><td><em>Fine as it is</em> · <em>Fixable by citing or disclosing</em> · <em>Serious — talk to the instructor</em></td></tr>
+        </table></div>
+        <h4 style="margin:1rem 0 0.4rem">Constraints</h4>
+        <ul style="max-width:46rem">
+          <li>Use the <a href="#lab">Citation Workshop</a> to build the correct reference for case C (the real letter) and to check your wording for B.</li>
+          <li>Each verdict must say <em>which rubric answer decided it</em>; “it feels wrong” is not a reason.</li>
+          <li>Write a <em>prevention habit</em> for each case in one line (a comment template, an AI log, a source-check step, a “declare reuse” rule).</li>
+          <li>You may not assume a penalty. Where the rules are unknown, say “check the course policy” and say what you would ask.</li>
+        </ul>
+        <h4 style="margin:1rem 0 0.4rem">Roles</h4>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Case reader</td><td>summarises each case and asks the rubric’s question 1 aloud</td></tr>
+            <tr><td>Rubric keeper</td><td>forces every verdict to cite rubric answers 2–4; stops “gut feeling” verdicts</td></tr>
+            <tr><td>Reference builder</td><td>uses the lab to produce the correct citation, the disclosure sentence and the code-credit comment</td></tr>
+            <tr><td>Presenter</td><td>delivers the five-minute summary: four verdicts, four fixes, four habits</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          Is case A different if the function is only five lines, or if the licence allows reuse? Where exactly does Lan’s disclosure belong, and what would make B acceptable?
+          In case C, what in the Dijkstra entry should have made Hung doubt it, and which check takes under a minute? Would D be fine if Mai had asked permission first — and how would she cite her own report?
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">06 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        
+        <a class="read-card" href="https://style.mla.org/citing-generative-ai-updated-revised/" target="_blank" rel="noopener">
+          <span class="rc-kind">Style guide</span>
+          <h4>MLA Style Center — How do I cite generative AI in MLA style?</h4>
+          <p>The updated (Aug 2025) template: no AI author, model name, stable share link — with the Austen examples used in this chapter.</p>
+        </a>
+        <a class="read-card" href="https://style.mla.org/describing-ai-use/" target="_blank" rel="noopener">
+          <span class="rc-kind">Style guide</span>
+          <h4>MLA Style Center — Beyond Citation: Describing AI Use in Your Work</h4>
+          <p>Why AI output is “not a source in the traditional sense”, and why acknowledging use is part of academic integrity.</p>
+        </a>
+        <a class="read-card" href="https://apastyle.apa.org/blog/cite-generative-ai-references" target="_blank" rel="noopener">
+          <span class="rc-kind">Style guide</span>
+          <h4>APA Style — Citing generative AI in APA Style, Part 1: Reference formats</h4>
+          <p>The September 2025 guidance: company as author, chat title, [Generative AI chat], shared-chat link.</p>
+        </a>
+        <a class="read-card" href="https://journals.ieeeauthorcenter.ieee.org/wp-content/uploads/sites/7/IEEE_Reference_Guide.pdf" target="_blank" rel="noopener">
+          <span class="rc-kind">Style guide</span>
+          <h4>IEEE Reference Guide</h4>
+          <p>Every IEEE pattern — journals, books, chapters, conferences, web, software, arXiv — with abbreviation lists.</p>
+        </a>
+        <a class="read-card" href="https://search.crossref.org/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tool</span>
+          <h4>Crossref — metadata search</h4>
+          <p>Paste a title to find the real DOI, authors, volume and pages — and to test whether an AI-suggested reference exists.</p>
+        </a>
+        <a class="read-card" href="https://zbib.org/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tool</span>
+          <h4>ZoteroBib — fast bibliography generator</h4>
+          <p>Enter a URL, DOI, ISBN or title and get a formatted citation (slide 42). Check what it gives you.</p>
+        </a>
+        <a class="read-card" href="https://www.zotero.org/" target="_blank" rel="noopener">
+          <span class="rc-kind">Tool</span>
+          <h4>Zotero — your personal research assistant</h4>
+          <p>The reference manager with browser plug-in and word-processor integration named in the slides and the textbook.</p>
+        </a>
+        <a class="read-card" href="https://library.uaf.edu/citation-styles" target="_blank" rel="noopener">
+          <span class="rc-kind">Slides’ source</span>
+          <h4>UAF Rasmuson Library — Citation style guides</h4>
+          <p>The library guide the lecture slides are adapted from, with pointers to every major style.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Plagiarism" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Plagiarism</h4>
+          <p>Definitions, history and forms of plagiarism — the article used for the worked example in 13.3.</p>
+        </a>
+
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-12.html"><span class="dir">← Previous chapter</span>LLMs &amp; Security</a>
+        <a href="../index.html#schedule" style="text-align:right"><span class="dir">Next chapter →</span>Course schedule — Week 50: review &amp; A3</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 13 · Citation &amp; Responsible AI</p>
+  </div>
+</footer>
+
+<script src="../assets/cite-lab.js"></script>
+<script src="../assets/ch13-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

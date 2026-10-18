@@ -1,0 +1,96 @@
+/* Chapter 12 lab (LLM & Security) — theme tokens only, works in light and dark. */
+.llm-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+.llm-tab {
+  font: inherit; font-size: 0.86rem; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft);
+  border-radius: 999px; padding: 0.4rem 0.95rem;
+}
+.llm-tab:hover { color: var(--ink); border-color: var(--ink-soft); }
+.llm-tab[aria-selected="true"] { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+.llm-tab-k { font-family: "IBM Plex Mono", monospace; opacity: 0.8; margin-right: 0.15rem; }
+.llm-panel[hidden] { display: none; }
+.llm-panel h4 { margin-top: 1.2rem; }
+.llm-panel h4:first-of-type { margin-top: 0.6rem; }
+.llm-h-gap { margin-top: 1.8rem !important; }
+.llm-sim-note { margin-bottom: 0.4rem; }
+.llm-row { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: flex-end; margin-bottom: 0.7rem; }
+.llm-field { display: flex; flex-direction: column; min-width: 0; }
+.llm-grow { flex: 1 1 14rem; }
+.llm-text, .llm-seed, .llm-panel select.preset-select {
+  font: inherit; font-size: 0.9rem; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 0.45rem 0.65rem; max-width: 100%;
+}
+.llm-seed { width: 6.5rem; }
+.llm-out { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; color: var(--ink-soft); }
+.llm-muted { color: var(--ink-soft); font-size: 0.82rem; }
+.llm-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.4rem 0 0.6rem; }
+.llm-chip {
+  display: inline-flex; flex-direction: column; align-items: center; min-width: 2.2rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface)); padding: 0.2rem 0.5rem;
+  font-family: "IBM Plex Mono", monospace; line-height: 1.25;
+}
+.llm-chip:nth-child(even) { background: color-mix(in srgb, var(--teal) 10%, var(--surface)); border-color: color-mix(in srgb, var(--teal) 40%, var(--line)); }
+.llm-chip b { font-size: 0.9rem; color: var(--ink); font-weight: 600; }
+.llm-chip i { font-style: normal; font-size: 0.68rem; color: var(--ink-soft); }
+.llm-chip.llm-byte { border-style: dashed; }
+.llm-textbox {
+  font-size: 1.02rem; line-height: 1.6; min-height: 3.2rem; padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.llm-prompt { color: var(--ink-soft); }
+.llm-gen { color: var(--accent-ink); font-weight: 600; }
+.llm-caret { color: var(--accent); animation: llm-blink 1s steps(2, start) infinite; }
+@keyframes llm-blink { to { visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .llm-caret { animation: none; } }
+.llm-panel .sim-status { margin: 0.6rem 0; }
+.llm-table td, .llm-table th { white-space: nowrap; }
+.llm-table tr.llm-chosen td { background: color-mix(in srgb, var(--accent) 12%, transparent); font-weight: 600; }
+.llm-table tr.llm-dropped td { opacity: 0.45; }
+.llm-bar { display: inline-block; width: 4.5rem; height: 0.55rem; vertical-align: middle; background: var(--line); border-radius: 4px; overflow: hidden; }
+.llm-bar span { display: block; height: 100%; background: color-mix(in srgb, var(--ink-soft) 70%, transparent); }
+.llm-bar2 span { background: var(--accent); }
+/* sandbox */
+.llm-defs { border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.9rem 0.8rem; margin: 0 0 0.6rem; display: grid; gap: 0.5rem; }
+.llm-defs legend { padding: 0 0.3rem; }
+.llm-chk { display: flex; gap: 0.6rem; align-items: flex-start; cursor: pointer; font-size: 0.9rem; }
+.llm-chk input { margin-top: 0.25rem; accent-color: var(--accent); width: 1.05rem; height: 1.05rem; }
+.llm-chk small { display: block; color: var(--ink-soft); font-size: 0.78rem; }
+.llm-chans { display: grid; gap: 0.6rem; margin: 0.8rem 0; }
+.llm-chan { border: 1px solid var(--line); border-left-width: 5px; border-radius: 10px; padding: 0.55rem 0.8rem 0.7rem; background: var(--surface); }
+.llm-trusted { border-left-color: var(--green); }
+.llm-untrusted { border-left-color: var(--red); }
+.llm-chan-k { display: block; font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 0.3rem; }
+.llm-chan-k em { text-transform: none; letter-spacing: 0; font-style: normal; font-weight: 500; }
+.llm-pre { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+.llm-view { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 0.6rem 0.8rem; min-height: 4rem; }
+.llm-hid { background: color-mix(in srgb, var(--red) 22%, transparent); color: var(--ink); border-radius: 3px; padding: 0 0.1rem; }
+textarea.llm-doc { min-height: 7rem; font-size: 0.82rem; }
+.llm-answer {
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 0.7rem 0.9rem; font-size: 0.95rem; line-height: 1.55; color: var(--ink); overflow-wrap: anywhere; margin-bottom: 0.7rem;
+}
+.llm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; font-size: 0.84rem; }
+.llm-list li { border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.6rem; background: var(--surface); overflow-wrap: anywhere; }
+.llm-list li.llm-bad { border-color: color-mix(in srgb, var(--red) 55%, var(--line)); background: color-mix(in srgb, var(--red) 7%, var(--surface)); }
+.llm-list li.llm-good { border-color: color-mix(in srgb, var(--green) 50%, var(--line)); background: color-mix(in srgb, var(--green) 7%, var(--surface)); }
+.llm-list li.llm-muted { background: transparent; border-style: dashed; }
+.llm-list code { font-size: 0.78rem; }
+.llm-panel .run-cols { margin-bottom: 0.7rem; }
+/* checklist */
+.llm-checks { display: grid; gap: 0.5rem; margin-bottom: 0.7rem; }
+.llm-check-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 0.3rem 0.8rem; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.75rem; background: var(--surface); font-size: 0.9rem; }
+.llm-check-fb { grid-column: 1 / -1; font-size: 0.8rem; color: var(--ink-soft); }
+.llm-check-row.llm-ok { border-color: color-mix(in srgb, var(--green) 55%, var(--line)); }
+.llm-check-row.llm-wrong { border-color: color-mix(in srgb, var(--red) 55%, var(--line)); }
+.llm-check-row.llm-ok .llm-check-fb { color: var(--green); }
+.llm-check-row.llm-wrong .llm-check-fb { color: var(--red); }
+@media (max-width: 620px) { .llm-check-row { grid-template-columns: 1fr; } }
+/* password */
+.llm-pwout { margin-top: 0.8rem; display: grid; gap: 0.6rem; }
+.llm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.6rem; }
+.llm-stats div { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 0.55rem 0.8rem; }
+.llm-stats b { display: block; font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; color: var(--ink); }
+.llm-stats span { font-size: 0.74rem; color: var(--ink-soft); }
+.llm-bad-text { color: var(--red); }
+textarea.llm-doc { white-space: pre-wrap; overflow-wrap: anywhere; }

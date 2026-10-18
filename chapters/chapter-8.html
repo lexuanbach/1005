@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assembly &amp; Compilers · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/vn-machine.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">C++ chapters</a>
+      <a href="chapter-7.html">Chapter 7</a>
+      <a href="chapter-8.html" aria-current="page">Chapter 8</a>
+      <a href="chapter-9.html">Chapter 9</a>
+      <a href="chapter-10.html">Chapter 10</a>
+      <a href="chapter-11.html">Chapter 11</a>
+      <a href="chapter-12.html">Chapter 12</a>
+      <a href="chapter-13.html">Chapter 13</a>
+      <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Computing topics</h4>
+  <nav aria-label="Computing topics">
+    <a href="chapter-7.html"><span class="ch-num">07</span>Von Neumann Architecture</a>
+    <a href="chapter-8.html" aria-current="page"><span class="ch-num">08</span>Assembly &amp; Compilers</a>
+    <a href="chapter-9.html"><span class="ch-num">09</span>Computer Networks</a>
+    <a href="chapter-10.html"><span class="ch-num">10</span>Databases</a>
+    <a href="chapter-11.html"><span class="ch-num">11</span>Artificial Intelligence</a>
+    <a href="chapter-12.html"><span class="ch-num">12</span>LLMs &amp; Security</a>
+    <a href="chapter-13.html"><span class="ch-num">13</span>Citation &amp; Responsible AI</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="../supplementary/loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="../supplementary/short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="../supplementary/loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#lab">Tiny compiler lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 8 · Computing Track · Week 44</span>
+      <h1>Assembly &amp; Compilers</h1>
+      <p class="lede">
+        The processor understands only numbers; you write <code>while</code> loops. This chapter
+        bridges the gap: <strong>machine language</strong>, the readable <strong>assembly language</strong>
+        that sits one-to-one on top of it, and the <strong>compiler</strong>, <strong>assembler</strong>
+        and linker that turn your C++ into something the CPU can run. You will watch a real compiler's
+        output, then build a tiny compiler of your own and run what it produces on last week's machine.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">8 concepts</a>
+        <a class="chip" href="#lab">Tiny compiler lab</a>
+        <a class="chip" href="#quiz">26-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/1%20-%20JVN.pptx">Slides (PPTX)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>From C++ down to bits — and back up again</h2>
+        <p>
+          The lecture slides cover machine language and the toy instruction set (concepts 8.1–8.3) but have
+          <strong>no dedicated slides on compilers</strong>. The compiler material (8.5–8.7) therefore comes from
+          the textbook (§1.6–1.8) and the supplementary topics, and is marked
+          <span class="supp-tag">Supplementary</span> where it goes beyond both.
+        </p>
+      </div>
+
+      <figure class="photo" style="max-width:34rem">
+        <img src="../assets/lecture-images/ch8-hopper-univac.jpg" width="513" height="450"
+             alt="Black-and-white photo of Grace Hopper seated at a UNIVAC console, reading a printout, with two men standing and sitting beside her">
+        <figcaption>
+          <strong>Somebody had to teach the machine to translate.</strong> Grace Hopper at the UNIVAC in 1957.
+          Her 1951–52 A-0 system is often called the first compiler; her later work led to FLOW-MATIC and
+          influenced COBOL — languages written in English-like words, not numbers.
+          <span class="credit">Photo: Grace Hopper at the UNIVAC keyboard, June 1957 (Smithsonian Institution, SI Neg. 83-14878) ·
+            <a href="https://commons.wikimedia.org/wiki/File:Grace_Hopper_and_UNIVAC.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a></span>
+        </figcaption>
+      </figure>
+
+      <div class="concept wide">
+        <h3><span class="idx">8.1</span>Machine language: the only language the CPU speaks</h3>
+        <p style="max-width:46rem">
+          A machine-language instruction is one binary word: an <strong>opcode</strong> that says what to do
+          plus <strong>address fields</strong> that say on which cells (last week's 7.9). The CPU can execute
+          nothing else. The slides' example: set <code>A = B + C</code>, where the variables A, B, C live in
+          memory cells 100, 150 and 151. In the toy language of slide 34 that is three instructions:
+        </p>
+        <div class="tbl-scroll" style="max-width:46rem">
+          <table class="tbl">
+            <tr><th>Step</th><th>Instruction</th><th>What it does</th></tr>
+            <tr><td>1</td><td class="mono">LOAD 150</td><td>R ← CON(150), that is B</td></tr>
+            <tr><td>2</td><td class="mono">ADD 151</td><td>R ← R + CON(151), that is B + C</td></tr>
+            <tr><td>3</td><td class="mono">STORE 100</td><td>CON(100) ← R, that is A</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          The slide notes an alternative: a machine with a three-address <code>ADD 150, 151, 100</code> would do it
+          in one instruction. More work per instruction, more circuitry — the RISC/CISC trade-off of 7.9 in
+          miniature. On the lecture's 16-cell machine the same program is the numbers
+          <code>0000 0110 · 0011 0111 · 0001 0101</code> (LOAD 6, ADD 7, STORE 5), which is what
+          you see in the memory table of last week's lab. Nobody wants to write programs as bit strings —
+          and nobody has to.
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Slide note</span>
+          The slides write these instructions “English-like, should be binary”. The numbers 100, 150 and 151 are
+          arbitrary choices of the slide; in the 16-cell lab, A, B and C sit right after the code.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">8.2</span>Assembly language and the assembler</h3>
+        <p style="max-width:46rem">
+          <strong>Assembly language</strong> is machine language in a readable costume. Binary opcodes are replaced by
+          <strong>mnemonics</strong> (<code>LOAD</code>, <code>ADD</code>) and numeric addresses by symbolic
+          <strong>labels and names</strong> (<code>B</code>, <code>total</code>). It still maps almost one-to-one onto
+          machine instructions, and so it depends completely on the processor: x86 assembly is not ARM assembly. The
+          program that translates it into binary is the <strong>assembler</strong>. (Some assemblers add
+          <em>macros</em> and <em>pseudo-instructions</em>, so the mapping is not always strictly one-to-one — the
+          lab's assembler turns <code>JUMPGE</code> into two real jumps.)
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">a_equals_b_plus_c.asm — toy assembly (slide 28, textbook §1.6.1)</span></div>
+          <pre><span class="cm">; A = B + C</span>
+        <span class="fn">LOAD</span>   B        <span class="cm">; R &lt;- B</span>
+        <span class="fn">ADD</span>    C        <span class="cm">; R &lt;- R + C</span>
+        <span class="fn">STORE</span>  A        <span class="cm">; A &lt;- R</span>
+        <span class="fn">HALT</span>            <span class="cm">; end of program</span>
+<span class="kw">.data</span>
+A:  0
+B:  5
+C:  7</pre>
+        </div>
+        <p style="max-width:46rem">
+          The assembler's work is mechanical: look each mnemonic up in the opcode table, replace each name by the
+          address of its cell, and write the resulting words into memory. <code>.data</code> (and, in many real
+          assemblers, <code>.text</code>) are <strong>directives</strong>: they are not instructions, they tell the
+          assembler how to lay out the program.
+        </p>
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Assembly is not a museum piece. The flight software of the Apollo Guidance Computer, which helped land people on
+            the Moon, was written in AGC assembly language; the software team at MIT was directed by Margaret Hamilton, and the
+            listings she is standing next to in this photo are software that she and her team produced. Today assembly survives in device drivers,
+            firmware, boot code and interrupt handlers (textbook §1.6.1).
+            <a href="https://en.wikipedia.org/wiki/Apollo_Guidance_Computer#Software" target="_blank" rel="noopener">Source: Wikipedia — Apollo Guidance Computer</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-hamilton-listing.jpg" width="257" height="320" loading="lazy"
+                 alt="Margaret Hamilton standing beside a tall stack of printed Apollo software listings, almost as tall as herself">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:Margaret_Hamilton_-_restoration.jpg" target="_blank" rel="noopener">MIT / NASA, 1969 (restored by Adam Cuerden)</a> · public domain</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">8.3</span>Reading assembly: <code>if</code> and loops are compare-and-jump</h3>
+        <p style="max-width:46rem">
+          There is no <code>if</code>, <code>else</code> or <code>while</code> in the instruction set — only
+          <strong>COMPARE</strong> (which sets the condition codes) and <strong>JUMP</strong>s that either happen or do
+          not. The textbook's example reads two integers and prints the larger one. A high-level
+          <code>if (a &gt; b) cout &lt;&lt; a; else cout &lt;&lt; b;</code> has to be broken into basic steps:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">max.asm — if / else as compare + jump (runs in last week's lab)</span></div>
+          <pre>        <span class="fn">IN</span>      A          <span class="cm">; cin &gt;&gt; a;</span>
+        <span class="fn">IN</span>      B          <span class="cm">; cin &gt;&gt; b;</span>
+        <span class="fn">LOAD</span>    A          <span class="cm">; R = a</span>
+        <span class="fn">COMPARE</span> B          <span class="cm">; LT = 1 when b &lt; a, i.e. a is bigger</span>
+        <span class="fn">JUMPLT</span>  showA      <span class="cm">; if (a &gt; b) go to the then-part</span>
+        <span class="fn">OUT</span>     B          <span class="cm">; else-part: cout &lt;&lt; b;</span>
+        <span class="fn">JUMP</span>    done       <span class="cm">; skip the then-part</span>
+showA:  <span class="fn">OUT</span>     A          <span class="cm">; then-part: cout &lt;&lt; a;</span>
+done:   <span class="fn">HALT</span></pre>
+        </div>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">Textbook correction</span>
+          The textbook's version of this program says <code>JUMPGT</code> “if A &gt; B”. With slide 34's definition
+          (<code>COMPARE X</code> sets GT when the content of <em>X</em> is greater than R), after
+          <code>LOAD A</code>, <code>COMPARE B</code> the flag GT means <em>B &gt; A</em>. The version above uses
+          <code>JUMPLT</code>, which does mean A &gt; B. Always check which operand a comparison puts first.
+        </div>
+        <p style="max-width:46rem">
+          Loops use the same two ingredients with a jump <em>backwards</em>: run the body, compare, and jump up to the top again
+          while the condition holds. Supplementary topic
+          <a href="../supplementary/loops-are-jumps.html">S5 — Loops are just jumps</a> has the whole story with a
+          “Jump Machine” you can step through; this chapter's lab compiles your own
+          <code>while</code> loops to exactly this pattern. Conditions from Chapter 3 (<code>if</code>) and
+          Chapter 4 (<code>while</code>) are therefore the C++ names for a compare and a jump.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">8.4</span>Programming at three levels</h3>
+        <p style="max-width:46rem">
+          A <strong>program</strong> is an ordered list of instructions, each describing one basic action the hardware can do;
+          the hardware itself does not know what “the program” is — it only fetches, decodes and executes. (Ada Lovelace
+          saw as early as 1843 that Babbage's Analytical Engine could be given instructions on punched cards, which is why
+          she is often called the first programmer.) Today the same computer can be programmed at three levels, each one
+          giving up some control over the hardware in exchange for convenience:
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Level</th><th>What it is</th><th>Example</th></tr>
+            <tr><td><strong>Machine code</strong></td><td>binary instructions the CPU executes directly; format fixed by the ISA</td><td><code>C7 45 FC 00 00 00 00</code> (x86-64)</td></tr>
+            <tr><td><strong>Assembly</strong></td><td>mnemonics for machine instructions; almost one-to-one</td><td><code>movl $0, -4(%rbp)</code></td></tr>
+            <tr><td><strong>High-level language</strong></td><td>architecture-independent abstractions; one statement becomes many instructions</td><td><code>int sum = 0;</code></td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          All three lines in the last column are the same action: put 0 into a variable. The compiler takes you from the
+          bottom row to the top one's translation; the assembler from the middle row to the first.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">8.5</span>One program, three levels: real output from a real compiler<span class="supp-tag">Supplementary</span></h3>
+        <p style="max-width:46rem">
+          The textbook (§1.8.2) takes “sum of 1 to 10” down all three levels. Here it is again, with output produced
+          by actually running <code>clang -S -O0 -fno-asynchronous-unwind-tables -target x86_64-apple-macos</code> (Apple clang 21) on this function —
+          nothing typed by hand except that assembler directives and comment lines were removed:
+        </p>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">sum10.cpp — the C++</span></div>
+          <pre><span class="kw">int</span> <span class="fn">sum10</span>() {
+    <span class="kw">int</span> sum = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt;= 10; i++)
+        sum += i;
+    <span class="kw">return</span> sum;
+}</pre>
+        </div>
+        <div class="code-card">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">sum10.s — x86-64 assembly, clang -O0 (AT&amp;T syntax)</span></div>
+          <pre><span class="fn">__Z5sum10v:</span>                       <span class="cm"># the C++ name, "mangled" by the compiler</span>
+        pushq   %rbp
+        movq    %rsp, %rbp
+        movl    $0, -4(%rbp)            <span class="cm"># sum = 0   (sum lives at rbp-4)</span>
+        movl    $1, -8(%rbp)            <span class="cm"># i = 1     (i lives at rbp-8)</span>
+<span class="fn">LBB0_1:</span>
+        cmpl    $10, -8(%rbp)           <span class="cm"># compare i with 10</span>
+        jg      LBB0_4                  <span class="cm"># if i &gt; 10, leave the loop</span>
+        movl    -8(%rbp), %eax          <span class="cm"># eax = i</span>
+        addl    -4(%rbp), %eax          <span class="cm"># eax = eax + sum</span>
+        movl    %eax, -4(%rbp)          <span class="cm"># sum = eax</span>
+        movl    -8(%rbp), %eax
+        addl    $1, %eax
+        movl    %eax, -8(%rbp)          <span class="cm"># i = i + 1</span>
+        jmp     LBB0_1                  <span class="cm"># back to the test</span>
+<span class="fn">LBB0_4:</span>
+        movl    -4(%rbp), %eax          <span class="cm"># the return value goes in eax</span>
+        popq    %rbp
+        retq</pre>
+        </div>
+        <p style="max-width:46rem">
+          The comments on the right were added by hand; the instructions are exactly what the compiler wrote. Compare it with
+          your toy language: the same compare, conditional jump, back-jump — plus extra work (<code>pushq</code>,
+          <code>movq</code>, memory for every variable) that the toy machine has no need for. Assembling it
+          (<code>clang -c</code>, then <code>otool -t</code>) gives the actual machine code, 49 bytes in all. The first instruction,
+          <code>movl $0, -4(%rbp)</code>, is the seven bytes <code>C7 45 FC 00 00 00 00</code>: opcode <code>C7</code>,
+          then <code>45 FC</code> for “memory at rbp minus 4” (<code>FC</code> is −4), then the 32-bit constant 0. The whole
+          function starts <code>55 48 89 e5 c7 45 fc 00 00 00 00 …</code>.
+        </p>
+        <h4 style="margin:1.2rem 0 0.4rem">Same function, two instruction sets</h4>
+        <p style="max-width:46rem">A simpler function, <code>int add(int b, int c) { int a = b + c; return a; }</code>, compiled for two real ISAs:</p>
+        <div class="media-row" style="--media-w:22rem">
+          <div class="code-card">
+            <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">x86-64 (CISC) · clang -O0</span></div>
+            <pre>        pushq   %rbp
+        movq    %rsp, %rbp
+        movl    %edi, -4(%rbp)
+        movl    %esi, -8(%rbp)
+        movl    -4(%rbp), %eax
+        addl    -8(%rbp), %eax
+        movl    %eax, -12(%rbp)
+        movl    -12(%rbp), %eax
+        popq    %rbp
+        retq</pre>
+          </div>
+          <div class="code-card">
+            <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">ARM64 (RISC) · clang -O0</span></div>
+            <pre>        sub     sp, sp, #16
+        str     w0, [sp, #12]
+        str     w1, [sp, #8]
+        ldr     w8, [sp, #12]
+        ldr     w9, [sp, #8]
+        add     w8, w8, w9
+        str     w8, [sp, #4]
+        ldr     w0, [sp, #4]
+        add     sp, sp, #16
+        ret</pre>
+          </div>
+        </div>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th></th><th>x86-64 (CISC)</th><th>ARM64 (RISC)</th></tr>
+            <tr><td>Machine code size</td><td>24 bytes: <code>55 48 89 e5 89 7d fc 89 75 f8 8b 45 fc 03 45 f8 89 45 f4 8b 45 f4 5d c3</code></td><td>40 bytes: ten 4-byte words, e.g. <code>d10043ff</code> for <code>sub sp, sp, #16</code></td></tr>
+            <tr><td>Instruction length</td><td>variable (1 to 3 bytes here)</td><td>always 4 bytes</td></tr>
+            <tr><td>The addition</td><td><code>addl -8(%rbp), %eax</code> reads memory directly</td><td><code>add w8, w8, w9</code> only touches registers; <code>ldr</code>/<code>str</code> move data (load–store)</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          That is the RISC/CISC table of Chapter 7 in real code. Finally the same <code>sum10</code> with optimisation on
+          (<code>-O2</code>) — the textbook's constant-folding example, here from the real compiler:
+        </p>
+        <div class="code-card" style="max-width:32rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">sum10.s — clang -O2, x86-64</span></div>
+          <pre>__Z5sum10v:
+        pushq   %rbp
+        movq    %rsp, %rbp
+        movl    $55, %eax               <span class="cm"># 1+2+...+10, computed by the COMPILER</span>
+        popq    %rbp
+        retq</pre>
+        </div>
+        <p style="max-width:46rem">
+          There is no loop at run time: the compiler understood the program and replaced it with its answer, 55 — eleven bytes of machine
+          code instead of 49. A compiler is not just a translator.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">8.6</span>Who does what: compiler, assembler, linker, loader<span class="supp-tag">Supplementary</span></h3>
+        <p style="max-width:46rem">
+          “Compiling” a C++ program is really a small assembly line of separate programs. The textbook's
+          review question 16 asks for the first two; the syllabus for this week lists compiling, linking and execution.
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 560 230" width="560" height="230" role="img" aria-label="Pipeline: C++ source goes through the compiler to assembly, through the assembler to an object file, then the linker adds library code to make an executable, which the OS loader puts in memory for the CPU to run">
+            <defs><marker id="cp-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>
+            <polygon class="fc-io" points="14,20 112,20 104,56 6,56"/><text class="fc-text" x="58" y="43" text-anchor="middle">C++ source</text>
+            <rect class="fc-process" x="130" y="22" width="90" height="34" rx="6"/><text class="fc-text" x="175" y="43" text-anchor="middle">compiler</text>
+            <polygon class="fc-io" points="244,20 342,20 334,56 236,56"/><text class="fc-text" x="289" y="43" text-anchor="middle">assembly</text>
+            <rect class="fc-process" x="350" y="22" width="88" height="34" rx="6"/><text class="fc-text" x="394" y="43" text-anchor="middle">assembler</text>
+            <polygon class="fc-io" points="462,20 556,20 548,56 454,56"/><text class="fc-text" x="505" y="43" text-anchor="middle">object file</text>
+            <line class="fc-line" x1="106" y1="38" x2="128" y2="38" marker-end="url(#cp-ar)"/>
+            <line class="fc-line" x1="220" y1="38" x2="242" y2="38" marker-end="url(#cp-ar)"/>
+            <line class="fc-line" x1="338" y1="38" x2="348" y2="38" marker-end="url(#cp-ar)"/>
+            <line class="fc-line" x1="438" y1="38" x2="452" y2="38" marker-end="url(#cp-ar)"/>
+            <line class="fc-line" x1="505" y1="56" x2="505" y2="92" marker-end="url(#cp-ar)"/>
+            <rect class="fc-process" x="460" y="96" width="90" height="34" rx="6"/><text class="fc-text" x="505" y="117" text-anchor="middle">linker</text>
+            <polygon class="fc-io" points="470,178 560,178 552,212 462,212"/><text class="fc-text" x="508" y="199" text-anchor="middle">libraries</text>
+            <line class="fc-line" x1="505" y1="178" x2="505" y2="132" marker-end="url(#cp-ar)"/>
+            <polygon class="fc-io" points="300,94 420,94 412,132 292,132"/><text class="fc-text" x="356" y="117" text-anchor="middle">executable</text>
+            <line class="fc-line" x1="458" y1="113" x2="424" y2="113" marker-end="url(#cp-ar)"/>
+            <rect class="fc-process" x="160" y="96" width="100" height="34" rx="6"/><text class="fc-text" x="210" y="117" text-anchor="middle">OS loader</text>
+            <line class="fc-line" x1="290" y1="113" x2="262" y2="113" marker-end="url(#cp-ar)"/>
+            <rect class="fc-terminal" x="20" y="96" width="100" height="34" rx="17"/><text class="fc-text" x="70" y="117" text-anchor="middle">CPU runs it</text>
+            <line class="fc-line" x1="158" y1="113" x2="122" y2="113" marker-end="url(#cp-ar)"/>
+          </svg>
+          <figcaption>The build pipeline in the order of the labels: compile, assemble, link, load, run. Supplementary topic <a href="../supplementary/compiling.html">S1 — Compile &amp; run, step by step</a> runs every stage on a real file.</figcaption>
+        </figure>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Tool</th><th>Reads</th><th>Writes</th><th>Its role</th></tr>
+            <tr><td><strong>Compiler</strong></td><td>C++ source</td><td>assembly (or object code)</td><td>checks syntax and types, chooses instructions, optimises; compile-time errors come from here</td></tr>
+            <tr><td><strong>Assembler</strong></td><td>assembly text</td><td>object file of machine code</td><td>mechanical: mnemonics → opcodes, names → addresses</td></tr>
+            <tr><td><strong>Linker</strong></td><td>object files + libraries</td><td>executable</td><td>joins your code with library code (where <code>cout</code> lives) and fixes up addresses; “undefined reference” errors come from here</td></tr>
+            <tr><td><strong>Loader (OS)</strong></td><td>executable file</td><td>a running process in memory</td><td>copies the program into memory and sets the PC to its first instruction — then the fetch–decode–execute cycle takes over</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          <strong>The textbook's answer to question 16:</strong> the <em>compiler</em> translates a program in a high-level language
+          into a lower-level form (assembly or machine code), and the <em>assembler</em> translates assembly text into binary
+          machine code the CPU can execute. Because a compiler is itself just a program stored in memory (7.7), it can
+          produce other programs as data. (Many compilers, including <code>g++</code>, call the preprocessor first and run
+          the assembler for you.)
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          Grace Hopper's A-0 system (1951–52), often named as the first compiler, did something closer to
+          <em>linking</em>: a program was a list of subroutine numbers and arguments, and A-0 pasted the matching
+          subroutines together into machine code. Modern compilers translate whole languages; the linking idea survived as its own tool.
+          <a href="https://en.wikipedia.org/wiki/A-0_System" target="_blank" rel="noopener">Source: Wikipedia — A-0 System</a>.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">8.7</span>Inside a compiler: tokens, tree, instructions<span class="supp-tag">Supplementary</span></h3>
+        <p style="max-width:46rem">
+          A compiler's work falls into stages. <strong>Lexing</strong> cuts the text into tokens (<code>while</code>,
+          <code>(</code>, <code>i</code>, <code>&lt;=</code>, <code>n</code> …). <strong>Parsing</strong> arranges the tokens into a tree
+          that captures the meaning (a <code>while</code> with a condition and a body); this is where a missing
+          semicolon or an undeclared variable is reported. <strong>Code generation</strong> walks the tree and emits instructions;
+          real compilers then <strong>optimise</strong> (like the folded 55 above). The assembler and linker follow.
+        </p>
+        <p style="max-width:46rem">
+          The lab below is a complete miniature of that pipeline for a tiny language, aimed at last week's toy machine. Two things you
+          will notice, both true for real compilers as well:
+        </p>
+        <ul style="max-width:46rem">
+          <li><strong>Names disappear.</strong> <code>sum</code> becomes cell number 8 or 9; the machine never sees the word.</li>
+          <li><strong>A statement becomes several instructions.</strong> <code>sum = sum + i;</code> is <code>LOAD sum</code>, <code>ADD i</code>, <code>STORE sum</code>; a <code>while</code> is a test at the top, a jump at the bottom.</li>
+        </ul>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">8.8</span>Trade-offs: abstraction, control and performance</h3>
+        <p style="max-width:46rem">
+          Why not write everything in machine code, or everything in Python? Because the levels trade three things
+          against each other (textbook §1.8.3): how much <strong>abstraction</strong> you get, how much <strong>control</strong> you keep over
+          the hardware, and how fast the result <strong>runs</strong>.
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Criterion</th><th>Machine code</th><th>Assembly</th><th>High-level language</th></tr>
+            <tr><td>Abstraction</td><td>none</td><td>low</td><td>high</td></tr>
+            <tr><td>Control of the hardware</td><td>complete</td><td>complete</td><td>limited</td></tr>
+            <tr><td>Portability</td><td>none (tied to the ISA)</td><td>none (tied to the ISA)</td><td>high, relatively</td></tr>
+            <tr><td>Readability</td><td>very low</td><td>low</td><td>high</td></tr>
+            <tr><td>Development speed</td><td>very slow</td><td>slow</td><td>fast</td></tr>
+            <tr><td>Run-time speed</td><td>high if well written</td><td>high if well written</td><td>depends on compiler and runtime</td></tr>
+            <tr><td>Typical use</td><td>boot firmware</td><td>drivers, interrupt handlers</td><td>applications, systems</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          <em>Table: textbook Table 1.5.</em> Real systems mix levels. The Linux kernel is mostly C with small pieces of inline assembly
+          where it must touch special registers; a game engine is C++ plus shader programs for the GPU; Python reaches
+          good speed through libraries such as NumPy that are written in C/C++. And a good optimising compiler (GCC,
+          LLVM/Clang) often matches or beats hand-written assembly — as the 55 above suggests. The question is never “which is best?” but “which
+          balance fits this requirement?”. Where does C++ sit? It compiles to machine code in advance (this chapter), unlike the Playground's interpreter, which
+          S1 contrasts.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Lab</span>
+        <h2>Tiny compiler</h2>
+        <p>
+          Write (or pick) a few lines of C++ using <code>int</code>, <code>+</code> and <code>−</code>, <code>cin</code>,
+          <code>cout</code>, <code>if / else</code> and <code>while</code>, and watch it travel through the compiler's stages to
+          the toy machine of Chapter 7. This is a <strong>teaching compiler for a teaching machine</strong>: the target is the slide-34
+          instruction set, not x86 or ARM, and it only understands the small subset above. A real compiler's output looks like 8.5.
+        </p>
+      </div>
+      <div id="tc-root"></div>
+      <div class="note tip" style="max-width:46rem; margin-top:1rem">
+        <span class="note-tag">What this teaching compiler leaves out</span>
+        Real compilers keep variables in registers or on a stack, use <em>immediate</em> constants inside instructions
+        (this ISA has none, so the constants 0 and 1 get memory cells of their own), reuse results and optimise. The toy machine's numbers are also
+        unbounded, whereas a C++ <code>int</code> wraps around at 32 bits. And <code>int x;</code> starts at 0 here, but in real C++ it holds garbage until you assign it.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Chapter 8 quiz</h2>
+        <p>26 questions — machine language and assembly, reading compare-and-jump code, the roles of the tools in the build pipeline, and the trade-offs between levels.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Practice</span>
+        <h2>Exercises</h2>
+        <p>Translate control structures by hand (the textbook's problem 1.11.5), read real compiler output, and use the Tiny compiler. Numbers in the model answers were checked by running the lab's engine.</p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Team activity</span>
+        <h2>Language-level audit: which level for which job?</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute pitch. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          A start-up must build five pieces of software, and the team is the technical board. For each, decide the
+          <strong>programming level</strong> (machine code, assembly, high-level language, or a mix), name the translation tools that
+          will be involved, and defend the choice using the criteria of Table 1.5 (abstraction, hardware control, portability,
+          readability, development speed, run-time speed).
+        </p>
+        <div class="tbl-scroll" style="max-width:46rem">
+          <table class="tbl">
+            <tr><th>Piece of software</th><th>What is special about it</th></tr>
+            <tr><td>1 · The first code that runs when a small board powers on</td><td>no operating system yet; must set up hardware registers</td></tr>
+            <tr><td>2 · A driver for a new network card</td><td>must read and write device registers, and be fast</td></tr>
+            <tr><td>3 · The company's customer web application</td><td>changes weekly; many developers; runs on several machines</td></tr>
+            <tr><td>4 · The inner loop of a video encoder</td><td>runs billions of times; every cycle counts</td></tr>
+            <tr><td>5 · A data-analysis script for the marketing team</td><td>used once; written by non-specialists</td></tr>
+          </table>
+        </div>
+        <h3>Constraints</h3>
+        <ul style="max-width:46rem">
+          <li>For at least one piece, argue for a <strong>mix</strong> of levels and say exactly where the boundary lies.</li>
+          <li>For every piece, say who produces the machine code (compiler, assembler, interpreter, nobody) and what would go wrong if the machine changed from x86 to ARM.</li>
+          <li>One piece must be defended <em>against</em> the obvious answer: e.g. why not write the encoder loop in assembly by hand? (Hint: 8.5 and 8.8.)</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Criteria keeper</td><td>scores each choice against the rows of Table 1.5</td></tr>
+            <tr><td>Toolchain engineer</td><td>names the compiler, assembler, linker or interpreter in each case</td></tr>
+            <tr><td>Skeptic</td><td>attacks every choice with “what if the hardware changes?” and “what does this cost in developer time?”</td></tr>
+            <tr><td>Presenter</td><td>pitches the five decisions in five minutes</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          Which of the five would you be most nervous to write in assembly, and why? If a compiler can match hand-written
+          assembly, what is left that only assembly can do? What changes if the web application suddenly needs to be twice as fast?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">06 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://godbolt.org/" target="_blank" rel="noopener">
+          <span class="rc-kind">Try it</span>
+          <h4>Compiler Explorer (godbolt.org)</h4>
+          <p>Type C++ on the left, see the assembly from GCC or Clang on the right, in real time — with optimisation on and off.</p>
+        </a>
+        <a class="read-card" href="../supplementary/compiling.html">
+          <span class="rc-kind">This course</span>
+          <h4>S1 — Compile &amp; run, step by step</h4>
+          <p>Preprocessor, compiler, assembler, linker and loader, each run on a real file.</p>
+        </a>
+        <a class="read-card" href="../supplementary/loops-are-jumps.html">
+          <span class="rc-kind">This course</span>
+          <h4>S5 — Loops are just jumps</h4>
+          <p>How while, for and do-while compile, plus the Jump Machine to step through.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Assembly_language" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Assembly language</h4>
+          <p>Mnemonics, labels, directives, macros and where assembly is still used.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Compiler" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Compiler</h4>
+          <p>Phases of a compiler, optimisation, and the history from the first compilers on.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Linker_(computing)" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Linker</h4>
+          <p>What the link step does with object files and libraries.</p>
+        </a>
+        <a class="read-card" href="https://www.cs.virginia.edu/~evans/cs216/guides/x86.html" target="_blank" rel="noopener">
+          <span class="rc-kind">Guide</span>
+          <h4>University of Virginia — x86 Assembly Guide</h4>
+          <p>A short, readable tour of real x86 registers and instructions — a good companion to 8.5.</p>
+        </a>
+        <a class="read-card" href="https://craftinginterpreters.com/" target="_blank" rel="noopener">
+          <span class="rc-kind">Book</span>
+          <h4>Crafting Interpreters — Robert Nystrom</h4>
+          <p>Free online book that builds two complete language implementations, from scanning and parsing onwards.</p>
+        </a>
+        <a class="read-card" href="https://www.ibiblio.org/apollo/assembly_language_manual.html" target="_blank" rel="noopener">
+          <span class="rc-kind">History</span>
+          <h4>Apollo Guidance Computer — Block II assembly manual</h4>
+          <p>The programmer's manual for the assembly language behind 8.2's Did-you-know.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-7.html"><span class="dir">← Previous chapter</span>Von Neumann Architecture</a>
+        <a href="chapter-9.html" style="text-align:right"><span class="dir">Next chapter →</span>Computer Networks</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 8 · Assembly &amp; Compilers</p>
+  </div>
+</footer>
+
+<script src="../assets/vn-machine.js"></script>
+<script src="../assets/tiny-compiler.js"></script>
+<script src="../assets/tiny-compiler-ui.js"></script>
+<script src="../assets/ch8-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

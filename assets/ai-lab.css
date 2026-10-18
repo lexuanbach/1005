@@ -1,0 +1,64 @@
+/* Learn the Function lab (Chapter 11) — theme tokens only, works in light and dark */
+.ai-toy { margin-bottom: 1rem; }
+.ai-panel { margin-bottom: 1.4rem; }
+.ai-lede, .ai-hint { font-size: 0.9rem; color: var(--ink-soft); margin: 0.2rem 0 0.8rem; max-width: 46rem; }
+.ai-sub { margin: 1.3rem 0 0.2rem; font-family: "Archivo", sans-serif; font-size: 1rem; color: var(--ink); border-top: 1px solid var(--line); padding-top: 0.9rem; }
+.ai-chart { max-width: 640px; margin: 0.4rem 0; }
+.ai-svg { width: 100%; height: auto; display: block; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+.ai-svg-sq { max-width: 460px; }
+.ai-svg-loss { max-width: 480px; }
+.ai-grid { stroke: var(--line); stroke-width: 1; }
+.ai-tick { fill: var(--ink-soft); font: 11px "IBM Plex Mono", monospace; }
+.ai-axis { fill: var(--ink-soft); font: 12px "Be Vietnam Pro", sans-serif; }
+.ai-pt { fill: var(--ink); stroke: var(--paper); stroke-width: 1.5; }
+.ai-fit { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.ai-curve { fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-dasharray: 7 5; }
+.ai-resid { stroke: var(--red); stroke-width: 2.5; }
+.ai-probe { fill: none; stroke: var(--amber); stroke-width: 3; }
+.ai-probe-l { stroke: var(--amber); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.ai-loss { fill: none; stroke: var(--accent); stroke-width: 2.2; }
+.ai-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.6rem 1.4rem; margin: 0.6rem 0; }
+.ai-field { display: grid; gap: 0.2rem; }
+.ai-field input[type=range] { width: 100%; accent-color: var(--accent); }
+.ai-out { font-size: 0.85rem; color: var(--ink); }
+.ai-readout { border: 1px solid var(--line); border-radius: 8px; background: var(--paper); padding: 0.55rem 0.8rem; font-size: 0.88rem; color: var(--ink-soft); margin: 0.5rem 0; line-height: 1.6; }
+.ai-readout:empty { display: none; }
+.ai-readout strong { color: var(--ink); }
+.ai-good { color: var(--green); font-weight: 600; }
+.ai-bad { color: var(--red); }
+.ai-tag { display: inline-block; font: 600 0.62rem "IBM Plex Mono", monospace; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--accent); color: var(--accent-ink); border-radius: 4px; padding: 0 0.35rem; margin-right: 0.3rem; }
+.ai-tbl td, .ai-tbl th { font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.ai-train { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.6rem 1.4rem; align-items: end; margin: 0.4rem 0; }
+.ai-check { display: block; font-size: 0.86rem; color: var(--ink-soft); line-height: 1.45; }
+.ai-check input { margin-right: 0.35rem; accent-color: var(--accent); }
+.ai-log { white-space: pre; overflow-x: auto; min-height: 7rem; font-size: 0.78rem; }
+.ai-num { width: 6rem; font: inherit; padding: 0.35rem 0.5rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.ai-region { fill: color-mix(in srgb, var(--red) 11%, transparent); }
+.ai-boundary { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.ai-ham { fill: var(--green); stroke: var(--paper); stroke-width: 1.2; }
+.ai-spam { fill: var(--red); stroke: var(--paper); stroke-width: 1.2; }
+.ai-news { fill: var(--amber); stroke: var(--paper); stroke-width: 1.2; }
+.ai-hollow { fill: var(--paper); stroke: var(--amber); stroke-width: 2.2; }
+.ai-ring { stroke: var(--ink); stroke-width: 2; }
+.ai-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1.1rem; font-size: 0.8rem; color: var(--ink-soft); margin: 0.3rem 0; }
+.ai-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.ai-lg { width: 14px; height: 14px; }
+.ai-end { margin-top: 1rem; }
+@media (max-width: 520px) { .ai-log { min-height: 0; } }
+
+/* ── Chapter 11 diagrams (inline SVG) ── */
+.ai-dg { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto; }
+.ai-dg-box { fill: var(--surface); stroke: var(--accent); stroke-width: 1.6; }
+.ai-dg-box.alt { stroke: var(--amber); }
+.ai-dg-box.soft { fill: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
+.ai-dg-box.frozen { stroke-dasharray: 5 3; }
+.ai-dg-t { fill: var(--ink); font: 600 12.5px "Be Vietnam Pro", sans-serif; }
+.ai-dg-s { fill: var(--ink-soft); font: 11.5px "Be Vietnam Pro", sans-serif; }
+.ai-dg-h { fill: var(--accent-ink); font: 700 11.5px "IBM Plex Mono", monospace; letter-spacing: 0.06em; }
+.ai-dg-line { stroke: var(--ink-soft); stroke-width: 1.6; fill: none; }
+.ai-dg-line.dash { stroke-dasharray: 5 4; }
+.ai-dg-head { fill: var(--ink-soft); }
+.ai-dg-c1 { fill: color-mix(in srgb, var(--accent) 7%, var(--surface)); stroke: var(--accent); stroke-width: 1.6; }
+.ai-dg-c2 { fill: color-mix(in srgb, var(--accent) 16%, var(--surface)); stroke: var(--accent); stroke-width: 1.6; }
+.ai-dg-c3 { fill: color-mix(in srgb, var(--accent) 28%, var(--surface)); stroke: var(--accent); stroke-width: 1.6; }
+.ai-tbl-wrap { max-width: 46rem; }

@@ -1335,3 +1335,9 @@ table.ieee-table td strong, table.ieee-table td code { color: var(--ink); }
   .code-card .explain-all[open] summary, .code-card .explain-all summary { display: none; }
   .code-card .explain-all ol { display: grid; }
 }
+
+/* ── Part 2 · Computing topics (chapters 7–13): teal replaces cobalt, as on the syllabus page ── */
+body.part2 {
+  --accent: var(--teal);
+  --accent-ink: var(--teal-ink);
+}

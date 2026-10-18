@@ -20,7 +20,14 @@ CO1005-Website/
 │   ├── chapter-3.html    # Selection Structure
 │   ├── chapter-4.html    # Repetition Structures
 │   ├── chapter-5.html    # Arrays & Strings (mảng 2 chiều)
-│   └── chapter-6.html    # Functions (static, array params)
+│   ├── chapter-6.html    # Functions (static, array params)
+│   ├── chapter-7.html    # Part 2: Von Neumann architecture (+ Von Neumann Machine lab)
+│   ├── chapter-8.html    # Part 2: Assembly & compilers (+ Tiny Compiler lab)
+│   ├── chapter-9.html    # Part 2: Computer networks (+ Packet Journey lab, subnet calculator)
+│   ├── chapter-10.html   # Part 2: Databases (+ SQL Query Lab)
+│   ├── chapter-11.html   # Part 2: Artificial intelligence (+ Learn the Function lab)
+│   ├── chapter-12.html   # Part 2: LLMs & security (+ next-token, prompt-injection, password labs)
+│   └── chapter-13.html   # Part 2: Citation & responsible AI (+ Citation Workshop)
 ├── supplementary/
 │   ├── compiling.html         # S1: compile & run từng bước vs interpreter
 │   ├── expression-trees.html  # S2: precedence → cây tính toán + Tree Lab (assets/expr-tree.js)
@@ -135,3 +142,10 @@ Quy trình cập nhật: sửa file nguồn → `python3 build.py` → republish
 1. Chapter 4 (Repetition), 5 (Arrays & Strings), 6 (Functions) — slide đã có sẵn trong `Lecture Slides/C++ PDF Slides/`; theo đúng khuôn: trang HTML + `chN-data.js` + verify bằng MiniCPP.
 2. Trang cho phần computing topics (JVN, Network, Database, AI, LLM, Citations) từ các file pptx.
 3. Lưu tiến độ quiz/exercise của sinh viên (localStorage) — chưa làm.
+
+## 6. Part 2 — Computing topics (chapters 7–13, Weeks 43–49)
+
+- Pages use `<body class="part2">` (teal accent via `body.part2` in style.css). Same sections as chapters 1–6 (concepts, lab, quiz, exercises, team activity, reading). Sources: the lecture decks in `Lecture Slides/` **and** the course textbook (ch.1→Ch7+8, ch.2→Ch9, ch.3→Ch10, ch.4→Ch11, ch.5 §5.1–5.3→Ch12, ch.6→Ch13); slide/textbook errors found while writing are corrected in `note warn` boxes on the pages. Week 50 (review) has no chapter.
+- Exercises are `type:'text'`; several are "lab tasks" whose model answers were produced by running the lab engines in Node.
+- Labs (pure engine exported for Node + thin UI + own CSS, all linked from the chapter): `vn-machine.js/-ui.js/.css` (Ch7+8 toy Von Neumann machine), `tiny-compiler.js/-ui.js` (Ch8; C++ subset → toy ISA), `packet-journey.js/.css` (Ch9; invented example.* zones and RFC 5737 addresses only), `sql-lab.js/-ui.js/.css` (Ch10; own SQL engine, cross-checked against sqlite3), `ai-lab.js/.css` (Ch11), `llm-engines.js` + `llm-lab.js/.css` (Ch12), `cite-lab.js/.css` (Ch13). Simulations are labelled as such on screen.
+- The final-exam question banks in `261-exam/` are confidential and must never be reused in site quizzes.

@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Computer Networks · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/packet-journey.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">C++ chapters</a>
+      <a href="chapter-7.html">Chapter 7</a>
+      <a href="chapter-8.html">Chapter 8</a>
+      <a href="chapter-9.html" aria-current="page">Chapter 9</a>
+      <a href="chapter-10.html">Chapter 10</a>
+      <a href="chapter-11.html">Chapter 11</a>
+      <a href="chapter-12.html">Chapter 12</a>
+      <a href="chapter-13.html">Chapter 13</a>
+      <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Computing topics</h4>
+  <nav aria-label="Computing topics">
+    <a href="chapter-7.html"><span class="ch-num">07</span>Von Neumann Architecture</a>
+    <a href="chapter-8.html"><span class="ch-num">08</span>Assembly &amp; Compilers</a>
+    <a href="chapter-9.html" aria-current="page"><span class="ch-num">09</span>Computer Networks</a>
+    <a href="chapter-10.html"><span class="ch-num">10</span>Databases</a>
+    <a href="chapter-11.html"><span class="ch-num">11</span>Artificial Intelligence</a>
+    <a href="chapter-12.html"><span class="ch-num">12</span>LLMs &amp; Security</a>
+    <a href="chapter-13.html"><span class="ch-num">13</span>Citation &amp; Responsible AI</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="../supplementary/loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="../supplementary/short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="../supplementary/loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#lab">Packet Journey lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 9 · Computing Track · Week 45</span>
+      <h1>Computer Networks</h1>
+      <p class="lede">
+        You type a web address and, a moment later, a page appears — but in between a <strong>URL</strong>
+        is split apart, a name is turned into an <strong>IP address</strong> by <strong>DNS</strong>, a
+        <strong>client</strong> and a <strong>server</strong> shake hands, an <strong>HTTP</strong> request crosses
+        routers and switches, and the answer is cut into packets and reassembled. This chapter follows that
+        journey layer by layer through <strong>the Internet</strong>, then ends at its newest edge: the
+        Internet of Things and AI that runs on the device itself.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">9 concepts</a>
+        <a class="chip" href="#lab">Packet Journey lab</a>
+        <a class="chip" href="#quiz">28-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/2%20-%20Internet%20Network.pptx">Slides (PPTX)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>From a typed URL to a page on the screen</h2>
+      </div>
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch9-rack-switches.jpg" width="1100" height="825"
+             alt="An open equipment cabinet: rows of patch panels with grey Ethernet cables looped neatly between them, two managed switches below, and a router at the bottom">
+        <figcaption>
+          <strong>A network is, physically, a lot of cable.</strong> Every grey loop here is one
+          twisted-pair Ethernet cable running from a patch panel (the wall sockets of a building) to a
+          port on a switch; the black box at the bottom is a router, the doorway to the outside world.
+          Everything else in this chapter — addresses, names, protocols — is software riding on top of
+          hardware like this.
+          <span class="credit">Photo: “19-inch rackmount Ethernet switches and patch panels” by Dsimic ·
+            <a href="https://commons.wikimedia.org/wiki/File:19-inch_rackmount_Ethernet_switches_and_patch_panels.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized)</span>
+        </figcaption>
+      </figure>
+
+      <div class="concept wide">
+        <h3><span class="idx">9.1</span>What is a computer network?</h3>
+        <p style="max-width:46rem">
+          A <strong>computer network</strong> is a set of computing devices joined by a
+          transmission medium so that they can cooperate, share resources and exchange information.
+          Its whole purpose is to remove distance as an obstacle. Today the "devices" are not only
+          PCs but phones, tablets, printers, cameras and sensors — the Internet of Things you will
+          meet at the end of this chapter.
+        </p>
+        <p style="max-width:46rem">
+          Networks are classified by <strong>how far they reach</strong>:
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Type</th><th>Reach</th><th>Typical example</th></tr>
+            <tr><td><strong>PAN</strong> — personal area</td><td>a few metres around one person</td><td>phone ↔ earbuds over Bluetooth</td></tr>
+            <tr><td><strong>LAN</strong> — local area</td><td>a home, school, computer lab or office building</td><td>the PCs of a lab joined by one switch</td></tr>
+            <tr><td><strong>WLAN</strong> — wireless LAN</td><td>a LAN where devices talk through a central <em>access point</em></td><td>campus Wi-Fi</td></tr>
+            <tr><td><strong>MAN</strong> — metropolitan area</td><td>a city, up to about 50 km</td><td>a city-wide fibre ring</td></tr>
+            <tr><td><strong>WAN</strong> — wide area</td><td>countries or the whole globe, over private or public carriers</td><td>an ISP backbone, the Internet</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Organisations also talk about <strong>intranets</strong> and <strong>extranets</strong>.
+          An intranet is a private network inside one organisation that uses ordinary web
+          technology — browsers and web pages — for things like the staff directory or
+          internal job postings. An extranet is the same idea stretched across more than one
+          organisation: a supplier, for example, gets <em>limited</em> access to a company's
+          system. Both are about <em>who is allowed in</em>, not about physical size.
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Link to Chapter 7</span>
+          Inside one computer the CPU, memory and I/O talk over a bus
+          (<a href="chapter-7.html">Chapter 7</a>). A network is the same idea scaled up: many
+          machines, each with its own CPU and memory, exchanging messages instead of electrical
+          signals on a motherboard.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">9.2</span>Who talks to whom: client–server and peer-to-peer</h3>
+        <p style="max-width:46rem">
+          Network software is made of <strong>processes</strong> — programs that are running.
+          Two processes on the same machine talk through the operating system; processes on
+          different machines <strong>exchange messages over the network</strong>. The process that
+          starts the conversation is the <strong>client process</strong>; the one that waits to
+          be contacted is the <strong>server process</strong>. (Even in a peer-to-peer system each
+          peer plays both roles, depending on the moment.)
+        </p>
+        <svg class="dg" viewBox="0 0 640 200" role="img" aria-label="Left: a client-server network, with one central always-on server and four clients that each connect only to the server. Right: a peer-to-peer network, with five peers connected directly to several other peers and no central server.">
+          <text class="ti" x="20" y="20">Client–server</text>
+          <rect class="bx a" x="115" y="34" width="90" height="34" rx="8"/><text class="tx" x="160" y="56" text-anchor="middle">server</text>
+          <g class="ln"><line x1="140" y1="68" x2="50" y2="136"/><line x1="152" y1="68" x2="125" y2="136"/><line x1="168" y1="68" x2="195" y2="136"/><line x1="180" y1="68" x2="270" y2="136"/></g>
+          <g><rect class="bx" x="20" y="136" width="62" height="28" rx="6"/><rect class="bx" x="94" y="136" width="62" height="28" rx="6"/><rect class="bx" x="164" y="136" width="62" height="28" rx="6"/><rect class="bx" x="240" y="136" width="62" height="28" rx="6"/></g>
+          <g class="tx" text-anchor="middle"><text x="51" y="154">client</text><text x="125" y="154">client</text><text x="195" y="154">client</text><text x="271" y="154">client</text></g>
+          <text class="sm" x="20" y="190">one always-on server; clients stay apart</text>
+          <text class="ti" x="360" y="20">Peer-to-peer</text>
+          <g class="ln"><line x1="440" y1="50" x2="540" y2="50"/><line x1="440" y1="50" x2="400" y2="130"/><line x1="540" y1="50" x2="590" y2="130"/><line x1="400" y1="130" x2="490" y2="150"/><line x1="590" y1="130" x2="490" y2="150"/><line x1="440" y1="50" x2="490" y2="150"/><line x1="540" y1="50" x2="400" y2="130"/></g>
+          <g><circle class="bx t" cx="440" cy="50" r="16"/><circle class="bx t" cx="540" cy="50" r="16"/><circle class="bx t" cx="400" cy="130" r="16"/><circle class="bx t" cx="590" cy="130" r="16"/><circle class="bx t" cx="490" cy="150" r="16"/></g>
+          <text class="sm" x="360" y="190">no server; peers come and go</text>
+        </svg>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th></th><th>Client–server</th><th>Peer-to-peer (P2P)</th></tr>
+            <tr><td>Who serves?</td><td>one always-on server (often a farm of them in a data centre)</td><td>every peer both asks and serves</td></tr>
+            <tr><td>Strength</td><td>central management, easy security, backup and recovery</td><td>scales by itself — each newcomer adds capacity — and needs no server hardware</td></tr>
+            <tr><td>Weakness</td><td>server cost; if it dies, everybody is stuck (a <em>single point of failure</em>)</td><td>hard to manage and secure; speed depends on whoever is online</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Real systems are often a <strong>hybrid</strong>: a central server handles the directory
+          or login, while the heavy data moves directly between peers.
+          Whatever the architecture, the two sides need an <strong>application-layer protocol</strong> — an
+          agreement on the <em>types</em> of message (request, response), their <em>syntax</em> (which
+          fields, how separated), their <em>meaning</em>, and the <em>rules</em> for who speaks when.
+          Public protocols such as HTTP and SMTP are written down in documents called
+          <strong>RFCs</strong>, so anyone can build compatible software; a proprietary protocol
+          (the lecture slides' example is Skype) is controlled by one company.
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Application</th><th>Protocol</th><th>Transport</th><th>Today</th></tr>
+            <tr><td>Web</td><td>HTTP (<a href="https://www.rfc-editor.org/rfc/rfc9110" target="_blank" rel="noopener">RFC 9110</a>)</td><td>TCP (HTTP/3 uses QUIC over UDP)</td><td>slides cite RFC 2616, which has been replaced</td></tr>
+            <tr><td>E-mail (sending)</td><td>SMTP (<a href="https://www.rfc-editor.org/rfc/rfc5321" target="_blank" rel="noopener">RFC 5321</a>)</td><td>TCP</td><td>slides cite RFC 2821, now obsolete</td></tr>
+            <tr><td>File transfer</td><td>FTP</td><td>TCP</td><td>plain FTP sends passwords unencrypted; SFTP/HTTPS are preferred</td></tr>
+            <tr><td>Remote terminal</td><td>Telnet</td><td>TCP</td><td>sends everything, passwords included, in plain text — replaced by <strong>SSH</strong></td></tr>
+            <tr><td>Streaming, voice/video calls</td><td>RTP, SIP, proprietary</td><td>usually UDP</td><td>late packets are useless, so speed beats perfect delivery</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">9.3</span>The parts of a network: end devices, channels, and the boxes in between</h3>
+        <p style="max-width:46rem">
+          A network has three kinds of parts. <strong>End devices</strong> (PCs, phones, servers)
+          are where messages start and finish — they are the only devices that run your
+          applications. The <strong>communication channel</strong> carries the packets. And the
+          <strong>intermediate devices</strong> steer them. Each one works at a different layer
+          (the layers are explained in 9.6):
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Device</th><th>Layer</th><th>What it looks at</th><th>What it does</th></tr>
+            <tr><td><strong>Repeater / hub</strong></td><td>1 · physical</td><td>nothing — just signals</td><td>amplifies and copies a signal from one port to <em>all</em> the others; every device shares one <em>collision domain</em>, so a bigger hub network gets slower. Obsolete for LANs.</td></tr>
+            <tr><td><strong>Bridge / switch</strong></td><td>2 · link</td><td>destination MAC address</td><td>learns which MAC lives behind which port (its CAM table) and forwards a frame only there; gives each port its own collision domain, but still passes broadcasts to everyone</td></tr>
+            <tr><td><strong>Router</strong></td><td>3 · network</td><td>destination IP address</td><td>picks the next hop using a routing table; joins different networks and stops broadcasts</td></tr>
+            <tr><td><strong>Gateway</strong></td><td>up to 7 · application</td><td>the message format itself</td><td>a translator between systems that use different protocols or data formats. (Everyday usage: the "default gateway" in your settings is simply your router.)</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Three technologies protect a network. A <strong>firewall</strong> controls what may
+          enter and leave, filtering traffic by rules. An <strong>intrusion detection system
+          (IDS)</strong> watches traffic for signs of attack and raises the alarm. A
+          <strong>virtual private network (VPN)</strong> builds an encrypted tunnel across the
+          public Internet so a remote user can safely reach the organisation's internal network.
+          (Security is the subject of <a href="chapter-12.html">Chapter 12</a>.)
+        </p>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">Slide correction</span>
+          The lecture slide says a firewall works because "all communications pass through a proxy
+          server". A proxy is one way to build a firewall, but not the only one; most firewalls
+          simply inspect and filter packets as they pass.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">9.4</span>Cables, radio and topologies</h3>
+        <p style="max-width:46rem">
+          <strong>Wired</strong> links use a solid conductor. <em>Twisted pair</em> — copper
+          wires twisted together to cancel interference — is inside telephone lines and Ethernet
+          cables. <em>Coaxial cable</em> has a single solid copper core and carries high
+          frequencies (cable TV and broadband). <em>Fibre optic</em> sends data as pulses of light
+          through glass: very fast, and it loses little signal over long distances, which is why the
+          Internet backbone is made of it.
+        </p>
+        <p style="max-width:46rem">
+          <strong>Wireless</strong> links use radio waves (or light) through the air:
+          <em>Wi-Fi</em> (the radio technology of most home and office networks), <em>Bluetooth</em>
+          (short range, personal devices), <em>cellular</em> (towers serving small geographic
+          "cells"), <em>microwave</em> links (line-of-sight between buildings), <em>satellite</em>,
+          and <em>infrared</em> (very short range, line of sight). The slides also list
+          <em>WiMAX</em>, a long-range microwave technology; it is
+          <a href="https://en.wikipedia.org/wiki/WiMAX" target="_blank" rel="noopener">rarely deployed today</a>
+          — operators such as Sprint chose LTE instead — so treat it as history. For tiny IoT
+          sensors there are special low-power radio standards (RFID, Zigbee, LoRaWAN, BLE), met in 9.9.
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th></th><th>Wired (Ethernet)</th><th>Wireless (Wi-Fi)</th></tr>
+            <tr><td>Speed & stability</td><td>steady, rarely disturbed</td><td>varies with distance, walls and other users</td></tr>
+            <tr><td>Mobility</td><td>tied to a socket</td><td>move freely</td></tr>
+            <tr><td>Set-up cost</td><td>cabling, patch panels, work</td><td>just access points</td></tr>
+            <tr><td>Security</td><td>an attacker needs physical access to the cable</td><td>signals leak through walls, so encryption is essential</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          How devices are arranged is the <strong>topology</strong>:
+        </p>
+        <svg class="dg" viewBox="0 0 640 170" role="img" aria-label="Four small network diagrams. Star: five nodes all connected to a central switch. Bus: five nodes hanging from one long shared cable. Ring: six nodes joined in a closed circle. Mesh: five nodes with many direct links between them.">
+          <g class="ln">
+            <line x1="80" y1="80" x2="80" y2="30"/><line x1="80" y1="80" x2="127" y2="64"/><line x1="80" y1="80" x2="109" y2="120"/><line x1="80" y1="80" x2="51" y2="120"/><line x1="80" y1="80" x2="33" y2="64"/>
+            <line x1="200" y1="70" x2="300" y2="70"/><line x1="210" y1="70" x2="210" y2="46"/><line x1="235" y1="70" x2="235" y2="94"/><line x1="255" y1="70" x2="255" y2="46"/><line x1="280" y1="70" x2="280" y2="94"/>
+            <polygon points="400,35 436,52 436,98 400,115 364,98 364,52" fill="none"/>
+            <line x1="540" y1="30" x2="590" y2="68"/><line x1="590" y1="68" x2="570" y2="124"/><line x1="570" y1="124" x2="510" y2="124"/><line x1="510" y1="124" x2="490" y2="68"/><line x1="490" y1="68" x2="540" y2="30"/><line x1="540" y1="30" x2="570" y2="124"/><line x1="540" y1="30" x2="510" y2="124"/><line x1="490" y1="68" x2="590" y2="68"/><line x1="490" y1="68" x2="570" y2="124"/>
+          </g>
+          <rect class="bx a" x="66" y="70" width="28" height="20" rx="4"/>
+          <g><circle class="bx" cx="80" cy="26" r="9"/><circle class="bx" cx="130" cy="62" r="9"/><circle class="bx" cx="110" cy="122" r="9"/><circle class="bx" cx="50" cy="122" r="9"/><circle class="bx" cx="30" cy="62" r="9"/>
+          <circle class="bx" cx="210" cy="40" r="9"/><circle class="bx" cx="235" cy="100" r="9"/><circle class="bx" cx="255" cy="40" r="9"/><circle class="bx" cx="280" cy="100" r="9"/>
+          <circle class="bx" cx="400" cy="35" r="9"/><circle class="bx" cx="436" cy="52" r="9"/><circle class="bx" cx="436" cy="98" r="9"/><circle class="bx" cx="400" cy="115" r="9"/><circle class="bx" cx="364" cy="98" r="9"/><circle class="bx" cx="364" cy="52" r="9"/>
+          <circle class="bx t" cx="540" cy="30" r="9"/><circle class="bx t" cx="590" cy="68" r="9"/><circle class="bx t" cx="570" cy="124" r="9"/><circle class="bx t" cx="510" cy="124" r="9"/><circle class="bx t" cx="490" cy="68" r="9"/></g>
+          <g class="tx" text-anchor="middle"><text x="80" y="160">star</text><text x="250" y="160">bus</text><text x="400" y="160">ring</text><text x="540" y="160">mesh</text></g>
+        </svg>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Topology</th><th>Good</th><th>Bad</th></tr>
+            <tr><td><strong>Star</strong></td><td>easy to manage and to troubleshoot; one broken cable only isolates one device</td><td>if the central switch fails the whole network is down</td></tr>
+            <tr><td><strong>Bus</strong></td><td>very little cable</td><td>a break in the main cable disables everyone</td></tr>
+            <tr><td><strong>Ring</strong></td><td>orderly: devices are chained in a closed loop</td><td>one failure can break the loop unless the ring is doubled</td></tr>
+            <tr><td><strong>Mesh</strong></td><td>many paths, so very reliable</td><td>cost grows quickly: a full mesh of n devices needs n(n−1)/2 links</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Big organisations combine these into an <strong>extended star</strong> (several stars
+          whose centres are linked) or a <strong>hierarchical</strong> design (access switches →
+          distribution → core). A modern lab or dorm floor is a star of stars: the best compromise,
+          and the one you will design in the team activity.
+        </p>
+      </div>
+      <div class="concept wide">
+        <h3><span class="idx">9.5</span>Addresses and names: ISP, IP, NAT and DNS</h3>
+        <p style="max-width:46rem">
+          Your <strong>Internet service provider (ISP)</strong> — VNPT, Viettel and FPT are
+          Vietnamese examples — runs the wide-area links and routers that connect you to the global
+          Internet, and it hands out the addresses that make delivery possible. Every device on a
+          network is identified by an <strong>IP address</strong>, the number routers read to decide
+          where to send a packet. It is the postal address of a computer; a house number on the
+          wrong street is useless, which is why IP addresses are <em>structured</em>: a network part
+          and a host part.
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th></th><th>Local (private) IP</th><th>Public IP</th></tr>
+            <tr><td>Valid</td><td>only inside one LAN</td><td>unique across the Internet</td></tr>
+            <tr><td>Given by</td><td>your router (DHCP)</td><td>your ISP</td></tr>
+            <tr><td>Typical ranges</td><td class="mono">10.x.x.x · 172.16–31.x.x · 192.168.x.x</td><td>everything else</td></tr>
+            <tr><td>Routable on the Internet?</td><td>no</td><td>yes</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Because public addresses are scarce, the router performs <strong>NAT</strong> (network
+          address translation): all the phones and laptops of a home use private addresses, and the
+          router rewrites each outgoing packet so that it appears to come from the
+          <em>one</em> public address the ISP gave the household. <strong>IPv4</strong> addresses
+          are 32 bits, written as four decimal numbers (<span class="mono">192.0.2.1</span>) — only
+          2<sup>32</sup> ≈ 4.3 billion in total, which is why <strong>IPv6</strong> exists:
+          128 bits, written in hexadecimal groups (<span class="mono">2001:db8::1</span>).
+        </p>
+        <svg class="dg" viewBox="0 0 600 270" role="img" aria-label="Diagram of a home network reaching a website. A PC at 192.168.1.2 and a phone at 192.168.1.3 connect to a router whose inside address is 192.168.1.1 and whose public address is 203.0.113.34. Four numbered arrows: 1, the PC asks the DNS server at 198.51.100.53 for the address of www.example.com; 2, the DNS server answers 203.0.113.10; 3, the PC sends an HTTP request to the web server at 203.0.113.10; 4, the web server returns the page.">
+          <rect x="8" y="8" width="250" height="150" rx="12" fill="none" stroke="var(--ink-soft)" stroke-dasharray="5 4"/>
+          <text class="sm" x="18" y="26">home LAN (private addresses)</text>
+          <rect class="bx" x="24" y="40" width="100" height="40" rx="8"/><text class="tx" x="74" y="58" text-anchor="middle">PC</text><text class="sm" x="74" y="72" text-anchor="middle">192.168.1.2</text>
+          <rect class="bx" x="140" y="40" width="100" height="40" rx="8"/><text class="tx" x="190" y="58" text-anchor="middle">phone</text><text class="sm" x="190" y="72" text-anchor="middle">192.168.1.3</text>
+          <rect class="bx m" x="45" y="104" width="180" height="50" rx="8"/><text class="tx" x="135" y="120" text-anchor="middle">router (NAT)</text><text class="sm" x="135" y="132" text-anchor="middle">inside  192.168.1.1</text><text class="sm" x="135" y="145" text-anchor="middle">outside 203.0.113.34</text>
+          <g class="ln"><line x1="74" y1="80" x2="110" y2="104"/><line x1="190" y1="80" x2="160" y2="104"/></g>
+          <rect x="290" y="62" width="300" height="70" rx="35" fill="none" stroke="var(--ink-soft)" stroke-dasharray="5 4"/>
+          <text class="sm" x="440" y="102" text-anchor="middle">the Internet (ISP networks)</text>
+          <line class="ln a" x1="210" y1="128" x2="292" y2="100"/>
+          <rect class="bx t" x="300" y="190" width="130" height="50" rx="8"/><text class="tx" x="365" y="210" text-anchor="middle">DNS server</text><text class="sm" x="365" y="226" text-anchor="middle">198.51.100.53</text>
+          <rect class="bx a" x="460" y="190" width="130" height="50" rx="8"/><text class="tx" x="525" y="210" text-anchor="middle">web server</text><text class="sm" x="525" y="226" text-anchor="middle">203.0.113.10</text>
+          <g class="ln"><line x1="380" y1="132" x2="365" y2="190"/><line x1="500" y1="132" x2="520" y2="190"/></g>
+          <text class="tx" x="388" y="170">① ②</text><text class="tx" x="508" y="170">③ ④</text>
+          <text class="tx" x="20" y="190">① “IP of www.example.com?” → DNS</text>
+          <text class="tx" x="20" y="208">② “203.0.113.10” ← DNS</text>
+          <text class="tx" x="20" y="226">③ HTTP request → 203.0.113.10</text>
+          <text class="tx" x="20" y="244">④ the page ← web server</text>
+          <text class="sm" x="20" y="262">(addresses invented from the documentation ranges)</text>
+        </svg>
+        <p style="max-width:46rem">
+          Nobody wants to type <span class="mono">203.0.113.10</span>, so the
+          <strong>Domain Name System (DNS)</strong> — the Internet's giant phone book — translates
+          names such as <span class="mono">www.example.com</span> into addresses. (The slides call it
+          "domain name <em>server</em>"; DNS is the <em>system</em>, made of many servers.) No single
+          server knows everything: the names form a hierarchy read right to left —
+          <span class="mono">www</span> . <span class="mono">example</span> . <span class="mono">com</span> . (root) —
+          and a lookup walks down it: a <strong>root server</strong> points to the <strong>.com</strong>
+          servers, which point to the <strong>authoritative server</strong> of <span class="mono">example.com</span>,
+          which finally gives the address. A <em>recursive resolver</em> (your ISP's or campus's) does
+          this walk for you and <strong>caches</strong> each answer for its TTL — so most lookups never
+          reach the root at all. Step through it in the <a href="#lab">Packet Journey lab</a>.
+        </p>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">a real DNS lookup — dig example.com, captured 18 Oct 2026 (trimmed)</span></div>
+          <pre><span class="cm">$ dig example.com A +noall +answer +comments +stats</span>
+;; ->>HEADER&lt;&lt;- opcode: QUERY, <span class="kw">status: NOERROR</span>, id: 23961
+;; ANSWER SECTION:
+<span class="fn">example.com.</span>   <span class="str">244</span>  IN  A  <span class="str">104.20.23.154</span>      <span class="cm">; name · TTL · class · type · address</span>
+<span class="fn">example.com.</span>   <span class="str">244</span>  IN  A  <span class="str">172.66.147.243</span>     <span class="cm">; several addresses are allowed</span>
+;; Query time: 52 msec
+
+<span class="cm">$ dig example.com +trace +nodnssec    # the walk down the hierarchy, abridged</span>
+.              518400  IN  NS  a.root-servers.net.   <span class="cm">; 13 root names</span>
+com.           172800  IN  NS  a.gtld-servers.net.   <span class="cm">; root → .com servers</span></pre>
+        </div>
+        <p class="note tip" style="max-width:46rem">
+          <span class="note-tag">Try it yourself</span>
+          Run <span class="mono">nslookup example.com</span> (Windows, macOS, Linux) or
+          <span class="mono">dig</span> (macOS/Linux) in a terminal. The answers above depend on place
+          and time — the site sits behind a content network — and are real, whereas the lab uses
+          invented addresses on purpose: <span class="mono">example.com</span> is
+          <a href="https://www.iana.org/help/example-domains" target="_blank" rel="noopener">reserved for documentation</a>, and
+          the ranges <span class="mono">192.0.2.0/24</span>, <span class="mono">198.51.100.0/24</span>,
+          <span class="mono">203.0.113.0/24</span> are reserved by
+          <a href="https://www.rfc-editor.org/rfc/rfc5737" target="_blank" rel="noopener">RFC 5737</a> so examples never point at a stranger's machine.
+          <span class="supp-tag">Supplementary</span>
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">9.6</span>Protocols and layers: OSI and TCP/IP</h3>
+        <p style="max-width:46rem">
+          A <strong>protocol</strong> is a set of rules that controls the format, timing and
+          exchange of data so that very different hardware and software can understand each other.
+          It covers <em>framing</em> (marking where a message starts and ends), <em>flow control</em>
+          (don't send faster than the receiver can take) and <em>error control</em> (detect damage
+          and repair it). To keep this manageable the work is split into <strong>layers</strong>:
+          each layer uses the one below and offers a service to the one above, so you can design a
+          device — or hunt a fault — one layer at a time.
+        </p>
+        <svg class="dg" viewBox="0 0 600 250" role="img" aria-label="Two layer stacks side by side. OSI model, top to bottom: application, presentation, session, transport, network, data link, physical. TCP/IP model: application (covering OSI application, presentation and session), transport, internet, network interface (covering OSI data link and physical). On the right, the unit of data and example protocols for each TCP/IP layer.">
+          <text class="ti" x="10" y="14">OSI (7 layers)</text><text class="ti" x="205" y="14">TCP/IP (4 layers)</text><text class="ti" x="395" y="14">unit · examples</text>
+          <g>
+            <rect class="bx" x="10" y="22" width="160" height="30"/><rect class="bx" x="10" y="52" width="160" height="30"/><rect class="bx" x="10" y="82" width="160" height="30"/>
+            <rect class="bx" x="10" y="112" width="160" height="30"/><rect class="bx" x="10" y="142" width="160" height="30"/><rect class="bx" x="10" y="172" width="160" height="30"/><rect class="bx" x="10" y="202" width="160" height="30"/>
+            <rect class="bx t" x="205" y="22" width="160" height="90"/><rect class="bx a" x="205" y="112" width="160" height="30"/><rect class="bx m" x="205" y="142" width="160" height="30"/><rect class="bx r" x="205" y="172" width="160" height="60"/>
+          </g>
+          <g class="tx" text-anchor="middle">
+            <text x="90" y="41">7 Application</text><text x="90" y="71">6 Presentation</text><text x="90" y="101">5 Session</text><text x="90" y="131">4 Transport</text><text x="90" y="161">3 Network</text><text x="90" y="191">2 Data link</text><text x="90" y="221">1 Physical</text>
+            <text x="285" y="71">Application</text><text x="285" y="131">Transport</text><text x="285" y="161">Internet</text><text x="285" y="206">Network interface</text>
+          </g>
+          <g class="sm"><text x="380" y="62">message · HTTP, DNS, SMTP</text><text x="380" y="131">segment · TCP, UDP</text><text x="380" y="161">packet · IP</text><text x="380" y="198">frame · Ethernet, Wi-Fi</text><text x="380" y="216">bits · cable, radio, light</text></g>
+        </svg>
+        <p style="max-width:46rem">
+          <strong>OSI</strong> (Open Systems Interconnection) is a <em>reference</em> model with
+          seven layers: <strong>physical</strong> (raw bits and signals), <strong>data link</strong>
+          (frames between neighbouring devices, using MAC addresses), <strong>network</strong>
+          (logical IP addresses and the choice of route), <strong>transport</strong> (end-to-end
+          delivery and error recovery), <strong>session</strong> (opening, keeping and closing a
+          dialogue), <strong>presentation</strong> (translation, encryption, compression) and
+          <strong>application</strong> (the interface to the user's software).
+          <strong>TCP/IP</strong> is the model the real Internet is built on: it merges the top three
+          OSI layers into one <em>application</em> layer and the bottom two into a
+          <em>network interface</em> layer. <strong>TCP</strong> gives reliable, ordered delivery
+          (like registered mail); <strong>UDP</strong> just sends and hopes (like a postcard) but is
+          faster, which is why calls and games prefer it.
+        </p>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">Slide correction</span>
+          Lecture slide 2 lists the OSI layers as "PHY, MAC, network, transport, session,
+          presentation, application". The OSI layer is called <strong>data link</strong>;
+          <strong>MAC</strong> (media access control) is only its lower <em>sub-layer</em> — the
+          part that uses the hardware address — and "PHY" is just the usual abbreviation for the physical layer.
+          Also, slide 1 says "Chapter 7"; it is a number borrowed from another book.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">9.7</span>The Internet, the Web, and HTTP</h3>
+        <p style="max-width:46rem">
+          These two words are used as synonyms in daily life, but they live at different levels.
+          The <strong>Internet</strong> is the global infrastructure: millions of networks joined
+          by routers speaking TCP/IP. The <strong>Web</strong> is <em>one application</em> running
+          on top of it — a system of linked pages served over HTTP. (E-mail, online games and video
+          calls use the same Internet but are not the Web.)
+        </p>
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            The Web was invented by the English computer scientist Tim Berners-Lee while at CERN in 1989
+            and opened to the public in 1993. The machine in the picture, a NeXT computer, is the one
+            displayed as the first web server; the label on it reads “This machine is a server. DO NOT POWER IT DOWN!!”
+            <a href="https://en.wikipedia.org/wiki/World_Wide_Web" target="_blank" rel="noopener">Source: Wikipedia — World Wide Web</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-first-web-server.jpg" width="320" height="211" loading="lazy"
+                 alt="A black NeXT computer cube with a monitor, keyboard and mouse on a white table in a museum, next to a small green book">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:NeXTcube_first_webserver.JPG" target="_blank" rel="noopener">Geni</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized)</figcaption>
+          </figure>
+        </div>
+        <p style="max-width:46rem">
+          A web page is a <strong>base HTML file plus the objects it refers to</strong> — images,
+          style sheets, scripts, audio. Each object has its own address, a <strong>URL</strong>.
+          The browser is the HTTP <em>client</em>; the web server (Apache, Nginx …) is the HTTP
+          <em>server</em>. HTTP — the <strong>HyperText Transfer Protocol</strong> — is text: the
+          client sends a <em>request</em>, the server sends back a <em>response</em>.
+        </p>
+        <h4 style="margin:1rem 0 0.3rem">Anatomy of a URL <span class="supp-tag">Supplementary</span></h4>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">one URL, five parts</span></div>
+          <pre><span class="kw">https</span>://<span class="fn">www.example.com</span>:<span class="str">443</span>/docs/intro.html<span class="str">?lang=en</span>#top
+<span class="cm">└scheme   └host (who)   └port   └path (what)       └query   └fragment (browser only)</span></pre>
+        </div>
+        <p style="max-width:46rem">
+          The slides' example, <span class="mono">www.someschool.edu/someDept/pic.gif</span>, has a
+          <strong>host name</strong> and a <strong>path name</strong>; the full form adds the
+          <em>scheme</em> in front (<span class="mono">http</span> = port 80 by default,
+          <span class="mono">https</span> = port 443) and optionally a port, query and fragment.
+        </p>
+        <h4 style="margin:1rem 0 0.3rem">A real request and response <span class="supp-tag">Supplementary</span></h4>
+        <div class="code-card" style="max-width:46rem">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">captured 18 Oct 2026 · curl -v --http1.1 http://example.com/ · trimmed</span></div>
+          <pre><span class="cm">&gt; request (what the browser sends)</span>
+<span class="kw">GET</span> / HTTP/1.1                          <span class="cm">← method, path, version</span>
+<span class="fn">Host:</span> <span class="str">example.com</span>                        <span class="cm">← which site (one server, many sites)</span>
+<span class="fn">User-Agent:</span> <span class="str">curl/8.7.1</span>
+<span class="fn">Accept:</span> <span class="str">*/*</span>
+
+<span class="cm">&lt; response (what the server sends back)</span>
+HTTP/1.1 <span class="kw">200 OK</span>                         <span class="cm">← version, status code, reason</span>
+<span class="fn">Date:</span> <span class="str">Sun, 18 Oct 2026 08:12:38 GMT</span>
+<span class="fn">Content-Type:</span> <span class="str">text/html; charset=utf-8</span>  <span class="cm">← what the body is</span>
+<span class="fn">Transfer-Encoding:</span> <span class="str">chunked</span>
+<span class="fn">Server:</span> <span class="str">cloudflare</span>
+<span class="fn">Allow:</span> <span class="str">GET, HEAD</span>                     <span class="cm">← which methods this resource accepts</span>
+<span class="cm">(blank line: end of headers; the HTML body follows)</span>
+&lt;!doctype html&gt;&lt;html lang=en&gt;&lt;head&gt;… &lt;title&gt;Example Domain&lt;/title&gt; …</pre>
+        </div>
+        <p style="max-width:46rem">
+          A real server adds a few vendor-specific headers (cache and tracing information) that were
+          removed above for clarity. Three things are worth noticing: HTTP is just <strong>lines of text</strong>;
+          the request names the <em>method</em> and <em>path</em>; and the response begins with a
+          <strong>status code</strong> a program can act on without understanding the page.
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Status</th><th>Meaning</th><th>When you see it</th></tr>
+            <tr><td class="mono">200 OK</td><td>success, body follows</td><td>a normal page</td></tr>
+            <tr><td class="mono">301 Moved Permanently</td><td>look at the <span class="mono">Location</span> header instead</td><td>a site changed its address</td></tr>
+            <tr><td class="mono">403 Forbidden</td><td>understood, but you may not</td><td>no permission</td></tr>
+            <tr><td class="mono">404 Not Found</td><td>server fine, nothing at that path</td><td>a broken link (I got this by asking for <span class="mono">/nonexistent-page</span> on the same site)</td></tr>
+            <tr><td class="mono">405 Method Not Allowed</td><td>that method is not accepted here</td><td>I got this by sending POST to <span class="mono">/</span></td></tr>
+            <tr><td class="mono">500 Internal Server Error</td><td>the server's own program crashed</td><td>a bug on the site</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          The first digit gives the family: <strong>1xx</strong> information, <strong>2xx</strong>
+          success, <strong>3xx</strong> redirect, <strong>4xx</strong> <em>you</em> made a mistake,
+          <strong>5xx</strong> <em>the server</em> failed. The common <strong>methods</strong> are
+          <span class="mono">GET</span> (read), <span class="mono">HEAD</span> (headers only),
+          <span class="mono">POST</span> (send data, e.g. a form), <span class="mono">PUT</span> and
+          <span class="mono">DELETE</span> (replace / remove).
+          Plain HTTP is readable by anyone on the path; <strong>HTTPS</strong> is the same
+          conversation inside an encrypted TLS tunnel, which is why the padlock matters on login pages.
+          The authoritative description is <a href="https://www.rfc-editor.org/rfc/rfc9110" target="_blank" rel="noopener">RFC 9110</a>.
+          <span class="supp-tag">Supplementary</span>
+        </p>
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            The Internet's ancestor, the ARPANET, sent its first host-to-host message on 29 October 1969,
+            from UCLA to the Stanford Research Institute. The student typing was meant to send the word
+            “login”, but the remote computer crashed after two letters, so the first characters ever
+            transmitted were “lo”.
+            <a href="https://en.wikipedia.org/wiki/ARPANET" target="_blank" rel="noopener">Source: Wikipedia — ARPANET</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-arpanet-imp.jpg" width="320" height="163" loading="lazy"
+                 alt="The front panel of a 1969 ARPANET Interface Message Processor, labelled INTERFACE MESSAGE PROCESSOR, with rows of switches and lamps">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:1969_ARPANET_BBN_IMP.jpg" target="_blank" rel="noopener">1969 ARPANET IMP</a> (an Interface Message Processor, the first “router”) · Public domain</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">9.8</span>Moving the data: bandwidth, packets, fragments and routes</h3>
+        <p style="max-width:46rem">
+          <strong>Bandwidth</strong> is the capacity of a channel — how many bits it can carry per
+          second. It is written in <em>bits</em> per second (kbps, Mbps, Gbps), whereas file sizes
+          use <em>bytes</em> (1 byte = 8 bits), so a 100 Mbps line moves at best 12.5 MB per second.
+          Real speed depends on the medium: optical fibre reaches gigabits per second, while an old
+          dial-up modem was physically limited to 56 kbps; for radio links the bandwidth keeps
+          changing with signal strength. (A "T1" leased line is 1.544 Mbps — about 0.19 MB/s.)
+        </p>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">Slide correction</span>
+          Slide 7 says "four bandwidths are voiceband, medium band, broadband and baseband". The
+          first three are classes of channel capacity (voiceband ≈ a telephone line, broadband = high
+          capacity); <em>baseband</em> is not a fourth capacity but a <em>way of signalling</em> —
+          using the channel's whole range for one signal, as Ethernet does — in contrast to
+          <em>broadband</em> signalling, which shares a cable among several signals. Also, "DNS" stands
+          for Domain Name <em>System</em>, and the slide's "IP addresses are unique" holds only for
+          public addresses.
+        </div>
+        <p style="max-width:46rem">
+          Data is not sent as one block. A message is cut into small <strong>packets</strong>, which
+          may travel over different routes and be re-assembled at the destination. Why bother? Short
+          packets let many conversations share a link in turns, a lost packet costs only a small
+          resend, and the pieces can use several paths at once. The price: every packet needs a
+          header with addresses and numbers. Going down the TCP/IP stack the data is
+          <strong>encapsulated</strong> — each layer wraps what it receives in its own header
+          (like putting a letter in an envelope, then in a parcel, then in a crate); going up the
+          receiver <strong>unwraps</strong> it again.
+        </p>
+        <svg class="dg" viewBox="0 0 600 215" role="img" aria-label="Encapsulation: application data on its own; then a 20-byte TCP header added in front, making a segment; then a 20-byte IP header in front, making a packet; then a 14-byte Ethernet header in front and a 4-byte trailer behind, making a frame.">
+          <g class="tx"><text x="8" y="31">Application</text><text x="8" y="81">Transport</text><text x="8" y="131">Network</text><text x="8" y="181">Link</text></g>
+          <g>
+            <rect class="bx t" x="170" y="14" width="300" height="26"/><text class="tx" x="320" y="31" text-anchor="middle">data (the HTTP message)</text>
+            <rect class="bx a" x="130" y="64" width="40" height="26"/><text class="tx" x="150" y="81" text-anchor="middle">TCP</text><rect class="bx t" x="170" y="64" width="300" height="26"/><text class="tx" x="320" y="81" text-anchor="middle">data</text>
+            <rect class="bx m" x="90" y="114" width="40" height="26"/><text class="tx" x="110" y="131" text-anchor="middle">IP</text><rect class="bx a" x="130" y="114" width="40" height="26"/><text class="tx" x="150" y="131" text-anchor="middle">TCP</text><rect class="bx t" x="170" y="114" width="300" height="26"/><text class="tx" x="320" y="131" text-anchor="middle">data</text>
+            <rect class="bx r" x="50" y="164" width="40" height="26"/><text class="sm" x="70" y="181" text-anchor="middle">Eth</text><rect class="bx m" x="90" y="164" width="40" height="26"/><text class="tx" x="110" y="181" text-anchor="middle">IP</text><rect class="bx a" x="130" y="164" width="40" height="26"/><text class="tx" x="150" y="181" text-anchor="middle">TCP</text><rect class="bx t" x="170" y="164" width="300" height="26"/><text class="tx" x="320" y="181" text-anchor="middle">data</text><rect class="bx r" x="470" y="164" width="24" height="26"/><text class="sm" x="482" y="181" text-anchor="middle">FCS</text>
+          </g>
+          <g class="sm"><text x="505" y="81">segment</text><text x="505" y="131">packet</text><text x="505" y="181" dx="0">frame</text></g>
+          <text class="sm" x="8" y="209">header sizes (no options): TCP 20 B · IP 20 B · Ethernet 14 B + 4 B trailer. Not to scale.</text>
+        </svg>
+        <p style="max-width:46rem">
+          Every link has a <strong>maximum transmission unit (MTU)</strong>: the largest packet it
+          can carry — 1500 bytes on Ethernet. Bigger packets are <strong>fragmented</strong> into
+          pieces that carry their position, so the receiver can put them back together. (In practice
+          TCP avoids IP fragmentation by cutting its segments to a <em>maximum segment size</em> of
+          MTU − 40 bytes; the lab shows both.) On a noisy channel some packets are lost or damaged, so
+          protocols use <strong>automatic repeat request (ARQ)</strong>: <em>stop-and-wait</em> sends
+          one packet and waits for its acknowledgement before the next — simple but slow —
+          while <em>Go-Back-N</em> and <em>Selective Repeat</em> keep several packets in flight.
+        </p>
+        <p style="max-width:46rem">
+          Finally, <strong>routing</strong> is choosing the path of each packet through a mesh of
+          routers: each router consults a table and picks the next hop with the lowest cost.
+          Routers build those tables with shortest-path algorithms: <strong>Dijkstra</strong>
+          (link-state: every router knows the whole map) and <strong>Bellman-Ford</strong>
+          (distance-vector: each router only trusts what its neighbours say). Dijkstra's algorithm is a
+          close cousin of the graph searches you may meet in later courses; in §2.8 of the
+          textbook you will route a file through a small network by hand (Exercises 1 and 2).
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">9.9</span>The Internet of Things and edge AI</h3>
+        <p style="max-width:46rem">
+          The <strong>Internet of Things (IoT)</strong> is the growing family of physical objects —
+          field sensors, street lights, wristbands, machines — that carry a sensor, a little software
+          and a network connection so they can collect data and exchange it continuously. It is a
+          core part of "Industry 4.0", where the physical world and its digital model (a
+          <em>cyber-physical system</em>) are tied together. The lecture slides, crediting Timothy
+          Chou, describe IoT as four jobs: <strong>collect</strong> data with sensors,
+          <strong>connect</strong> it over a network, <strong>learn</strong> from it, and
+          <strong>do</strong> something — switch a pump, warn a driver — in response.
+          Tiny, battery-powered devices use short-range or low-power radio standards (BLE, Zigbee, RFID,
+          LoRaWAN) instead of Wi-Fi, and run on small embedded boards.
+        </p>
+        <p style="max-width:46rem">
+          The classic design sends every reading to the <strong>cloud</strong> for analysis. With
+          millions of devices that costs <em>bandwidth</em> and <em>time</em>: a car cannot wait for a
+          round trip to a data centre before braking. <strong>Edge computing</strong> moves computation
+          and storage to the <em>edge</em> of the network — near the sensor or camera that produced
+          the data. When a trained AI model is run directly on such a device, we call it
+          <strong>edge AI</strong>: the device decides in real time, sends the cloud only a summary,
+          and keeps working when the connection is poor. Specialised accelerator boards (the slides
+          show NVIDIA and Google Coral modules) make this possible on a few watts.
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Cloud only</th><th>Edge AI</th></tr>
+            <tr><td>every raw reading travels to a data centre</td><td>the device filters and decides locally</td></tr>
+            <tr><td>delay = a network round trip</td><td>delay = the device's own computing time</td></tr>
+            <tr><td>stops being smart when the link drops</td><td>keeps working offline</td></tr>
+            <tr><td>big central models, easy to update</td><td>small models on weak hardware; harder to update</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Examples from the course materials: a <strong>self-driving car</strong> analyses LIDAR and
+          camera data on board (the textbook cites an Intel estimate of about 4 TB of raw sensor data per
+          day, far too much to upload); a <strong>security camera</strong> that recognises an intruder
+          and sends only the alert; <strong>predictive maintenance</strong> from vibration sensors on a
+          factory line; a <strong>wearable heart monitor</strong> that raises an alarm without waiting
+          for the Internet; <strong>smart agriculture</strong> (temperature, humidity, pH, soil
+          conductivity and light controlling irrigation pumps); <strong>air-quality monitoring</strong>
+          (PM2.5, PM10, CO<sub>2</sub>, CO); and <strong>smart street lights</strong> that dim to traffic and report
+          to a management system over Wi-Fi or 3G/4G/5G. To see what training an AI model involves, try
+          the slides' demo, <a href="https://teachablemachine.withgoogle.com/" target="_blank" rel="noopener">Google Teachable Machine</a> —
+          AI itself is the topic of <a href="chapter-11.html">Chapter 11</a>.
+        </p>
+        <div class="note" style="max-width:46rem">
+          <span class="note-tag">Did you know?</span>
+          Almost everything you do over the Internet between continents travels under the sea:
+          submarine communications cables carry about 99% of the data traffic across the oceans.
+          <a href="https://en.wikipedia.org/wiki/Submarine_communications_cable" target="_blank" rel="noopener">Source: Wikipedia — Submarine communications cable</a>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Mini app</span>
+        <h2>Packet Journey — follow one URL from your keyboard to a web server and back</h2>
+        <p>
+          Type a URL (or pick a story) and press <strong>Next</strong>. The lab walks through the five
+          phases of one page visit: <strong>1</strong> the browser parses the URL, <strong>2</strong> DNS finds the
+          address, <strong>3</strong> TCP opens a connection, <strong>4</strong> HTTP asks and answers,
+          <strong>5</strong> the answer is wrapped and unwrapped through the layers.
+          It is a <strong>simulation</strong>: the DNS zone table and web servers are invented,
+          so only the names <span class="mono">www.example.com</span>, <span class="mono">blog.example.com</span>,
+          <span class="mono">example.org</span> and <span class="mono">api.example.net</span> exist.
+        </p>
+      </div>
+      <div id="net-root"><noscript>The Packet Journey lab needs JavaScript.</noscript></div>
+      <div class="note" style="margin-top:1.2rem">
+        <span class="note-tag">Things to try</span>
+        Run <em>First visit</em>, then <em>Second visit</em>: count how many DNS messages disappear. Run
+        <em>Typo in the domain</em> and notice that phases 3–5 vanish — no address, no connection.
+        In phase 5 switch the link MTU between 200 and 1500 and watch the number of segments change,
+        then pick the last story to see IP fragments instead of TCP segments. The calculator at the bottom
+        answers the question routers ask all day: <em>is that address on my own subnet?</em>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Chapter 9 quiz</h2>
+        <p>28 questions — recall, reasoning and small calculations on network types, devices, addressing, DNS, layers, HTTP and edge AI. Pick an answer to see why.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Practice</span>
+        <h2>Exercises</h2>
+        <p>Six exercises: two paper problems from the textbook (§2.8), three that use the Packet Journey lab, and one HTTP-by-hand task. Try each before opening the model answer.</p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Team activity</span>
+        <h2>Design the network for a three-room computer lab</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          A university gives your team a corridor with <strong>three computer-lab rooms</strong>
+          (24 PCs each), a teacher's PC and a printer in a staff room, and a room for one server.
+          Students also bring about 60 phones and laptops that must use <strong>Wi-Fi</strong>. There is
+          a single uplink to the campus network and the Internet, and a <strong>private address block
+          192.168.40.0/24</strong> to share out. (A dormitory floor with 30 rooms is an equally good
+          scenario — choose one.) Produce a one-page design and defend it in five minutes.
+        </p>
+        <h3>Deliverables</h3>
+        <ul style="max-width:46rem">
+          <li><strong>A topology diagram</strong> (star-of-stars is expected, but justify it): every switch, router, access point and the server, with cable types (twisted pair, fibre) on each link.</li>
+          <li><strong>A device table</strong> naming the OSI layer each box works at and what it looks at (MAC, IP or the message).</li>
+          <li><strong>An addressing plan</strong>: one subnet per room, one for staff/server, one for Wi-Fi, each written as network/prefix with the usable host range. Check every line with the <a href="#lab">subnet calculator</a>, and state how many addresses you leave free for growth.</li>
+          <li><strong>A failure table</strong>: for each of — a room's switch, the core router, the uplink, the DNS server, the DHCP server — who loses what, and what you would add to remove that single point of failure.</li>
+          <li><strong>A Wi-Fi vs Ethernet decision</strong> for each device group, with one sentence of reasoning (stability, mobility, cost, security).</li>
+        </ul>
+        <h3>Constraints</h3>
+        <ul style="max-width:46rem">
+          <li>Use only private addresses inside; say where NAT happens.</li>
+          <li>Subnets must not overlap, and the 24 PCs of a room must fit with room to spare.</li>
+          <li>The printer must be reachable from all three rooms but the lab PCs must not be reachable from the guest Wi-Fi (name the device that enforces this).</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Topologist</td><td>draws the diagram, chooses cables and the number of switches</td></tr>
+            <tr><td>Address planner</td><td>splits 192.168.40.0/24, verifies every subnet in the calculator</td></tr>
+            <tr><td>Failure analyst</td><td>fills the failure table; proposes the cheapest redundancy</td></tr>
+            <tr><td>Presenter</td><td>walks the class through one packet from a lab PC to a website using the layers of 9.6</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          If the core switch dies, which rooms can still print? Is a mesh worth its cost for three rooms?
+          Why does a /27 hold 24 PCs but a /28 does not? What would change if the lab used only Wi-Fi?
+          Which of your devices would an attacker on the guest network try to reach first?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">06 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>MDN — An overview of HTTP</h4>
+          <p>Clients, servers, requests and responses, explained for web developers.</p>
+        </a>
+        <a class="read-card" href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL" target="_blank" rel="noopener">
+          <span class="rc-kind">Tutorial</span>
+          <h4>MDN — What is a URL?</h4>
+          <p>Every part of a web address, with examples — the longer version of 9.7.</p>
+        </a>
+        <a class="read-card" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>MDN — HTTP response status codes</h4>
+          <p>The full list of codes from 100 to 599, each with its meaning.</p>
+        </a>
+        <a class="read-card" href="https://www.cloudflare.com/learning/dns/what-is-dns/" target="_blank" rel="noopener">
+          <span class="rc-kind">Explainer</span>
+          <h4>Cloudflare Learning — What is DNS?</h4>
+          <p>The lookup walk from resolver to root, TLD and authoritative server.</p>
+        </a>
+        <a class="read-card" href="https://howdns.works/" target="_blank" rel="noopener">
+          <span class="rc-kind">Comic</span>
+          <h4>How DNS works</h4>
+          <p>An illustrated, step-by-step walk through a DNS lookup.</p>
+        </a>
+        <a class="read-card" href="https://www.rfc-editor.org/rfc/rfc9110" target="_blank" rel="noopener">
+          <span class="rc-kind">Standard</span>
+          <h4>RFC 9110 — HTTP Semantics</h4>
+          <p>The official document behind methods, status codes and headers.</p>
+        </a>
+        <a class="read-card" href="https://www.rfc-editor.org/rfc/rfc5737" target="_blank" rel="noopener">
+          <span class="rc-kind">Standard</span>
+          <h4>RFC 5737 — IPv4 address blocks reserved for documentation</h4>
+          <p>Why the lab's addresses (192.0.2.0/24 and friends) can never hit a real machine.</p>
+        </a>
+        <a class="read-card" href="https://gaia.cs.umass.edu/kurose_ross/" target="_blank" rel="noopener">
+          <span class="rc-kind">Textbook</span>
+          <h4>Kurose &amp; Ross — Computer Networking: A Top-Down Approach</h4>
+          <p>A widely used networking textbook; its companion site has interactive end-of-chapter problems and animations.</p>
+        </a>
+        <a class="read-card" href="https://teachablemachine.withgoogle.com/" target="_blank" rel="noopener">
+          <span class="rc-kind">Try it</span>
+          <h4>Google Teachable Machine</h4>
+          <p>Train a small image model in your browser — the demo from the edge-AI slides.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-8.html"><span class="dir">← Previous chapter</span>Assembly &amp; Compilers</a>
+        <a href="chapter-10.html" style="text-align:right"><span class="dir">Next chapter →</span>Databases</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 9 · Computer Networks</p>
+  </div>
+</footer>
+
+<script src="../assets/packet-journey.js"></script>
+<script src="../assets/ch9-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

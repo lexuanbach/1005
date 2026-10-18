@@ -1,0 +1,64 @@
+/* Von Neumann Machine lab + Tiny compiler lab (Chapters 7 and 8). Theme tokens only. */
+.vn-sr { position: absolute; left: -9999px; }
+.vn-story { color: var(--ink-soft); font-size: 0.92rem; margin: 0.7rem 0 0.4rem; max-width: 52rem; }
+.vn-inrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0.5rem 0; }
+.vn-inrow .field-label { margin: 0; }
+.vn-input, .tc-input { font-family: "IBM Plex Mono", monospace; font-size: 0.88rem; padding: 0.35rem 0.6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); min-width: 10rem; max-width: 100%; }
+.vn-phases { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0; }
+.vn-phases span { font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.65rem; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-soft); background: var(--surface); }
+.vn-phases span.on { color: var(--teal-ink); border-color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, var(--surface)); }
+.vn-status { min-height: 3.4rem; margin-bottom: 0.8rem; }
+.vn-main { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 0.9rem; align-items: start; }
+@media (max-width: 860px) { .vn-main { grid-template-columns: 1fr; } }
+.vn-cpu, .vn-memwrap { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.7rem; transition: box-shadow 0.15s, border-color 0.15s; }
+.vn-cpu-title { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 0.5rem; }
+.vn-regs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.vn-reg { border: 1px solid var(--line); border-radius: 8px; padding: 0.35rem 0.55rem; background: var(--paper); display: flex; flex-direction: column; min-height: 3.1rem; transition: background 0.15s, border-color 0.15s; }
+.vn-rname { font-size: 0.68rem; color: var(--ink-soft); font-weight: 600; }
+.vn-val { font-family: "IBM Plex Mono", monospace; font-size: 0.92rem; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.vn-reg.vn-src, .vn-memwrap.vn-src { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 14%, var(--surface)); }
+.vn-reg.vn-dst, .vn-memwrap.vn-dst { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--surface)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 30%, transparent); }
+.vn-memwrap.vn-src, .vn-memwrap.vn-dst { box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 25%, transparent); }
+.vn-memscroll { max-height: 34rem; overflow: auto; }
+table.vn-mem { font-size: 0.82rem; }
+table.vn-mem td, table.vn-mem th { padding: 0.25rem 0.45rem; white-space: nowrap; }
+.vn-cell { width: 5.2rem; font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; padding: 0.1rem 0.3rem; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); }
+tr.vn-code td { }
+tr.vn-data td.vn-dis { opacity: 0.45; }
+tr.vn-free { opacity: 0.55; }
+tr.vn-pcrow td { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); font-weight: 600; }
+tr.vn-rd td { background: color-mix(in srgb, var(--amber) 14%, var(--surface)); }
+tr.vn-wr td { background: color-mix(in srgb, var(--teal) 18%, var(--surface)); }
+.vn-outrow { margin: 0.8rem 0 0.4rem; }
+.vn-out { font-size: 0.95rem; font-weight: 600; color: var(--ink); }
+.vn-src-box, textarea.vn-src, textarea.tc-src { width: 100%; font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; line-height: 1.5; padding: 0.6rem; border: 1px solid var(--line); border-radius: 10px; background: var(--code-bg); color: var(--code-text, #E8EDF6); resize: vertical; tab-size: 4; }
+.vn-fine { font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.8rem; }
+.vn-err { margin-top: 0.6rem; }
+
+/* tiny compiler */
+.tc-stages { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.8rem 0 0.6rem; padding: 0; list-style: none; }
+.tc-stages li { display: contents; }
+.tc-stage { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.8rem; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
+.tc-stage[aria-selected="true"] { color: var(--teal-ink); border-color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, var(--surface)); }
+.tc-stage:disabled { opacity: 0.45; cursor: not-allowed; }
+.tc-pane { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.8rem; min-height: 8rem; }
+.tc-pane[hidden] { display: none; }
+.tc-what { font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 0.6rem; }
+.tc-tok { display: inline-flex; flex-direction: column; align-items: center; margin: 0.15rem; padding: 0.15rem 0.45rem; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; }
+.tc-tok small { font-size: 0.62rem; color: var(--ink-soft); }
+.tc-tok.kw { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.tc-tok.num { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); }
+.tc-tok.id { border-color: color-mix(in srgb, var(--teal) 55%, var(--line)); }
+.tc-line { margin: 0.2rem 0 0.6rem; }
+.tc-line > b { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--ink-soft); margin-right: 0.4rem; }
+pre.tc-ast { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem; overflow-x: auto; margin-top: 0.6rem; color: var(--ink); }
+tr.tc-hl td { background: color-mix(in srgb, var(--teal) 14%, var(--surface)); }
+tr.tc-grp td { border-top: 2px solid var(--line); }
+.tc-run-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.8rem; margin-top: 0.6rem; }
+.tc-box { border: 1px solid var(--line); border-radius: 10px; padding: 0.55rem 0.7rem; background: var(--paper); }
+.tc-box h5 { margin: 0 0 0.3rem; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.tc-badge { display: inline-block; margin: 0.5rem 0 0.8rem; font-weight: 700; font-size: 0.85rem; padding: 0.2rem 0.7rem; border-radius: 999px; }
+.tc-badge.ok { color: var(--green); background: color-mix(in srgb, var(--green) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--green) 50%, var(--line)); }
+.tc-badge.bad { color: var(--red); background: color-mix(in srgb, var(--red) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--red) 50%, var(--line)); }
+.tc-label { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 999px; border: 1px solid var(--amber); color: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--surface)); margin-left: 0.4rem; vertical-align: middle; }
+.tc-trace { max-height: 14rem; overflow: auto; }

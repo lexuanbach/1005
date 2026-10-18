@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Von Neumann Architecture · CO1005</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/vn-machine.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="chapter-1.html">C++ chapters</a>
+      <a href="chapter-7.html" aria-current="page">Chapter 7</a>
+      <a href="chapter-8.html">Chapter 8</a>
+      <a href="chapter-9.html">Chapter 9</a>
+      <a href="chapter-10.html">Chapter 10</a>
+      <a href="chapter-11.html">Chapter 11</a>
+      <a href="chapter-12.html">Chapter 12</a>
+      <a href="chapter-13.html">Chapter 13</a>
+      <a href="../playground.html">Playground</a>
+      <a href="../tutorials/tutorial-1.html">Tutorials</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <h4>Chapters</h4>
+  <nav aria-label="Chapters">
+    <a href="../index.html">Syllabus</a>
+    <a href="chapter-1.html"><span class="ch-num">01</span>Algorithms &amp; Flowcharts</a>
+    <a href="chapter-2.html"><span class="ch-num">02</span>Basic Elements in C++</a>
+    <a href="chapter-3.html"><span class="ch-num">03</span>Selection Structure</a>
+    <a href="chapter-4.html"><span class="ch-num">04</span>Repetition Structures</a>
+    <a href="chapter-5.html"><span class="ch-num">05</span>Arrays &amp; Strings</a>
+    <a href="chapter-6.html"><span class="ch-num">06</span>Functions</a>
+    <a href="../playground.html">⚡ Playground</a>
+  </nav>
+  <h4>Computing topics</h4>
+  <nav aria-label="Computing topics">
+    <a href="chapter-7.html" aria-current="page"><span class="ch-num">07</span>Von Neumann Architecture</a>
+    <a href="chapter-8.html"><span class="ch-num">08</span>Assembly &amp; Compilers</a>
+    <a href="chapter-9.html"><span class="ch-num">09</span>Computer Networks</a>
+    <a href="chapter-10.html"><span class="ch-num">10</span>Databases</a>
+    <a href="chapter-11.html"><span class="ch-num">11</span>Artificial Intelligence</a>
+    <a href="chapter-12.html"><span class="ch-num">12</span>LLMs &amp; Security</a>
+    <a href="chapter-13.html"><span class="ch-num">13</span>Citation &amp; Responsible AI</a>
+  </nav>
+  <h4>Tutorials</h4>
+  <nav aria-label="Tutorials">
+    <a href="../tutorials/tutorial-1.html"><span class="ch-num">T1</span>Algorithms &amp; Flowcharts Practice</a>
+    <a href="../tutorials/tutorial-2.html"><span class="ch-num">T2</span>Basic Elements Practice</a>
+    <a href="../tutorials/tutorial-3.html"><span class="ch-num">T3</span>Selection Practice</a>
+    <a href="../tutorials/tutorial-4.html"><span class="ch-num">T4</span>Repetition Practice</a>
+    <a href="../tutorials/tutorial-5.html"><span class="ch-num">T5</span>Arrays &amp; Strings Practice</a>
+    <a href="../tutorials/tutorial-6.html"><span class="ch-num">T6</span>Functions Practice</a>
+  </nav>
+  <h4>Supplementary</h4>
+  <nav aria-label="Supplementary topics">
+    <a href="../supplementary/compiling.html"><span class="ch-num">S1</span>Compile &amp; run, step by step</a>
+    <a href="../supplementary/expression-trees.html"><span class="ch-num">S2</span>Expression trees &amp; precedence</a>
+    <a href="../supplementary/floating-point.html"><span class="ch-num">S3</span>Inside floating point</a>
+    <a href="../supplementary/twos-complement.html"><span class="ch-num">S4</span>Inside integers</a>
+    <a href="../supplementary/loops-are-jumps.html"><span class="ch-num">S5</span>Loops are just jumps</a>
+    <a href="../supplementary/arrays-in-memory.html"><span class="ch-num">S6</span>Arrays in memory</a>
+    <a href="../supplementary/call-stack.html"><span class="ch-num">S7</span>The call stack</a>
+    <a href="../supplementary/text-encoding.html"><span class="ch-num">S8</span>How text becomes bytes</a>
+    <a href="../supplementary/short-circuit.html"><span class="ch-num">S9</span>Short-circuit evaluation</a>
+    <a href="../supplementary/loop-vs-recursion.html"><span class="ch-num">S10</span>Loop vs. recursion</a>
+  </nav>
+  <h4>On this page</h4>
+  <nav aria-label="On this page">
+    <a href="#concepts">Concepts</a>
+    <a href="#lab">Von Neumann Machine lab</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#teamwork">Team activity</a>
+    <a href="#reading">Further reading</a>
+  </nav>
+</aside>
+
+<main>
+  <section class="ch-hero">
+    <div class="wrap">
+      <span class="eyebrow">Chapter 7 · Computing Track · Week 43</span>
+      <h1>Von Neumann Architecture</h1>
+      <p class="lede">
+        Every <code>int x = 5;</code> you wrote in Part 1 ended up as a number in a numbered
+        memory cell, and every line of C++ ended up as numbers too. This chapter opens the
+        machine: <strong>memory, CPU and I/O</strong>, the idea that program and data live
+        together, and the <strong>fetch–decode–execute</strong> cycle that runs it all. You will
+        step a toy computer one register transfer at a time.
+      </p>
+      <div class="meta-chips">
+        <a class="chip" href="#concepts">9 concepts</a>
+        <a class="chip" href="#lab">Von Neumann Machine lab</a>
+        <a class="chip" href="#quiz">28-question quiz</a>
+        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#teamwork">Team activity</a>
+        <a class="chip local-only" href="../Lecture%20Slides/1%20-%20JVN.pptx">Slides (PPTX)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="concepts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">01 · Learn the concepts</span>
+        <h2>A computer is a machine that runs numbers it finds in memory</h2>
+      </div>
+
+      <figure class="photo banner">
+        <img src="../assets/lecture-images/ch7-eniac-programming.jpg" width="1100" height="840"
+             alt="Black-and-white photo of the ENIAC computer: walls of tangled plug cables, with two operators standing beside the machine reading papers">
+        <figcaption>
+          <strong>Before the stored program, programming meant plumbing.</strong> ENIAC was
+          “programmed” by setting switches and plugging cables — the forest of wires on the left.
+          Getting one new program into the machine could take days. Von Neumann's idea, the topic
+          of this chapter, was to put the program into memory instead.
+          <span class="credit">Photo: Glen Beck and Betty Snyder programming ENIAC, Ballistic Research Laboratory (c. 1947–55), U.S. Army photo, public domain ·
+            <a href="https://commons.wikimedia.org/wiki/File:Glen_Beck_and_Betty_Snyder_program_the_ENIAC_in_building_328_at_the_Ballistic_Research_Laboratory.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> (resized)</span>
+        </figcaption>
+      </figure>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.1</span>Hardware, software, and a stack of abstraction layers</h3>
+        <p style="max-width:46rem">
+          A computer system has two inseparable halves. <strong>Hardware</strong> is the physical
+          part you could touch: the processor, memory modules, storage, input/output devices and
+          the wires (buses) between them. <strong>Software</strong> is the programs that tell that
+          hardware what to do. What makes a modern computer special is that it is
+          <strong>programmable</strong>: the same box behaves like a calculator, a game console or
+          a web server depending only on the program it is given.
+        </p>
+        <p style="max-width:46rem">
+          Nobody understands all of it at once, so we look at it in <strong>layers</strong>. Each
+          layer offers a clean interface to the one above it and hides everything below. You wrote
+          C++ in Part 1 without knowing how a transistor works — that is the abstraction at work.
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 560 330" width="560" height="330" role="img" aria-label="Six abstraction layers from top to bottom: high-level language, assembly language, operating system, instruction set architecture, microarchitecture, digital circuits">
+            <rect class="fc-io" x="20" y="12" width="250" height="40" rx="6"/><text class="fc-text" x="145" y="37" text-anchor="middle">6 · High-level language (C++)</text>
+            <rect class="fc-process" x="20" y="62" width="250" height="40" rx="6"/><text class="fc-text" x="145" y="87" text-anchor="middle">5 · Assembly language</text>
+            <rect class="fc-process" x="20" y="112" width="250" height="40" rx="6"/><text class="fc-text" x="145" y="137" text-anchor="middle">4 · Operating system</text>
+            <rect class="fc-terminal" x="20" y="162" width="250" height="40" rx="6"/><text class="fc-text" x="145" y="187" text-anchor="middle">3 · Instruction set (ISA)</text>
+            <rect class="fc-process" x="20" y="212" width="250" height="40" rx="6"/><text class="fc-text" x="145" y="237" text-anchor="middle">2 · Microarchitecture</text>
+            <rect class="fc-process" x="20" y="262" width="250" height="40" rx="6"/><text class="fc-text" x="145" y="287" text-anchor="middle">1 · Digital circuits</text>
+            <text class="fc-label" x="290" y="30">functions, objects, loops — you are here</text>
+            <text class="fc-label" x="290" y="80">mnemonics: LOAD, ADD, JUMP</text>
+            <text class="fc-label" x="290" y="130">processes, files, system calls</text>
+            <text class="fc-label" x="290" y="174">the contract: which instructions exist</text>
+            <text class="fc-label" x="290" y="190">(the hardware/software interface)</text>
+            <text class="fc-label" x="290" y="230">registers, ALU, datapath, pipeline</text>
+            <text class="fc-label" x="290" y="280">transistors and logic gates</text>
+          </svg>
+          <figcaption>Six layers, bottom to top (textbook §1.2.1). One ISA can be built by many microarchitectures: x86 by Intel's Skylake and by AMD's Zen, for example.</figcaption>
+        </figure>
+        <div class="tbl-scroll" style="max-width:46rem">
+          <table class="tbl">
+            <tr><th>Generation</th><th>Years</th><th>Technology</th><th>Examples</th></tr>
+            <tr><td>1st</td><td>1940–1955</td><td>vacuum tubes</td><td>ENIAC, EDVAC</td></tr>
+            <tr><td>2nd</td><td>1955–1965</td><td>transistors</td><td>IBM 1401, UNIVAC</td></tr>
+            <tr><td>3rd</td><td>1965–1980</td><td>integrated circuits</td><td>IBM System/360</td></tr>
+            <tr><td>4th</td><td>1980–today</td><td>VLSI chips</td><td>Intel x86, ARM, RISC-V</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          <em>Table: generations of computers by technology (textbook Table 1.1).</em> The design
+          you are about to learn is the one thing that stayed the same through all four.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.2</span>The big idea of 1945</h3>
+        <p style="max-width:46rem">
+          ENIAC, finished in 1945 at the University of Pennsylvania, could do roughly 5,000
+          additions per second — astonishing at the time. But it was “programmed” by physically
+          rewiring cables and switches, which could take days or even weeks for each new problem.
+          That pain motivated the <strong>stored-program computer</strong>. In 1945 the mathematician
+          <strong>John von Neumann</strong> wrote <em>First Draft of a Report on the EDVAC</em>, the
+          first complete, buildable description of the idea; the name “Von Neumann architecture”
+          comes from it, even though Eckert, Mauchly and others contributed too, and Alan Turing had
+          laid the theory in 1936.
+        </p>
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            The first electronic computer to run a program <em>stored in its own memory</em> was the
+            Manchester “Baby” (Small-Scale Experimental Machine), which ran its first program on
+            <strong>21 June 1948</strong>. It had just 1,024 bits of memory — about 128 bytes.
+            <a href="https://en.wikipedia.org/wiki/Manchester_Baby" target="_blank" rel="noopener">Source: Wikipedia — Manchester Baby</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-manchester-baby.jpg" width="320" height="211" loading="lazy"
+                 alt="A replica of the Manchester Baby: tall racks of electronics in a museum hall, with visitors reading display boards">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:SSEM_Manchester_museum.jpg" target="_blank" rel="noopener">Parrot of Doom, 2009</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a> (replica; cropped)</figcaption>
+          </figure>
+        </div>
+        <p style="max-width:46rem">
+          The EDVAC (delivered 1949) was designed from the start around the stored program, and the
+          Cambridge EDSAC (1949) is usually called the first <em>practical</em> stored-program machine.
+          The lecture slide that shows EDVAC 1949, the IBM PC 1981, the PlayStation 2 (2000) and the
+          iPhone (2025) makes the point: <strong>the same basic design</strong>, 76 years on.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.3</span>Four subsystems and three principles</h3>
+        <p style="max-width:46rem">
+          The Von Neumann model splits the computer into <strong>four subsystems</strong>: the
+          <strong>memory</strong>, the <strong>arithmetic/logic unit (ALU)</strong>, the
+          <strong>control unit (CU)</strong> and the <strong>input/output (I/O)</strong> system. ALU
+          and control unit together are the <strong>CPU</strong>; in modern chips they sit on one
+          piece of silicon.
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 560 290" width="560" height="290" role="img" aria-label="Block diagram: a CPU containing a control unit and an ALU, connected through a shared system bus to memory and to input/output devices">
+            <defs><marker id="vn-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>
+            <rect class="fc-process" x="20" y="14" width="290" height="150" rx="10" style="stroke-dasharray:5 4"/>
+            <text class="fc-label" x="32" y="32">CPU</text>
+            <rect class="fc-decision" x="40" y="46" width="110" height="100" rx="6"/>
+            <text class="fc-text" x="95" y="78" text-anchor="middle">Control</text><text class="fc-text" x="95" y="94" text-anchor="middle">unit</text>
+            <text class="fc-label" x="95" y="116" text-anchor="middle">PC · IR</text><text class="fc-label" x="95" y="132" text-anchor="middle">decoder</text>
+            <rect class="fc-terminal" x="180" y="46" width="110" height="100" rx="6"/>
+            <text class="fc-text" x="235" y="78" text-anchor="middle">ALU</text>
+            <text class="fc-label" x="235" y="100" text-anchor="middle">registers</text><text class="fc-label" x="235" y="116" text-anchor="middle">condition codes</text>
+            <line class="fc-line" x1="150" y1="96" x2="180" y2="96" marker-end="url(#vn-ar)"/>
+            <rect class="fc-io" x="350" y="14" width="190" height="150" rx="10"/>
+            <text class="fc-text" x="445" y="76" text-anchor="middle">Memory</text>
+            <text class="fc-label" x="445" y="100" text-anchor="middle">cells with addresses</text>
+            <text class="fc-label" x="445" y="116" text-anchor="middle">program + data, together</text>
+            <rect class="fc-process" x="20" y="226" width="520" height="46" rx="10"/>
+            <text class="fc-text" x="280" y="254" text-anchor="middle">Input / Output: keyboard, screen, disk, network …</text>
+            <line class="fc-line" x1="310" y1="60" x2="350" y2="60" marker-end="url(#vn-ar)"/>
+            <line class="fc-line" x1="350" y1="120" x2="310" y2="120" marker-end="url(#vn-ar)"/>
+            <text class="fc-label" x="330" y="52" text-anchor="middle">bus</text>
+            <line class="fc-line" x1="165" y1="164" x2="165" y2="226" marker-end="url(#vn-ar)"/>
+            <line class="fc-line" x1="445" y1="164" x2="445" y2="226" marker-end="url(#vn-ar)"/>
+          </svg>
+          <figcaption>The four subsystems (slide 9; textbook Fig. 1.3). The slide's drawing is unlabeled in places — here the control unit, ALU, memory and I/O are named, and the lines are the shared bus.</figcaption>
+        </figure>
+        <p style="max-width:46rem">The model rests on three principles, which support each other:</p>
+        <ol style="max-width:46rem">
+          <li><strong>Decomposition</strong> — the machine is the four cooperating subsystems above.</li>
+          <li><strong>Stored program</strong> — instructions and data are both binary numbers, kept in the <em>same</em> addressable memory.</li>
+          <li><strong>Sequential execution</strong> — instructions run one after another, unless a branch or jump changes the flow.</li>
+        </ol>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">Slide correction</span>
+          Slide 8 says “three key ideas” but lists only two, numbered 2 and 3. The missing first idea
+          is the four-subsystem decomposition; the textbook (§1.3.2) lists all three, as above.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.4</span>The CPU: control unit and ALU</h3>
+        <p style="max-width:46rem">
+          The <strong>control unit</strong> does no arithmetic. It fetches instructions, decodes them,
+          and sends signals to wake up the ALU, memory and I/O. Three parts matter:
+        </p>
+        <div class="tbl-scroll" style="max-width:46rem">
+          <table class="tbl">
+            <tr><th>Part</th><th>What it holds or does</th></tr>
+            <tr><td><strong>PC</strong> program counter</td><td>the memory address of the <em>next</em> instruction to fetch; jumps overwrite it</td></tr>
+            <tr><td><strong>IR</strong> instruction register</td><td>the instruction just fetched, kept while it is decoded and executed</td></tr>
+            <tr><td><strong>Decoder</strong></td><td>circuitry that reads the opcode in IR and activates the right circuits</td></tr>
+            <tr><td><strong>ALU</strong></td><td>arithmetic (+ − × ÷) and logic (&lt; = &gt;, AND, OR, NOT) on values held in registers</td></tr>
+            <tr><td><strong>Registers</strong></td><td>very fast cells inside the CPU for operands and intermediate results</td></tr>
+            <tr><td><strong>Condition codes</strong></td><td>a special register recording the outcome of a comparison (GT, EQ, LT) for later jumps</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          <em>Link to C++:</em> every <code>if (a &lt; b)</code> ends up as “compare, set the condition
+          codes, jump or don't” — the condition codes are where the answer waits between the two
+          instructions. Chapter 8 shows exactly how.
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Supplementary</span><span class="supp-tag">Supplementary</span>
+          Real CPUs overlap work with a <strong>pipeline</strong> — like an assembly line, several
+          instructions are in different stages at once (fetch, decode, execute, memory, write-back).
+          The pipeline raises throughput, not the speed of any single instruction, and it can stall on
+          dependencies and branches. The textbook (§1.4.1) names superscalar execution, SIMD and multi-core as
+          further tricks; none of these change the picture of one instruction cycle that this
+          chapter uses.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.5</span>Memory: cells, addresses, fetch and store</h3>
+        <p style="max-width:46rem">
+          Memory is a long row of identically sized <strong>cells</strong>, each with a number — its
+          <strong>address</strong> — starting from 0. Keep the two apart: the <em>address</em> says
+          where the cell is, the <em>content</em> is what it holds. A cell is the smallest thing you
+          can read or write, normally one byte (8 bits), and every cell takes the same time to
+          access (that is the “random” in RAM). <em>Link to C++:</em> your <code>int x = 5;</code> is
+          just a name for a cell (or a few cells) holding the number 5 — Chapter 5 and
+          <a href="../supplementary/arrays-in-memory.html">S6</a> showed arrays as neighbouring cells.
+        </p>
+        <p style="max-width:46rem">
+          With an <strong>N-bit address</strong> there are 2<sup>N</sup> cells (addresses 0 to
+          2<sup>N</sup>−1): 16 address bits → 65,536 cells; 32 bits → about 4.29 billion bytes (4 GB);
+          30 bits → 2<sup>30</sup> = 1,073,741,824 bytes = 1 GB.
+        </p>
+        <div class="tbl-scroll" style="max-width:46rem">
+          <table class="tbl">
+            <tr><th>Operation</th><th>Steps</th><th>Effect on the cell</th></tr>
+            <tr><td><strong>Fetch(address)</strong></td><td>address → MAR; memory copies that cell into MDR</td><td>non-destructive: a copy is read</td></tr>
+            <tr><td><strong>Store(address, value)</strong></td><td>address → MAR; value → MDR; memory writes MDR into the cell</td><td>destructive: the old value is overwritten</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          <strong>MAR</strong> (memory address register) and <strong>MDR</strong> (memory data
+          register) are the only doorway between CPU and memory, plus a fetch/store signal.
+        </p>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">Slide correction</span>
+          Slide 14 says a typical PC has “64–256 MB” of RAM — that was true decades ago. The
+          textbook's Table 1.2 gives 8–128 GB of RAM today, with access times of roughly 50–80 ns (the slides'
+          50–75 ns is of the right order).
+        </div>
+        <h4 style="margin:1.2rem 0 0.4rem">The memory hierarchy</h4>
+        <p style="max-width:46rem">
+          Fast memory is expensive and small; big memory is cheap and slow. So computers use a
+          <strong>hierarchy</strong>, with the registers on top:
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Level</th><th>Technology</th><th>Typical size</th><th>Access time</th><th>Volatile?</th></tr>
+            <tr><td>Registers</td><td>flip-flops on the chip</td><td>&lt; 1 KB</td><td>&lt; 1 ns</td><td>yes</td></tr>
+            <tr><td>Cache L1</td><td>SRAM on the chip</td><td>32–64 KB per core</td><td>1–4 ns</td><td>yes</td></tr>
+            <tr><td>Cache L2</td><td>SRAM on the chip</td><td>256 KB–1 MB per core</td><td>3–10 ns</td><td>yes</td></tr>
+            <tr><td>Cache L3</td><td>SRAM, shared</td><td>8–32 MB</td><td>10–20 ns</td><td>yes</td></tr>
+            <tr><td>RAM</td><td>DRAM</td><td>8–128 GB</td><td>50–82 ns</td><td>yes</td></tr>
+            <tr><td>SSD</td><td>flash</td><td>256 GB–4 TB</td><td>0.1–1 ms</td><td>no</td></tr>
+            <tr><td>HDD</td><td>magnetic disk</td><td>1–20 TB</td><td>5–15 ms</td><td>no</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          <em>Table: textbook Table 1.2.</em> “Volatile” means the content disappears when the power goes
+          off — which is why a file must be written to a disk to survive.
+          A <strong>cache</strong> keeps recently used data close to the CPU because programs behave
+          predictably: <strong>temporal locality</strong> (an address used now is likely to be used again
+          soon — a loop variable) and <strong>spatial locality</strong> (its neighbours are likely next — walking
+          through an array). A cache therefore loads whole <em>blocks</em> (typically 64 bytes). A
+          <em>hit</em> is served at once; a <em>miss</em> must wait for the slower level.
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Supplementary</span><span class="supp-tag">Supplementary</span>
+          <strong>Virtual memory</strong> lets each program believe it has a large private address
+          space. The OS cuts that space into fixed-size <em>pages</em> (usually 4 KB), keeps a page table
+          mapping them to physical RAM, and loads a missing page from disk on a <em>page fault</em> —
+          which costs millions of CPU cycles, so avoiding page faults matters. The textbook (§1.4.2) goes further (TLB, thrashing).
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.6</span>Input/output: slow devices and the controllers that hide it</h3>
+        <p style="max-width:46rem">
+          The I/O system connects the machine to the world. <strong>Communication devices</strong>
+          (keyboard, mouse, screen, network) and <strong>storage devices</strong> (hard disk, SSD,
+          optical disc, tape). The slides also split storage by access method: <em>direct access</em>
+          (disks) versus <em>sequential access</em> (tape, used for backups).
+        </p>
+        <p style="max-width:46rem">
+          The catch is speed. RAM answers in about 50 ns; a hard disk needs about 10 ms. That is 10 ms ÷ 50 ns
+          = <strong>200,000 times slower</strong> (flash SSDs are far faster than that, but still far
+          slower than RAM). A CPU that waited for every disk operation would idle almost all the
+          time. The fix is an <strong>I/O controller</strong>: a small special-purpose processor with
+          its own buffer that runs the device. The CPU starts the job and carries on with other
+          instructions; when the transfer is done the controller sends an <strong>interrupt</strong>
+          that makes the CPU run a short <em>interrupt service routine</em>. With <strong>DMA</strong>
+          (direct memory access) the data moves between RAM and the controller's buffer without going
+          through the CPU at all.
+        </p>
+        <p style="max-width:46rem">
+          <em>Link to C++:</em> when your program executes <code>cin &gt;&gt; x</code>, the keystroke
+          arrives through exactly this path. In the toy machine of the lab, the <code>IN</code> and
+          <code>OUT</code> instructions play the role of that I/O system.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.7</span>What “stored program” makes possible</h3>
+        <p style="max-width:46rem">
+          Because instructions are just numbers in memory, <strong>a program can be handled like
+          data</strong>: loaded from disk, copied, changed, even produced by another program. That one
+          decision has four huge consequences (textbook §1.5.1):
+        </p>
+        <ul style="max-width:46rem">
+          <li><strong>The operating system</strong> is just a program that manages other programs, loaded and run like any other.</li>
+          <li><strong>The compiler</strong> reads your source code (data) and writes machine code (also data) into memory — Chapter 8.</li>
+          <li><strong>Self-modifying code</strong>: a program can overwrite its own instructions while running. The lab has a preset that does exactly this.</li>
+          <li><strong>The whole software industry</strong> — languages, libraries, apps — rests on treating programs as data.</li>
+        </ul>
+        <p style="max-width:46rem">
+          The idea is older than the hardware: Turing's 1936 “universal machine” read its instructions
+          from a tape, and Babbage's Analytical Engine was designed in a similar spirit.
+        </p>
+        <div class="note with-media" style="max-width:46rem">
+          <div class="note-text">
+            <span class="note-tag">Did you know?</span>
+            Sharing one memory and one path between instructions and data has a price. Since an instruction fetch and a data
+            access cannot happen at the same time, the CPU often waits for memory — the
+            <strong>Von Neumann bottleneck</strong> (slide 35). John Backus, who led the team that created FORTRAN, described it in his 1977 ACM
+            Turing Award lecture.
+            <a href="https://en.wikipedia.org/wiki/Von_Neumann_architecture#Von_Neumann_bottleneck" target="_blank" rel="noopener">Source: Wikipedia — Von Neumann architecture</a>.
+          </div>
+          <figure class="note-media">
+            <img src="../assets/lecture-images/fact-john-backus.jpg" width="147" height="200" loading="lazy"
+                 alt="Portrait of the computer scientist John Backus">
+            <figcaption>Photo: <a href="https://commons.wikimedia.org/wiki/File:John_Backus.jpg" target="_blank" rel="noopener">Pierre Lescanne, 1989</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> (cropped)</figcaption>
+          </figure>
+        </div>
+        <p style="max-width:46rem">
+          The caches of 7.5 exist largely to ease this bottleneck.
+        </p>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.8</span>The fetch–decode–execute cycle</h3>
+        <p style="max-width:46rem">
+          The control unit does one thing, forever: <strong>fetch</strong> the next instruction,
+          <strong>decode</strong> it, <strong>execute</strong> it — until a <code>HALT</code>. To start a
+          program, PC is set to the address of its first instruction. Here is one full cycle in terms
+          of registers (slides 31–33):
+        </p>
+        <figure class="fig">
+          <svg viewBox="0 0 560 190" width="560" height="190" role="img" aria-label="A cycle of three boxes: Fetch, Decode, Execute, with an arrow from Execute back to Fetch">
+            <defs><marker id="vn-ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="fc-arrowhead"/></marker></defs>
+            <rect class="fc-io" x="20" y="30" width="140" height="64" rx="8"/><text class="fc-text" x="90" y="58" text-anchor="middle">1 · FETCH</text><text class="fc-label" x="90" y="76" text-anchor="middle">get instruction</text>
+            <rect class="fc-decision" x="210" y="30" width="140" height="64" rx="8"/><text class="fc-text" x="280" y="58" text-anchor="middle">2 · DECODE</text><text class="fc-label" x="280" y="76" text-anchor="middle">what is it?</text>
+            <rect class="fc-terminal" x="400" y="30" width="140" height="64" rx="8"/><text class="fc-text" x="470" y="58" text-anchor="middle">3 · EXECUTE</text><text class="fc-label" x="470" y="76" text-anchor="middle">do it</text>
+            <line class="fc-line" x1="160" y1="62" x2="208" y2="62" marker-end="url(#vn-ar2)"/>
+            <line class="fc-line" x1="350" y1="62" x2="398" y2="62" marker-end="url(#vn-ar2)"/>
+            <path class="fc-line" d="M 470 94 L 470 150 L 90 150 L 90 96" marker-end="url(#vn-ar2)"/>
+            <text class="fc-label" x="280" y="143" text-anchor="middle">repeat until HALT</text>
+          </svg>
+          <figcaption>The instruction cycle (textbook Fig. 1.9). In a modern CPU several instructions overlap in a pipeline, but the logic is the same.</figcaption>
+        </figure>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Phase</th><th>Micro-step</th><th>What happens</th></tr>
+            <tr><td rowspan="4"><strong>Fetch</strong></td><td class="mono">PC → MAR</td><td>the address of the next instruction goes to the memory address register</td></tr>
+            <tr><td class="mono">fetch signal</td><td>memory copies that cell into MDR</td></tr>
+            <tr><td class="mono">MDR → IR</td><td>the instruction is parked in the instruction register</td></tr>
+            <tr><td class="mono">PC + 1 → PC</td><td>PC now points to the following instruction</td></tr>
+            <tr><td><strong>Decode</strong></td><td class="mono">IR → decoder</td><td>the opcode is read; the decoder raises the signals for that instruction</td></tr>
+            <tr><td><strong>Execute</strong></td><td class="mono">depends on opcode</td><td>e.g. LOAD X: IR.address → MAR; fetch signal; MDR → R</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          Slide 33 leaves <code>ADD X</code> “as an exercise”. Here it is: <code>IR.address → MAR</code>;
+          fetch signal (the value goes to MDR); <code>ALU: R + MDR → R</code>. A <code>JUMP X</code> is
+          even shorter: <code>IR.address → PC</code>, so the <em>next</em> fetch comes from X. A conditional
+          jump does that only if the condition codes say so; otherwise PC just keeps counting.
+        </p>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Try it now</span>
+          The lab below runs exactly these micro-steps: open the <strong>“A = B + C”</strong> preset and press
+          <em>Micro-step</em> eight times. After the first four presses, PC has moved on but the instruction has not
+          even been decoded yet.
+        </div>
+      </div>
+
+      <div class="concept wide">
+        <h3><span class="idx">7.9</span>Machine instructions, the instruction set — and RISC vs CISC</h3>
+        <p style="max-width:46rem">
+          A <strong>machine-language instruction</strong> is a binary word with an
+          <strong>opcode</strong> (which operation) and one or more <strong>address fields</strong>
+          (which cells). With a <em>k</em>-bit opcode you can have at most 2<sup>k</sup> different operations.
+          Slide 23's example <code>ADD X, Y</code> (opcode 9, X = 99, Y = 100) is a 40-bit instruction:
+          <code>00001001 | 0000000001100011 | 0000000001100100</code> — 8 + 16 + 16 bits.
+        </p>
+        <p style="max-width:46rem">
+          The lecturer's toy machine (slide 34) keeps things smaller: a <strong>4-bit opcode</strong>
+          followed by <strong>one address</strong>, and a single working register <strong>R</strong> (the
+          accumulator). With 16 memory cells the address is 4 bits, so every instruction is exactly
+          <strong>8 bits</strong>. It has 16 instructions:
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Opcode</th><th>Instruction</th><th>Meaning</th></tr>
+            <tr><td class="mono">0000</td><td class="mono">LOAD X</td><td>CON(X) → R</td></tr>
+            <tr><td class="mono">0001</td><td class="mono">STORE X</td><td>R → CON(X)</td></tr>
+            <tr><td class="mono">0010</td><td class="mono">CLEAR X</td><td>0 → CON(X)</td></tr>
+            <tr><td class="mono">0011</td><td class="mono">ADD X</td><td>R + CON(X) → R</td></tr>
+            <tr><td class="mono">0100</td><td class="mono">INCREMENT X</td><td>CON(X) + 1 → CON(X)</td></tr>
+            <tr><td class="mono">0101</td><td class="mono">SUBTRACT X</td><td>R − CON(X) → R</td></tr>
+            <tr><td class="mono">0110</td><td class="mono">DECREMENT X</td><td>CON(X) − 1 → CON(X)</td></tr>
+            <tr><td class="mono">0111</td><td class="mono">COMPARE X</td><td>GT = 1 if CON(X) &gt; R; EQ = 1 if equal; LT = 1 if CON(X) &lt; R</td></tr>
+            <tr><td class="mono">1000</td><td class="mono">JUMP X</td><td>next instruction from X</td></tr>
+            <tr><td class="mono">1001</td><td class="mono">JUMPGT X</td><td>jump to X if GT = 1</td></tr>
+            <tr><td class="mono">1010 · 1011 · 1100</td><td class="mono">JUMPLT · JUMPEQ · JUMPNEQ</td><td>jump if LT = 1 · if EQ = 1 · if EQ = 0</td></tr>
+            <tr><td class="mono">1101</td><td class="mono">IN X</td><td>read an integer, store it in X</td></tr>
+            <tr><td class="mono">1110</td><td class="mono">OUT X</td><td>print CON(X) in decimal</td></tr>
+            <tr><td class="mono">1111</td><td class="mono">HALT</td><td>stop</td></tr>
+          </table>
+        </div>
+        <div class="note warn" style="max-width:46rem">
+          <span class="note-tag">Slide corrections</span>
+          Slide 34 gives opcode 0101 to <em>both</em> SUBTRACT and DECREMENT — a typo, because a decoder
+          could not tell them apart. This page and the lab use <strong>0110</strong> for DECREMENT (the
+          code the slide skips). The slide also leaves the codes of the <code>JUMPxx</code> family
+          as “…”; the table above fills them in the slide's own order. And slide 27 lists <code>JUMPGE</code>
+          and <code>JUMPLE</code>, which do not fit: four opcode bits allow only 16 instructions. In the lab the
+          assembler accepts them as shortcuts for two jumps (GT-or-EQ, LT-or-EQ). Finally, slide 26's
+          two-operand <code>COMPARE X, Y</code> is replaced on slide 34 by <code>COMPARE X</code>, which
+          compares cell X with R; we follow slide 34.
+        </div>
+        <p style="max-width:46rem">
+          Real instruction sets look like this too, just bigger. The textbook shows the 16-bit
+          teaching machine <strong>LC-3</strong>: a 4-bit opcode (16 opcodes in all, one reserved) and fields for
+          registers. <code>ADD R1, R2, R3</code> is the word <code>0001 001 010 000 011</code> (hex 1283).
+        </p>
+        <h4 style="margin:1.2rem 0 0.4rem">Two design philosophies</h4>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Criterion</th><th>RISC (ARM, RISC-V, MIPS)</th><th>CISC (x86)</th></tr>
+            <tr><td>Idea</td><td>few, simple instructions; less circuitry</td><td>many, richer instructions; each does more</td></tr>
+            <tr><td>Instruction length</td><td>fixed (often 32-bit)</td><td>variable (1–15 bytes on x86)</td></tr>
+            <tr><td>Memory access</td><td>only load/store touch memory; ALU works on registers</td><td>ALU instructions may use memory operands</td></tr>
+            <tr><td>Code size</td><td>larger</td><td>denser</td></tr>
+            <tr><td>Typical use</td><td>phones, embedded devices, many servers</td><td>PCs, servers, games</td></tr>
+          </table>
+        </div>
+        <p style="max-width:46rem">
+          <em>Table: textbook Table 1.4 (condensed).</em> Neither is simply “faster”: performance depends
+          on the compiler, the microarchitecture, the memory system and the workload. A modern x86 chip even
+          translates its CISC instructions into RISC-like <em>micro-ops</em> internally. The iPhone in the
+          lecture's first slide runs ARM, the PC in the same slide runs x86 — one architecture idea, two instruction sets.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">02 · Lab</span>
+        <h2>Von Neumann Machine</h2>
+        <p>
+          This is the lecturer's <strong>toy computer</strong> (slide 34) simulated in your browser.
+          It is a <strong>teaching model</strong>, not a real CPU: 16 memory cells, one accumulator R, the
+          16 instructions above. Pick a preset, press <em>Micro-step</em> and watch the highlighted registers —
+          amber is where a value comes from, teal is where it goes.
+        </p>
+      </div>
+      <div id="vn-root"></div>
+      <div class="note tip" style="max-width:46rem; margin-top:1rem">
+        <span class="note-tag">How to read the memory table</span>
+        Every cell is shown three ways: its <strong>decimal</strong> value, its <strong>8 bits</strong> split into
+        opcode | address, and “read as an instruction”. A data value such as <code>5</code> is the bit pattern
+        <code>0000 0101</code>, which reads as the instruction <code>LOAD 5</code> — the hardware cannot tell data from
+        instructions by looking at the bits; only the PC decides what gets executed. Edit any cell by typing in its box.
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="quiz">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">03 · Test yourself</span>
+        <h2>Chapter 7 quiz</h2>
+        <p>28 questions — components and roles, memory arithmetic, traces of the fetch–decode–execute cycle, and the reasoning behind the design.</p>
+      </div>
+      <div id="quiz-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="exercises">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">04 · Practice</span>
+        <h2>Exercises</h2>
+        <p>Paper questions in the style of the textbook's review questions, plus tasks to do in the lab. Every number in the model answers was checked by running the engine.</p>
+      </div>
+      <div id="exercises-root"></div>
+    </div>
+  </section>
+
+  <section class="block" id="teamwork">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">05 · Team activity</span>
+        <h2>Follow one keystroke</h2>
+        <p>Teams of 3–4 · one class period to prepare · a 5-minute presentation. Counts toward the class-activities 10%.</p>
+      </div>
+      <div class="concept wide">
+        <h3>The task</h3>
+        <p style="max-width:46rem">
+          You press a key while your C++ program is waiting at <code>cin &gt;&gt; x;</code> and, a moment
+          later, the character appears on screen. <strong>Trace that journey</strong> through the four
+          subsystems and produce a one-page diagram plus a numbered list of events, from the keyboard
+          to the screen, naming which component acts at each step.
+        </p>
+        <h3>Constraints</h3>
+        <ul style="max-width:46rem">
+          <li>Use at least these words correctly: I/O controller, interrupt, memory cell with its address, MAR, MDR, PC, IR, ALU.</li>
+          <li>Show where the CPU is <em>not</em> waiting (why the keyboard cannot slow it down), and use the speed gap of 7.6 with a number.</li>
+          <li>Mark which steps in your list happen in a fetch–decode–execute cycle of <em>your</em> program and which happen in the interrupt service routine.</li>
+          <li>Finish with one sentence: which step would be the bottleneck for a program that reads a million numbers from a disk, and why.</li>
+        </ul>
+        <h3>Roles</h3>
+        <div class="tbl-scroll" style="max-width:44rem">
+          <table class="tbl">
+            <tr><th>Role</th><th>Responsibility</th></tr>
+            <tr><td>Hardware architect</td><td>draws the block diagram and labels buses and subsystems</td></tr>
+            <tr><td>Cycle tracer</td><td>writes the fetch–decode–execute micro-steps for the instruction that follows the interrupt</td></tr>
+            <tr><td>Skeptic</td><td>challenges every arrow: “who started this? who was waiting?”</td></tr>
+            <tr><td>Presenter</td><td>tells the story in five minutes, with the diagram</td></tr>
+          </table>
+        </div>
+        <div class="note tip" style="max-width:46rem">
+          <span class="note-tag">Discussion starters</span>
+          What would happen if the CPU had to poll the keyboard in a loop instead of being interrupted?
+          Which component would you expect to be shared with the instructions of your own program, and what does that
+          sharing cost (hint: the Von Neumann bottleneck)? Which parts of the story would change on a phone with a touch screen?
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reading">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">06 · Go further</span>
+        <h2>Further reading</h2>
+      </div>
+      <div class="reading">
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Von_Neumann_architecture" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Von Neumann architecture</h4>
+          <p>History, the shared bus and the bottleneck, and how the model compares with Harvard designs.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/First_Draft_of_a_Report_on_the_EDVAC" target="_blank" rel="noopener">
+          <span class="rc-kind">History</span>
+          <h4>Wikipedia — First Draft of a Report on the EDVAC</h4>
+          <p>The 1945 document that started it all, and the debate over who deserves the credit.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Manchester_Baby" target="_blank" rel="noopener">
+          <span class="rc-kind">History</span>
+          <h4>Wikipedia — Manchester Baby</h4>
+          <p>The first electronic stored-program computer, and what its first program did.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Instruction_cycle" target="_blank" rel="noopener">
+          <span class="rc-kind">Reference</span>
+          <h4>Wikipedia — Instruction cycle</h4>
+          <p>The fetch–decode–execute cycle in more detail, including how real CPUs vary it.</p>
+        </a>
+        <a class="read-card" href="https://en.wikipedia.org/wiki/Little_man_computer" target="_blank" rel="noopener">
+          <span class="rc-kind">Related toy</span>
+          <h4>Wikipedia — Little man computer</h4>
+          <p>Another famous teaching computer with a tiny instruction set, like the one in this chapter's lab.</p>
+        </a>
+        <a class="read-card" href="https://www.eater.net/8bit" target="_blank" rel="noopener">
+          <span class="rc-kind">Build it</span>
+          <h4>Ben Eater — Build an 8-bit computer from scratch</h4>
+          <p>Videos that build a working fetch–decode–execute machine out of logic chips on breadboards.</p>
+        </a>
+        <a class="read-card" href="https://www.nand2tetris.org/" target="_blank" rel="noopener">
+          <span class="rc-kind">Course</span>
+          <h4>Nand to Tetris</h4>
+          <p>Build a computer from logic gates up to a running program — this chapter's layers, made hands-on.</p>
+        </a>
+        <a class="read-card" href="https://akkadia.org/drepper/cpumemory.pdf" target="_blank" rel="noopener">
+          <span class="rc-kind">Deep dive</span>
+          <h4>Ulrich Drepper — What every programmer should know about memory</h4>
+          <p>Caches, locality and why memory is the bottleneck, written for programmers (advanced).</p>
+        </a>
+        <a class="read-card" href="https://dl.acm.org/doi/10.1145/359576.359579" target="_blank" rel="noopener">
+          <span class="rc-kind">Classic paper</span>
+          <h4>John Backus — Can programming be liberated from the von Neumann style? (1977)</h4>
+          <p>The Turing Award lecture that named the Von Neumann bottleneck.</p>
+        </a>
+      </div>
+
+      <nav class="pagenav" aria-label="Chapter navigation">
+        <a href="chapter-6.html"><span class="dir">← Previous chapter</span>Functions</a>
+        <a href="chapter-8.html" style="text-align:right"><span class="dir">Next chapter →</span>Assembly &amp; Compilers</a>
+      </nav>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Chapter 7 · Von Neumann Architecture</p>
+  </div>
+</footer>
+
+<script src="../assets/vn-machine.js"></script>
+<script src="../assets/vn-machine-ui.js"></script>
+<script src="../assets/ch7-data.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>
