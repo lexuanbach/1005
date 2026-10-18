@@ -236,7 +236,7 @@
   function persist() { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} }
 
   var state = { li: 0, last: null, view: 'asm', hint: 0, twinFound: false };
-  var el = {};
+  var el = {}, flow = null;
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function h(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function say(msg) { el.status.textContent = msg; }
@@ -262,6 +262,11 @@
     el.work = h('section', 'dm-work'); root.appendChild(el.work);
     el.status = h('p', 'dm-status'); el.status.setAttribute('role', 'status'); el.status.setAttribute('aria-live', 'polite');
     root.appendChild(el.status);
+    el.flowBox = h('section', 'dm-flow-box');
+    el.flowBox.innerHTML = '<h3>Watch your program travel through the toolchain</h3><p class="fine">Your code runs the pipeline on the left-to-right, top-to-bottom path (blocks 1 to 9). The faded row at the bottom is the hidden target program going through the same toolchain: if your machine words equal its words, the two pipelines converge on the same memory (green cells).</p>';
+    root.appendChild(el.flowBox);
+    el.flowHost = h('div', 'dm-flow'); el.flowBox.appendChild(el.flowHost);
+    flow = global.CompilerFlow ? global.CompilerFlow.create(el.flowHost, { ghost: true, uid: 'dm', speedKey: 'co1005-cf-speed', initialSpeed: 3 }) : null;
     el.stagesBox = h('section', 'dm-stages-box'); root.appendChild(el.stagesBox);
     el.results = h('section', 'dm-results'); root.appendChild(el.results);
 
@@ -405,25 +410,27 @@
     return '<p class="fine">This stage was not reached.</p>';
   }
 
-  function lightStages(done) {
+  /* stage strip lights up as the flow diagram reaches each block (falls back to a timed sweep without the diagram) */
+  var STAGE_KEY = { lexer: 1, parser: 2, codegen: 3, assembler: 4, loader: 4, cpu: 5 };
+  function stripReset() {
+    var btns = el.stagesBox.querySelectorAll('.dm-stage');
+    btns.forEach(function (b) { b.classList.remove('ok', 'fail', 'pop'); b.classList.add('idle'); });
+    if (btns[0]) { btns[0].classList.remove('idle'); btns[0].classList.add('ok'); }
+  }
+  function stripTo(idx) {
+    var btns = el.stagesBox.querySelectorAll('.dm-stage'), steps = state.last.stages, b = btns[idx];
+    if (!b) return;
+    b.classList.remove('idle'); b.classList.add(steps[idx].st); b.classList.add('pop');
+  }
+  function stripAll() {
     var btns = el.stagesBox.querySelectorAll('.dm-stage'), steps = state.last.stages;
-    if (reduce) { done(); return; }
-    btns.forEach(function (b) { b.classList.remove('ok', 'fail'); b.classList.add('idle'); });
-    var i = 0;
-    (function next() {
-      if (i >= btns.length) { done(); return; }
-      var s = steps[i];
-      btns[i].classList.remove('idle'); btns[i].classList.add(s.st); btns[i].classList.add('pop');
-      var stop = s.st !== 'ok';
-      i++;
-      if (stop) { for (var j = i; j < btns.length; j++) { btns[j].classList.remove('ok', 'fail'); btns[j].classList.add(steps[j].st); } done(); return; }
-      setTimeout(next, 180);
-    })();
+    btns.forEach(function (b, i) { b.classList.remove('ok', 'fail', 'idle', 'pop'); b.classList.add(steps[i].st); });
   }
 
   function doRun() {
     var L = LEVELS[state.li], src = el.ta.value;
     saved.code[L.id] = src; persist();
+    if (flow) flow.cancel();
     var r = judge(L, src);
     state.last = r;
     state.view = r.compiled ? 'asm' : (r.stages[1].st === 'fail' ? 'tokens' : r.stages[2].st === 'fail' ? 'tree' : 'asm');
@@ -445,7 +452,16 @@
       if (r.solved) showReveal(true);
       say(summaryText(r));
     }
-    lightStages(finish);
+    var T = target(L);
+    if (flow) {
+      flow.setGhost(T.res.asm);
+      stripReset();
+      var tr = TC.trace(src, { input: L.samples[0], record: 60 });
+      flow.start(tr, { ghost: T.res.asm, input: L.samples[0], autoplay: true,
+        onStage: function (stage) { if (STAGE_KEY[stage]) stripTo(STAGE_KEY[stage]); },
+        onFail: function (stage) { stripAll(); },
+        onDone: function () { stripAll(); finish(); } });
+    } else finish();
   }
 
   function summaryText(r) {
@@ -496,6 +512,7 @@
 
   function selectLevel(i) {
     state.li = i; state.last = null; state.hint = 0; state.view = 'asm'; state.twinFound = false;
+    if (flow) { flow.blank('Press “Run on all tests”: your program goes through the toolchain while the hidden target program waits, faded, at the bottom.'); flow.setGhost(target(LEVELS[i]).res.asm); }
     renderLevelBar(); renderCase(); renderWork(); renderStageView();
     el.results.innerHTML = '';
     if (saved.solved[LEVELS[i].id] || saved.peeked[LEVELS[i].id]) { showReveal(!!saved.solved[LEVELS[i].id]); }

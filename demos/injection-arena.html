@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/llm-flow.css">
 <link rel="stylesheet" href="../assets/demo-injection-arena.css">
 </head>
 <body class="part2">
@@ -58,6 +59,8 @@
           <summary>What the developer told the bot (system prompt)</summary>
           <pre id="lv-system"></pre>
         </details>
+
+        <div class="lf-wrap" id="flow" aria-label="How the request travels through the application"></div>
 
         <div id="chatbox">
           <div id="chatlog" class="chatlog" aria-label="Conversation"></div>
@@ -120,8 +123,11 @@
         <p id="def-verdict" class="verdict"></p>
         <div class="tools"><button class="btn small" id="def-showbest" type="button">Show the best setup</button><button class="btn ghost small" id="def-clear" type="button">Turn everything off</button></div>
         <p class="muted" id="def-best"></p>
+        <h3>Where each defence lives</h3>
+        <p class="muted">Each switch is a block of the application. Press “Animate” on an attack below to watch it travel through the blocks you switched on.</p>
+        <div class="lf-wrap" id="def-flow" aria-label="Defences as blocks of the application"></div>
         <h3>The eight attacks</h3>
-        <div class="tbl-scroll"><table class="tbl"><thead><tr><th>Vector</th><th>Attack</th><th>Result</th></tr></thead><tbody id="def-attacks"></tbody></table></div>
+        <div class="tbl-scroll"><table class="tbl"><thead><tr><th>Vector</th><th>Attack</th><th>Result</th><th><span class="sr">Animate</span></th></tr></thead><tbody id="def-attacks"></tbody></table></div>
         <h3>Seven ordinary requests (the cost of defending)</h3>
         <div class="tbl-scroll"><table class="tbl"><thead><tr><th>Request</th><th>With your setup</th></tr></thead><tbody id="def-benign"></tbody></table></div>
       </div>
@@ -132,6 +138,7 @@
     <details class="card what">
       <summary>What am I looking at?</summary>
       <ul>
+        <li><b>The block diagram</b> shows the application around the model: the gateway (input filter), the prompt assembler that stacks system, user and untrusted text into one stream, the model, the tool layer (allow-list and human confirmation) and the output filter. Tokens travel through it each time you send something; a red STOP marks where a defence blocked, and an amber SLIPPED THROUGH marks where the attack got past.</li>
         <li><b>System / user / untrusted boxes</b> are the three sources of text from section 12.8. The model receives them as one flat stream of tokens, which is the root cause of prompt injection.</li>
         <li><b>Levels 1 to 4</b> show direct injection against a user-facing bot: a polite instruction is only text; keyword filters are beaten by rewording; an output filter that looks for the whole word is beaten by asking for pieces.</li>
         <li><b>Level 5</b> is indirect injection: the e-mail's author is the attacker. Delimiting helps, but the closing-tag spoof is the "delimiter breaker" from the chapter. Compare SQL injection (Chapter 10), where prepared statements keep code and data apart at the syntax level.</li>
@@ -151,6 +158,7 @@
   </div>
 </footer>
 
+<script src="../assets/llm-flow.js"></script>
 <script src="../assets/demo-injection-arena.js"></script>
 <script src="../assets/course.js"></script>
 </body>

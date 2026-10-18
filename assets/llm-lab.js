@@ -118,6 +118,17 @@
     bar.appendChild(stepBtn); bar.appendChild(allBtn); bar.appendChild(resetBtn);
     panel.appendChild(bar);
 
+    // the generation loop, animated: context -> model -> probabilities -> sampled token -> text -> (loop)
+    var LF = window.LLMFlow, flow = null, tp = null;
+    if (LF) {
+      var gwrap = el('div', 'lf-wrap');
+      flow = LF.genloop(gwrap);
+      tp = LF.transport({ key: 'co1005-llm-speed' });
+      gwrap.appendChild(tp.el);
+      tp.runner.cancelHook = flow.cancel;
+      panel.appendChild(gwrap);
+    }
+
     var textBox = el('div', 'llm-textbox'); textBox.setAttribute('aria-label', 'Generated text');
     var status = el('div', 'sim-status'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
     var tblWrap = el('div', 'tbl-scroll');
@@ -134,12 +145,40 @@
     function params() {
       return { prompt: prompt.value, order: +orderSel.value, temperature: +temp.value, topK: +topk.value, seed: Math.max(1, +seed.value || 1), maxNew: 24 };
     }
-    function reset() { st = N.start(model, params()); lastStep = null; render(); }
+    var shown = 0, curRec = null, busyTok = false; // shown = generated tokens already appended on screen (the animation appends them one by one)
+    function ctxOf(tokens) { return st.order > 1 ? tokens.slice(-(st.order - 1)) : []; }
+    function updBtns() { var busy = !!(tp && tp.runner.active); stepBtn.disabled = allBtn.disabled = st.done || busy; }
+    if (tp) tp.runner.listeners.push(updBtns);
+    function reset() {
+      if (tp) tp.runner.cancel();
+      busyTok = false;
+      st = N.start(model, params()); lastStep = null; curRec = null; shown = 0; render();
+      if (flow) { flow.resetCounter(); flow.reset(ctxOf(st.tokens), N.detok(st.tokens), st.order); }
+    }
     var lastStep = null;
+    function sync() { // after a run ends or is interrupted: show everything the engine has produced
+      shown = st.tokens.length - st.promptLen; busyTok = false; if (curRec) lastStep = curRec;
+      render(); if (flow) flow.setText(N.detok(st.tokens));
+    }
+    function hooks() {
+      return {
+        begin: function () { if (st.done) return null; busyTok = true; curRec = N.step(st); return N.trace(curRec, st); },
+        text: function () { return N.detok(st.tokens.slice(0, st.promptLen + shown + 1)); },
+        onDistribution: function () { lastStep = curRec; render(); },
+        onAppend: function () { shown++; render(); },
+        onLoop: function () { busyTok = false; render(); }
+      };
+    }
+    function startRun(count, stepMode) {
+      var units = [];
+      for (var k = 0; k < count; k++) units = units.concat(flow.tokenUnits(hooks()));
+      return tp.runner.start(units, { stepMode: !!stepMode }).then(sync);
+    }
     function render() {
-      var promptToks = st.tokens.slice(0, st.promptLen), gen = st.tokens.slice(st.promptLen);
+      var promptToks = st.tokens.slice(0, st.promptLen), gen = st.tokens.slice(st.promptLen, st.promptLen + shown);
+      var finished = st.done && !busyTok && shown >= st.tokens.length - st.promptLen;
       textBox.innerHTML = '<span class="llm-prompt">' + esc(N.detok(promptToks)) + '</span>' +
-        (gen.length ? ' <span class="llm-gen">' + esc(N.detok(gen)) + '</span>' : '') + (st.done ? ' <span class="llm-muted">[end]</span>' : '<span class="llm-caret" aria-hidden="true">▌</span>');
+        (gen.length ? ' <span class="llm-gen">' + esc(N.detok(gen)) + '</span>' : '') + (finished && st.done ? ' <span class="llm-muted">[end]</span>' : '<span class="llm-caret" aria-hidden="true">▌</span>');
       var unknown = N.wordTokens(prompt.value).filter(function (w) { return !model.vocab[w]; });
       if (!lastStep) {
         var d = N.nextDist(model, st.tokens, st.order);
@@ -151,9 +190,9 @@
         tblWrap.innerHTML = tableHTML(s.shaped, s.chosenIndex, { usedOrder: s.usedOrder, requestedOrder: st.order });
         status.textContent = 'The model looked at ' + (s.usedOrder - 1 === 0 ? 'no context' : 'the last ' + (s.usedOrder - 1) + ' word' + (s.usedOrder > 2 ? 's' : '')) +
           ', gave every candidate a probability, and the seeded random number ' + s.u.toFixed(3) + ' picked “' + (s.chosen === N.EOS ? 'end of sentence' : s.chosen) + '” (' + (chosen.adj * 100).toFixed(0) + '% after temperature/top-k). ' +
-          (st.done ? 'Generation finished.' : 'That token was appended to the text and the loop repeats.');
+          (st.done && !busyTok ? 'Generation finished.' : 'That token is appended to the text and the loop repeats.');
       }
-      stepBtn.disabled = allBtn.disabled = st.done;
+      updBtns();
     }
     function tableHTML(shaped, chosenIdx, info) {
       var rows = shaped.slice(0, 8).map(function (e, i) {
@@ -169,8 +208,14 @@
         (info.usedOrder < info.requestedOrder ? ' (backed off from ' + (info.requestedOrder - 1) + ')' : '') + '. Counts come from the ' + model.sentences + ' training sentences.</p>';
       return '<table class="tbl llm-table"><thead><tr><th>Next token</th><th>Seen</th><th>Probability</th><th>After temperature &amp; top-k</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' + more + ctxLine;
     }
-    stepBtn.addEventListener('click', function () { lastStep = N.step(st); render(); });
-    allBtn.addEventListener('click', function () { while (!st.done) lastStep = N.step(st); render(); });
+    stepBtn.addEventListener('click', function () {
+      if (flow) startRun(1); else { lastStep = N.step(st); shown = st.tokens.length - st.promptLen; render(); }
+    });
+    allBtn.addEventListener('click', function () {
+      if (flow) startRun(Math.max(1, st.maxNew - (st.tokens.length - st.promptLen)));
+      else { while (!st.done) lastStep = N.step(st); shown = st.tokens.length - st.promptLen; render(); }
+    });
+    if (tp) tp.runner.onIdleStep = function () { if (!st.done) startRun(1, true); };
     resetBtn.addEventListener('click', reset);
     [orderSel, topk, seed].forEach(function (c) { c.addEventListener('change', reset); });
     prompt.addEventListener('input', function () { pPre.value = ''; reset(); });
@@ -208,8 +253,18 @@
     var bVuln = el('button', 'btn ghost small', 'Turn all defences off'); bVuln.type = 'button';
     var bDef = el('button', 'btn ghost small', 'Turn all defences on'); bDef.type = 'button';
     var bReset = el('button', 'btn ghost small', '↺ Reset scenario'); bReset.type = 'button';
-    qa.appendChild(bVuln); qa.appendChild(bDef); qa.appendChild(bReset);
+    var LF = window.LLMFlow, flow = null, tp = null;
+    var bRun = el('button', 'btn primary', '▶ Run it through the assistant'); bRun.type = 'button';
+    qa.appendChild(bRun); qa.appendChild(bVuln); qa.appendChild(bDef); qa.appendChild(bReset);
     panel.appendChild(qa);
+    if (LF) { // the application as blocks: the request and the untrusted text travel through them
+      var fwrap = el('div', 'lf-wrap');
+      flow = LF.pipeline(fwrap, { idleText: 'Press “Run it through the assistant” to watch the request and the untrusted document travel through the blocks. Toggle a defence to see which block it lives in.' });
+      tp = LF.transport({ key: 'co1005-llm-speed' });
+      fwrap.appendChild(tp.el);
+      tp.runner.cancelHook = flow.cancel;
+      panel.appendChild(fwrap);
+    }
 
     // the three channels
     var chan = el('div', 'llm-chans');
@@ -258,9 +313,32 @@
       r.hidden.forEach(function (h) { if (h) html = html.split(esc(h)).join('<mark class="llm-hid">' + esc(h) + '</mark>'); });
       modelOut.innerHTML = html || '<span class="llm-muted">(empty)</span>';
     }
-    function run() {
+    function opts() { return { doc: docTa.value, request: reqSel.value, defences: { delimit: cDelim.checked, escape: cEsc.checked, leastPrivilege: cLeast.checked } }; }
+    function chipMap() { return { delim: cDelim.checked, strip: cDelim.checked && cEsc.checked, priv: cLeast.checked }; }
+    var runId = 0;
+    function run() { // instant: used while you edit the text or toggle a defence
+      runId++;
+      if (tp) { tp.runner.cancel(); panel.classList.remove('llm-stale'); }
+      if (flow) { flow.reset(); flow.setChips(chipMap()); }
+      render(I.run(opts()));
+    }
+    function runAnimated() {
+      var o = opts(), r = I.run(o), steps = I.trace(r, o);
       userBox.querySelector('pre').textContent = I.REQUESTS[reqSel.value].label;
-      var r = I.run({ doc: docTa.value, request: reqSel.value, defences: { delimit: cDelim.checked, escape: cEsc.checked, leastPrivilege: cLeast.checked } });
+      playSteps(r, steps, false);
+    }
+    function playSteps(r, steps, stepMode) {
+      var my = ++runId;
+      flow.reset(); flow.setChips(chipMap());
+      panel.classList.add('llm-stale');
+      tp.runner.start(flow.unitsFor(steps), { stepMode: stepMode }).then(function () {
+        if (my !== runId) return; // a newer run or an edit took over
+        panel.classList.remove('llm-stale');
+        render(r); // the result panels update only when the last token has landed
+      });
+    }
+    function render(r) {
+      userBox.querySelector('pre').textContent = I.REQUESTS[reqSel.value].label;
       renderViews(r);
       verdict.className = 'sim-status ' + (r.compromised ? 'error' : 'done');
       verdict.textContent = r.compromised
@@ -278,6 +356,10 @@
     function loadPreset() {
       var p = currentPreset(); docTa.value = p.doc; reqSel.value = p.request; run();
     }
+    if (tp) tp.runner.onIdleStep = function () { // Step with nothing running: replay the current run one arrow at a time
+      var o = opts(), r = I.run(o); playSteps(r, I.trace(r, o), true);
+    };
+    bRun.addEventListener('click', function () { if (flow) runAnimated(); else run(); });
     presetSel.addEventListener('change', loadPreset);
     reqSel.addEventListener('change', run);
     docTa.addEventListener('input', function () { run(); });

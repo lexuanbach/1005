@@ -139,3 +139,11 @@
   .dm-stage { transition: none; }
   .dm-stage.pop { transform: none; }
 }
+
+/* toolchain flow diagram (assets/compiler-flow.js / .css) */
+.dm-flow-box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.2rem; margin-bottom: 1.2rem; }
+.dm-flow-box .cf-diagram { background: var(--paper); }
+.dm-flow-box .cf-svg { max-width: 48rem; }
+#dm-root.dm-big .cf-narr p { font-size: 1.05rem; }
+#dm-root.dm-big .cf-narr { height: 11em; }
+@media (max-width: 560px) { .dm-flow-box { padding: 0.9rem; } }

@@ -78,3 +78,7 @@
 .sq-ix { color: var(--green); border-color: color-mix(in srgb, var(--green) 50%, var(--line)); background: color-mix(in srgb, var(--green) 8%, var(--paper)); }
 .sq-noidx { font-size: 0.72rem; font-style: italic; }
 @media (max-width: 860px) { .sq-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.sq-flowcard { margin-top: 0.8rem; }
+.sq-flowh { margin: 0; font-size: 0.95rem; }
+.sq-flowcard .sf-wrap { margin-top: 0.4rem; }

@@ -604,8 +604,166 @@
     return { source: S, para: P, pMask: pMask, sMask: sMask, shared: shared, ratio: ratio, copied: copied, words: unq, longest: best, verdict: verdict, n: n };
   }
 
+  // 4-gram scan as a list of window positions (what the animation walks through). Same matching as overlap().
+  function scanSteps(source, para, n) {
+    n = n || 4;
+    var S = tokenize(source), P = tokenize(para), grams = {}, i, steps = [];
+    function key(arr, a) { return arr.slice(a, a + n).map(function (t) { return t.w; }).join(' '); }
+    for (i = 0; i + n <= S.length; i++) grams[key(S, i)] = i;
+    for (i = 0; i + n <= P.length; i++) {
+      var g = key(P, i), found = Object.prototype.hasOwnProperty.call(grams, g);
+      var quoted = P.slice(i, i + n).some(function (t) { return t.quoted; });
+      steps.push({ i: i, gram: g, found: found, quoted: found && quoted, match: found && !quoted, srcIndex: found ? grams[g] : -1 });
+    }
+    return steps;
+  }
+
+  // ───────────── trace: how each form field becomes a piece of the formatted reference ─────────────
+  // trace(data, 'APA'|'MLA'|'IEEE') -> { style, events:[{field, slot, input, rules:[id], ruleName, out, italic, dropped}], ref, intext }
+  // Every event's `out` is a piece of the reference that render() produces (tests check this), and `rules` name the style rules applied.
+  var SLOTS = ['authors', 'year', 'title', 'container', 'volume', 'pages', 'publisher', 'link', 'intext'];
+  var RULE_NAMES = {
+    initials: 'Initials for given names', fullname: 'Full given names, family name first', amp: '“&” before the last author',
+    and: '“and” before the last author', etal: '“et al.” for long author lists', ellipsis: 'Ellipsis after the 19th author',
+    asis: 'Copied as typed', sentence: 'Sentence case', titlecase: 'Title Case', quote: 'Title in quotation marks', italics: 'Italics',
+    parens: 'Year in parentheses', date: 'Date written in this style', abbr: 'Abbreviated journal title', volno: '“vol.” / “no.” labels',
+    pp: 'Page label (p. / pp.)', endash: 'En dash in the page range', article: 'Article number', doiurl: 'DOI as https://doi.org/ link',
+    doiieee: '“doi:” form', noproto: 'URL without https://', place: 'City: publisher', dropped: 'Left out by this style',
+    intextAPA: 'In-text: author and year', intextMLA: 'In-text: author and page', intextIEEE: 'In-text: number in brackets'
+  };
+  function trace(data, style) {
+    style = style === 'MLA' || style === 'IEEE' ? style : 'APA';
+    var o = normalise(data), t = o.type, au = authorBlock(o), org = o.orgAuthor, E = [], r = render(data);
+    function add(field, input, rules, out, extra) {
+      var marked = out == null ? '' : String(out), e = {
+        field: field, slot: field, input: clean(input), rules: rules,
+        ruleName: rules.map(function (k) { return RULE_NAMES[k]; }).join(' + '),
+        out: strip(marked), italic: marked.indexOf('*') >= 0, dropped: false
+      };
+      if (extra) for (var k in extra) e[k] = extra[k];
+      E.push(e);
+    }
+    function drop(field, input, why) { add(field, input, ['dropped'], '', { dropped: true, why: why }); }
+    var website = t === 'website', ai = t === 'ai', articleLike = t === 'journal' || t === 'chapter' || t === 'conference';
+    var hasMonth = !!(parseInt(o.month, 10));
+
+    // authors
+    var rawAu = o.authors.map(function (a) { return a.raw; }).join('; ');
+    if (ai) {
+      if (style === 'APA') add('authors', org || o.publisher, ['asis'], org || o.publisher);
+    } else if (au) {
+      var k = au.length, given = au.some(function (a) { return a.given; }), rules;
+      if (style === 'APA') {
+        rules = []; if (given) rules.push('initials'); if (k > 1) rules.push('amp'); if (k > 20) rules.push('ellipsis'); if (!rules.length) rules.push('asis');
+        add('authors', rawAu, rules, apaAuthors(au));
+      } else if (style === 'MLA') {
+        rules = ['fullname']; if (k === 2) rules.push('and'); else if (k >= 3) rules.push('etal');
+        add('authors', rawAu, rules, mlaAuthors(au));
+      } else {
+        rules = ['initials']; if (k >= 2 && k <= 6) rules.push('and'); else if (k > 6) rules.push('etal');
+        add('authors', rawAu, rules, ieeeAuthors(au));
+      }
+    } else if (org && !(website && style === 'MLA')) add('authors', org, ['asis'], org);
+
+    // year / date
+    if (o.year) {
+      var yin = o.year + (hasMonth ? ' / month ' + parseInt(o.month, 10) + (parseInt(o.day, 10) ? ' / day ' + parseInt(o.day, 10) : '') : '');
+      if (style === 'APA') add('year', yin, (website || ai) && hasMonth ? ['parens', 'date'] : ['parens'], '(' + ((website || ai) ? apaDate(o) : o.year) + ')');
+      else if (style === 'MLA') add('year', yin, [hasMonth ? 'date' : 'asis'], mlaDate(o));
+      else add('year', yin, [hasMonth && t !== 'conference' ? 'date' : 'asis'], t === 'conference' ? o.year : ieeeDate(o));
+    }
+
+    // title
+    if (o.title || (ai && o.prompt)) {
+      var tin = o.title, out, rr;
+      if (style === 'APA') {
+        if (ai) add('title', tin || o.prompt, ['italics'], '*' + strip(clean(o.title || o.prompt)) + '*');
+        else {
+          out = sentenceCase(o.title, o.keep); rr = [out !== tin ? 'sentence' : null, t === 'book' || (website && !o.wiki) ? 'italics' : null].filter(Boolean);
+          add('title', tin, rr.length ? rr : ['asis'], rr.indexOf('italics') >= 0 ? '*' + out + '*' : out);
+        }
+      } else if (style === 'MLA') {
+        if (ai) add('title', o.prompt || tin, ['quote'], clean(o.prompt || o.title));
+        else {
+          out = titleCase(o.title); rr = [out !== tin ? 'titlecase' : null, t === 'book' ? 'italics' : 'quote'].filter(Boolean);
+          add('title', tin, rr, t === 'book' ? '*' + out + '*' : out);
+        }
+      } else if (!ai) {
+        if (t === 'book') { out = titleCase(o.title); add('title', tin, [out !== tin ? 'titlecase' : null, 'italics'].filter(Boolean), '*' + out + '*'); }
+        else { out = sentenceCase(o.title, o.keep); add('title', tin, [out !== tin ? 'sentence' : null, 'quote'].filter(Boolean), out); }
+      }
+    }
+
+    // container (journal / book / proceedings / website / tool)
+    if (o.container) {
+      var c = o.container;
+      if (style === 'APA') {
+        if (t === 'journal' || t === 'conference') add('container', c, ['italics'], '*' + c + '*');
+        else if (t === 'chapter') { var sc = sentenceCase(c, o.keep); add('container', c, [sc !== c ? 'sentence' : null, 'italics'].filter(Boolean), '*' + sc + '*'); }
+        else if (website) { if (c !== org) add('container', c, ['asis'], c); }
+        else if (ai) add('container', c, ['asis'], c);
+      } else if (style === 'MLA') {
+        if (ai) add('container', c, ['italics'], '*' + c + '*');
+        else if (t !== 'book') { var tc = titleCase(c); add('container', c, [tc !== c ? 'titlecase' : null, 'italics'].filter(Boolean), '*' + tc + '*'); }
+      } else if (t === 'journal' || t === 'conference') add('container', c, [o.abbr ? 'abbr' : null, 'italics'].filter(Boolean), '*' + (o.abbr || c) + '*');
+      else if (t === 'chapter') { var tc2 = titleCase(c); add('container', c, [tc2 !== c ? 'titlecase' : null, 'italics'].filter(Boolean), '*' + tc2 + '*'); }
+      else if (website) add('container', c, ['asis'], c);
+    }
+
+    // volume / issue
+    if (t === 'journal' && o.volume) {
+      var vin = 'vol. ' + o.volume + (o.issue ? ', no. ' + o.issue : '');
+      if (style === 'APA') add('volume', vin, ['italics'], '*' + o.volume + '*' + (o.issue ? '(' + o.issue + ')' : ''));
+      else add('volume', vin, ['volno'], 'vol. ' + o.volume + (o.issue ? ', no. ' + o.issue : ''));
+    } else if (t === 'journal' && o.issue && style !== 'APA') add('volume', 'no. ' + o.issue, ['volno'], 'no. ' + o.issue);
+
+    // pages / article number
+    if (articleLike && (o.pages || o.articleNo)) {
+      var pin = o.pages ? o.pagesRaw : 'article ' + o.articleNo, dash = o.pages && o.pagesRaw !== o.pages ? ['endash'] : [];
+      if (style === 'APA') {
+        if (o.pages) add('pages', pin, t === 'journal' ? (dash.length ? dash : ['asis']) : ['pp'].concat(dash), t === 'journal' ? o.pages : pagesLabel(o.pages));
+        else add('pages', pin, ['article'], 'Article ' + o.articleNo);
+      } else if (style === 'MLA') {
+        if (o.pages) add('pages', pin, ['pp'].concat(dash), pagesLabel(o.pages));
+        else drop('pages', pin, 'MLA leaves article numbers out');
+      } else if (o.pages) add('pages', pin, ['pp'].concat(dash), pagesLabel(o.pages) + (o.articleNo && t === 'journal' ? ', Art. no. ' + o.articleNo : ''));
+      else add('pages', pin, ['article'], t === 'journal' ? 'Art. no. ' + o.articleNo : '');
+    }
+
+    // publisher / place
+    var pub = o.publisher;
+    if (pub && !ai) {
+      if (style === 'APA') { if (t === 'book' || t === 'chapter' || t === 'conference') add('publisher', pub, ['asis'], pub); }
+      else if (style === 'MLA') { if (!website || pub !== titleCase(o.container)) add('publisher', pub, ['asis'], pub); }
+      else if (t === 'conference') { if (o.city) add('publisher', o.city, ['asis'], o.city); }
+      else if (t === 'book' || t === 'chapter') add('publisher', (o.city ? o.city + ' / ' : '') + pub, o.city ? ['place'] : ['asis'], o.city ? o.city + ': ' + pub : pub);
+    } else if (ai && style === 'MLA' && (pub || org)) add('publisher', pub || org, ['asis'], pub || org);
+
+    // DOI / link
+    var doiUrl = o.doi ? 'https://doi.org/' + o.doi : '';
+    if (style === 'IEEE') {
+      if (o.doi && (t === 'journal' || t === 'chapter' || t === 'conference')) add('link', o.doiRaw, ['doiieee'], 'doi: ' + o.doi);
+      else if (!o.doi && o.url && (t === 'journal' || website)) add('link', o.url, ['asis'], o.url);
+      else if (o.doi) drop('link', o.doiRaw, 'IEEE gives no DOI for this source type');
+    } else if (o.doi && !website && !ai) add('link', o.doiRaw, ['doiurl'], doiUrl);
+    else if (o.url) {
+      if (style === 'APA') add('link', o.url, ['asis'], o.url);
+      else { var np = stripProtocol(o.url); add('link', o.url, np !== o.url ? ['noproto'] : ['asis'], np); }
+    }
+
+    // in-text form
+    var cite = style === 'APA' ? inTextAPA(o) : style === 'MLA' ? inTextMLA(o) : inTextIEEE(o);
+    E.push({ field: 'intext', slot: 'intext', input: (au ? surnames(au, ' and ') : (org || o.title)) + (o.year ? ', ' + o.year : ''),
+      rules: [style === 'APA' ? 'intextAPA' : style === 'MLA' ? 'intextMLA' : 'intextIEEE'],
+      ruleName: RULE_NAMES[style === 'APA' ? 'intextAPA' : style === 'MLA' ? 'intextMLA' : 'intextIEEE'], out: strip(cite.par), italic: false, dropped: false });
+    var ref = r[style];
+    if (ai && style === 'IEEE') E = [];
+    return { style: style, events: E, ref: ref.plain, intext: cite, noReference: ai && style === 'IEEE' };
+  }
+
   var CiteLab = {
     render: render, PRESETS: PRESETS, SPOT: SPOT, overlap: overlap, tokenize: tokenize,
+    trace: trace, scanSteps: scanSteps, SLOTS: SLOTS, RULE_NAMES: RULE_NAMES,
     _t: { sentenceCase: sentenceCase, titleCase: titleCase, initials: initials, parseName: parseName, detectCase: detectCase, normDoi: normDoi, ordinal: ordinal }
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = CiteLab;
@@ -650,6 +808,8 @@
     function show(i) {
       panels.forEach(function (p, k) { p.hidden = k !== i; tabBtns[k].setAttribute('aria-selected', String(k === i)); tabBtns[k].tabIndex = k === i ? 0 : -1; });
       save('tab', String(i));
+      if (i === 2 && typeof scanUI !== 'undefined' && scanUI) scanUI.relayout();
+      if (i === 0 && flowUI) flowUI.relayout();
     }
     var status = el('div', 'sim-status cl-status'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
 
@@ -708,6 +868,46 @@
       form.appendChild(wrap); inputs[f.k] = inp; labels[f.k] = lab; wraps[f.k] = wrap;
     });
 
+    // ---- animated data flow: form fields -> style rules -> reference slots (driven by trace())
+    var flowUI = global.CiteFlow ? buildFlow() : null;
+    function buildFlow() {
+      var CF = global.CiteFlow, box = el('div', 'cf-box'), scroll = el('div', 'cf-scroll');
+      box.appendChild(el('span', 'cl-tag', 'How the form becomes the reference \u2014 watch each field travel through the style rules'));
+      var fs = el('select', 'preset-select'); fs.setAttribute('aria-label', 'Style to trace');
+      [['APA', 'APA 7'], ['MLA', 'MLA 9'], ['IEEE', 'IEEE']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; fs.appendChild(op); });
+      var bld = CF.builder(scroll), tr = null;
+      function label() { return fs.value === 'APA' ? 'APA 7' : fs.value === 'MLA' ? 'MLA 9' : 'IEEE'; }
+      var ctl = CF.controls({
+        unit: 'field', extra: [fs],
+        start: function (paused) { if (tr) runner.start(tr.events.slice(), { paused: paused, end: finished }); },
+        reset: function () { bld.showAll(); ctl.say(idle()); }
+      });
+      function idle() { return tr && tr.noReference ? 'IEEE has no reference format for chatbot output \u2014 only the disclosure rule (see the card below).' : 'Press Play (or Step) to send each filled-in field through the ' + label() + ' rules. The finished slots are shown now.'; }
+      function finished() { ctl.say('All fields placed. Each style arranges these pieces in its own order (see the cards below); the in-text form is built from the author and year.'); }
+      var runner = CF.Runner({
+        run: function (e) { ctl.say(bld.narration(e, label())); return bld.run(e, ctl.speed.ms()); },
+        ms: ctl.speed.ms, gap: ctl.speed.gap, onChange: ctl.paint, stop: bld.stop, begin: function () { bld.clear(); }
+      });
+      ctl.runner = runner;
+      box.appendChild(ctl.el); box.appendChild(ctl.narr); box.appendChild(scroll);
+      fs.addEventListener('change', function () { api.setData(api.last); });
+      var api = {
+        el: box, last: null,
+        setData: function (data) {
+          runner.cancel(); api.last = data; tr = CiteLab.trace(data, fs.value); bld.configure(tr, label()); bld.showAll(); ctl.say(idle());
+          var list = [idle(), 'All fields placed. Each style arranges these pieces in its own order (see the cards below); the in-text form is built from the author and year.'];
+          ['APA', 'MLA', 'IEEE'].forEach(function (st) {
+            var lab = st === 'APA' ? 'APA 7' : st === 'MLA' ? 'MLA 9' : 'IEEE';
+            CiteLab.trace(data, st).events.forEach(function (e) { list.push(bld.narration(e, lab)); });
+          });
+          ctl.fix(list);
+        },
+        relayout: function () { ctl.fix(); }
+      };
+      return api;
+    }
+    if (flowUI) p1.appendChild(flowUI.el);
+
     var results = el('div', 'cl-results'); p1.appendChild(results);
     var cards = {};
     ['APA', 'MLA', 'IEEE'].forEach(function (name) {
@@ -762,6 +962,7 @@
       });
       generalHints.textContent = '';
       r.hints.filter(function (h) { return h.style === 'all'; }).forEach(function (h) { generalHints.appendChild(el('li', 'cl-hint cl-' + h.level, (h.level === 'error' ? 'Missing: ' : h.level === 'warn' ? 'Check: ' : 'Note: ') + h.msg)); });
+      if (flowUI) flowUI.setData(data);
       save('form', JSON.stringify(data));
     }
     sel.addEventListener('change', function () { var p = PRESETS[+sel.value]; fillForm(p.data); update(); story.textContent = p.story; status.textContent = 'Loaded: ' + p.name; });
@@ -824,6 +1025,7 @@
     var l2 = el('label', 'field-label', 'Your sentence'); l2.setAttribute('for', 'cl-par');
     var par = el('textarea', 'cl-input'); par.id = 'cl-par'; par.rows = 3; par.value = SAMPLES[0].para;
     p3.appendChild(l1); p3.appendChild(src); p3.appendChild(l2); p3.appendChild(par);
+    var scanUI = global.CiteFlow ? global.CiteFlow.scan(p3.appendChild(el('div', 'cf-scan-host'))) : null;
     var out3 = el('div', 'cl-p3out'); p3.appendChild(out3);
     function paint(node, toks, mask, text) {
       node.textContent = ''; var pos = 0;
@@ -839,6 +1041,7 @@
     }
     function check() {
       var r = overlap(src.value, par.value, 4);
+      if (scanUI) scanUI.setTexts(src.value, par.value);
       out3.textContent = '';
       var a = el('div', 'cl-hl'); a.appendChild(el('span', 'cl-tag', 'Your sentence — highlighted = 4+ words in a row identical to the source')); var pa = el('p', 'cl-hlp'); paint(pa, r.para, r.pMask, par.value); a.appendChild(pa);
       var b = el('div', 'cl-hl'); b.appendChild(el('span', 'cl-tag', 'Source — the matching stretches')); var pb = el('p', 'cl-hlp'); paint(pb, r.source, r.sMask, src.value); b.appendChild(pb);

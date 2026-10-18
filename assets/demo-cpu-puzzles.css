@@ -12,7 +12,7 @@
 .cp-lv.on { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, var(--surface)); font-weight: 600; }
 .cp-lvn { font-family: "IBM Plex Mono", monospace; font-weight: 600; color: var(--teal-ink); }
 .cp-lvs { font-size: 0.75rem; letter-spacing: 0.05em; color: var(--amber); }
-.cp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 1rem; align-items: start; }
+.cp-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr); gap: 1rem; align-items: start; }
 @media (max-width: 960px) { .cp-grid { grid-template-columns: minmax(0, 1fr); } }
 .cp-left, .cp-right { display: flex; flex-direction: column; gap: 0.8rem; min-width: 0; }
 .cp-card { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.8rem 0.9rem; min-width: 0; }
@@ -42,8 +42,6 @@ textarea.cp-src:focus-visible, .cp-lv:focus-visible { outline: 2px solid var(--t
 .cp-asmmsg.bad { color: #C0392B; }
 :root[data-theme="dark"] .cp-asmmsg.bad { color: #FF8F80; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cp-asmmsg.bad { color: #FF8F80; } }
-.cp-speedrow input[type=range] { width: 8rem; accent-color: var(--teal); }
-.cp-speedname { font-size: 0.8em; min-width: 4.5rem; font-weight: 600; }
 .cp-status { font-size: 0.88em; margin: 0.4rem 0; min-height: 1.3em; color: var(--ink); }
 .cp-big { font-weight: 700; font-size: 1.05em; margin: 0.3rem 0; color: var(--teal-ink); }
 .cp-big.bad { color: #C0392B; }
@@ -70,10 +68,8 @@ textarea.cp-src:focus-visible, .cp-lv:focus-visible { outline: 2px solid var(--t
 .cp-phase.on { color: var(--teal-ink); border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--surface)); }
 .cp-counter { margin-left: auto; font-family: "IBM Plex Mono", monospace; font-size: 0.78em; color: var(--ink-soft); }
 .cp-say { min-height: 4.6em; font-size: 0.88em; padding: 0.5rem 0.7rem; border-radius: 8px; background: var(--paper); border: 1px dashed var(--line); margin-bottom: 0.7rem; overflow-wrap: anywhere; }
-.cp-io { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.7rem; }
-@media (max-width: 520px) { .cp-io { grid-template-columns: 1fr; } }
-.cp-dev, .cp-cpu, .cp-mem { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.6rem; background: var(--paper); transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
-.cp-devname, .cp-cpuname, .cp-explab { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 0.7em; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 0.3rem; }
+.cp-dev, .cp-mem { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.6rem; background: var(--paper); transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+.cp-cpuname, .cp-explab { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 0.7em; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 0.3rem; }
 .cp-explab { margin: 0.4rem 0 0.2rem; font-weight: 600; }
 .cp-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 1.7em; align-items: center; }
 .cp-chip { font-family: "IBM Plex Mono", monospace; font-size: 0.85em; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); }
@@ -82,17 +78,6 @@ textarea.cp-src:focus-visible, .cp-lv:focus-visible { outline: 2px solid var(--t
 .cp-chip.good { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--surface)); }
 .cp-chip.badc { border-color: #C0392B; background: color-mix(in srgb, #C0392B 18%, var(--surface)); }
 .cp-chip.ghost { opacity: 0.6; border-style: dashed; font-weight: 500; }
-.cp-cpu { margin-bottom: 0.7rem; }
-.cp-regs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
-@media (max-width: 520px) { .cp-regs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.cp-reg { border: 1px solid var(--line); border-radius: 8px; padding: 0.3rem 0.5rem; background: var(--surface); display: flex; flex-direction: column; min-height: 3.2em; transition: background 0.15s, border-color 0.15s; }
-.cp-rname { font-size: 0.65em; color: var(--ink-soft); font-weight: 600; }
-.cp-val { font-family: "IBM Plex Mono", monospace; font-size: 0.95em; font-weight: 600; overflow-wrap: anywhere; }
-.cp-sub { font-family: "IBM Plex Mono", monospace; font-size: 0.68em; color: var(--ink-soft); overflow-wrap: anywhere; }
-.cp-units { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
-.cp-unit { flex: 1; text-align: center; font-size: 0.75em; font-weight: 600; padding: 0.25rem; border: 1px solid var(--line); border-radius: 8px; color: var(--ink-soft); background: var(--surface); transition: background 0.15s, border-color 0.15s; }
-.src { border-color: var(--amber) !important; background: color-mix(in srgb, var(--amber) 16%, var(--surface)) !important; }
-.dst { border-color: var(--teal) !important; background: color-mix(in srgb, var(--teal) 20%, var(--surface)) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 30%, transparent); }
 .cp-memgrid { display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: 0.35rem; }
 .cp-cell { position: relative; border: 1px solid var(--line); border-radius: 8px; padding: 0.2rem 0.4rem 0.25rem; background: var(--surface); min-height: 3.1em; min-width: 0; display: flex; flex-direction: column; transition: background 0.15s, border-color 0.15s; }
 .cp-cell.free { opacity: 0.5; }
@@ -109,3 +94,19 @@ textarea.cp-src:focus-visible, .cp-lv:focus-visible { outline: 2px solid var(--t
 .cp-explain-body li { margin: 0.45rem 0; font-size: 0.93rem; }
 @media (prefers-reduced-motion: reduce) { .cp-app * { transition: none !important; } }
 @media (min-width: 961px) { .cp-right { position: sticky; top: 4.2rem; } }
+
+/* data-path diagram (shared VNDatapath) + queues attached to the IN / OUT blocks */
+.cp-diagram { margin: 0 0 0.6rem; }
+.cp-target { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.7rem; min-height: 2.4em; }
+.cp-target .cp-explab { margin: 0; }
+.cp-speedrow .vn-speed { flex: 1 1 18rem; }
+.cp-speedrow .vn-speed-name { min-width: 0; font-size: 0.78em; }
+.cp-lane-box { fill: var(--paper); stroke: color-mix(in srgb, var(--ink-soft) 60%, var(--line)); stroke-width: 1.4; stroke-dasharray: 4 3; }
+.cp-lane-t { font-size: 8.5px; fill: var(--ink-soft); font-weight: 600; letter-spacing: 0.05em; }
+.cp-qchip rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.cp-qchip text { font-size: 12px; font-weight: 600; fill: var(--ink); }
+.cp-qchip text.sm { font-size: 9px; }
+.cp-qchip.next rect { stroke: var(--amber); fill: color-mix(in srgb, var(--amber) 18%, var(--surface)); }
+.cp-qchip.good rect { stroke: var(--teal); fill: color-mix(in srgb, var(--teal) 20%, var(--surface)); }
+.cp-qchip.badc rect { stroke: #C0392B; fill: color-mix(in srgb, #C0392B 20%, var(--surface)); }
+.cp-more { font-size: 10px; fill: var(--ink-soft); }

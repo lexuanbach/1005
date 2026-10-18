@@ -1,0 +1,73 @@
+/* Citation flow diagrams (assets/cite-flow.js). Theme tokens only. */
+.cf-box { margin: 0.2rem 0 0.4rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.5rem 0.6rem 0.7rem; }
+.cf-scroll { overflow-x: auto; }
+.cf-svg { width: 100%; height: auto; display: block; max-width: 56rem; min-width: 560px; margin: 0 auto; overflow: visible; }
+.cf-svg text { font-family: "IBM Plex Mono", monospace; }
+.cf-colhead, .cf-tiny { font-size: 10px; fill: var(--ink-soft); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-family: "Be Vietnam Pro", sans-serif !important; }
+.cf-fmt { fill: color-mix(in srgb, var(--accent) 6%, transparent); stroke: color-mix(in srgb, var(--accent) 35%, var(--line)); stroke-width: 1.2; stroke-dasharray: 6 5; transition: fill 0.15s, stroke 0.15s; }
+.cf-fmt.cf-busy { fill: color-mix(in srgb, var(--teal) 12%, var(--surface)); stroke: var(--teal); stroke-dasharray: none; }
+.cf-fmt-title { font-size: 12px; fill: var(--accent-ink); font-weight: 700; font-family: "Be Vietnam Pro", sans-serif !important; }
+.cf-rulecard { fill: var(--paper); stroke: var(--line); stroke-width: 1; }
+.cf-rule { font-size: 11px; fill: var(--ink); font-weight: 600; }
+.cf-io { font-size: 11px; fill: var(--ink); }
+.cf-node rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.3; transition: fill 0.15s, stroke 0.15s; }
+.cf-name { font-size: 10.5px; fill: var(--ink-soft); font-weight: 600; font-family: "Be Vietnam Pro", sans-serif !important; }
+.cf-val { font-size: 11.5px; fill: var(--ink); font-weight: 600; }
+.cf-val.cf-it { font-style: italic; }
+.cf-node.cf-off { opacity: 0.4; }
+.cf-wire.cf-off { opacity: 0.15; }
+.cf-node.cf-src rect { stroke: var(--amber); stroke-width: 2.4; fill: color-mix(in srgb, var(--amber) 16%, var(--surface)); }
+.cf-node.cf-dst rect { stroke: var(--teal); stroke-width: 2.4; fill: color-mix(in srgb, var(--teal) 18%, var(--surface)); }
+.cf-node.cf-good rect { stroke: var(--green); stroke-width: 2; }
+.cf-node.cf-bad rect { stroke: var(--red); stroke-width: 2.4; fill: color-mix(in srgb, var(--red) 10%, var(--surface)); }
+.cf-node.cf-hot rect { stroke: var(--red); stroke-width: 3; fill: color-mix(in srgb, var(--red) 14%, var(--surface)); }
+.cf-wire, .cf-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.4; opacity: 0.32; }
+.cf-wire.on, .cf-edge.on { stroke: var(--accent); stroke-width: 3; opacity: 1; stroke-dasharray: 9 6; animation: cf-dash 0.6s linear infinite; }
+.cf-edge.cf-prov { stroke-dasharray: 3 5; opacity: 0.4; }
+.cf-edge.cf-prov.on { stroke-dasharray: 9 6; }
+@keyframes cf-dash { to { stroke-dashoffset: -30; } }
+.cf-ename { font-size: 12.5px; fill: var(--ink); font-weight: 700; font-family: "Be Vietnam Pro", sans-serif !important; }
+.cf-esub { font-size: 10.5px; fill: var(--ink-soft); font-family: "Be Vietnam Pro", sans-serif !important; }
+.cf-glyph circle { stroke: var(--surface); stroke-width: 1.5; fill: var(--ink-soft); }
+.cf-glyph text { fill: var(--surface); font-size: 13px; font-weight: 800; }
+.cf-glyph.cf-g-ok circle { fill: var(--green); }
+.cf-glyph.cf-g-bad circle { fill: var(--red); }
+.cf-glyph.cf-g-none circle { fill: var(--ink-soft); }
+.cf-token rect { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.cf-token text { fill: var(--accent-contrast); font-size: 12px; font-weight: 700; }
+
+.cf-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; margin: 0.4rem 0 0.2rem; }
+.cf-controls .cf-play { min-width: 6.6rem; }
+.cf-controls .btn.small { white-space: nowrap; height: 2.1rem; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+.cf-controls select { height: 2.1rem; box-sizing: border-box; }
+.cf-controls select { font: inherit; font-size: 0.86rem; padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.cf-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.cf-speed .field-label { margin: 0; }
+.cf-speed input[type="range"] { width: 9rem; max-width: 100%; accent-color: var(--accent); }
+.cf-speed-name { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--ink-soft); min-width: 10.5rem; }
+.cf-narr { min-height: 3.1em; font-size: 0.86rem; line-height: 1.45; color: var(--ink); margin: 0.1rem 0 0.2rem; overflow-wrap: anywhere; }
+.cf-etc { font-size: 0.78rem; color: var(--ink-soft); }
+
+/* paraphrase scan */
+.cf-scan { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.6rem 0.8rem 0.8rem; }
+.cf-scan-body { position: relative; }
+.cf-scan-gap { height: 3.2rem; }
+.cf-arcs { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.cf-arc { fill: none; stroke: var(--teal); stroke-width: 1.6; opacity: 0.75; }
+.cf-arc-new { stroke-dasharray: 600; stroke-dashoffset: 600; animation: cf-draw 0.5s ease-out forwards; }
+@keyframes cf-draw { to { stroke-dashoffset: 0; } }
+.cf-words { margin: 0.15rem 0 0; line-height: 2.1; font-size: 0.92rem; overflow-wrap: anywhere; }
+.cf-w { padding: 0.12rem 0.25rem; border-radius: 5px; border: 1px solid transparent; transition: background 0.12s, border-color 0.12s; }
+.cf-w.cf-q { font-style: italic; color: var(--ink-soft); }
+.cf-w.cf-hit { background: color-mix(in srgb, var(--amber) 32%, transparent); }
+.cf-w.cf-win { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 22%, var(--surface)); }
+.cf-w.cf-win-s { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 22%, var(--surface)); }
+@media (prefers-reduced-motion: reduce) {
+  .cf-wire.on, .cf-edge.on { animation: none; }
+  .cf-arc-new { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+  .cf-w, .cf-node rect, .cf-fmt { transition: none; }
+}
+
+/* eco diagram wrapper in the demo */
+.cf-eco { margin: 0 0 0.8rem; }
+@media (max-width: 640px) { .cf-speed-name { min-width: 0; } }

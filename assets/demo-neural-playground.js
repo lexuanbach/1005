@@ -185,6 +185,63 @@
     };
   }
 
+
+  /* ---------- trace of ONE sample through the network (for the "Inspect one sample" mode) ----------
+     Pure and independent of the net's internal buffers: reads net.params only. Returns every layer's
+     pre-activation z and activation a (a[0] = [x, y], a[L] = class probabilities), the loss of this one
+     sample, the back-propagated error signals delta[l] (delta[L] = p - target; hidden layers use the
+     chain rule), and the gradient of every weight and bias. grad has the same layout as net.params, so
+     it equals lossGrad(pts, [i], g) for that one sample. Call as traceSample(net, x, y, c) or traceSample(net, {x,y,c}). */
+  function traceSample(net, x, y, c) {
+    if (x !== null && typeof x === 'object') { c = x.c; y = x.y; x = x.x; }
+    var sizes = net.sizes, L = sizes.length - 1, relu = net.act === 'relu', w = net.params, wOff = net.wOff, bOff = net.bOff;
+    var a = [[x, y]], z = [null], l, j, i, s, nin, nout, zl, al, mx, sum;
+    for (l = 0; l < L; l++) {
+      nin = sizes[l]; nout = sizes[l + 1]; zl = []; al = [];
+      for (j = 0; j < nout; j++) {
+        s = w[bOff[l] + j];
+        for (i = 0; i < nin; i++) s += w[wOff[l] + j * nin + i] * a[l][i];
+        zl.push(s);
+      }
+      if (l < L - 1) { for (j = 0; j < nout; j++) al.push(relu ? (zl[j] > 0 ? zl[j] : 0) : Math.tanh(zl[j])); }
+      else {
+        mx = -Infinity; for (j = 0; j < nout; j++) if (zl[j] > mx) mx = zl[j];
+        sum = 0; for (j = 0; j < nout; j++) { al.push(Math.exp(zl[j] - mx)); sum += al[j]; }
+        for (j = 0; j < nout; j++) al[j] /= sum;
+      }
+      z.push(zl); a.push(al);
+    }
+    var probs = a[L], loss = -Math.log(Math.max(probs[c], 1e-12));
+    var delta = new Array(L + 1), gradW = new Array(L), gradB = new Array(L), grad = new Float64Array(net.nParams), row, gw, gb, dl;
+    delta[0] = null;
+    delta[L] = probs.map(function (p, k) { return p - (k === c ? 1 : 0); });
+    for (l = L - 1; l >= 0; l--) {
+      nin = sizes[l]; nout = sizes[l + 1]; gw = []; gb = [];
+      for (j = 0; j < nout; j++) {
+        gb.push(delta[l + 1][j]); grad[bOff[l] + j] = delta[l + 1][j]; row = [];
+        for (i = 0; i < nin; i++) { row.push(delta[l + 1][j] * a[l][i]); grad[wOff[l] + j * nin + i] = row[i]; }
+        gw.push(row);
+      }
+      gradW[l] = gw; gradB[l] = gb;
+      if (l > 0) {
+        dl = [];
+        for (i = 0; i < nin; i++) {
+          s = 0; for (j = 0; j < nout; j++) s += w[wOff[l] + j * nin + i] * delta[l + 1][j];
+          dl.push(s * (relu ? (z[l][i] > 0 ? 1 : 0) : 1 - a[l][i] * a[l][i]));
+        }
+        delta[l] = dl;
+      }
+    }
+    return { x: x, y: y, c: c, sizes: sizes.slice(), act: net.act, z: z, a: a, probs: probs.slice(), loss: loss, target: probs.map(function (p, k) { return k === c ? 1 : 0; }),
+      delta: delta, gradW: gradW, gradB: gradB, grad: grad };
+  }
+  /* the plain gradient-descent nudge for that one sample: -lr * grad, same layout as net.params */
+  function traceStep(tr, lr) {
+    var d = new Float64Array(tr.grad.length), k;
+    for (k = 0; k < d.length; k++) d[k] = -lr * tr.grad[k];
+    return d;
+  }
+
   /* ---------- evaluation ---------- */
   function evaluate(net, pts) {
     var n = pts.length, loss = 0, ok = 0, i, p, pr, best, j;
@@ -287,7 +344,7 @@
 
   var api = {
     rng: rng, KINDS: KINDS, makeDataset: makeDataset, splitTest: splitTest, biasDataset: biasDataset, biasAudit: biasAudit,
-    createNet: createNet, evaluate: evaluate, groupAccuracy: groupAccuracy, gridProbs: gridProbs, verdict: verdict,
+    createNet: createNet, traceSample: traceSample, traceStep: traceStep, evaluate: evaluate, groupAccuracy: groupAccuracy, gridProbs: gridProbs, verdict: verdict,
     makeTrainer: makeTrainer, CHALLENGE: CHALLENGE, MEMORISE: MEMORISE, SMALL_FOR_MEMORISE: SMALL_FOR_MEMORISE, BIAS: BIAS, LR: LR
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

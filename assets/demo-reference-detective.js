@@ -200,6 +200,81 @@
     return null;
   }
 
+  // ───────────── lookup traces: which blocks of the citation ecosystem a check (or the card's origin) touches ─────────────
+  // Blocks (assets/cite-flow.js): AI assistant, Your essay, Reference list (the card), doi.org + publisher page, Crossref registry,
+  // Author list and Journal/venue record inside the record. Every stage is one hop (or two parallel hops) along a real link.
+  function L(from, to, text, say) { return { from: from, to: to, text: text, say: say }; }
+  function surname(a) { return String(a).split(',')[0]; }
+  function inTextOf(claim) {
+    var f = claim.authors && claim.authors.length ? surname(claim.authors[0]) + (claim.authors.length > 2 ? ' et al.' : claim.authors.length === 2 ? ' & ' + surname(claim.authors[1]) : '') : 'Anon.';
+    return '(' + f + ', ' + claim.year + ')';
+  }
+  function shortText(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  // the AI assistant "writes" the card: an in-text citation in the essay and an entry in the reference list (identical for real and fake)
+  function emitTrace(card, i, total) {
+    return { kind: 'emit', stages: [{
+      legs: [L('AI', 'REF', 'ref ' + (i + 1), ''), L('AI', 'ESSAY', 'cite', '')],
+      say: 'The AI assistant writes reference ' + (i + 1) + ' of ' + total + ': an in-text citation in your essay and an entry in the reference list. Nothing here says whether it is real.',
+      val: { REF: shortText(card.claim.title, 22), ESSAY: inTextOf(card.claim) }
+    }] };
+  }
+  // an evidence check: the lookup token leaves the reference card, visits the blocks that can answer, and comes back with the result
+  function checkTrace(card, which) {
+    var r = runCheck(card, which), c = card.claim, w = workByTitle(c.title);
+    var res = r.notFound ? 'none' : r.kind === 'ok' ? 'ok' : r.kind === 'bad' ? 'bad' : 'none';
+    var glyph = res === 'ok' ? '✓' : res === 'bad' ? '✗' : '∅';
+    var word = res === 'ok' ? 'match' : res === 'bad' ? 'mismatch' : 'not found';
+    var back = glyph + ' ' + word, route, ans, st = [];
+    if (which === 'doi') {
+      if (!c.doi) {
+        return { check: which, answerer: 'REF', result: 'none', glyph: '∅', word: 'no DOI', text: r.text, mark: [{ id: 'REF', kind: 'none', glyph: '∅' }],
+          stages: [{ legs: [], say: 'The reference gives no DOI, so there is nothing to send to doi.org. A missing DOI is itself a warning sign.', val: {} }] };
+      }
+      route = [['REF', 'DOI', 'doi:' + shortText(c.doi, 10), 'The DOI from the reference goes to doi.org, the resolver.'],
+        ['DOI', 'REG', 'lookup', 'doi.org asks the Crossref registry what is registered under this DOI.'],
+        ['REG', 'DOI', back, 'The registry answers: ' + (r.notFound ? 'nothing is registered under this DOI.' : res === 'ok' ? 'a record with the same title.' : 'a record, but for a different paper.')],
+        ['DOI', 'REF', back, 'doi.org passes the answer back to the reference: ' + word + '.']];
+      ans = 'REG';
+    } else if (which === 'authors') {
+      if (!w) route = [['REF', 'REG', 'title?', 'The title goes to the registry: is there a work with this title and these authors?'], ['REG', 'REF', back, 'No such work in the registry, so there is no author list to compare: not found.']], ans = 'REG';
+      else route = [['REF', 'REG', 'authors?', 'The reference goes to the registry to look up its author list.'],
+        ['REG', 'AUTH', 'compare', 'The registry hands over the author list stored in the record.'],
+        ['AUTH', 'REG', back, 'Comparing names and order with the reference: ' + word + '.'],
+        ['REG', 'REF', back, 'Result back at the reference: ' + word + '.']], ans = 'AUTH';
+    } else if (which === 'venue') {
+      if (!w && r.notFound) route = [['REF', 'REG', 'journal?', 'The journal name goes to the registry.'], ['REG', 'VEN', 'find it', 'The registry looks for this journal and volume.'],
+        ['VEN', 'REG', back, 'No such journal or volume exists: not found.'], ['REG', 'REF', back, 'Result back at the reference: not found.']], ans = 'VEN';
+      else if (!w) route = [['REF', 'REG', 'venue?', 'The venue goes to the registry.'], ['REG', 'REF', back, 'No record, so the venue cannot be confirmed: unverified.']], ans = 'REG';
+      else route = [['REF', 'REG', 'venue?', 'The reference goes to the registry to look up its journal, volume and issue.'],
+        ['REG', 'VEN', 'compare', 'The registry hands over the venue record.'],
+        ['VEN', 'REG', back, 'Comparing journal, volume and issue with the reference: ' + word + '.'],
+        ['REG', 'REF', back, 'Result back at the reference: ' + word + '.']], ans = 'VEN';
+    } else {
+      if (!w) route = [['REF', 'REG', 'year/pages?', 'Year and pages go to the registry.'], ['REG', 'REF', back, 'No record to compare with: unverified.']], ans = 'REG';
+      else route = [['REF', 'DOI', 'year/pages?', 'The publisher page behind the DOI shows the year and the pages.'],
+        ['DOI', 'REF', back, 'Comparing year and pages with the reference: ' + word + '.']], ans = 'DOI';
+    }
+    route.forEach(function (x) { st.push({ legs: [L(x[0], x[1], x[2], '')], say: x[3], val: {} }); });
+    var valReg = (which === 'doi' || !w || ans === 'REG') ? (r.notFound || !w ? 'no record' : res === 'ok' ? 'record found' : 'other record') : '';
+    var mark = [{ id: ans, kind: res, glyph: glyph }];
+    var val = {}; if (valReg && ans === 'REG') val.REG = valReg;
+    st[st.length - 1].val = val;
+    return { check: which, answerer: ans, result: res, glyph: glyph, word: word, text: r.text, stages: st, mark: mark, route: route.map(function (x) { return [x[0], x[1]]; }) };
+  }
+  // after the verdict: where did this reference really come from?
+  function revealTrace(card) {
+    if (card.truth === 'fake') {
+      return { kind: 'reveal', truth: 'fake', mark: [{ id: 'AI', kind: 'bad', glyph: '!' }, { id: 'REG', kind: 'none', glyph: '∅' }], glow: 'AI',
+        stages: [{ legs: [], say: 'Origin: the registry holds no record for this reference. The AI assistant invented it — the hallucination starts here, in the block that writes references.', val: { REG: 'no record' } }] };
+    }
+    var ok = card.truth === 'real';
+    return { kind: 'reveal', truth: card.truth, mark: [{ id: 'REG', kind: 'ok', glyph: '✓' }].concat(ok ? [{ id: 'AI', kind: 'ok', glyph: '✓' }] : [{ id: 'AI', kind: 'bad', glyph: '≠' }]),
+      stages: [{ legs: [L('REG', 'AI', ok ? 'record ✓' : 'record ≠', '')],
+        say: ok ? 'Origin: traced to a real record in the registry, and the reference matches it. The AI reproduced a real work correctly.'
+          : 'Origin: traced to a real record in the registry, but the reference differs from it. The AI rebuilt a real work from memory and got details wrong.',
+        val: { REG: 'record found' } }] };
+  }
+
   // ───────────── scoring ─────────────
   var BASE = 100, GUESS = 40, STREAK_STEP = 10, STREAK_CAP = 5;
   var CRED_START = 80, CRED_MAX = 100;
@@ -331,6 +406,7 @@
     derive: derive, runCheck: runCheck, verdictFromEvidence: verdictFromEvidence, neededChecks: neededChecks, subsets: subsets, scoreCard: scoreCard,
     playDeck: playDeck, perfectPlays: perfectPlays, maxScore: maxScore, grade: grade, buildDeck: buildDeck, styleFor: styleFor, renderRef: renderRef,
     report: report, buildFix: buildFix, fixScore: fixScore, fixMax: fixMax, MUTATORS: MUTATORS, FIX_STYLES: FIX_STYLES, fixOptions: fixOptions,
+    checkTrace: checkTrace, emitTrace: emitTrace, revealTrace: revealTrace, inTextOf: inTextOf,
     workById: workById, doiLink: doiLink, searchLink: searchLink, seededRng: seededRng, norm: norm, pagesOf: pagesOf
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
@@ -390,16 +466,100 @@
     newBtn.addEventListener('click', function () { newGame(state.seed + 1); });
 
     function setMode(m) {
+      var changed = state.mode !== m;
+      if (changed) flowCancel();
       state.mode = m;
       Object.keys(tabBtns).forEach(function (k) { tabBtns[k].setAttribute('aria-selected', String(k === m)); tabBtns[k].tabIndex = k === m ? 0 : -1; });
       host.dataset.mode = m; applyBig(); draw();
+      if (changed) flowSync();
     }
     function newGame(seed) {
       state.seed = seed; state.deck = buildDeck(seed, 12); state.i = 0; state.opened = []; state.answered = null; state.plays = []; state.streak = 0; state.score = 0;
       state.cred = CRED_START; state.best = 0; state.over = false;
       state.fix = buildFix(seed, 6); state.fi = 0; state.fscore = 0; state.fstreak = 0; state.fanswer = null; state.fcorrect = 0;
       state.t = { i: 0, opened: 0, revealed: false, votes: { fake: 0, wrong: 0, real: 0 }, hist: [] };
-      draw(); say('New game. Card 1 of ' + state.deck.length + '.');
+      flowCancel(); draw(); say('New game. Card 1 of ' + state.deck.length + '.');
+      if (state.mode === 'judge') flowCard(state.deck[0], 0, state.deck.length); else if (state.mode === 'teacher') flowCard(state.deck[0], 0, state.deck.length);
+    }
+
+    // ---- citation ecosystem diagram: lookups travel between the blocks (assets/cite-flow.js)
+    var CF = global.CiteFlow, flow = null, fv = { card: null, emitted: true, opened: [], revealed: false }, lastStages = [], eco = null, fctl = null, frun = null;
+    var IDLE = 'Open a check: a lookup token leaves the reference card, visits the block that can answer, and comes back with a match, a mismatch or “not found”.';
+    if (CF) {
+      var fbox = $('div', 'cf-box cf-eco'), fscroll = $('div', 'cf-scroll');
+      fbox.appendChild($('span', 'rd-flowcap', 'The citation ecosystem — each check sends a lookup through the blocks that hold the evidence'));
+      eco = CF.ecosystem(fscroll);
+      fctl = CF.controls({ unit: 'hop', idleLabel: '▶ Replay',
+        start: function (paused) { if (lastStages.length) frun.start(lastStages.slice(), { paused: paused }); },
+        reset: function () { paintDiagram(); fctl.say(IDLE); } });
+      fctl.narr.removeAttribute('role'); fctl.narr.removeAttribute('aria-live');   // results are announced through the status line below
+      frun = CF.Runner({ run: function (stg, i, ms) { return runStage(stg, ms); }, ms: fctl.speed.ms, gap: fctl.speed.gap, onChange: fctl.paint,
+        stop: function () { flowGen++; eco.stop(); eco.endStage(); } });
+      fctl.runner = frun;
+      fbox.appendChild(fctl.el); fbox.appendChild(fctl.narr); fbox.appendChild(fscroll);
+      flow = { root: fbox };
+      fctl.say(IDLE);
+      (function () {   // every sentence the narration line can show, so its height is reserved up front (nothing below moves)
+        var seen = {}, list = [IDLE, 'Paused. Press Step to send the token one hop, or Resume to let it run.', 'Origin traced. Next reference when you are ready.', 'Origin traced.'];
+        function add(t) { if (t && !seen[t]) { seen[t] = 1; list.push(t); } }
+        CARDS.forEach(function (c, i) {
+          add(emitTrace(c, i, 12).stages[0].say);
+          CHECKS.forEach(function (k) { checkTrace(c, k).stages.forEach(function (st) { add(st.say); }); });
+          revealTrace(c).stages.forEach(function (st) { add(st.say); });
+        });
+        fctl.fix(list);
+      })();
+    }
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function applyMark(m) { eco.mark(m.id, m.kind, m.glyph); }
+    function applyVals(v) { Object.keys(v || {}).forEach(function (id) { eco.setVal(id, v[id]); }); }
+    var flowGen = 0;
+    function runStage(stg, ms) {
+      var g = flowGen;
+      fctl.say(stg.say);
+      var ps = stg.legs.map(function (l) { return eco.leg(l, ms); });
+      if (!ps.length) ps.push(wait(ms > 0 ? Math.max(250, ms * 0.6) : 0));
+      return Promise.all(ps).then(function () {
+        if (g !== flowGen) return;   // this stage was cut short (flush / cancel): a newer one owns the diagram now
+        eco.endStage(); applyVals(stg.val);
+        if (stg.mark) stg.mark.forEach(applyMark);
+        if (stg.glow) eco.glow(stg.glow, true);
+      });
+    }
+    function stagesOf(tr) { var last = tr.stages[tr.stages.length - 1]; last.mark = tr.mark; if (tr.glow) last.glow = tr.glow; return tr.stages; }
+    // static picture of the current state (no animation): used at rest, after Reset and when switching tabs
+    function paintDiagram() {
+      if (!flow) return;
+      eco.reset();
+      var c = fv.card; if (!c) return;
+      if (fv.emitted) applyVals(emitTrace(c, 0, 1).stages[0].val);
+      fv.opened.forEach(function (k) { var tr = checkTrace(c, k); tr.mark.forEach(applyMark); applyVals(tr.stages[tr.stages.length - 1].val); });
+      if (fv.revealed) { var rv = revealTrace(c); rv.mark.forEach(applyMark); applyVals(rv.stages[0].val); if (rv.glow) eco.glow(rv.glow, true); }
+    }
+    function flowFlush() { if (flow && frun.state().active) frun.flush(); }
+    function flowCancel() { if (flow) frun.cancel(); }
+    function playStages(stages, commit) {
+      if (!flow) { if (commit) commit(); return; }
+      flowFlush();
+      lastStages = stages;
+      frun.start(stages.slice(), { end: commit || function () {} });
+      var st = frun.state();
+      if (st.active && st.paused) fctl.say('Paused. Press Step to send the token one hop, or Resume to let it run.');
+    }
+    function flowCard(card, i, total) {      // a new card: the AI assistant "writes" it
+      if (!flow) return;
+      flowFlush();
+      var f = fv = { card: card, emitted: false, opened: [], revealed: false };
+      paintDiagram();
+      playStages(emitTrace(card, i, total).stages, function () { f.emitted = true; if (fv === f) { paintDiagram(); fctl.say(IDLE); } });
+    }
+    function flowSync() {                    // switching tabs: show the state of that tab without animating
+      if (!flow) return;
+      var T = state.t;
+      if (state.mode === 'judge' && !state.over) fv = { card: state.deck[state.i], emitted: true, opened: state.opened.slice(), revealed: !!state.answered };
+      else if (state.mode === 'teacher') fv = { card: state.deck[T.i], emitted: true, opened: CHECKS.slice(0, T.opened), revealed: T.revealed };
+      else return;
+      paintDiagram(); fctl.say(IDLE);
     }
 
     // ---- pieces
@@ -497,6 +657,11 @@
 
     // ───── judge mode
     function drawJudge() {
+      var af = document.activeElement, keep = flow && af && flow.root.contains(af) ? af : null;
+      drawJudgeBody();
+      if (keep && !state.over) { try { keep.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }
+    }
+    function drawJudgeBody() {
       stage.textContent = '';
       if (state.over) return drawReport();
       var card = state.deck[state.i], n = state.deck.length;
@@ -507,6 +672,7 @@
       hud.appendChild(stat('Time spent', (state.plays.reduce(function (a, p) { return a + p.checks.length; }, 0) + (state.answered ? 0 : state.opened.length)) * CHECK_SECONDS + ' s'));
       hud.appendChild(meter('Essay credibility', state.cred, 100));
       stage.appendChild(hud);
+      if (flow) { stage.appendChild(flow.root); fctl.fix(); if (!frun.state().active) paintDiagram(); }
       stage.appendChild(essayBubble(state.i + 1, n));
       var area = $('div', 'rd-card-area');
       var ref = refBlock(card, state.i, 'rd-swipe'); ref.tabIndex = 0;
@@ -514,7 +680,8 @@
       area.appendChild(ref); stage.appendChild(area);
       attachSwipe(ref);
       stage.appendChild(checkButtons(card, state.opened, function (k) { openCheck(k); }, state.answered));
-      stage.appendChild(evidenceList(card, state.opened));
+      var act = $('div', 'rd-actions');   // fixed-height row: verdict buttons, then the result + Next button in the same place
+      stage.appendChild(act);
       if (!state.answered) {
         var vb = $('div', 'rd-verdicts'); vb.setAttribute('role', 'group'); vb.setAttribute('aria-label', 'Your verdict');
         VERDICTS.forEach(function (d) {
@@ -523,27 +690,38 @@
           b.addEventListener('click', function () { answer(d.v); });
           vb.appendChild(b);
         });
-        stage.appendChild(vb);
+        act.appendChild(vb);
+        stage.appendChild(evidenceList(card, state.opened));
         stage.appendChild($('p', 'rd-hint', 'Keys: 1-4 open a check; arrow keys or F / W / R give your verdict. On a touch screen, swipe the card.'));
       } else {
         var s = state.answered, res = $('div', 'rd-result ' + (s.result.correct ? 'good' : 'badr'));
         res.appendChild($('b', '', (s.result.correct ? 'Correct. ' : 'Not quite. ') + 'You said "' + VLABEL[s.verdict] + '".'));
         res.appendChild($('span', '', ' ' + (s.result.points >= 0 ? '+' : '') + s.result.points + ' pts' + (s.result.bonus ? ' (streak bonus +' + s.result.bonus + ')' : '') + (s.result.correct && !s.result.supported ? ' (a guess: the evidence you opened did not prove it)' : '') + ' · credibility ' + (s.result.credDelta >= 0 ? '+' : '') + s.result.credDelta));
-        stage.appendChild(res); stage.appendChild(truthBox(card));
+        act.appendChild(res);
         var nx = $('button', 'btn primary rd-next', state.i + 1 < n ? 'Next reference (Enter)' : 'See the report card (Enter)'); nx.type = 'button';
-        nx.addEventListener('click', next); stage.appendChild(nx);
+        nx.addEventListener('click', next); act.appendChild(nx);
+        stage.appendChild(evidenceList(card, state.opened)); stage.appendChild(truthBox(card));
         setTimeout(function () { nx.focus(); }, 0);
       }
       stage.appendChild(checklist());
     }
     function stat(l, v) { var s = $('div', 'rd-stat'); s.appendChild($('span', 'rd-stat-l', l)); s.appendChild($('b', 'rd-stat-v', v)); return s; }
     function openCheck(k) {
+      flowFlush();          // a lookup still on its way lands first
       if (state.answered || state.opened.indexOf(k) >= 0) return;
-      state.opened.push(k); drawJudge();
-      var r = runCheck(state.deck[state.i], k); say(CHECK_INFO[k].label + ': ' + KIND_WORD[r.kind] + '. ' + r.text);
-      var btn = stage.querySelectorAll('.rd-check')[Math.min(CHECKS.indexOf(k) + 1, 3)]; if (btn && !btn.disabled) btn.focus();
+      var card = state.deck[state.i], f = fv, i0 = state.i;
+      function commit() {   // the evidence appears when the token is back at the reference card
+        if (state.i !== i0 || state.answered || state.opened.indexOf(k) >= 0 || state.mode !== 'judge') return;
+        state.opened.push(k); if (f === fv) fv.opened.push(k);
+        drawJudge();
+        var r = runCheck(card, k); say(CHECK_INFO[k].label + ': ' + KIND_WORD[r.kind] + '. ' + r.text);
+        if (flow) fctl.say(IDLE);
+        var btn = stage.querySelectorAll('.rd-check')[Math.min(CHECKS.indexOf(k) + 1, 3)]; if (btn && !btn.disabled) btn.focus();
+      }
+      playStages(stagesOf(checkTrace(card, k)), commit);
     }
     function answer(v) {
+      flowFlush();
       if (state.answered || state.over) return;
       var card = state.deck[state.i], r = scoreCard(card, v, state.opened.slice(), state.streak);
       state.score += r.points; state.streak = r.streakAfter; state.best = Math.max(state.best, state.streak);
@@ -551,11 +729,14 @@
       state.plays.push({ card: card, verdict: v, checks: state.opened.slice(), result: r });
       state.answered = { verdict: v, result: r };
       drawJudge(); say((r.correct ? 'Correct. ' : 'Wrong. ') + 'The truth: ' + VLABEL[card.truth] + '. Score ' + state.score + '. Essay credibility ' + state.cred + '.');
+      if (flow) { var f = fv; playStages(stagesOf(revealTrace(card)), function () { f.revealed = true; if (fv === f) { paintDiagram(); fctl.say('Origin traced. Next reference when you are ready.'); } }); }
     }
     function next() {
+      flowFlush();
       if (!state.answered) return;
       if (state.i + 1 >= state.deck.length) { state.over = true; if (state.score > state.bestScore) { state.bestScore = state.score; save('best', state.score); } drawJudge(); say('Round finished. Score ' + state.score + ' of ' + maxScore(state.deck) + '.'); return; }
       state.i++; state.opened = []; state.answered = null; drawJudge();
+      flowCard(state.deck[state.i], state.i, state.deck.length);
       say('Reference ' + (state.i + 1) + ' of ' + state.deck.length + '.');
       var r = stage.querySelector('.rd-swipe'); if (r) r.focus({ preventScroll: true });
     }
@@ -650,9 +831,10 @@
       var tally = state.t.hist.filter(function (h) { return h.ok; }).length;
       head.appendChild($('span', 'rd-t-class', 'Class: ' + tally + ' of ' + state.t.hist.length + ' cards judged correctly'));
       stage.appendChild(head);
+      if (flow) { stage.appendChild(flow.root); fctl.fix(); if (!frun.state().active) paintDiagram(); }
       stage.appendChild(refBlock(card, T.i, 'rd-t-ref'));
       var opened = CHECKS.slice(0, T.opened);
-      var cb = checkButtons(card, opened, function (k) { if (T.opened < 4 && !T.revealed) { T.opened = Math.max(T.opened, CHECKS.indexOf(k) + 1); drawTeacher(); } }, T.revealed);
+      var cb = checkButtons(card, opened, function (k) { tOpen(CHECKS.indexOf(k) + 1); }, T.revealed);
       stage.appendChild(cb);
       stage.appendChild(evidenceList(card, opened));
       var vr = $('div', 'rd-votes'); vr.setAttribute('role', 'group'); vr.setAttribute('aria-label', 'Class votes (raise hands, then count)');
@@ -685,17 +867,33 @@
         stage.appendChild(res); stage.appendChild(truthBox(card));
       }
     }
+    function tOpen(n) {          // reveal checks up to number n, one lookup at a time; evidence appears when the last token is back
+      flowFlush();
+      var T = state.t; if (T.revealed || n <= T.opened || n > 4) return;
+      var card = state.deck[T.i], f = fv, ti = T.i, stages = [];
+      CHECKS.slice(T.opened, n).forEach(function (k) { stages = stages.concat(stagesOf(checkTrace(card, k))); });
+      playStages(stages, function () {
+        if (state.mode !== 'teacher' || state.t.i !== ti || state.t.revealed) return;
+        state.t.opened = Math.max(state.t.opened, n); if (f === fv) fv.opened = CHECKS.slice(0, state.t.opened);
+        drawTeacher(); if (flow) fctl.say(IDLE);
+      });
+    }
     function tReveal() {
+      flowFlush();
       var T = state.t; if (T.revealed) return;
       T.revealed = true; T.opened = 4;
+      if (flow) { fv.opened = CHECKS.slice(); fv.revealed = false; }
       var card = state.deck[T.i], tot = T.votes.fake + T.votes.wrong + T.votes.real;
       var maj = ['fake', 'wrong', 'real'].reduce(function (a, k) { return T.votes[k] > T.votes[a] ? k : a; }, 'real');
       if (tot) T.hist.push({ i: T.i, ok: maj === card.truth });
       drawTeacher(); say('The truth: ' + VLABEL[card.truth]);
+      if (flow) { var f = fv; playStages(stagesOf(revealTrace(card)), function () { f.revealed = true; if (fv === f) { paintDiagram(); fctl.say('Origin traced.'); } }); }
     }
     function tGo(d) {
       var T = state.t, n = T.i + d; if (n < 0 || n >= state.deck.length) return;
+      flowFlush();
       T.i = n; T.opened = 0; T.revealed = false; T.votes = { fake: 0, wrong: 0, real: 0 }; drawTeacher(); say('Reference ' + (T.i + 1) + ' of ' + state.deck.length);
+      flowCard(state.deck[T.i], T.i, state.deck.length);
     }
 
     function draw() { if (state.mode === 'judge') drawJudge(); else if (state.mode === 'fix') drawFix(); else drawTeacher(); }
@@ -717,7 +915,7 @@
         else if (k === 'Enter' && state.fanswer !== null && tag !== 'BUTTON') { fixNext(); e.preventDefault(); }
       } else if (state.mode === 'teacher') {
         var T = state.t;
-        if (k >= '1' && k <= '4' && !T.revealed) { T.opened = Math.max(T.opened, +k); drawTeacher(); e.preventDefault(); }
+        if (k >= '1' && k <= '4' && !T.revealed) { tOpen(+k); e.preventDefault(); }
         else if (!T.revealed && 'fwr'.indexOf(k.toLowerCase()) >= 0 && k.length === 1) { T.votes[{ f: 'fake', w: 'wrong', r: 'real' }[k.toLowerCase()]]++; drawTeacher(); }
         else if (k === ' ' && tag !== 'BUTTON') { tReveal(); e.preventDefault(); }
         else if (k === 'ArrowRight') { tGo(1); e.preventDefault(); } else if (k === 'ArrowLeft') { tGo(-1); e.preventDefault(); }

@@ -15,6 +15,15 @@
     var panel = el('div', 'run-panel tc-lab');
     panel.appendChild(el('h4', '', 'Tiny compiler: C++ subset → toy machine code <span class="tc-label">teaching machine, not x86 / ARM</span>'));
 
+    /* the toolchain as blocks: tokens, tree, assembly, machine words and CPU cycles travel between them (assets/compiler-flow.js) */
+    var flow = null;
+    if (global.CompilerFlow) {
+      var flowHost = el('div', 'cf-lab');
+      panel.appendChild(flowHost);
+      flow = global.CompilerFlow.create(flowHost, { uid: 'lab', speedKey: 'co1005-cf-speed' });
+      flow.blank('Press Compile (on the Source tab) and watch your program travel through the toolchain, block by block.');
+    }
+
     var stages = ['1 Source', '2 Tokens & tree', '3 Assembly', '4 Machine code', '5 Run'];
     var tabs = el('div', 'tc-stages'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Compilation stages');
     var tabBtns = stages.map(function (s, i) {
@@ -67,6 +76,7 @@
 
     function compile() {
       res = TC.compile(src.value); stRun = null;
+      if (flow) flow.start(TC.trace(src.value, { input: nums(inBox.value), record: 60 }), { input: nums(inBox.value) });
       if (!res.ok) {
         setEnabled(false);
         errBox.style.display = '';

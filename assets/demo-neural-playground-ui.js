@@ -40,7 +40,7 @@
     PAL = {
       cls: [g('--c0'), g('--c1'), g('--c2')], rgb: [hex(g('--c0')), hex(g('--c1')), hex(g('--c2'))],
       bg: g('--surface', bs), bgRgb: hex(g('--surface', bs)), ink: g('--ink', bs), soft: g('--ink-soft', bs), line: g('--line', bs),
-      pos: g('--teal', bs), neg: g('--neg'), red: g('--red', bs)
+      pos: g('--teal', bs), neg: g('--neg'), red: g('--red', bs), amber: g('--amber', bs)
     };
     palKey = key; return PAL;
   }
@@ -62,6 +62,7 @@
   }
   function rebuildNet() {
     S.net = NP.createNet({ hidden: S.hidden, outputs: S.K, act: S.act, seed: S.netSeed });
+    if (INS_API.close) INS_API.close();
     S.running = S.running && canTrain();
     rebuildTrainer(true);
     buildDiagram(); syncControls(); S.dirty = true; S.solved = null; S.ended = false; S.audit = null; S.lastAnnounce = 0; S.histSeen = 0;
@@ -111,6 +112,7 @@
   var painting = false, lastProbe = null;
   function applyTool(pt, drag) {
     var t = S.tool;
+    if (t === 'inspect') { if (!drag) INS_API.pickAt(pt); return; }
     if (t === 'predict') {
       if (drag && lastProbe && Math.hypot(pt.x - lastProbe.x, pt.y - lastProbe.y) < 0.09) return;
       lastProbe = pt; addProbe(pt.x, pt.y);
@@ -196,6 +198,11 @@
       ctx.beginPath(); ctx.arc(x, y, 11 * u, 0, 6.2832); ctx.fillStyle = P.bg; ctx.fill(); ctx.lineWidth = 2.5 * u; ctx.strokeStyle = P.ink; ctx.stroke();
       shapePath(pr.c, x, y, 5.5 * u); ctx.fillStyle = P.cls[pr.c]; ctx.fill();
     }
+    if (INS.p) {
+      x = (INS.p.x + 1) / 2 * W; y = (1 - INS.p.y) / 2 * H;
+      ctx.beginPath(); ctx.arc(x, y, 15 * u, 0, 6.2832); ctx.lineWidth = 3.5 * u; ctx.strokeStyle = P.amber; ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y, 19.5 * u, 0, 6.2832); ctx.lineWidth = 1.5 * u; ctx.strokeStyle = P.ink; ctx.setLineDash([3 * u, 3 * u]); ctx.stroke(); ctx.setLineDash([]);
+    }
     if (document.activeElement === cv) {
       x = (S.kb.x + 1) / 2 * W; y = (1 - S.kb.y) / 2 * H;
       ctx.strokeStyle = P.ink; ctx.lineWidth = 2 * u; ctx.beginPath();
@@ -249,6 +256,9 @@
 
   /* ---------- drawing: network diagram ---------- */
   var NS = 'http://www.w3.org/2000/svg', svg = $('np-net'), edges = [], nodes = [], VBW = 420, VBH = 260;
+  var INS_API = {};
+  var npos = [], vlabs = [], pulses = [], gPulse = null, lossTxt = null;
+  var INS = { on: false, p: null, tr: null, stages: [], si: 0, t: 1, playing: false, one: false, applied: false, dirty: true, maxG: 1, maxD: 1, upd: null, big: null };
   function el(name, attrs, parent) {
     var e = document.createElementNS(NS, name), k;
     for (k in attrs) e.setAttribute(k, attrs[k]);
@@ -260,12 +270,14 @@
     for (l = 0; l < L; l++) xs.push(46 + l * (VBW - 92) / Math.max(1, L - 1));
     function ypos(l, j) { var n = sizes[l]; return n === 1 ? VBH / 2 : 22 + j * (VBH - 44) / (n - 1); }
     var gE = el('g', {}, svg), gN = el('g', {}, svg), gT = el('g', {}, svg);
+    npos = []; vlabs = [];
     for (l = 0; l < L - 1; l++) for (j = 0; j < sizes[l + 1]; j++) for (i = 0; i < sizes[l]; i++) {
       edges.push({ l: l, j: j, i: i, e: el('line', { x1: xs[l], y1: ypos(l, i), x2: xs[l + 1], y2: ypos(l + 1, j), 'stroke-linecap': 'round' }, gE) });
     }
     for (l = 0; l < L; l++) {
-      nodes.push([]);
+      nodes.push([]); npos.push([]);
       for (j = 0; j < sizes[l]; j++) {
+        npos[l].push([xs[l], ypos(l, j)]);
         var c = el('circle', { cx: xs[l], cy: ypos(l, j), r: sizes[l] > 6 ? 9 : 11, 'class': 'node' }, gN);
         c.style.fill = 'var(--surface)';
         nodes[l].push(c);
@@ -273,10 +285,15 @@
         if (l === L - 1) { var t2 = el('text', { x: xs[l] + 18, y: ypos(l, j) + 5 }, gT); t2.textContent = SHAPES[j]; t2.style.fill = palette().cls[j]; t2.setAttribute('class', 'outlab'); t2.setAttribute('data-c', j); }
       }
     }
+    gPulse = el('g', {}, svg); pulses = [];
+    for (l = 0; l < L; l++) { vlabs.push([]); for (j = 0; j < sizes[l]; j++) vlabs[l].push(el('text', { x: npos[l][j][0], y: npos[l][j][1] - (sizes[l] > 6 ? 12 : 14), 'class': 'np-vlab', visibility: 'hidden' }, svg)); }
+    lossTxt = el('text', { x: VBW - 6, y: VBH - 2, 'class': 'np-losstxt', visibility: 'hidden' }, svg);
     $('np-weights').textContent = net.nParams + ' weights to learn';
+    if (INS.on) INS.dirty = true;
     updateDiagram(true);
   }
   function updateDiagram(weights) {
+    if (INS.on) return;
     var net = S.net, P = palette(), w = net.params, i, e, v;
     if (weights) {
       for (i = 0; i < edges.length; i++) {
@@ -319,6 +336,7 @@
   function updateBadge() {
     var b = $('np-badge'), t;
     if (S.tool === 'predict') { t = 'Inference: weights frozen'; b.className = 'np-badge frozen'; }
+    else if (S.tool === 'inspect') { t = 'Inspecting one dot: training paused'; b.className = 'np-badge frozen'; }
     else if (S.running) { t = 'Training: weights changing'; b.className = 'np-badge training'; }
     else { t = 'Paused'; b.className = 'np-badge'; }
     if (b.textContent !== t) b.textContent = t;
@@ -417,14 +435,18 @@
   }
   function setRunning(on) {
     if (on && !canTrain()) { say('Nothing to learn from yet: paint at least two colours of dots (or pick a shape).'); return; }
-    if (on && S.tool === 'predict') setTool(locked() ? 'look' : '0');
+    if (on && (S.tool === 'predict' || S.tool === 'inspect')) setTool(locked() ? 'look' : '0');
     if (on && S.ended) { S.ended = false; }
     S.running = on; syncControls(); updateBadge();
     say(on ? 'Training started: the weights are being adjusted.' : 'Training paused.');
   }
   function setTool(t) {
     S.tool = t;
-    if (t === 'predict' && S.running) { S.running = false; say('Switched to Predict: training paused and the weights are frozen. Click or drag on the board to ask the brain about new dots.'); }
+    if (t !== 'inspect' && INS.on) INS_API.close();
+    if (t === 'inspect') {
+      if (S.running) S.running = false;
+      say('Inspect mode: training is paused. Click a dot (or press Enter on the board cursor, or “Pick a random dot”) to follow it through the network.');
+    } else if (t === 'predict' && S.running) { S.running = false; say('Switched to Predict: training paused and the weights are frozen. Click or drag on the board to ask the brain about new dots.'); }
     else if (t === 'predict') say('Predict mode: weights are frozen. Click or drag on the board.');
     else say('Tool: ' + (t === 'look' ? 'look only (hover to see what each neuron thinks)' : t === 'erase' ? 'eraser' : 'paint class ' + (+t + 1) + ' (' + SHAPE_NAMES[+t] + ')') + '.');
     syncControls(); updateBadge();
@@ -466,7 +488,7 @@
   slider('i-lr', function (v) { S.lr = Math.pow(10, v); if (S.T) S.T.lr = S.lr; S.dirty = true; });
   slider('i-speed', function (v) { S.speed = v; });
   $('np-run').addEventListener('click', function () { setRunning(!S.running); });
-  $('np-step').addEventListener('click', function () { if (!canTrain()) return; if (S.tool === 'predict') setTool('0'); S.running = false; S.T.runEpochs(1); S.dirty = true; syncControls(); checkEvents(); say('One epoch: every training dot seen once.'); });
+  $('np-step').addEventListener('click', function () { if (!canTrain()) return; if (S.tool === 'predict' || S.tool === 'inspect') setTool(locked() ? 'look' : '0'); S.running = false; S.T.runEpochs(1); S.dirty = true; syncControls(); checkEvents(); say('One epoch: every training dot seen once.'); });
   $('np-reset').addEventListener('click', function () {
     if (S.scen !== 'challenge') S.netSeed += 1;
     rebuildNet(); S.running = false; syncControls();
@@ -508,6 +530,269 @@
     syncControls(); updateBadge();
   }
 
+  /* ---------- Inspect one sample: forward pass, loss, backward pass, update — driven by NP.traceSample ---------- */
+  (function () {
+    var insSpeed = AIFlow.speedControl({ unit: 'stage' });
+    $('ins-speed').appendChild(insSpeed.el);
+    var elPlay = $('ins-play'), elNext = $('ins-next'), elBack = $('ins-back'), elApply = $('ins-apply'), elPick = $('ins-pick');
+    var elNarr = $('ins-narr'), elNums = $('ins-nums'), elStages = $('ins-stages'), elSub = $('ins-sub');
+    var IDLE_NARR = $('ins-narr').innerHTML, lastStageShown = -1, maxNarr = 0;
+    window.addEventListener('resize', function () { maxNarr = 0; elNarr.style.minHeight = ''; });
+    function f2s(v) { var s = v.toFixed(2); return s === '-0.00' ? '0.00' : s; }
+    function f3s(v) { var s = v.toFixed(3); return s === '-0.000' ? '0.000' : s; }
+    function fe(v) { return v === 0 ? '0' : Math.abs(v) < 0.001 ? v.toExponential(1) : v.toFixed(3); }
+    function ease(q) { return q < 0.5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2; }
+    function mix(c, pct) { return 'color-mix(in srgb, ' + c + ' ' + Math.round(pct) + '%, var(--surface))'; }
+    function last() { return INS.stages.length - 1; }
+    function L() { return S.net.layers; }
+    function reached(idx, thr) { return INS.si > idx || (INS.si === idx && INS.t >= thr); }
+
+    function build(p) {
+      var net = S.net, Ln = net.layers, k, i, j, st = [{ k: 'in', name: 'Input' }];
+      var tr = NP.traceSample(net, p);
+      for (k = 0; k < Ln; k++) st.push({ k: 'fwd', l: k, name: k === Ln - 1 ? 'Output' : 'Forward ' + (k + 1) });
+      st.push({ k: 'loss', name: 'Loss' });
+      for (k = Ln - 1; k >= 0; k--) st.push({ k: 'bwd', l: k, name: 'Back ' + (Ln - k) });
+      st.push({ k: 'upd', name: 'Update' });
+      var maxG = 1e-9, maxD = 1e-9, g, big = { v: 0 }, upd = NP.traceStep(tr, S.lr);
+      for (k = 0; k < Ln; k++) for (j = 0; j < tr.gradW[k].length; j++) for (i = 0; i < tr.gradW[k][j].length; i++) {
+        g = Math.abs(tr.gradW[k][j][i]); if (g > maxG) maxG = g;
+        var wi = net.wOff[k] + j * net.sizes[k] + i;
+        if (Math.abs(upd[wi]) > big.v) big = { v: Math.abs(upd[wi]), d: upd[wi], l: k, j: j, i: i, w: net.params[wi] };
+      }
+      for (k = 1; k <= Ln; k++) tr.delta[k].forEach(function (d) { if (Math.abs(d) > maxD) maxD = Math.abs(d); });
+      INS.p = p; INS.tr = tr; INS.stages = st; INS.maxG = maxG; INS.maxD = maxD; INS.upd = upd; INS.big = big; INS.lr = S.lr;
+    }
+
+    function rebuildChips() {
+      elStages.innerHTML = '';
+      INS.stages.forEach(function (st, idx) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = st.name; b.className = st.k === 'bwd' || st.k === 'upd' ? 'bwd' : '';
+        b.addEventListener('click', function () { INS.playing = false; INS.one = false; setStage(idx, 1); });
+        elStages.appendChild(b);
+      });
+    }
+    function paintChips() {
+      Array.prototype.forEach.call(elStages.children, function (b, idx) {
+        b.classList.toggle('cur', idx === INS.si); b.classList.toggle('done', idx < INS.si);
+        b.setAttribute('aria-current', idx === INS.si ? 'step' : 'false');
+      });
+    }
+
+    /* narration for stage idx, from the real trace */
+    function narration(idx) {
+      var tr = INS.tr, st = INS.stages[idx], Ln = L(), c = tr.c, k = st.l, t = '', sh = SHAPES[c];
+      var lay = k === undefined ? 0 : k + 1, nm = S.act === 'relu' ? 'ReLU' : 'tanh';
+      if (st.k === 'in') {
+        return '<strong>The sample.</strong> This dot sits at x = <code>' + f2s(tr.x) + '</code>, y = <code>' + f2s(tr.y) + '</code> and its true colour is class ' + (c + 1) + ' (' + sh + '). These two numbers light up the input neurons. ' +
+          'Press <strong>Play</strong> to push them through the network, or <strong>Step</strong> to go one layer at a time.';
+      }
+      if (st.k === 'fwd') {
+        var z0 = tr.z[lay][0], a0 = tr.a[lay][0], n = tr.a[lay].length;
+        if (lay < Ln) {
+          return '<strong>Forward pass, layer ' + lay + ' of ' + Ln + '.</strong> Every neuron here adds up (previous activation × weight) + bias, then applies ' + nm + '. The dots travelling along the lines are those activations; a bigger dot is a bigger signal. ' +
+            'Neuron 1: z = <code>' + f2s(z0) + '</code> → ' + nm + ' → <code>' + f2s(a0) + '</code>. The labels show each neuron’s activation.';
+        }
+        return '<strong>Forward pass, output layer.</strong> The last layer adds up its inputs the same way, then <strong>softmax</strong> turns the ' + n + ' scores into probabilities that add to 1: ' +
+          tr.probs.map(function (p, j) { return SHAPES[j] + ' <code>' + f2s(p) + '</code>'; }).join(', ') + '. The brain’s answer is ' + SHAPES[tr.probs.indexOf(Math.max.apply(null, tr.probs))] + ' (the dot really is ' + sh + ').';
+      }
+      if (st.k === 'loss') {
+        return '<strong>Loss.</strong> The true class is ' + sh + ' and the brain gave it probability <code>' + f2s(tr.probs[c]) + '</code>. Cross-entropy loss = −ln(' + f2s(tr.probs[c]) + ') = <code>' + f2s(tr.loss) + '</code> (0 would be perfect; large means confidently wrong). ' +
+          'The error signal at each output neuron is simply <em>probability − target</em>: ' + tr.delta[Ln].map(function (d, j) { return SHAPES[j] + ' <code>' + f3s(d) + '</code>'; }).join(', ') + '. It is about to travel backwards.';
+      }
+      if (st.k === 'bwd') {
+        var d = tr.delta[k + 1], gW = tr.gradW[k], mg = 0, ji = 0, ii = 0;
+        gW.forEach(function (row, j) { row.forEach(function (g, i) { if (Math.abs(g) > Math.abs(mg)) { mg = g; ji = j; ii = i; } }); });
+        return '<strong>Backward pass, weights of layer ' + (k + 1) + '.</strong> ' + (k === Ln - 1 ? 'The output error δ ' : 'The blame δ that arrived from the right ') + 'times the activation that fed each weight gives that weight’s <strong>gradient</strong> ∂loss/∂w. ' +
+          'Line colour and thickness show it: <span class="np-key warm"></span>warm = “lower this weight”, <span class="np-key cool"></span>cool = “raise it”. ' +
+          (k > 0 ? 'The blame is then passed on to the neurons on the left (labels now show δ), scaled by the weights and the ' + nm + ' slope. ' : 'The input neurons need no blame. ') +
+          'Biggest gradient here: <code>' + f3s(mg) + '</code> (neuron ' + (ii + 1) + ' → ' + (ji + 1) + ').';
+      }
+      var b = INS.big;
+      return '<strong>Update.</strong> Every weight moves a little <em>against</em> its gradient: <code>w ← w − η × gradient</code>, with learning rate η = <code>' + fmtLr(INS.lr) + '</code>. ' +
+        'The biggest nudge on this sample is <code>' + fe(b.d) + '</code> (a weight of <code>' + f3s(b.w) + '</code>). One dot gives a tiny, noisy nudge: real training averages ' + Math.min(32, S.T ? S.T.train.length : 32) + ' dots per step' + (S.opt === 'adam' ? ' and Adam also smooths it over time' : '') + ', and repeats it thousands of times. ' +
+        (INS.applied ? '<strong>Applied</strong> to the network just now.' : 'Press “Apply this nudge” to really move the weights by it.');
+    }
+    function numsHtml() {
+      var tr = INS.tr, cells = [['Loss (this dot)', f3s(tr.loss)], ['P(true class)', f3s(tr.probs[tr.c])], ['Biggest gradient', f3s(INS.maxG)], ['Learn. rate', fmtLr(INS.lr)], ['Biggest nudge', fe(INS.big.d)]];
+      return cells.map(function (c) { return '<div class="np-stat"><small>' + c[0] + '</small><b>' + c[1] + '</b></div>'; }).join('');
+    }
+
+    function setStage(idx, t) {
+      INS.si = Math.max(0, Math.min(last(), idx)); INS.t = t; INS.dirty = true; stageChanged();
+    }
+    function stageChanged() {
+      if (lastStageShown !== INS.si) {
+        lastStageShown = INS.si; elNarr.innerHTML = narration(INS.si); paintChips();
+        var nh = elNarr.offsetHeight; if (nh > maxNarr) { maxNarr = nh; elNarr.style.minHeight = nh + 'px'; }
+      }
+      syncButtons();
+    }
+    function syncButtons() {
+      var on = INS.on, endd = INS.si === last() && INS.t >= 1;
+      elPlay.disabled = !on; elBack.disabled = !on || (INS.si === 0 && INS.t <= 0); elNext.disabled = !on || endd;
+      elPlay.textContent = INS.playing && !INS.one ? '⏸ Pause' : (endd ? '↺ Replay' : '▶ Play');
+      elApply.disabled = !on || INS.si !== last() || INS.t < 1 || INS.applied;
+      Array.prototype.forEach.call(elStages.children, function (b) { b.disabled = !on; });
+    }
+
+    function select(p) {
+      if (!S.net) return;
+      if (S.tool !== 'inspect') setTool('inspect');
+      build(p); INS.on = true; INS.applied = false; INS.playing = false; INS.one = false; lastStageShown = -1;
+      rebuildChips(); elNums.innerHTML = numsHtml();
+      elSub.textContent = 'dot at (' + f2s(p.x) + ', ' + f2s(p.y) + ') · class ' + (p.c + 1) + ' ' + SHAPES[p.c] + (p.t ? ' · a test dot' : '');
+      S.dirty = true; setStage(0, 0);
+      play();
+    }
+    function close() {
+      if (!INS.on && !INS.p) return;
+      var was = INS.on;
+      INS.on = false; INS.p = null; INS.tr = null; INS.playing = false; lastStageShown = -1;
+      vlabs.forEach(function (layer) { layer.forEach(function (t) { t.setAttribute('visibility', 'hidden'); }); });
+      if (lossTxt) lossTxt.setAttribute('visibility', 'hidden');
+      if (gPulse) gPulse.textContent = '';
+      pulses = [];
+      nodes.forEach(function (layer) { layer.forEach(function (n) { n.classList.remove('hot', 'bwd', 'target'); }); });
+      elStages.innerHTML = ''; elNums.innerHTML = ''; elNarr.innerHTML = IDLE_NARR; elSub.textContent = 'choose “Inspect a dot”, then click a dot';
+      syncButtons(); S.dirty = true;
+      if (was && S.net) updateDiagram(true);
+    }
+    function play() {
+      if (!INS.on) return;
+      if (INS.si === last() && INS.t >= 1) { build(INS.p); elNums.innerHTML = numsHtml(); INS.applied = false; lastStageShown = -1; setStage(0, 0); }
+      var ms = insSpeed.ms();
+      if (ms <= 0) { setStage(last(), 1); INS.playing = false; return; }
+      INS.playing = true; INS.one = false;
+      syncButtons();
+    }
+    function stepOnce() {
+      if (!INS.on) return;
+      if (INS.t < 1) { INS.playing = false; INS.t = 1; INS.dirty = true; stageChanged(); return; }
+      if (INS.si >= last()) return;
+      var ms = insSpeed.ms();
+      if (ms <= 0) { setStage(INS.si + 1, 1); return; }
+      setStage(INS.si + 1, 0); INS.playing = true; INS.one = true; syncButtons();
+    }
+    elPlay.addEventListener('click', function () { if (INS.playing && !INS.one) { INS.playing = false; syncButtons(); } else play(); });
+    elNext.addEventListener('click', stepOnce);
+    elBack.addEventListener('click', function () { INS.playing = false; INS.one = false; if (INS.t > 0 && INS.t < 1) setStage(INS.si, 0); else setStage(INS.si - 1, 1); });
+    elPick.addEventListener('click', function () {
+      if (!S.pts.length) { say('There are no dots yet. Paint some or pick a shape first.'); return; }
+      var pool = S.pts.filter(function (p) { return !p.t; }); if (!pool.length) pool = S.pts;
+      select(pool[paintRng.int(pool.length)]);
+    });
+    elApply.addEventListener('click', function () {
+      if (!INS.on || INS.applied) return;
+      var d = INS.upd, w = S.net.params, k; for (k = 0; k < d.length; k++) w[k] += d[k];
+      INS.applied = true; S.dirty = true; S.weightsStale = -1; elNarr.innerHTML = narration(INS.si); syncButtons();
+      say('Applied: the weights moved by this one dot’s nudge. Press Replay to see the same dot again with the new weights.');
+    });
+
+    function pickAt(pt) {
+      var best = null, bd = 0.011, i, p, d;
+      for (i = 0; i < S.pts.length; i++) { p = S.pts[i]; d = (p.x - pt.x) * (p.x - pt.x) + (p.y - pt.y) * (p.y - pt.y); if (d < bd) { bd = d; best = p; } }
+      if (!best) { say('No dot there. Click right on a dot to follow it through the network.'); return; }
+      select(best);
+    }
+
+    /* ----- frame: advance time, then draw the diagram from the trace ----- */
+    function tick(dt) {
+      if (!INS.on) return;
+      if (INS.playing) {
+        var ms = insSpeed.ms(), dwell = AIFlow.reduced() ? Math.min(ms, 400) : ms;
+        if (ms <= 0) { INS.playing = false; setStage(last(), 1); }
+        else {
+          INS.t += dt * 1000 / dwell;
+          if (INS.t >= 1) {
+            INS.t = 1;
+            if (INS.one || INS.si >= last()) { INS.playing = false; INS.one = false; }
+            else { INS.si++; INS.t = 0; }
+          }
+          INS.dirty = true; stageChanged();
+        }
+      }
+      if (INS.dirty) { INS.dirty = false; draw(); }
+    }
+
+    function draw() {
+      var net = S.net, tr = INS.tr, Ln = net.layers, P = palette(), si = INS.si, t = INS.t, st = INS.stages[si], i, j, k, e, a, v, id;
+      var moving = INS.playing && !AIFlow.reduced() && t < 1;
+      function actVisible(kk) { return kk === 0 || reached(kk, 0.9); }
+      function dVisible(kk) { return kk === Ln ? reached(Ln + 1, 0.5) : kk > 0 && reached(2 * Ln + 1 - kk, 0.9); }
+      var inBwd = si >= Ln + 1;
+      // edges
+      var curF = st.k === 'fwd' ? st.l : -1, curB = st.k === 'bwd' ? st.l : -1;
+      for (i = 0; i < edges.length; i++) {
+        e = edges[i]; v = net.params[net.wOff[e.l] + e.j * net.sizes[e.l] + e.i];
+        var bw = 0.35 + Math.min(4.6, Math.abs(v) * 1.7), bc = v >= 0 ? P.pos : P.neg, bo = 0.28 + 0.6 * Math.min(1, Math.abs(v) / 1.4);
+        var g = tr.gradW[e.l][e.j][e.i], gw = 0.6 + 6 * Math.sqrt(Math.abs(g) / INS.maxG), gc = g > 0 ? P.red : P.cls[0];
+        var w = bw, c = bc, o = bo;
+        if (st.k === 'in') { o = 0.18; }
+        else if (st.k === 'fwd') {
+          if (e.l < curF) o = Math.min(0.7, bo); else if (e.l === curF) { o = 1; w = bw * 1.25 + 0.6; } else o = 0.1;
+        } else if (st.k === 'loss') { o = Math.min(0.55, bo); }
+        else if (st.k === 'bwd') {
+          if (e.l > curB) { w = gw; c = gc; o = 0.95; }
+          else if (e.l === curB) { w = bw + (gw - bw) * ease(t); c = t > 0.15 ? gc : bc; o = 0.5 + 0.5 * t; }
+          else o = 0.12;
+        } else {   // update: gradient colouring melts back into the (slightly changed) weights
+          var u = ease(t); w = gw + (bw - gw) * u; c = u < 0.5 ? gc : bc; o = 0.95 + (Math.min(0.9, bo) - 0.95) * u;
+        }
+        e.e.setAttribute('stroke-width', w.toFixed(2)); e.e.setAttribute('stroke', c); e.e.setAttribute('stroke-opacity', o.toFixed(2));
+      }
+      // neurons
+      var tgt = tr.c;
+      for (k = 0; k <= Ln; k++) for (j = 0; j < net.sizes[k]; j++) {
+        var node = nodes[k][j], lab = vlabs[k][j], fill = 'var(--surface)', txt = '', cls = 'np-vlab';
+        var showD = inBwd && dVisible(k);
+        if (showD) {
+          var dv = tr.delta[k][j]; fill = mix(P.amber, Math.min(1, Math.abs(dv) / INS.maxD) * 85); txt = f3s(dv); cls += ' d';
+        } else if (actVisible(k)) {
+          a = tr.a[k][j];
+          if (k === 0) fill = mix(a >= 0 ? P.pos : P.neg, Math.min(1, Math.abs(a)) * 85);
+          else if (k === Ln) fill = mix(P.cls[j], a * 100);
+          else fill = mix(a >= 0 ? P.pos : P.neg, Math.min(1, Math.abs(a) / (net.act === 'relu' ? 2 : 1)) * 90);
+          txt = f2s(a);
+        }
+        node.style.fill = fill;
+        node.classList.toggle('hot', (st.k === 'fwd' && k === st.l + 1) || (st.k === 'bwd' && k === st.l));
+        node.classList.toggle('bwd', st.k === 'bwd');
+        node.classList.toggle('target', k === Ln && j === tgt && si >= Ln + 1 && si <= Ln + 1);
+        lab.textContent = txt; lab.setAttribute('class', cls); lab.setAttribute('visibility', txt ? 'visible' : 'hidden');
+      }
+      if (si >= Ln + 1 || (si === Ln + 1 && t >= 0.3)) { lossTxt.textContent = 'loss = ' + f2s(tr.loss); lossTxt.setAttribute('visibility', 'visible'); }
+      else lossTxt.setAttribute('visibility', 'hidden');
+      // travelling pulses
+      var list = [];
+      if (moving && st.k === 'fwd') {
+        edges.forEach(function (ed) {
+          if (ed.l !== st.l) return;
+          var av = tr.a[ed.l][ed.i], wv = net.params[net.wOff[ed.l] + ed.j * net.sizes[ed.l] + ed.i];
+          list.push({ from: npos[ed.l][ed.i], to: npos[ed.l + 1][ed.j], r: 2 + 3.2 * Math.min(1, Math.abs(av)), fill: av * wv >= 0 ? P.pos : P.neg });
+        });
+      } else if (moving && st.k === 'bwd') {
+        edges.forEach(function (ed) {
+          if (ed.l !== st.l) return;
+          var dj = tr.delta[ed.l + 1][ed.j];
+          list.push({ from: npos[ed.l + 1][ed.j], to: npos[ed.l][ed.i], r: 2 + 3.4 * Math.min(1, Math.abs(dj) / INS.maxD), fill: P.amber });
+        });
+      }
+      while (pulses.length < list.length) pulses.push(el('circle', { r: 3, 'class': 'np-pulse' }, gPulse));
+      while (pulses.length > list.length) gPulse.removeChild(pulses.pop());
+      var q = ease(t);
+      for (i = 0; i < list.length; i++) {
+        var it = list[i];
+        pulses[i].setAttribute('cx', (it.from[0] + (it.to[0] - it.from[0]) * q).toFixed(1)); pulses[i].setAttribute('cy', (it.from[1] + (it.to[1] - it.from[1]) * q).toFixed(1));
+        pulses[i].setAttribute('r', it.r.toFixed(1)); pulses[i].style.fill = it.fill;
+      }
+      svg.setAttribute('aria-label', 'Network diagram inspecting one dot, stage ' + st.name + '.');
+    }
+    INS_API.pickAt = pickAt; INS_API.close = close; INS_API.tick = tick; INS_API.select = select; INS_API.setStage = setStage; INS_API.state = INS;
+    insSpeed.el.querySelector('input').addEventListener('input', function () { if (INS.on && insSpeed.ms() <= 0 && INS.playing) { INS.playing = false; setStage(last(), 1); } });
+    syncButtons();
+  })();
+
   /* ---------- the loop ---------- */
   var lastT = 0;
   function checkEvents() {
@@ -537,13 +822,14 @@
   function frame(ts) {
     var dt = Math.min(0.1, (ts - lastT) / 1000); lastT = ts;
     if (S.needTrainer) { rebuildTrainer(false); S.running = S.running && canTrain(); syncControls(); }
-    if (S.running && S.T && S.tool !== 'predict') {
+    if (S.running && S.T && S.tool !== 'predict' && S.tool !== 'inspect') {
       S.acc += dt * EPS[S.speed] * S.T.stepsPerEpoch;
       var k = Math.min(80, Math.floor(S.acc)); S.acc -= Math.floor(S.acc); if (S.acc > 100) S.acc = 0;
       var t0 = performance.now();
       while (k > 0 && performance.now() - t0 < 9) { S.T.step(1); k--; }
       S.dirty = true; checkEvents();
     }
+    if (INS_API.tick) INS_API.tick(dt);
     if (S.dirty) {
       drawBoard();
       updateDiagram(S.running || S.weightsStale !== S.T.steps);
@@ -563,7 +849,7 @@
   if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { PAL = null; S.dirty = true; S.curveForce = true; }); } catch (e) { /* old browser */ } }
 
   /* test hooks for headless checks */
-  window.__np = { S: S, loadScenario: loadScenario, setRunning: setRunning, setTool: setTool, rebuildNet: rebuildNet, regenData: regenData, addProbe: addProbe };
+  window.__np = { INS: INS, INS_API: INS_API, S: S, loadScenario: loadScenario, setRunning: setRunning, setTool: setTool, rebuildNet: rebuildNet, regenData: regenData, addProbe: addProbe };
 
   loadScenario('sandbox');
   sizeCanvases();

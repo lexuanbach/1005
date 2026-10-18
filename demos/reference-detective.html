@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/cite-flow.css">
 <link rel="stylesheet" href="../assets/demo-reference-detective.css">
 </head>
 <body class="part2">
@@ -44,6 +45,7 @@
         <tr><td>The reference card (APA, IEEE or MLA)</td><td>A reference is a promise that a work exists as described. The format is produced by the same engine as the Citation Workshop in Chapter 13, so a fake looks exactly as tidy as a real one.</td></tr>
         <tr><td>The four evidence checks</td><td>Verification: DOI lookup, author list, journal/volume/issue, year/pages. Real references pass all four; wrong-details references fail exactly one or two; fabricated ones fail the lookup.</td></tr>
         <tr><td>"Real, wrong details"</td><td>The subtle AI failure: the work is real but the reference was reconstructed from memory (wrong year, wrong venue, swapped authors, a DOI that points elsewhere).</td></tr>
+        <tr><td>The ecosystem diagram</td><td>The blocks around a reference: the AI assistant that writes it, your essay (in-text citation), the reference list entry, doi.org and the publisher page, the Crossref metadata registry, the journal record and the author list. Each card is "written" by the AI block; each check sends a lookup token to the block that holds the evidence and back with a match, a mismatch or "not found". After your verdict the origin is traced: a real reference leads to a registry record; a fabricated one has no record, and the AI block lights up. Speed, Pause and Step control the tokens.</td></tr>
         <tr><td>Essay credibility meter</td><td>Consequences: one fabricated source in a submitted essay costs more than a few false alarms (accepting a fake: -20; accepting a wrong-details one: -12; rejecting a good one: -8).</td></tr>
         <tr><td>Report card</td><td>Names the red flags you missed: generic title, round page numbers, DOI that does not resolve, volume that does not exist, and so on.</td></tr>
         <tr><td>Where the data comes from</td><td>The real works were checked in Crossref on 2026-10-18 and each reveal links to its DOI. The fake references are invented for this game (invented names; their titles do not exist in Crossref and their DOIs answer "not found").</td></tr>
@@ -59,6 +61,7 @@
   </div>
 </footer>
 
+<script src="../assets/cite-flow.js"></script>
 <script src="../assets/cite-lab.js"></script>
 <script src="../assets/demo-reference-detective.js"></script>
 <script src="../assets/course.js"></script>

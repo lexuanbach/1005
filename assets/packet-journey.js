@@ -409,7 +409,92 @@
       ports: { client: cport, server: u.port }, isn: { client: cisn, server: sisn } };
   }
 
+  /* ------------------------------------------------------------------ animation helpers (pure, no DOM)
+     The animation never invents events: it is driven by the journey's own steps.
+       packetCard(step)  -> the small card (title + header lines) that travels along the map edge for a step
+       stackState(step)  -> where the message is in the layered view and which headers it carries
+       barLayout(...)    -> the geometry of the packet bars (segments) in that view                        */
+  var SPEEDS = [['Very slow', 2200], ['Slow', 1400], ['Normal', 800], ['Fast', 400], ['Very fast', 150], ['Instant', 0]];
+  function cut(s, n) { s = String(s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  function dnsIpOf(node, question) {
+    var host = String(question || '').replace(/^A\? /, '').replace(/\.$/, ''), labels = host.split('.');
+    var tld = labels[labels.length - 1], zone = labels.slice(-2).join('.');
+    if (node === 'client') return ADDR.client;
+    if (node === 'resolver') return ADDR.resolver;
+    if (node === 'root') return ADDR.root;
+    if (node === 'tld') return ADDR.tld[tld] || '?';
+    if (node === 'auth') return ZONE[zone] ? ZONE[zone].ip : '?';
+    return '?';
+  }
+  function packetCard(step) {
+    if (!step || step.from === step.to || step.phase === 'url' || step.phase === 'layers') return null;
+    var d = step.detail || {}, lines = [], title = '';
+    if (step.phase === 'dns') {
+      var dst = dnsIpOf(step.to, d.question), a = d.answer && d.answer.length ? d.answer[d.answer.length - 1] : '';
+      if (step.kind === 'query') { title = 'DNS query · UDP'; lines = [d.question || '', '→ ' + dst + ':53']; }
+      else if (step.kind === 'referral') { title = 'DNS referral · UDP'; lines = ['"ask the next level"', '→ ' + dst]; }
+      else if (step.kind === 'nxdomain') { title = 'DNS answer · UDP'; lines = ['NXDOMAIN: no such name', '→ ' + dst]; }
+      else { var m = /\bA\s+(\d+\.\d+\.\d+\.\d+)\s*$/.exec(a); title = 'DNS answer · UDP'; lines = [m ? 'A ' + m[1] : cut(a, 22), '→ ' + dst]; }
+    } else if (step.phase === 'tcp') {
+      if (!d.flags) { title = 'TLS handshake'; lines = ['(not simulated)']; }
+      else {
+        var sp = String(d.src).split(':'), dp = String(d.dst).split(':');
+        title = 'TCP ' + d.flags.join('+');
+        lines = ['IP → ' + dp[0], 'ports ' + sp[1] + ' → ' + dp[1], 'seq ' + d.seq + ' · ack ' + (d.ack === null ? '–' : d.ack)];
+      }
+    } else if (step.phase === 'http') {
+      var ls = String(d.message).replace(/\r/g, '').split('\n'), hs = [];
+      for (var i = 1; i < ls.length && ls[i] !== ''; i++) hs.push(ls[i]);
+      title = d.role === 'request' ? 'HTTP request' : 'HTTP response';
+      lines = [cut(ls[0], 24)];
+      if (d.role === 'request') { lines.push(cut(hs[0] || '', 24)); lines.push('+' + Math.max(0, hs.length - 1) + ' more headers'); }
+      else {
+        var cl = hs.filter(function (h) { return /^Content-Length/i.test(h); })[0], ct = hs.filter(function (h) { return /^Content-Type/i.test(h); })[0];
+        lines.push(cut(ct || '', 24)); lines.push(cut(cl || '', 24));
+      }
+    } else return null;
+    lines = lines.filter(function (x) { return x !== ''; });
+    var w = Math.max(title.length, Math.max.apply(null, lines.map(function (l) { return l.length; }).concat([0]))) * 5.3 + 14;
+    return { title: title, lines: lines, kind: step.phase, w: Math.round(w), h: 12 * (lines.length + 1) + 6 };
+  }
+  /* layered view: segs = which headers the packet(s) carry; count = how many packets/segments/fragments exist at that moment */
+  function stackState(step) {
+    var d = step.detail, st = d.stack, n = st.items.length, U = st.mode === 'udp', lv = d.level, dir = d.dir;
+    if (dir === 'router') return { where: 'router', level: 4, segs: { tr: true, ip: true, eth: true }, count: n, udp: U, dir: dir };
+    var down = dir === 'down';
+    return {
+      where: down ? 'server' : 'client', level: lv, dir: dir, udp: U,
+      segs: down ? { tr: lv >= 1, ip: lv >= 2, eth: lv >= 3 } : { tr: lv >= 2, ip: lv >= 3, eth: false },
+      count: down ? (U ? (lv >= 2 ? n : 1) : (lv >= 1 ? n : 1)) : (U ? (lv >= 3 ? n : 1) : (lv >= 2 ? n : 1))
+    };
+  }
+  var BARW = 136;
+  function barLayout(count, segs) {
+    var shown = Math.min(count, 4), single = count === 1, bars = [], sw = single ? { eth: 20, ip: 18, tr: 18, fcs: 7 } : { eth: 9, ip: 8, tr: 8, fcs: 3 };
+    var bw = single ? BARW : 66, bh = single ? 22 : 13;
+    for (var i = 0; i < shown; i++) {
+      var col = single ? 0 : i % 2, row = single ? 0 : Math.floor(i / 2);
+      var x = col * (bw + 4), y = single ? 7 : 3 + row * 17, list = [], cx = x;
+      function put(k, w) { list.push({ k: k, x: cx, w: w }); cx += w; }
+      var used = (segs.eth ? sw.eth + sw.fcs : 0) + (segs.ip ? sw.ip : 0) + (segs.tr ? sw.tr : 0);
+      if (segs.eth) put('eth', sw.eth);
+      if (segs.ip) put('ip', sw.ip);
+      if (segs.tr) put('tr', sw.tr);
+      put('app', bw - used);
+      if (segs.eth) put('fcs', sw.fcs);
+      bars.push({ x: x, y: y, w: bw, h: bh, segs: list });
+    }
+    return { bars: bars, more: count - shown, single: single };
+  }
+  var ST = { sx: 4, cx: 384, w: 212, lab: 70, y0: 30, pitch: 44, rh: 38 };
+  function rungY(k) { return ST.y0 + k * ST.pitch; }
+  function anchorOf(state) { // top-left corner of the packet area
+    if (state.where === 'router') return { x: 232, y: rungY(3) + 1 };
+    return { x: (state.where === 'server' ? ST.sx : ST.cx) + ST.lab, y: rungY(state.level) + 1 };
+  }
+
   var engine = {
+    packetCard: packetCard, stackState: stackState, barLayout: barLayout, anchorOf: anchorOf, SPEEDS: SPEEDS, ST: ST, BARW: BARW,
     parseURL: parseURL, resolve: resolve, buildJourney: buildJourney, buildStack: buildStack, splitTCP: splitTCP, fragmentIP: fragmentIP,
     httpServer: httpServer, formatRequest: formatRequest, formatResponse: formatResponse, overheadTotal: overheadTotal,
     parseIPv4: parseIPv4, intToIp: intToIp, toBin: toBin, maskOf: maskOf, subnetInfo: subnetInfo, subnetFromText: subnetFromText,
@@ -510,7 +595,7 @@
     PHASES.forEach(function (p) {
       var b = el('button', 'pj-phase', p[1]); b.type = 'button'; b.dataset.phase = p[0];
       b.addEventListener('click', function () {
-        for (var k = 0; k < state.j.steps.length; k++) if (state.j.steps[k].phase === p[0]) { state.i = k; render(); return; }
+        for (var k = 0; k < state.j.steps.length; k++) if (state.j.steps[k].phase === p[0]) { stopAuto(); goTo(k, false); return; }
       });
       f.phases.appendChild(b);
     });
@@ -531,9 +616,25 @@
     ctl.appendChild(f.back); ctl.appendChild(f.next); ctl.appendChild(f.reset); ctl.appendChild(f.count);
     root.appendChild(ctl);
 
-    f.back.addEventListener('click', function () { if (state.i > 0) { state.i--; render(); } });
-    f.next.addEventListener('click', function () { if (state.i < state.j.steps.length - 1) { state.i++; render(); } });
-    f.reset.addEventListener('click', function () { state.i = 0; render(); });
+    /* auto-play / pause / speed (below Back-Next so those buttons never move) */
+    var autoRow = el('div', 'pj-auto'); autoRow.setAttribute('role', 'group'); autoRow.setAttribute('aria-label', 'Animation controls');
+    f.play = el('button', 'btn', '\u25b6 Auto-play story'); f.play.type = 'button';
+    f.pause = el('button', 'btn', '\u23f8 Pause'); f.pause.type = 'button'; f.pause.disabled = true;
+    var spIdx = 2, SPEED_KEY = 'co1005-pj-speed';
+    try { var sv = localStorage.getItem(SPEED_KEY); if (sv !== null && +sv >= 0 && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
+    var spWrap = el('div', 'pj-speed'), spLab = el('label', 'pj-lab', 'Speed'), spRng = el('input'), spNm = el('span', 'pj-speed-name');
+    spRng.type = 'range'; spRng.min = 0; spRng.max = SPEEDS.length - 1; spRng.step = 1; spRng.value = spIdx; spRng.id = 'pj-speed'; spLab.setAttribute('for', 'pj-speed');
+    function paintSpeed() { spNm.textContent = SPEEDS[spIdx][0] + (SPEEDS[spIdx][1] ? ' \u00b7 ' + (SPEEDS[spIdx][1] / 1000) + ' s' : ' \u00b7 no animation'); spRng.setAttribute('aria-valuetext', SPEEDS[spIdx][0]); }
+    spRng.addEventListener('input', function () { spIdx = +spRng.value; paintSpeed(); try { localStorage.setItem(SPEED_KEY, String(spIdx)); } catch (e) {} });
+    paintSpeed(); spWrap.appendChild(spLab); spWrap.appendChild(spRng); spWrap.appendChild(spNm);
+    autoRow.appendChild(f.play); autoRow.appendChild(f.pause); autoRow.appendChild(spWrap);
+    root.appendChild(autoRow);
+
+    f.back.addEventListener('click', function () { stopAuto(); if (state.i > 0) goTo(state.i - 1, false); });
+    f.next.addEventListener('click', function () { stopAuto(); if (state.i < state.j.steps.length - 1) goTo(state.i + 1, true); });
+    f.reset.addEventListener('click', function () { stopAuto(); goTo(0, false); });
+    f.play.addEventListener('click', function () { if (auto.on) stopAuto(); else startAuto(); });
+    f.pause.addEventListener('click', function () { togglePause(); });
     form.addEventListener('submit', function (e) { e.preventDefault(); start(); });
     root.addEventListener('keydown', function (e) {
       var t = e.target.tagName;
@@ -549,53 +650,257 @@
     }
     function start() {
       state.j = buildJourney({ url: f.url.value, method: f.method.value, cache: f.cache.value, mtu: parseInt(f.mtu.value, 10), mode: f.mode.value });
-      state.i = 0; render();
+      stopAuto(); state.i = 0; render(); fixHeights();
     }
 
-    /* ---- rendering ---- */
+    /* Keep the stage and the narration box the same height on every step of the current story, so the
+       Back / Next buttons below them never move. Measured by rendering each step once (needs the lab to be visible). */
+    var fixedW = -1;
+    function fixHeights() {
+      if (!state.j || !root.offsetWidth) { fixedW = -1; return; }
+      var keep = state.i, hs = 0, hn = 0;
+      stage.style.minHeight = ''; f.narr.style.minHeight = '';
+      for (var k = 0; k < state.j.steps.length; k++) {
+        state.i = k; render();
+        hs = Math.max(hs, stage.offsetHeight); hn = Math.max(hn, f.narr.offsetHeight);
+      }
+      stage.style.minHeight = hs + 'px'; f.narr.style.minHeight = hn + 'px';
+      state.i = keep; render(); fixedW = root.offsetWidth;
+    }
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(function () { if (root.offsetWidth !== fixedW) fixHeights(); });
+      ro.observe(root);
+    } else window.addEventListener('resize', function () { fixHeights(); });
+
+    /* ---- rendering (static: always draws the final state of a step; animation is added on top by playIn) ---- */
+    var ctx = null, anims = [], lastDur = 0, auto = { on: false, paused: false, timer: null, due: 0, remain: 0 };
+    function ms_() { return SPEEDS[spIdx][1]; }
+    function reduced() { try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; } }
+
     function drawMap(step) {
-      f.map.innerHTML = '';
-      var s = svg('svg', { viewBox: '0 0 600 205', role: 'img', 'aria-label': 'Map of the simulated network: your browser, the DNS resolver, root, TLD and authoritative servers, and the web server. The highlighted arrow shows who talks to whom in this step.' });
+      f.map.innerHTML = ''; ctx = null;
+      if (step.phase === 'layers') return drawStack(step);
+      var s = svg('svg', { viewBox: '0 0 600 232', role: 'img', 'aria-label': 'Map of the simulated network: your browser, the DNS resolver, root, TLD and authoritative servers, and the web server. The highlighted arrow and the packet card show who talks to whom in this step.' });
       var defs = svg('defs', {}), mk = svg('marker', { id: 'pj-arrow', viewBox: '0 0 10 10', refX: '9', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' });
       mk.appendChild(svg('path', { d: 'M0 0 L10 5 L0 10 z', class: 'pj-arrowhead' })); defs.appendChild(mk); s.appendChild(defs);
       var EDGES = [['client', 'resolver'], ['resolver', 'root'], ['resolver', 'tld'], ['resolver', 'auth'], ['client', 'server']];
-      EDGES.forEach(function (e) {
-        var a = NODES[e[0]], b = NODES[e[1]];
-        s.appendChild(svg('path', { d: edgePath(e[0], e[1]), class: 'pj-edge' }));
-      });
+      EDGES.forEach(function (e) { s.appendChild(svg('path', { d: edgePath(e[0], e[1]), class: 'pj-edge' })); });
+      var ep = null;
       if (step.from !== step.to) {
-        var key = step.from + '>' + step.to;
-        s.appendChild(svg('path', { d: edgePath(step.from, step.to), class: 'pj-edge on', 'marker-end': 'url(#pj-arrow)' }));
-        var a2 = NODES[step.from], b2 = NODES[step.to];
-        var lbl = labelFor(step);
-        var lx = (a2.x + b2.x) / 2, ly = (a2.y + b2.y) / 2 - 7;
-        if ((step.from === 'client' && step.to === 'server') || (step.from === 'server' && step.to === 'client')) ly = 192;
-        var t = svg('text', { x: lx, y: ly, 'text-anchor': 'middle', class: 'pj-elabel' }, lbl);
-        var bg = svg('rect', { x: lx - lbl.length * 3.4 - 4, y: ly - 11, width: lbl.length * 6.8 + 8, height: 15, rx: 4, class: 'pj-elabel-bg' });
-        s.appendChild(bg); s.appendChild(t);
+        ep = svg('path', { d: edgePath(step.from, step.to), class: 'pj-edge on', 'marker-end': 'url(#pj-arrow)' });
+        s.appendChild(ep);
       }
+      var nodeEls = {};
       Object.keys(NODES).forEach(function (k) {
         var n = NODES[k], active = (k === step.from || k === step.to);
-        var g = svg('g', { class: 'pj-node' + (active ? ' on' : '') });
-        g.appendChild(svg('rect', { x: n.x - 52, y: n.y - 19, width: 104, height: 38, rx: 8 }));
+        var g = svg('g', { class: 'pj-node' + (active ? ' on' : '') + (k === step.from && step.from !== step.to ? ' src' : '') + (k === step.to ? ' dst' : '') });
+        nodeEls[k] = svg('rect', { x: n.x - 52, y: n.y - 19, width: 104, height: 38, rx: 8 });
+        g.appendChild(nodeEls[k]);
         g.appendChild(svg('text', { x: n.x, y: n.y - 3, 'text-anchor': 'middle', class: 'pj-nname' }, n.name));
         g.appendChild(svg('text', { x: n.x, y: n.y + 11, 'text-anchor': 'middle', class: 'pj-nip' }, n.ip));
         s.appendChild(g);
       });
       f.map.appendChild(s);
+      var card = ep ? packetCard(step) : null, cg = null, pt = null;
+      if (card) {
+        pt = ep.getPointAtLength(ep.getTotalLength() * 0.5);
+        cg = svg('g', { class: 'pj-card ' + card.kind, transform: 'translate(' + pt.x.toFixed(1) + ' ' + pt.y.toFixed(1) + ')' });
+        cg.appendChild(svg('rect', { x: -card.w / 2, y: -card.h / 2, width: card.w, height: card.h, rx: 5 }));
+        cg.appendChild(svg('text', { x: 0, y: -card.h / 2 + 12, 'text-anchor': 'middle', class: 'pj-ctitle' }, card.title));
+        card.lines.forEach(function (ln, k) { cg.appendChild(svg('text', { x: 0, y: -card.h / 2 + 24 + k * 12, 'text-anchor': 'middle', class: 'pj-cline' }, ln)); });
+        s.appendChild(cg);
+      }
+      ctx = { kind: 'map', svg: s, edge: ep, card: cg, nodes: nodeEls, step: step };
     }
     function edgePath(a, b) {
       var A = NODES[a], B = NODES[b];
       if ((a === 'client' && b === 'server') || (a === 'server' && b === 'client'))
-        return 'M' + (A.x) + ' ' + (A.y + 19) + ' Q ' + ((A.x + B.x) / 2) + ' 215 ' + (B.x - 20) + ' ' + (B.y + 19);
+        return 'M' + (A.x) + ' ' + (A.y + 19) + ' Q ' + ((A.x + B.x) / 2) + ' 244 ' + (B.x - 20) + ' ' + (B.y + 19);
       return 'M' + (A.x + 0) + ' ' + (A.y + (B.y > A.y ? 19 : -19)) + ' L' + (B.x) + ' ' + (B.y + (B.y > A.y ? -19 : 19));
     }
-    function labelFor(step) {
-      var d = step.detail || {};
-      if (step.phase === 'dns') return step.kind === 'query' ? 'query' : step.kind === 'referral' ? 'referral' : step.kind === 'nxdomain' ? 'NXDOMAIN' : 'answer';
-      if (step.phase === 'tcp') return d.flags ? d.flags.join('+') : 'TLS';
-      if (step.phase === 'http') return d.role === 'request' ? 'request' : 'response';
-      return 'frames';
+
+    var RUNG_NAMES = ['Application', 'Transport', 'Network', 'Link', 'Physical'];
+    function drawStack(step) {
+      var st = stackState(step), U = st.udp;
+      var rsub = ['HTTP', U ? 'UDP +8' : 'TCP +20', 'IP +20', 'Eth +14 +4', 'bits'];
+      var s = svg('svg', { viewBox: '0 0 600 262', role: 'img', 'aria-label': 'The layers: the message is wrapped on the way down the server stack, crosses the wire and a router, and is unwrapped on the way up the client stack.' });
+      var wy = rungY(4) + 19, rungs = {};
+      s.appendChild(svg('path', { d: 'M' + (ST.sx + ST.w) + ' ' + wy + ' L250 ' + wy + ' M350 ' + wy + ' L' + ST.cx + ' ' + wy, class: 'pj-wire' }));
+      s.appendChild(svg('text', { x: ST.sx + ST.w / 2, y: 17, 'text-anchor': 'middle', class: 'pj-stitle' }, 'Server (sender)'));
+      s.appendChild(svg('text', { x: ST.cx + ST.w / 2, y: 17, 'text-anchor': 'middle', class: 'pj-stitle' }, 'Client (receiver)'));
+      ['server', 'client'].forEach(function (side) {
+        for (var k = 0; k < 5; k++) {
+          var x = side === 'server' ? ST.sx : ST.cx, on = st.where === side && st.level === k;
+          var g = svg('g', { class: 'pj-rung' + (on ? ' on' : '') });
+          rungs[side + k] = svg('rect', { x: x, y: rungY(k), width: ST.w, height: ST.rh, rx: 7 });
+          g.appendChild(rungs[side + k]);
+          g.appendChild(svg('text', { x: x + 6, y: rungY(k) + 16, class: 'pj-rname' }, RUNG_NAMES[k]));
+          g.appendChild(svg('text', { x: x + 6, y: rungY(k) + 29, class: 'pj-rsub' }, rsub[k]));
+          s.appendChild(g);
+        }
+      });
+      var rg = svg('g', { class: 'pj-rung pj-router' + (st.where === 'router' ? ' on' : '') });
+      rungs.router = svg('rect', { x: 250, y: rungY(4), width: 100, height: ST.rh, rx: 7 });
+      rg.appendChild(rungs.router);
+      rg.appendChild(svg('text', { x: 300, y: rungY(4) + 16, 'text-anchor': 'middle', class: 'pj-rname' }, 'Router'));
+      rg.appendChild(svg('text', { x: 300, y: rungY(4) + 29, 'text-anchor': 'middle', class: 'pj-rsub' }, 'layers 1–3 only'));
+      s.appendChild(rg);
+      var layout = barLayout(st.count, st.segs), A = anchorOf(st), barEls = [], segEls = [];
+      layout.bars.forEach(function (b) {
+        var g = svg('g', { class: 'pj-bar' }), els = {};
+        b.segs.forEach(function (sg) {
+          els[sg.k] = svg('rect', { x: A.x + sg.x, y: A.y + b.y, width: sg.w, height: b.h, rx: 2, class: 'pj-sg ' + (sg.k === 'fcs' ? 'eth' : sg.k) });
+          g.appendChild(els[sg.k]);
+          if (layout.single && sg.w >= 17 && sg.k !== 'fcs') g.appendChild(svg('text', { x: A.x + sg.x + sg.w / 2, y: A.y + b.y + 14.5, 'text-anchor': 'middle', class: 'pj-sgt' }, sg.k === 'app' ? 'data' : sg.k === 'tr' ? (U ? 'UDP' : 'TCP') : sg.k === 'ip' ? 'IP' : 'Eth'));
+        });
+        s.appendChild(g); barEls.push(g); segEls.push(els);
+      });
+      if (layout.more > 0) s.appendChild(svg('text', { x: A.x + BARW, y: A.y + 36, 'text-anchor': 'end', class: 'pj-more' }, '+' + layout.more + ' more'));
+      var ghosts = svg('g', { 'pointer-events': 'none' }); s.appendChild(ghosts);
+      f.map.appendChild(s);
+      ctx = { kind: 'stack', svg: s, state: st, layout: layout, anchor: A, bars: barEls, segEls: segEls, ghosts: ghosts, rungs: rungs, step: step };
+    }
+
+    /* ---- animation (decoration only: the final state is already on screen; cancelling any animation is harmless) ---- */
+    function A_(node, kf, opt) {
+      try { var a = node.animate(kf, opt); anims.push(a); return a; } catch (e) { return null; }
+    }
+    function cancelAnims() {
+      anims.forEach(function (a) { try { a.cancel(); } catch (e) {} });
+      anims = []; if (ctx && ctx.ghosts) ctx.ghosts.textContent = '';
+    }
+    function ease(k) { return k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; }
+    function pulse(rect, delay, ms) { A_(rect, [{ strokeWidth: '7px' }, { strokeWidth: '2.5px' }], { duration: Math.max(200, ms * 0.7), delay: delay, easing: 'ease-out' }); }
+
+    function animMap(c, step, ms) {
+      if (c.card && c.edge) {
+        var len = c.edge.getTotalLength(), end = c.edge.getPointAtLength(len * 0.5), kf = [];
+        for (var k = 0; k <= 12; k++) {
+          var p = c.edge.getPointAtLength(len * 0.5 * ease(k / 12));
+          kf.push({ transform: 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px)', opacity: k === 0 ? 0.2 : 1 });
+        }
+        A_(c.card, kf, { duration: ms, easing: 'linear' });
+        if (c.nodes[step.from]) pulse(c.nodes[step.from], 0, ms * 0.5);
+        if (c.nodes[step.to]) pulse(c.nodes[step.to], ms * 0.8, ms * 0.6);
+        return Math.round(ms * 1.4);
+      }
+      if (c.nodes[step.from]) { pulse(c.nodes[step.from], 0, ms); pulse(c.nodes[step.from], ms * 0.7, ms); }
+      return Math.round(ms * 1.3);
+    }
+    function bubble(c, x, y, text, delay, dur) {
+      var w = Math.round(text.length * 5.1 + 12);
+      x = Math.max(4, Math.min(596 - w, x - w / 2));
+      var g = svg('g', { class: 'pj-bubble', opacity: 0 });
+      g.appendChild(svg('rect', { x: x, y: y - 12, width: w, height: 15, rx: 7 }));
+      g.appendChild(svg('text', { x: x + w / 2, y: y - 1.5, 'text-anchor': 'middle' }, text));
+      c.ghosts.appendChild(g);
+      var a = A_(g, [{ opacity: 0 }, { opacity: 1, offset: 0.15 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }], { duration: dur, delay: delay, fill: 'both' });
+      if (a) a.onfinish = function () { if (g.parentNode) g.parentNode.removeChild(g); };
+      else g.parentNode.removeChild(g);
+    }
+    function animStack(c, prev, step, ms) {
+      var cur = c.state, pst = prev && prev.phase === 'layers' ? stackState(prev) : null;
+      var moveMs = Math.round(ms * 0.9), addMs = Math.round(ms * 0.7);
+      var newA = c.anchor, prevLayout = pst ? barLayout(pst.count, pst.segs) : null, prevA = pst ? anchorOf(pst) : null;
+      c.bars.forEach(function (g, i) {
+        var nb = c.layout.bars[i], to = { x: newA.x + nb.x, y: newA.y + nb.y }, kf;
+        if (!pst) kf = [{ opacity: 0, transform: 'translate(0px,-34px)' }, { opacity: 1, transform: 'translate(0px,0px)' }];
+        else {
+          var pb = prevLayout.bars[Math.min(i, prevLayout.bars.length - 1)], pts = [{ x: prevA.x + pb.x, y: prevA.y + pb.y }];
+          if (pst.where === 'router' && cur.where === 'client') { var w4 = anchorOf({ where: 'client', level: 4 }); pts.push({ x: w4.x + nb.x, y: w4.y + nb.y }); }
+          pts.push(to);
+          kf = pts.map(function (p, k) { return { transform: 'translate(' + (p.x - to.x).toFixed(1) + 'px,' + (p.y - to.y).toFixed(1) + 'px)', opacity: k === 0 && pst.count !== cur.count ? 0.4 : 1 }; });
+        }
+        A_(g, kf, { duration: moveMs, easing: 'ease-in-out' });
+      });
+      var names = { tr: cur.udp ? 'UDP header' : 'TCP header', ip: 'IP header', eth: 'Ethernet header + trailer' }, said = [];
+      ['tr', 'ip', 'eth'].forEach(function (k) {
+        var was = pst ? !!pst.segs[k] : false, now = !!cur.segs[k];
+        if (now && !was && pst && pst.where !== 'router' && cur.where !== 'client') {
+          said.push('+ ' + names[k]);
+          c.segEls.forEach(function (els) {
+            [els[k], k === 'eth' ? els.fcs : null].forEach(function (r) { if (r) A_(r, [{ opacity: 0, transform: 'scale(0.1,1)' }, { opacity: 1, transform: 'scale(1,1)' }], { duration: addMs, delay: moveMs, easing: 'ease-out', fill: 'backwards' }); });
+          });
+        } else if (!now && was && cur.where === 'client') {
+          said.push('− ' + names[k]);
+          var pl = barLayout(pst.count, pst.segs);
+          pl.bars.forEach(function (b) {
+            b.segs.forEach(function (sg) {
+              if (sg.k !== k && !(k === 'eth' && sg.k === 'fcs')) return;
+              var r = svg('rect', { x: newA.x + sg.x, y: newA.y + b.y, width: sg.w, height: b.h, rx: 2, class: 'pj-sg ' + (sg.k === 'fcs' ? 'eth' : sg.k), opacity: 0 });
+              c.ghosts.appendChild(r);
+              var a = A_(r, [{ opacity: 0, transform: 'translate(0px,0px)' }, { opacity: 1, transform: 'translate(0px,0px)', offset: 0.2 }, { opacity: 0, transform: 'translate(0px,-30px)' }], { duration: Math.round(addMs * 1.3), delay: moveMs, fill: 'both', easing: 'ease-in' });
+              if (a) a.onfinish = function () { if (r.parentNode) r.parentNode.removeChild(r); }; else r.parentNode.removeChild(r);
+            });
+          });
+        }
+      });
+      if (pst && cur.count !== pst.count) said.push(cur.count > pst.count ? 'cut into ' + cur.count + (cur.udp ? ' fragments' : ' segments') : 'put back together');
+      if (cur.where === 'router') {
+        said.push('TTL − 1 · new MAC addresses');
+        c.segEls.forEach(function (els) { if (els.eth) A_(els.eth, [{ opacity: 1 }, { opacity: 0.2 }, { opacity: 1 }, { opacity: 0.2 }, { opacity: 1 }], { duration: addMs * 1.5, delay: moveMs }); });
+        pulse(c.rungs.router, moveMs * 0.6, ms);
+      } else pulse(c.rungs[cur.where + cur.level], moveMs * 0.6, ms);
+      if (!pst) said.push('the HTTP message, nothing added yet');
+      else if (!said.length && cur.where === 'server' && cur.level === 4) said.push('frame becomes bits on the wire');
+      if (said.length) bubble(c, newA.x + (c.layout.single ? BARW / 2 : BARW / 2), newA.y - 2, said.join(' · '), moveMs, Math.round(addMs * 2));
+      return moveMs + Math.round(addMs * 1.6);
+    }
+    function playIn(prev, step) {
+      cancelAnims(); lastDur = 0;
+      var ms = ms_();
+      if (!ms || reduced() || !ctx || !Element.prototype.animate) return 0;
+      lastDur = ctx.kind === 'map' ? animMap(ctx, step, ms) : animStack(ctx, prev, step, ms);
+      if (auto.paused) anims.forEach(function (a) { try { a.pause(); } catch (e) {} });
+      refreshPause();
+      return lastDur;
+    }
+    function goTo(i, animate) {
+      var prev = state.j.steps[state.i];
+      state.i = i; render();
+      if (animate) playIn(prev, state.j.steps[i]); else lastDur = 0;
+      refreshPause();
+    }
+
+    /* ---- auto-play story + pause ---- */
+    function holdMs() { var m = ms_(); return m ? Math.round(m * 0.8 + 700) : 450; }
+    function schedule(ms) { clearTimeout(auto.timer); auto.due = Date.now() + ms; auto.timer = setTimeout(autoNext, ms); }
+    function autoNext() {
+      if (!auto.on || auto.paused) return;
+      if (state.i >= state.j.steps.length - 1) { stopAuto(); return; }
+      goTo(state.i + 1, true);
+      schedule(lastDur + holdMs());
+    }
+    function startAuto() {
+      if (!state.j) return;
+      if (state.i >= state.j.steps.length - 1) goTo(0, false);
+      auto.on = true; auto.paused = false; f.play.textContent = '■ Stop auto-play'; f.play.setAttribute('aria-pressed', 'true');
+      schedule(ms_() ? 700 : 300); refreshPause();
+    }
+    function stopAuto() {
+      auto.on = false; auto.paused = false; clearTimeout(auto.timer); auto.timer = null;
+      if (f.play) { f.play.textContent = '▶ Auto-play story'; f.play.setAttribute('aria-pressed', 'false'); }
+      anims.forEach(function (a) { try { if (a.playState === 'paused') a.play(); } catch (e) {} });
+      refreshPause();
+    }
+    function animating() { return anims.some(function (a) { return a.playState === 'running' || a.playState === 'paused'; }); }
+    function refreshPause() {
+      if (!f.pause) return;
+      f.pause.disabled = !(auto.on || animating());
+      f.pause.textContent = auto.paused ? '▶ Resume' : '⏸ Pause';
+      f.pause.setAttribute('aria-pressed', auto.paused ? 'true' : 'false');
+    }
+    function togglePause() {
+      if (auto.paused) {
+        auto.paused = false;
+        anims.forEach(function (a) { try { if (a.playState === 'paused') a.play(); } catch (e) {} });
+        if (auto.on) schedule(Math.max(50, auto.remain));
+      } else {
+        auto.paused = true;
+        if (auto.on) { auto.remain = auto.due - Date.now(); clearTimeout(auto.timer); auto.timer = null; }
+        anims.forEach(function (a) { try { a.pause(); } catch (e) {} });
+      }
+      refreshPause();
     }
 
     function kv(rows) {
@@ -698,6 +1003,7 @@
     }
 
     function render() {
+      cancelAnims();
       var j = state.j, step = j.steps[state.i];
       f.detail.innerHTML = '';
       f.detail.appendChild(el('h3', 'pj-title', step.title));

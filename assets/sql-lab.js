@@ -630,7 +630,25 @@
       sn.s.forEach((v, k) => { const t = this.tables.get(k); t.rows = v.rows; t.cols = v.cols; t.fks = v.fks; t.indexes.forEach((x) => { x.dirty = true; }); });
     }
 
+    /* exec() = execRaw() + (only when trace() is running) statement start/finish events */
     exec(st) {
+      if (!TR) return this.execRaw(st);
+      TR.stmt(st);
+      const r = this.execRaw(st);
+      TR.done(r);
+      return r;
+    }
+    /* Run a script exactly like run(), and also return the ordered execution events (see makeTrace). */
+    trace(sql) {
+      const prev = TR;
+      TR = makeTrace(sql);
+      try {
+        const out = this.run(sql);
+        if (out.error) TR.push('error', { t: 'error', stmt: out.error.statement, message: out.error.message, parse: !TR.started }, false);
+        return { results: out.results, error: out.error, events: TR.events, counts: TR.counts, skipped: TR.skipped, truncated: TR.truncated, statements: TR.stmts, sql };
+      } finally { TR = prev; }
+    }
+    execRaw(st) {
       const sn = this.snapshot();
       try {
         switch (st.kind) {
@@ -691,6 +709,7 @@
       }
       const ix = this.addIndex(t, d.name, ci, d.unique, false);
       this.build(ix);
+      if (TR) TR.push('build', { t: 'build', table: t.name, index: d.name, column: t.cols[ci].name, entries: ix.entries.length, tableRows: t.rows.length }, false);
       return { kind: 'ddl', message: "Index '" + d.name + "' created on " + t.name + '(' + t.cols[ci].name + '): ' + ix.entries.length + ' sorted entries, each pointing at a row. Queries that filter on ' + t.cols[ci].name + ' can now use binary search.' };
     }
     execDropIndex(d) {
@@ -756,7 +775,7 @@
       ix.entries = arr; ix.dirty = false;
     }
     /* Range lookup on the sorted entries; returns row ids + the number of index steps taken */
-    probe(ix, lo, loInc, hi, hiInc) {
+    probe(ix, lo, loInc, hi, hiInc, rec) {
       this.build(ix);
       const e = ix.entries;
       let steps = 0, start = 0;
@@ -764,6 +783,7 @@
         let a = 0, b = e.length;
         while (a < b) {
           const m = (a + b) >> 1; steps++;
+          if (rec) rec.push({ phase: 'search', pos: m, key: e[m][0] });
           const c = cmpVals(e[m][0], lo);
           if (c < 0 || (c === 0 && !loInc)) a = m + 1; else b = m;
         }
@@ -773,6 +793,7 @@
       let i = start;
       for (; i < e.length; i++) {
         steps++;
+        if (rec) rec.push({ phase: 'walk', pos: i, key: e[i][0] });
         if (hi !== undefined) { const c = cmpVals(e[i][0], hi); if (c > 0 || (c === 0 && !hiInc)) break; }
         ids.push(e[i][1]);
       }
@@ -854,6 +875,7 @@
         t.rows.push(row); n++;
         t.indexes.forEach((x) => { x.dirty = true; });
       });
+      if (TR) TR.write('insert', t.name, n, Array.from({ length: Math.min(n, 30) }, (_, k) => t.rows.length - n + k), n * t.indexes.length, t.rows.length);
       return { kind: 'dml', affected: n, message: n + ' row' + (n === 1 ? '' : 's') + ' inserted into ' + t.name + '. ' + (t.indexes.length ? 'Write cost: ' + t.name + ' has ' + t.indexes.length + ' ' + (t.indexes.length === 1 ? 'index' : 'indexes') + ', so ' + n * t.indexes.length + ' index ' + (n * t.indexes.length === 1 ? 'entry was' : 'entries were') + ' written as well.' : 'No index to maintain.'), plan: [], stats: { indexWrites: n * t.indexes.length } };
     }
 
@@ -865,11 +887,12 @@
       const acc = this.planAccess(0, scope, conj, true);
       const entry = ctx.entry(t, t.name, acc);
       const env = { scope, rows: [null], parent: null };
-      const cand = this.fetch(acc, t, env, ctx, entry);
+      const cand = this.fetch(acc, t, env, ctx, entry, 0);
       const hit = [];
       cand.forEach((pos) => {
         env.rows[0] = t.rows[pos];
-        if (conj.every((c) => truthy(this.ev(c, env, ctx)))) hit.push(pos);
+        if (TR) TR.row(t.name, 0, pos, t.rows[pos], acc.kind === 'scan' ? 'scan' : 'index', false);
+        if (conj.every((c) => truthy(this.ev(c, env, ctx)))) { hit.push(pos); if (TR) TR.match(t.name, 0, pos, false); }
       });
       entry.matches = hit.length;
       return hit;
@@ -894,6 +917,7 @@
       hit.forEach((pos, k) => { this.checkRow(t, newRows[k], t.rows[pos]); t.rows[pos] = newRows[k]; });
       t.indexes.forEach((x) => { x.dirty = true; });
       const writes = hit.length * t.indexes.filter((x) => sets.some((s) => s.ci === x.ci)).length;
+      if (TR) TR.write('update', t.name, hit.length, hit.slice(0, 30), writes, t.rows.length);
       return { kind: 'dml', affected: hit.length, message: hit.length + ' row' + (hit.length === 1 ? '' : 's') + ' updated in ' + t.name + '. ' + (writes ? writes + ' index ' + (writes === 1 ? 'entry' : 'entries') + ' had to be moved as well.' : ''), plan: ctx.plan(), stats: ctx.stats(writes) };
     }
     refuseIfReferenced(t, oldRow, newRow) {
@@ -909,6 +933,7 @@
       const ctx = newCtx(this);
       const hit = this.matchRows(t, d.where, ctx);
       const hitSet = new Set(hit);
+      const hitPos = hit.slice(0, 30), sizeBefore = t.rows.length;
       let cascaded = 0;
       const removeRows = (tbl, positions) => {
         const set = new Set(positions);
@@ -930,6 +955,7 @@
       removeRows(t, hit);
       void hitSet;
       const writes = hit.length * t.indexes.length;
+      if (TR) TR.write('delete', t.name, hit.length, hitPos, writes, sizeBefore);
       return { kind: 'dml', affected: hit.length, message: hit.length + ' row' + (hit.length === 1 ? '' : 's') + ' deleted from ' + t.name + (cascaded ? ' (and ' + cascaded + ' dependent row(s) removed by ON DELETE CASCADE)' : '') + '.' + (writes ? ' ' + writes + ' index ' + (writes === 1 ? 'entry' : 'entries') + ' removed too.' : ''), plan: ctx.plan(), stats: ctx.stats(writes) };
     }
 
@@ -1049,29 +1075,38 @@
     }
 
     /* Read the candidate row positions for table #ti under the current outer rows (env). Updates the plan entry. */
-    fetch(acc, t, env, ctx, entry) {
+    fetch(acc, t, env, ctx, entry, ti) {
       entry.loops++;
       if (acc.kind === 'scan') {
         entry.rowsRead += t.rows.length; ctx.read(t.rows.length);
+        if (TR) TR.access({ ti: ti || 0, table: t.name, alias: entry.alias, loop: entry.loops, mode: 'scan', index: null, cond: null, tableRows: t.rows.length, rows: t.rows.length, steps: 0, sub: entry.sub });
         return t.rows.map((_, i) => i);
       }
       const ix = acc.ix;
       const val = (e) => this.ev(e, env, ctx);
-      let ids = [], steps = 0;
+      let ids = [], steps = 0, keyDesc = '';
+      const rec = TR ? [] : null;
       const add = (r) => { ids = ids.concat(r.ids); steps += r.steps; };
-      if (acc.type === 'eq') { const v = val(acc.other); if (v !== null) add(this.probe(ix, v, true, v, true)); }
+      if (acc.type === 'eq') { const v = val(acc.other); keyDesc = '= ' + fmt(v); if (v !== null) add(this.probe(ix, v, true, v, true, rec)); }
       else if (acc.type === 'in') {
         const seen = new Set();
-        acc.list.forEach((e) => { const v = val(e); if (v === null || seen.has(JSON.stringify(v))) return; seen.add(JSON.stringify(v)); add(this.probe(ix, v, true, v, true)); });
+        acc.list.forEach((e) => { const v = val(e); if (v === null || seen.has(JSON.stringify(v))) return; seen.add(JSON.stringify(v)); keyDesc += (keyDesc ? ', ' : 'IN ') + fmt(v); add(this.probe(ix, v, true, v, true, rec)); });
       } else {
         let lo, loInc = true, hi, hiInc = true, nullBound = false;
         const setLo = (x) => { if (x.op === 'between') { lo = val(x.lo); loInc = true; } else { lo = val(x.other); loInc = x.op === '>='; } if (lo === null) nullBound = true; };
         const setHi = (x) => { if (x.op === 'between') { hi = val(x.hi); hiInc = true; } else { hi = val(x.other); hiInc = x.op === '<='; } if (hi === null) nullBound = true; };
         if (acc.lo) setLo(acc.lo);
         if (acc.hi) setHi(acc.hi);
-        if (!nullBound) add(this.probe(ix, lo === null ? undefined : lo, loInc, hi === null ? undefined : hi, hiInc));
+        keyDesc = (lo !== undefined && lo !== null ? (loInc ? '>= ' : '> ') + fmt(lo) : '') + (lo !== undefined && lo !== null && hi !== undefined && hi !== null ? ' and ' : '') + (hi !== undefined && hi !== null ? (hiInc ? '<= ' : '< ') + fmt(hi) : '');
+        if (!nullBound) add(this.probe(ix, lo === null ? undefined : lo, loInc, hi === null ? undefined : hi, hiInc, rec));
       }
       entry.indexSteps += steps; entry.rowsRead += ids.length; ctx.read(ids.length + steps);
+      if (TR) {
+        const en = ix.entries, L = Math.min(6, Math.max(1, en.length)), bounds = [];
+        for (let j = 0; j < L; j++) bounds.push(en.length ? en[Math.floor(j * en.length / L)][0] : null);
+        TR.access({ ti: ti || 0, table: t.name, alias: entry.alias, loop: entry.loops, mode: 'index', index: ix.name, cond: entry.cond, key: keyDesc, tableRows: t.rows.length, rows: ids.length, steps, sub: entry.sub, ixSize: en.length, leaves: L, bounds });
+        rec.forEach((r) => TR.step(ix.name, r));
+      }
       return ids;
     }
 
@@ -1156,23 +1191,24 @@
         if (ti === n) { envRows.push(cur.slice()); if (envRows.length > 400000) fail('This query builds more than 400,000 intermediate rows. Add a join condition (ON ...) or a WHERE filter.'); return; }
         const tb = tablesInScope[ti], t = tb.tbl;
         const env = mkEnv();
-        const cand = this.fetch(access[ti], t, env, ctx, entries[ti]);
+        const cand = this.fetch(access[ti], t, env, ctx, entries[ti], ti);
         let matched = false;
         for (let k = 0; k < cand.length; k++) {
           cur[ti] = t.rows[cand[k]];
+          if (TR) TR.row(t.name, ti, cand[k], cur[ti], access[ti].kind === 'scan' ? 'scan' : 'index', !!parentEnv);
           let ok = true;
           for (const c of levels[ti].join) { if (!truthy(this.ev(c, env, ctx))) { ok = false; break; } }
           if (!ok) continue;
           matched = true;
           let wok = true;
           for (const c of levels[ti].where) { if (!truthy(this.ev(c, env, ctx))) { wok = false; break; } }
-          if (wok) { entries[ti].matches++; loop(ti + 1); }
+          if (wok) { entries[ti].matches++; if (TR) TR.match(t.name, ti, cand[k], ti === n - 1 && !parentEnv); loop(ti + 1); }
         }
         if (!matched && sel.from[ti].join === 'left') {
           cur[ti] = null;
           let wok = true;
           for (const c of levels[ti].where) { if (!truthy(this.ev(c, env, ctx))) { wok = false; break; } }
-          if (wok) { entries[ti].matches++; loop(ti + 1); }
+          if (wok) { entries[ti].matches++; if (TR) TR.match(t.name, ti, -1, ti === n - 1 && !parentEnv); loop(ti + 1); }
         }
         cur[ti] = null;
       };
@@ -1214,6 +1250,7 @@
         srcRows.forEach((r) => {
           const env = { scope, rows: r, parent: parentEnv };
           const key = JSON.stringify(groupBy.map((g) => this.ev(g, env, ctx)));
+          if (TR) TR.group(key, !groups.has(key));
           if (!groups.has(key)) groups.set(key, []);
           groups.get(key).push(r);
         });
@@ -1241,10 +1278,12 @@
           return a.i - b.i;
         });
         out = out.map((x) => x.o);
+        if (TR) TR.push('sort', { t: 'sort', rows: out.length }, false);
         ctx.note('SORT', 'ORDER BY ' + orderBy.map((o) => exprToSql(o.expr) + (o.desc ? ' DESC' : '')).join(', ') + ': sorted ' + out.length + ' result rows in memory');
       }
       const off = sel.offset || 0;
       if (sel.limit !== null) out = out.slice(off, off + sel.limit); else if (off) out = out.slice(off);
+      if (TR && !parentEnv) out.forEach((o, i) => TR.emit(i, o.vals));
       const columns = items.map((it) => it.alias || (it.expr.k === 'col' ? it.expr.name : exprToSql(it.expr)));
       return { columns, rows: out.map((o) => o.vals) };
     }
@@ -1404,6 +1443,70 @@
 
   function flattenAnd(e) { return e.k === 'bin' && e.op === 'AND' ? flattenAnd(e.l).concat(flattenAnd(e.r)) : [e]; }
   function fmt(v) { return v === null ? 'NULL' : typeof v === 'string' ? "'" + v + "'" : String(v); }
+
+  /* ---------------------------------------------------------------- execution trace (Database.trace)
+     While trace() runs, the executor reports what it really does, in order:
+       stmt, access (a table is opened: scan or index lookup; one per join probe), step (one index comparison),
+       row (one table row read), match (a row passed the filters), group, sort, emit (a result row), check, write,
+       build (CREATE INDEX), done (the engine's own stats for the statement), error.
+     counts.row / counts.step are exact and equal stats.rowsRead / stats.indexSteps; only the *stored* bulk events
+     are capped (skipped tells how many were dropped), so animations stay light on big tables. */
+  const TRACE_CAP = 6000;
+  let TR = null;
+  function splitSql(sql) {
+    const out = []; let cur = '', q = null;
+    for (let i = 0; i < sql.length; i++) {
+      const ch = sql[i];
+      if (q) { cur += ch; if (ch === q) q = null; continue; }
+      if (ch === "'" || ch === '"') { q = ch; cur += ch; continue; }
+      if (ch === ';') { if (cur.trim()) out.push(cur.trim()); cur = ''; continue; }
+      cur += ch;
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+  }
+  function pv(v) { return v === null ? 'NULL' : typeof v === 'string' ? (v.length > 12 ? v.slice(0, 11) + '…' : v) : v; }
+  function makeTrace(sql) {
+    const pieces = splitSql(sql || '');
+    const tr = { events: [], counts: { stmt: 0, access: 0, step: 0, row: 0, match: 0, group: 0, emit: 0, write: 0, sort: 0, lastMatch: 0 }, skipped: {}, truncated: false, stmts: [], started: false, bulk: 0, emitStored: 0 };
+    tr.push = (type, ev, bulk) => {
+      if (tr.counts[type] !== undefined) tr.counts[type]++;
+      if (bulk === 'emit') {
+        if (tr.emitStored >= 400) { tr.skipped[type] = (tr.skipped[type] || 0) + 1; tr.truncated = true; return; }
+        tr.emitStored++;
+      } else if (bulk) {
+        if (tr.bulk >= TRACE_CAP) { tr.skipped[type] = (tr.skipped[type] || 0) + 1; tr.truncated = true; return; }
+        tr.bulk++;
+      }
+      tr.events.push(ev);
+    };
+    tr.stmt = (st) => {
+      tr.started = true;
+      const i = tr.counts.stmt;
+      tr.cur = { i, kind: st.kind, text: pieces.length ? pieces[i] || '' : '', before: Object.assign({}, tr.counts) };
+      tr.stmts.push(tr.cur);
+      tr.push('stmt', { t: 'stmt', i, kind: st.kind, text: tr.cur.text }, false);
+    };
+    tr.done = (r) => {
+      const c = tr.cur, b = c.before, n = tr.counts;
+      const rows = n.row - b.row, steps = n.step - b.step;
+      c.rows = rows; c.steps = steps; c.matches = n.match - b.match; c.groups = n.group - b.group; c.sorts = n.sort - b.sort; c.lastMatches = n.lastMatch - b.lastMatch; c.emitted = n.emit - b.emit; c.accesses = n.access - b.access;
+      c.reported = r.stats ? { rowsRead: r.stats.rowsRead, indexSteps: r.stats.indexSteps } : null;
+      tr.push('done', { t: 'done', i: c.i, kind: r.kind, rowsRead: r.stats && r.stats.rowsRead !== undefined ? r.stats.rowsRead : null, indexSteps: r.stats && r.stats.indexSteps !== undefined ? r.stats.indexSteps : null,
+        returned: r.kind === 'select' || r.kind === 'explain' ? r.rows.length : (r.affected !== undefined ? r.affected : null), message: r.message || null }, false);
+    };
+    tr.access = (o) => tr.push('access', Object.assign({ t: 'access', stmt: tr.counts.stmt - 1 }, o), true);
+    tr.step = (index, r) => tr.push('step', { t: 'step', index, phase: r.phase, pos: r.pos, key: r.key }, true);
+    tr.row = (table, ti, pos, row, via, sub) => tr.push('row', { t: 'row', table, ti, pos, via, sub, v: tr.bulk < TRACE_CAP ? row.slice(0, 4).map(pv) : null }, true);
+    tr.match = (table, ti, pos, last) => { if (last) tr.counts.lastMatch++; tr.push('match', { t: 'match', table, ti, pos, last }, true); };
+    tr.group = (key, isNew) => tr.push('group', { t: 'group', key: key.length > 24 ? key.slice(0, 23) + '…' : key, isNew }, true);
+    tr.emit = (i, vals) => tr.push('emit', { t: 'emit', i, v: i < 4 ? vals.slice(0, 4).map(pv) : null }, 'emit');
+    tr.write = (op, table, rows, pos, indexWrites, tableRows) => {
+      tr.push('check', { t: 'check', table, op }, false);
+      tr.push('write', { t: 'write', op, table, rows, pos, indexWrites, tableRows }, false);
+    };
+    return tr;
+  }
 
   /* execution context: counts the work and records the plan */
   const READ_LIMIT = 3000000;
@@ -1674,7 +1777,7 @@ CREATE TABLE BookLoan (
     return db;
   }
 
-  const api = { Database, SqlError, DATASETS, createDatabase, parse: (sql) => new Parser(sql).script(), cmpVals, mulberry32 };
+  const api = { Database, SqlError, DATASETS, createDatabase, parse: (sql) => new Parser(sql).script(), cmpVals, mulberry32, trace: (db, sql) => db.trace(sql), splitSql };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.SqlLab = api;
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : null));

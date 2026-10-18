@@ -176,6 +176,64 @@
     var s = Math.abs(v) >= 1e6 ? v.toExponential(3) : v.toFixed(d === undefined ? 3 : d);
     return s;
   }
+  /* ───────────── pipeline view (Data → Model → Prediction → Loss → Optimizer → Model) ───────────── */
+  var MODE_NARR = {
+    train: '<strong>Training loop.</strong> Press a step button: the data goes through the model, the prediction is compared with the right answer, and the optimizer sends new parameters back into the model.',
+    infer: '<strong>Inference.</strong> The parameters are <strong>frozen</strong>: a new input goes in, a prediction comes out. There are no right answers, so Loss and Optimizer are greyed out and nothing is learned.'
+  };
+  var SPEEDERS = [];   // both panels share one speed
+  function buildFlow(parent, o) {
+    var box = el('div', 'af-diagram');
+    var modes = el('div', 'af-modes');
+    var tabs = {};
+    [['train', 'Training loop'], ['infer', 'Inference (frozen)']].forEach(function (m) {
+      var b = el('button', '', m[1]); b.type = 'button'; b.setAttribute('data-mode', m[0]); b.setAttribute('aria-pressed', m[0] === 'train' ? 'true' : 'false');
+      modes.appendChild(b); tabs[m[0]] = b;
+    });
+    modes.appendChild(el('span', 'af-modes-note', o.note || 'A simulation of the loop — every arrow is a real step of the calculation.'));
+    box.appendChild(modes);
+    var bar = el('div', 'af-flowbar');
+    var speed = AIFlow.speedControl({ unit: 'arrow', onChange: function (v) { SPEEDERS.forEach(function (o) { if (o !== speed) o.set(v); }); } });
+    SPEEDERS.push(speed);
+    var pauseB = el('button', 'btn ghost small', '⏸ Pause'); pauseB.type = 'button'; pauseB.setAttribute('aria-pressed', 'false');
+    var nextB = el('button', 'btn ghost small', 'Next arrow ▶'); nextB.type = 'button'; nextB.disabled = true;
+    bar.appendChild(speed.el); bar.appendChild(pauseB); bar.appendChild(nextB);
+    box.appendChild(bar);
+    var host = el('div'); box.appendChild(host);
+    var narr = el('div', 'af-narr'); narr.setAttribute('aria-live', 'polite'); narr.innerHTML = MODE_NARR.train;
+    box.appendChild(narr);
+    parent.appendChild(box);
+    var pipe = AIFlow.createPipeline(host, { titles: o.titles, aria: o.aria });
+    var F = { pipe: pipe, narr: narr, busy: false, speed: speed, maxH: 0 };
+    function ratchet() {   // the narration box only ever grows, so nothing below it jumps from step to step
+      var h = narr.offsetHeight; if (h > F.maxH) { F.maxH = h; narr.style.minHeight = h + 'px'; }
+    }
+    window.addEventListener('resize', function () { F.maxH = 0; narr.style.minHeight = ''; });
+    var runner = AIFlow.createRunner(pipe, speed, {
+      onState: function (st) {
+        pauseB.textContent = st.paused ? '▶ Resume' : '⏸ Pause'; pauseB.setAttribute('aria-pressed', st.paused ? 'true' : 'false');
+        nextB.disabled = !st.waiting; F.busy = st.active; if (o.onBusy) o.onBusy(st.active);
+      },
+      wait: function (ev) { narr.innerHTML = '<strong>Paused.</strong> Press “Next arrow” (or Resume). Coming up: ' + ev.title + '.'; ratchet(); }
+    });
+    F.runner = runner;
+    F.setMode = function (m, quiet) {
+      pipe.setMode(m); tabs.train.setAttribute('aria-pressed', m === 'train' ? 'true' : 'false'); tabs.infer.setAttribute('aria-pressed', m === 'infer' ? 'true' : 'false');
+      o.paint(m); if (!quiet) { narr.innerHTML = MODE_NARR[m]; ratchet(); }
+    };
+    F.paint = function () { o.paint(pipe.mode()); };
+    F.mk = function (title, flows, text, land) {
+      return { title: title, flows: flows, begin: function () { narr.innerHTML = typeof text === 'function' ? text() : text; ratchet(); if (o.begin) o.begin(); }, land: land };
+    };
+    F.run = function (events, mode) { F.setMode(mode, true); return runner.start(events); };
+    tabs.train.addEventListener('click', function () { runner.finish(); F.setMode('train'); });
+    tabs.infer.addEventListener('click', function () { runner.finish(); F.setMode('infer'); });
+    pauseB.addEventListener('click', function () { runner.togglePause(); });
+    nextB.addEventListener('click', function () { runner.step(); });
+    return F;
+  }
+  function setLines(pipe, lines) { Object.keys(lines).forEach(function (id) { pipe.setBlock(id, lines[id]); }); }
+
   function niceTicks(lo, hi, n) {
     var raw = (hi - lo) / n, mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), step = mag;
     [1, 2, 5, 10].forEach(function (m) { if (raw > step) step = m * mag; });
@@ -285,6 +343,17 @@
     status1.setAttribute('role', 'status');
     p1.appendChild(status1);
 
+    var flow1 = buildFlow(p1, {
+      titles: { model: 'MODEL', pred: 'PREDICTION' }, aria: 'Training pipeline for the house-price line: data, model F(x) = a x + b, prediction, loss, optimizer, updated parameters back into the model',
+      paint: function (m) { paintFlow1(m); },
+      onBusy: function (b) { flowBusy1 = b; setStepButtons(); }
+    });
+    var flowBusy1 = false;
+    function setStepButtons() {
+      var can = ds.trainable && !flowBusy1;
+      [b1, b10, b100, b1000].forEach(function (b) { b.disabled = !can; });
+    }
+
     var trCols = el('div', 'run-cols');
     var colL = el('div');
     colL.appendChild(el('label', 'field-label', 'Last update (what just happened)'));
@@ -317,6 +386,32 @@
     /* ---- state for panel 1 ---- */
     var ds = DATASETS[0], par = { a: 3, b: 3 }, hist = [], best = null, quad = null, shownX = null;
     var trained = 0, broken = false;
+
+    /* ---- pipeline view for panel 1 ---- */
+    var V1 = {}, VI1 = {};
+    function dataLines1() {
+      var xs = ds.data.map(function (d) { return d[0]; }), ys = ds.data.map(function (d) { return d[1]; });
+      return [ds.data.length + ' examples', 'x: ' + Math.min.apply(null, xs) + '…' + Math.max.apply(null, xs), 'y: ' + Math.min.apply(null, ys) + '…' + Math.max.apply(null, ys)];
+    }
+    function modelLines1(p) { return ['F(x) = a·x + b', 'a = ' + fmt(p.a, 3), 'b = ' + fmt(p.b, 2)]; }
+    function predLines1(p) { var d0 = ds.data[0]; return ['ŷ = F(x)', 'x=' + d0[0] + ' → ' + fmt(predict(p, d0[0]), 0), 'true y = ' + d0[1]]; }
+    function lossLines1(p) { return ['L = Σ(y − ŷ)²', fmt(sse(ds.data, p), 1), 'best ' + fmt(best.sse, 1)]; }
+    function resetView1() {
+      V1 = { data: dataLines1(), model: modelLines1(par), pred: predLines1(par), loss: lossLines1(par), opt: ['η = ' + etaText(), 'no step yet', ''] };
+      var x = parseFloat(infIn.value);
+      VI1 = { data: ['x = ' + (isFinite(x) ? fmt(x, 0) : '?') + ' ' + ds.xs, 'no y known', '(a new house)'], model: modelLines1(par), pred: ['ŷ = F(x)', 'press Predict', ''] };
+      paintFlow1(flow1.pipe.mode());
+    }
+    function paintFlow1(m) {
+      var pp = flow1.pipe;
+      if (m === 'infer') {
+        setLines(pp, { data: VI1.data, model: VI1.model, pred: VI1.pred, loss: ['not used', 'at inference', ''], opt: ['not used', 'weights frozen', ''] });
+        pp.setTitle('data', 'NEW INPUT'); pp.setTag('model', 'frozen'); pp.setTag('data', '');
+      } else {
+        setLines(pp, V1); pp.setTitle('data', 'DATA'); pp.setTag('model', 'learning'); pp.setTag('data', '');
+      }
+    }
+    function syncModel1() { V1.model = modelLines1(par); VI1.model = modelLines1(par); paintFlow1(flow1.pipe.mode()); }
 
     function cfg() {
       sa.inp.min = '0'; sa.inp.max = String(ds.aMax); sa.inp.step = String(ds.aStep);
@@ -428,8 +523,9 @@
       syncSliders(); chart1(); tableAndReadout(); lossChart();
       etaOut.textContent = etaText();
       var can = ds.trainable;
-      [b1, b10, b100, b1000].forEach(function (b) { b.disabled = !can; });
+      setStepButtons();
       etaIn.disabled = !can; cen.disabled = !can;
+      syncModel1();
     }
 
     function loadDataset(i) {
@@ -438,7 +534,7 @@
       best = fitLine(ds.data); best.sse = sse(ds.data, best);
       quad = ds.key === 'vl' ? fitQuadratic(ds.data) : null;
       hist = [{ step: 0, a: par.a, b: par.b, sse: sse(ds.data, par) }]; trained = 0; broken = false;
-      shownX = null; infIn.value = String(ds.predictX); infOut.textContent = '';
+      flow1.runner.cancel(); shownX = null; infIn.value = String(ds.predictX); infOut.textContent = '';
       logBox.innerHTML = '<span class="t-empty">No update yet.</span>';
       svg1.setAttribute('aria-label', '');
       status1.className = 'sim-status';
@@ -447,26 +543,27 @@
         : 'Hand-fit only here: a straight line is the wrong shape for this data. Try the exact best line, then compare it with the dashed curve.';
       if (!ds.trainable) etaOut.textContent = '';
       etaIn.value = '-5'; cen.checked = false;
-      renderAll();
+      resetView1(); flow1.setMode('train'); renderAll();
     }
 
     function doSteps(n) {
       if (!ds.trainable) return;
-      var eta = etaValue(), c = cen.checked, last = null, exploded = false;
-      for (var i = 0; i < n; i++) {
-        var nx = gdStep(ds.data, par, eta, c);
+      flow1.runner.finish();
+      var eta = etaValue(), c = cen.checked, last = null, exploded = false, p = { a: par.a, b: par.b }, t2 = trained, added = [], i;
+      for (i = 0; i < n; i++) {
+        var nx = gdStep(ds.data, p, eta, c);
         if (!isFinite(nx.a) || !isFinite(nx.b) || Math.abs(nx.a) > 1e9 || Math.abs(nx.b) > 1e12) { exploded = true; break; }
-        last = { prev: { a: par.a, b: par.b }, g: nx };
-        par = { a: nx.a, b: nx.b }; trained++;
-        hist.push({ step: trained, a: par.a, b: par.b, sse: sse(ds.data, par) });
+        last = { prev: { a: p.a, b: p.b }, g: nx, step: t2 + 1 };
+        p = { a: nx.a, b: nx.b }; t2++;
+        added.push({ step: t2, a: p.a, b: p.b, sse: sse(ds.data, p) });
       }
-      if (hist.length > 6000) hist = hist.filter(function (h, j) { return j % 2 === 0 || j === hist.length - 1; });
-      if (exploded) {
-        broken = true;
-        status1.className = 'sim-status';
-        status1.textContent = 'Boom — η is too big: each step overshoots the valley further than the last, and the error explodes. Reset and pick a smaller learning rate.';
-        logBox.textContent = 'The numbers grew without bound (overshoot). Learning rate ' + etaText() + ' is too large for this data' + (c ? '.' : ' — or try “Centre x”.');
-      } else if (last) {
+      var done = 0;
+      function commit(upto) {   // adopt computed steps up to index `upto`
+        var k = added.slice(done, upto); done = Math.max(done, upto);
+        if (k.length) { par = { a: k[k.length - 1].a, b: k[k.length - 1].b }; trained = k[k.length - 1].step; hist = hist.concat(k); }
+        if (hist.length > 6000) hist = hist.filter(function (h, j) { return j % 2 === 0 || j === hist.length - 1; });
+      }
+      function report() {
         logBox.textContent =
           'step ' + trained + (n > 1 ? '  (last of ' + n + ')' : '') + '\n' +
           'dL/da = ' + fmt(last.g.da, 3) + '   dL/db = ' + fmt(last.g.db, 3) + '\n' +
@@ -479,11 +576,45 @@
           ? 'Training has converged: the parameters stopped changing in any way that matters. Now try inference below.'
           : 'Training… ' + trained + ' steps so far; still ' + fmt(gap, 2) + ' above the best possible error. Keep stepping' + (!c && trained > 20 ? ' (slow? tick “Centre x”)' : '') + '.';
       }
-      renderAll();
+      if (exploded) {
+        commit(added.length);
+        broken = true;
+        status1.className = 'sim-status';
+        status1.textContent = 'Boom — η is too big: each step overshoots the valley further than the last, and the error explodes. Reset and pick a smaller learning rate.';
+        logBox.textContent = 'The numbers grew without bound (overshoot). Learning rate ' + etaText() + ' is too large for this data' + (c ? '.' : ' — or try “Centre x”.');
+        flow1.narr.innerHTML = '<strong>Overshoot.</strong> The optimizer’s update was so large that the new parameters made the loss bigger, step after step, until the numbers overflowed. Reset and choose a smaller learning rate η.';
+        resetView1(); renderAll();
+        return;
+      }
+      if (!last) return;
+      commit(added.length - 1);           // earlier steps of a ×10/×100/×1000 press: no animation
+      var pre = last.prev, g = last.g, post = { a: added[added.length - 1].a, b: added[added.length - 1].b }, N = ds.data.length;
+      var before = n > 1 ? 'Step ' + last.step + ' of your ' + n + ' (the earlier ones ran without animation). ' : 'Step ' + last.step + '. ';
+      resetView1(); renderAll();
+      V1.opt = ['η = ' + etaText(), 'no gradient yet', '']; V1.model = modelLines1(pre); V1.pred = predLines1(pre); V1.loss = lossLines1(pre);
+      var evs = [
+        flow1.mk('Data → Model', [{ key: 'data>model', label: 'x ×' + N }],
+          before + '<strong>① Data → Model.</strong> The ' + N + ' inputs x (' + ds.xlab + ') go into the model <span class="mono">F(x) = a·x + b</span>, which currently has a = ' + fmt(pre.a, 3) + ', b = ' + fmt(pre.b, 2) + '.',
+          function () { V1.model = modelLines1(pre); paintFlow1('train'); }),
+        flow1.mk('Model → Prediction', [{ key: 'model>pred', label: 'ŷ ×' + N }],
+          '<strong>② Model → Prediction.</strong> Each x becomes a guess ŷ = a·x + b. For the first example: ' + ds.data[0][0] + ' → ' + fmt(predict(pre, ds.data[0][0]), 1) + '.',
+          function () { V1.pred = predLines1(pre); paintFlow1('train'); }),
+        flow1.mk('Prediction and answers → Loss', [{ key: 'pred>loss', label: 'ŷ' }, { key: 'data>loss', label: 'y' }],
+          '<strong>③ Prediction + right answers → Loss.</strong> The guesses ŷ meet the true prices y. Loss = sum of (y − ŷ)² = <strong class="mono">' + fmt(sse(ds.data, pre), 1) + '</strong> (best possible ' + fmt(best.sse, 1) + ').',
+          function () { V1.loss = lossLines1(pre); paintFlow1('train'); }),
+        flow1.mk('Loss → Optimizer', [{ key: 'loss>opt', label: 'error' }],
+          '<strong>④ Loss → Optimizer.</strong> The optimizer asks: if I nudge a or b, how does the loss change? That slope is the gradient: ∂L/∂a = ' + fmt(g.da, 2) + ', ∂L/∂b = ' + fmt(g.db, 2) + '.',
+          function () { V1.opt = ['η = ' + etaText(), '∂L/∂a = ' + fmt(g.da, 1), '∂L/∂b = ' + fmt(g.db, 1)]; paintFlow1('train'); }),
+        flow1.mk('Optimizer → Model', [{ key: 'opt>model', label: 'new a, b' }],
+          '<strong>⑤ Optimizer → Model.</strong> Move against the slope: a ← ' + fmt(pre.a, 4) + ' − η·' + fmt(g.da, 2) + ' = <strong class="mono">' + fmt(post.a, 4) + '</strong>, b → <strong class="mono">' + fmt(post.b, 3) + '</strong>. The next step starts from these new parameters.',
+          function () { V1.model = modelLines1(post); commit(added.length); report(); resetViewKeep(); renderAll(); })
+      ];
+      flow1.run(evs, 'train');
     }
+    function resetViewKeep() { VI1.data = ['x = ' + fmt(parseFloat(infIn.value) || ds.predictX, 0) + ' ' + ds.xs, 'no y known', '(a new house)']; }
 
-    sa.inp.addEventListener('input', function () { broken = false; par.a = parseFloat(sa.inp.value); hist = [{ step: 0, a: par.a, b: par.b, sse: sse(ds.data, par) }]; trained = 0; renderAll(); });
-    sb.inp.addEventListener('input', function () { broken = false; par.b = parseFloat(sb.inp.value); hist = [{ step: 0, a: par.a, b: par.b, sse: sse(ds.data, par) }]; trained = 0; renderAll(); });
+    sa.inp.addEventListener('input', function () { flow1.runner.finish(); broken = false; par.a = parseFloat(sa.inp.value); hist = [{ step: 0, a: par.a, b: par.b, sse: sse(ds.data, par) }]; trained = 0; resetView1(); renderAll(); });
+    sb.inp.addEventListener('input', function () { flow1.runner.finish(); broken = false; par.b = parseFloat(sb.inp.value); hist = [{ step: 0, a: par.a, b: par.b, sse: sse(ds.data, par) }]; trained = 0; resetView1(); renderAll(); });
     etaIn.addEventListener('input', function () { etaOut.textContent = etaText(); });
     cen.addEventListener('change', function () {
       etaIn.value = cen.checked ? '-3.1' : '-5'; etaOut.textContent = etaText();
@@ -499,21 +630,35 @@
     dsSel.addEventListener('change', function () { loadDataset(+dsSel.value); });
     startBtn.addEventListener('click', function () { loadDataset(+dsSel.value); });
     bestBtn.addEventListener('click', function () {
+      flow1.runner.finish();
       par = { a: best.a, b: best.b }; hist = [{ step: 0, a: par.a, b: par.b, sse: sse(ds.data, par) }]; trained = 0; broken = false;
       status1.className = 'sim-status done';
       status1.textContent = 'This is the least-squares line from a formula — no search needed for a line. Gradient descent finds (almost) the same numbers by repeated small steps, and works for models with no formula.';
-      renderAll();
+      resetView1(); renderAll();
     });
     infBtn.addEventListener('click', function () {
+      flow1.runner.finish();
       var x = parseFloat(infIn.value);
       if (!isFinite(x)) { infOut.textContent = 'Type a number first.'; return; }
       if (broken) { infOut.textContent = 'The model blew up during training, so its numbers mean nothing. Press “Back to the starting line” and train again with a smaller learning rate.'; return; }
-      shownX = x;
-      infOut.innerHTML = '<span class="ai-tag">inference</span> F(' + fmt(x, 0) + ') = ' + fmt(par.a, 3) + ' × ' + fmt(x, 0) + ' ' + (par.b < 0 ? '−' : '+') + ' ' + fmt(Math.abs(par.b), 2) +
-        ' = <strong class="mono">' + fmt(predict(par, x), 1) + ' ' + ds.unit + '</strong>. ' +
-        'a and b did not change — nothing was learned.' +
-        (ds.key === 'vl' && quad ? ' The curve would say ' + fmt(predictQuadratic(quad, x), 0) + '.' : '');
-      chart1();
+      var snap = { a: par.a, b: par.b }, yhat = predict(snap, x);
+      VI1.data = ['x = ' + fmt(x, 0) + ' ' + ds.xs, 'no y known', '(a new house)']; VI1.model = modelLines1(snap); VI1.pred = ['ŷ = F(x)', 'waiting…', ''];
+      var evs = [
+        flow1.mk('New input → Model', [{ key: 'data>model', label: 'x=' + fmt(x, 0) }],
+          '<strong>Inference ① New input → Model.</strong> A house the model has never seen (x = ' + fmt(x, 0) + ' ' + ds.xs + ') goes into F with the <strong>frozen</strong> parameters a = ' + fmt(snap.a, 3) + ', b = ' + fmt(snap.b, 2) + '. No right answer comes with it.', null),
+        flow1.mk('Model → Prediction', [{ key: 'model>pred', label: 'ŷ' }],
+          '<strong>Inference ② Model → Prediction.</strong> ŷ = ' + fmt(snap.a, 3) + ' × ' + fmt(x, 0) + ' ' + (snap.b < 0 ? '−' : '+') + ' ' + fmt(Math.abs(snap.b), 2) + ' = ' + fmt(yhat, 1) + ' ' + ds.unit + '. Loss and Optimizer stay grey: nothing is compared and nothing is learned.',
+          function () {
+            VI1.pred = ['ŷ = F(x)', fmt(yhat, 1), ds.unit]; paintFlow1('infer');
+            shownX = x;
+            infOut.innerHTML = '<span class="ai-tag">inference</span> F(' + fmt(x, 0) + ') = ' + fmt(snap.a, 3) + ' × ' + fmt(x, 0) + ' ' + (snap.b < 0 ? '−' : '+') + ' ' + fmt(Math.abs(snap.b), 2) +
+              ' = <strong class="mono">' + fmt(yhat, 1) + ' ' + ds.unit + '</strong>. ' +
+              'a and b did not change — nothing was learned.' +
+              (ds.key === 'vl' && quad ? ' The curve would say ' + fmt(predictQuadratic(quad, x), 0) + '.' : '');
+            chart1();
+          })
+      ];
+      flow1.run(evs, 'infer');
     });
     infIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') infBtn.click(); });
 
@@ -553,6 +698,13 @@
     tb2.appendChild(c1); tb2.appendChild(c10); tb2.appendChild(c100); tb2.appendChild(cReset);
     p2.appendChild(tb2);
 
+    var flowBusy2 = false;
+    var flow2 = buildFlow(p2, {
+      titles: { model: 'MODEL', pred: 'PREDICTION' }, aria: 'Training pipeline for the spam classifier: emails with labels, model, probability of spam, cross-entropy loss, optimizer, updated weights back into the model',
+      paint: function (m) { paintFlow2(m); },
+      onBusy: function (b) { flowBusy2 = b; [c1, c10, c100].forEach(function (x) { x.disabled = b; }); }
+    });
+
     var chart2W = el('div', 'ai-chart');
     var svg2 = document.createElementNS(SVGNS, 'svg');
     svg2.setAttribute('viewBox', '0 0 420 400'); svg2.setAttribute('class', 'ai-svg ai-svg-sq'); svg2.setAttribute('role', 'img');
@@ -589,6 +741,26 @@
     /* ---- state for panel 2 ---- */
     var sets = makeSpamSets(false), model = clfNew(), probe = null, lastLoss = null;
     function trainData() { return makeSpamSets(bias.checked).train; }
+
+    /* ---- pipeline view for panel 2 ---- */
+    var V2 = {}, VI2 = {};
+    function modelLines2(m) { return ['p = σ(w·x + b)', 'w₁=' + fmt(m.w1, 2) + ' w₂=' + fmt(m.w2, 2), 'b = ' + fmt(m.b, 2)]; }
+    function predLines2(m, d) { var e = d[0]; return ['P(spam)', 'email 1: ' + fmt(clfProb(m, e.x1, e.x2), 2), 'true: ' + (e.y ? 'spam' : 'not spam')]; }
+    function lossLines2(m, d) { return ['cross-entropy', 'L = ' + fmt(clfLoss(d, m), 3), 'mean of ' + d.length]; }
+    function etaText2() { return eta2.value; }
+    function resetView2() {
+      var d = trainData();
+      V2 = { data: [d.length + ' emails', '(links, CAPS) → label', 'spam / not spam'], model: modelLines2(model), pred: predLines2(model, d), loss: lossLines2(model, d), opt: ['η = ' + etaText2(), 'no step yet', ''] };
+      VI2 = { data: ['new email', 'no label known', ''], model: modelLines2(model), pred: ['P(spam)', 'press Classify', ''] };
+      paintFlow2(flow2.pipe.mode());
+    }
+    function paintFlow2(m) {
+      var pp = flow2.pipe;
+      if (m === 'infer') {
+        setLines(pp, { data: VI2.data, model: VI2.model, pred: VI2.pred, loss: ['not used', 'at inference', ''], opt: ['not used', 'weights frozen', ''] });
+        pp.setTitle('data', 'NEW INPUT'); pp.setTag('model', 'frozen');
+      } else { setLines(pp, V2); pp.setTitle('data', 'DATA'); pp.setTag('model', 'learning'); }
+    }
 
     function boundaryPolygon(m) {
       // region of the 0..10 square where w1 x1/10 + w2 x2/10 + b > 0  (model says spam)
@@ -649,38 +821,77 @@
     }
 
     function advance(n) {
-      var data = trainData();
-      model = clfTrain(data, model, parseFloat(eta2.value), n);
-      var data2 = data, accT = clfAccuracy(data2, model), accN = clfAccuracy(sets.test, model);
-      status2.className = 'sim-status running';
-      status2.textContent = 'Step ' + model.step + ': the weights moved to reduce the loss, so the boundary moved. ' +
-        (bias.checked && model.step >= 100 && accN < 0.5
-          ? 'Look at the diamonds: the model learned “lots of links + some caps = spam” from a skewed sample, so legitimate newsletters it never saw are now flagged. Same algorithm, different data, different behaviour.'
-          : (accT >= 0.95 ? 'Almost every training email is on the right side now.' : 'Keep going — the boundary is still finding its place.'));
-      renderClf();
+      flow2.runner.finish();
+      var data = trainData(), eta = parseFloat(eta2.value);
+      if (n > 1) model = clfTrain(data, model, eta, n - 1);   // earlier steps: no animation
+      var pre = model, post = clfStep(data, pre, eta);
+      var g1 = (pre.w1 - post.w1) / eta, g2 = (pre.w2 - post.w2) / eta, gb = (pre.b - post.b) / eta, N = data.length;
+      var before = n > 1 ? 'Step ' + post.step + ' of your ' + n + ' (the earlier ones ran without animation). ' : 'Step ' + post.step + '. ';
+      renderClf(); resetView2();
+      V2.opt = ['η = ' + etaText2(), 'no gradient yet', ''];
+      function finish() {
+        model = post;
+        var accT = clfAccuracy(data, model), accN = clfAccuracy(sets.test, model);
+        status2.className = 'sim-status running';
+        status2.textContent = 'Step ' + model.step + ': the weights moved to reduce the loss, so the boundary moved. ' +
+          (bias.checked && model.step >= 100 && accN < 0.5
+            ? 'Look at the diamonds: the model learned “lots of links + some caps = spam” from a skewed sample, so legitimate newsletters it never saw are now flagged. Same algorithm, different data, different behaviour.'
+            : (accT >= 0.95 ? 'Almost every training email is on the right side now.' : 'Keep going — the boundary is still finding its place.'));
+        renderClf();
+      }
+      var evs = [
+        flow2.mk('Data → Model', [{ key: 'data>model', label: '(x₁,x₂) ×' + N }],
+          before + '<strong>① Data → Model.</strong> The ' + N + ' emails’ features (links x₁, CAPS words x₂) go into the model, which has weights w₁ = ' + fmt(pre.w1, 2) + ', w₂ = ' + fmt(pre.w2, 2) + ' and bias b = ' + fmt(pre.b, 2) + '.',
+          function () { V2.model = modelLines2(pre); paintFlow2('train'); }),
+        flow2.mk('Model → Prediction', [{ key: 'model>pred', label: 'P(spam) ×' + N }],
+          '<strong>② Model → Prediction.</strong> Each email gets a score w₁x₁ + w₂x₂ + b, squashed by σ into a probability of spam.',
+          function () { V2.pred = predLines2(pre, data); paintFlow2('train'); }),
+        flow2.mk('Prediction and labels → Loss', [{ key: 'pred>loss', label: 'P' }, { key: 'data>loss', label: 'label' }],
+          '<strong>③ Prediction + labels → Loss.</strong> Cross-entropy is large when the model is confidently wrong. Mean loss = <strong class="mono">' + fmt(clfLoss(data, pre), 4) + '</strong>.',
+          function () { V2.loss = lossLines2(pre, data); paintFlow2('train'); }),
+        flow2.mk('Loss → Optimizer', [{ key: 'loss>opt', label: 'error' }],
+          '<strong>④ Loss → Optimizer.</strong> The gradient says how the loss changes with each weight: ∂L/∂w₁ = ' + fmt(g1, 3) + ', ∂L/∂w₂ = ' + fmt(g2, 3) + ', ∂L/∂b = ' + fmt(gb, 3) + '.',
+          function () { V2.opt = ['η=' + etaText2() + ' ∂w₁=' + fmt(g1, 2), '∂L/∂w₂ = ' + fmt(g2, 2), '∂L/∂b = ' + fmt(gb, 2)]; paintFlow2('train'); }),
+        flow2.mk('Optimizer → Model', [{ key: 'opt>model', label: 'new w, b' }],
+          '<strong>⑤ Optimizer → Model.</strong> Each weight moves against its gradient: w₁ → ' + fmt(post.w1, 3) + ', w₂ → ' + fmt(post.w2, 3) + ', b → ' + fmt(post.b, 3) + '. The decision boundary moves with them.',
+          function () { V2.model = modelLines2(post); VI2.model = modelLines2(post); finish(); paintFlow2('train'); })
+      ];
+      flow2.run(evs, 'train');
     }
     function classify(announce) {
       var x1 = parseFloat(i1.value), x2 = parseFloat(i2.value);
       if (!isFinite(x1) || !isFinite(x2)) { probeOut.textContent = 'Type two numbers first.'; return; }
       probe = { x1: Math.min(10, Math.max(0, x1)), x2: Math.min(10, Math.max(0, x2)) };
-      var p = clfProb(model, probe.x1, probe.x2);
-      probeOut.innerHTML = '<span class="ai-tag">inference</span> an email with ' + fmt(probe.x1, 1) + ' links and ' + fmt(probe.x2, 1) + ' capital words → ' +
-        (model.step === 0 ? 'the model is untrained, so it can only say 50 %.' : 'P(spam) = <strong class="mono">' + Math.round(p * 100) + '%</strong> → <strong>' + (p >= 0.5 ? 'SPAM' : 'not spam') + '</strong>. The weights did not change.');
-      if (announce) renderClf();
+      var m = model, p = clfProb(m, probe.x1, probe.x2);
+      function text() {
+        return '<span class="ai-tag">inference</span> an email with ' + fmt(probe.x1, 1) + ' links and ' + fmt(probe.x2, 1) + ' capital words → ' +
+          (m.step === 0 ? 'the model is untrained, so it can only say 50 %.' : 'P(spam) = <strong class="mono">' + Math.round(p * 100) + '%</strong> → <strong>' + (p >= 0.5 ? 'SPAM' : 'not spam') + '</strong>. The weights did not change.');
+      }
+      if (!announce) { probeOut.innerHTML = text(); return; }
+      flow2.runner.finish();
+      VI2.data = ['new email', fmt(probe.x1, 1) + ' links', fmt(probe.x2, 1) + ' CAPS']; VI2.model = modelLines2(m); VI2.pred = ['P(spam)', 'waiting…', ''];
+      var evs = [
+        flow2.mk('New email → Model', [{ key: 'data>model', label: '(' + fmt(probe.x1, 1) + ', ' + fmt(probe.x2, 1) + ')' }],
+          '<strong>Inference ① New email → Model.</strong> The two features of an email the model has never seen go in. The weights are <strong>frozen</strong>; no label comes with it.', null),
+        flow2.mk('Model → Prediction', [{ key: 'model>pred', label: fmt(p * 100, 0) + '%' }],
+          '<strong>Inference ② Model → Prediction.</strong> score → σ → P(spam) = ' + Math.round(p * 100) + '%, so the verdict is ' + (p >= 0.5 ? 'SPAM' : 'not spam') + '. Loss and Optimizer stay grey: nothing is compared, nothing is learned.',
+          function () { VI2.pred = ['P(spam)', Math.round(p * 100) + '%', p >= 0.5 ? 'SPAM' : 'not spam']; paintFlow2('infer'); probeOut.innerHTML = text(); renderClf(); })
+      ];
+      flow2.run(evs, 'infer');
     }
     c1.addEventListener('click', function () { advance(1); });
     c10.addEventListener('click', function () { advance(10); });
     c100.addEventListener('click', function () { advance(100); });
     cReset.addEventListener('click', function () {
-      model = clfNew(); status2.className = 'sim-status'; status2.textContent = 'Weights reset to zero: the untrained model gives every email 50 %.'; renderClf();
+      flow2.runner.cancel(); model = clfNew(); status2.className = 'sim-status'; status2.textContent = 'Weights reset to zero: the untrained model gives every email 50 %.'; renderClf(); resetView2();
     });
     bias.addEventListener('change', function () {
-      model = clfNew();
+      flow2.runner.cancel(); model = clfNew();
       status2.className = 'sim-status';
       status2.textContent = bias.checked
         ? 'Biased sample on, weights reset. Train it again (×100) and compare the held-out newsletter accuracy with the unbiased run.'
         : 'Fair sample, weights reset. Train (×100) and note how the held-out newsletters do.';
-      renderClf();
+      renderClf(); resetView2();
     });
     pb.addEventListener('click', function () { classify(true); });
     svg2.addEventListener('click', function (e) {
@@ -697,7 +908,7 @@
       'A modern model repeats exactly that with billions of parameters and a few thousand times more data — which is why training needs data centres but a chat reply only needs one pass through the function.'));
 
     loadDataset(0);
-    renderClf();
+    renderClf(); resetView2();
     status2.textContent = 'Ready. Press ×100 to train the classifier, then switch on the biased sample and train again.';
   }
 

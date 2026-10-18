@@ -62,3 +62,32 @@ tr.tc-grp td { border-top: 2px solid var(--line); }
 .tc-badge.bad { color: var(--red); background: color-mix(in srgb, var(--red) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--red) 50%, var(--line)); }
 .tc-label { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 999px; border: 1px solid var(--amber); color: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--surface)); margin-left: 0.4rem; vertical-align: middle; }
 .tc-trace { max-height: 14rem; overflow: auto; }
+
+/* data-path diagram + speed slider (assets/vn-datapath.js) */
+.vn-diagram { margin: 0.4rem 0 0.9rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.5rem 0.6rem 0.7rem; }
+.vn-dp { width: 100%; height: auto; display: block; max-width: 56rem; margin: 0 auto; overflow: visible; }
+.vn-dp text { font-family: "IBM Plex Mono", monospace; }
+.vn-dp-frame { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.vn-dp-frametitle, .vn-dp-ctrltitle { font-size: 11px; fill: var(--ink-soft); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.vn-dp-ctrl { fill: color-mix(in srgb, var(--accent) 6%, transparent); stroke: color-mix(in srgb, var(--accent) 35%, var(--line)); stroke-width: 1; }
+.vn-dp-node rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.4; transition: fill 0.15s, stroke 0.15s; }
+.vn-dp-n-MEM rect, .vn-dp-n-IN rect, .vn-dp-n-OUT rect { fill: var(--surface); stroke: color-mix(in srgb, var(--ink-soft) 60%, var(--line)); }
+.vn-dp-name { font-size: 10.5px; fill: var(--ink-soft); font-weight: 600; font-family: "Be Vietnam Pro", sans-serif !important; }
+.vn-dp-val { font-size: 13px; fill: var(--ink); font-weight: 600; }
+.vn-dp-node.vn-src rect { stroke: var(--amber); stroke-width: 2.4; fill: color-mix(in srgb, var(--amber) 16%, var(--surface)); }
+.vn-dp-node.vn-dst rect { stroke: var(--teal); stroke-width: 2.4; fill: color-mix(in srgb, var(--teal) 18%, var(--surface)); }
+.vn-dp-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.5; opacity: 0.38; }
+.vn-dp-edge.on { stroke: var(--accent); stroke-width: 3.2; opacity: 1; stroke-dasharray: 9 6; animation: vn-dash 0.6s linear infinite; }
+@keyframes vn-dash { to { stroke-dashoffset: -30; } }
+.vn-dp-head { fill: var(--ink-soft); opacity: 0.6; }
+.vn-dp-head.on { fill: var(--accent); opacity: 1; }
+.vn-dp-token rect { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.vn-dp-token text { fill: var(--accent-contrast); font-size: 12px; font-weight: 700; }
+.vn-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.vn-speed .field-label { margin: 0; }
+.vn-speed input[type="range"] { width: 11rem; max-width: 100%; accent-color: var(--accent); }
+.vn-speed-name { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; color: var(--ink-soft); min-width: 12rem; }
+.vn-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.2rem; margin: 0.3rem 0 0.2rem; }
+@media (prefers-reduced-motion: reduce) { .vn-dp-edge.on { animation: none; } }
+
+.vn-main.vn-main-mem { grid-template-columns: 1fr; }

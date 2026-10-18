@@ -1,0 +1,92 @@
+/* LLM flow diagrams (assets/llm-flow.js) — theme tokens only; shared by Chapter 12 lab and the Break the Bot demo */
+.lf-wrap { margin: 0.8rem 0 1rem; }
+.lf-svg { width: 100%; height: auto; display: block; max-width: 56rem; margin: 0 auto; overflow: visible; }
+.lf-svg text { font-family: "IBM Plex Mono", monospace; }
+.lf-box { fill: var(--paper); stroke: var(--line); stroke-width: 1.4; transition: fill 0.15s, stroke 0.15s; }
+.lf-name { font-size: 11px; fill: var(--ink); font-weight: 700; font-family: "Be Vietnam Pro", sans-serif !important; }
+.lf-sub { font-size: 9.5px; fill: var(--ink-soft); }
+.lf-val { font-size: 11px; fill: var(--ink); font-weight: 600; }
+.lf-big { font-size: 15px; fill: var(--ink); font-weight: 700; }
+.lf-n-doc .lf-box, .lf-n-atk .lf-box { stroke: var(--red); stroke-dasharray: 5 4; fill: color-mix(in srgb, var(--red) 5%, var(--surface)); }
+.lf-n-asm .lf-box, .lf-n-tools .lf-box { fill: var(--surface); }
+.lf-n-user .lf-box { fill: color-mix(in srgb, var(--teal) 7%, var(--surface)); }
+.lf-node.lf-src .lf-box { stroke: var(--amber); stroke-width: 2.4; fill: color-mix(in srgb, var(--amber) 16%, var(--surface)); }
+.lf-node.lf-dst .lf-box { stroke: var(--teal); stroke-width: 2.4; fill: color-mix(in srgb, var(--teal) 18%, var(--surface)); }
+.lf-node.lf-v-block .lf-box { stroke: var(--red); stroke-width: 3; fill: color-mix(in srgb, var(--red) 12%, var(--surface)); stroke-dasharray: none; }
+.lf-node.lf-v-slip .lf-box { stroke: var(--amber); stroke-width: 3; fill: color-mix(in srgb, var(--amber) 16%, var(--surface)); stroke-dasharray: none; animation: lf-shake 0.5s 1; }
+.lf-node.lf-v-pass .lf-box { stroke: var(--green); stroke-width: 2; }
+.lf-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.5; opacity: 0.4; }
+.lf-edge-ext { stroke: var(--red); stroke-dasharray: 4 4; opacity: 0.55; }
+.lf-edge.on { stroke: var(--accent); stroke-width: 3.2; opacity: 1; stroke-dasharray: 9 6; animation: lf-dash 0.6s linear infinite; }
+@keyframes lf-dash { to { stroke-dashoffset: -30; } }
+@keyframes lf-shake { 0%, 100% { transform: none; } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+.lf-head { fill: var(--ink-soft); opacity: 0.6; } .lf-head.on { fill: var(--accent); opacity: 1; }
+.lf-token rect { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.lf-token text { fill: var(--accent-contrast); font-size: 11.5px; font-weight: 700; }
+.lf-token.lf-tone-red rect { fill: var(--red); }
+/* badges */
+.lf-badge rect { stroke: var(--surface); stroke-width: 1.5; }
+.lf-badge text { font-size: 9.5px; font-weight: 700; fill: #fff; letter-spacing: 0.02em; }
+.lf-b-pass rect { fill: var(--green); } .lf-b-block rect { fill: var(--red); } .lf-b-slip rect { fill: var(--amber); }
+.lf-b-off rect { fill: var(--ink-soft); }
+/* assembler layers */
+.lf-layer rect { fill: transparent; stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
+.lf-layer-t { font-size: 9.5px; fill: var(--ink-soft); }
+.lf-layer.filled rect { stroke-dasharray: none; }
+.lf-layer.filled .lf-layer-t { fill: var(--ink); font-weight: 600; }
+.lf-layer-system.filled rect { fill: color-mix(in srgb, var(--accent) 20%, var(--surface)); stroke: var(--accent); }
+.lf-layer-user.filled rect { fill: color-mix(in srgb, var(--teal) 20%, var(--surface)); stroke: var(--teal); }
+.lf-layer-untrusted.filled rect { fill: color-mix(in srgb, var(--red) 18%, var(--surface)); stroke: var(--red); }
+.lf-layer-untrusted.merged rect { fill: color-mix(in srgb, var(--accent) 20%, var(--surface)); stroke: var(--red); stroke-width: 2.2; }
+.lf-layer-untrusted.merged { animation: lf-merge 0.9s ease-in-out 1; }
+@keyframes lf-merge { 0% { transform: translateX(0); } 40% { transform: translateX(-14px) translateY(-18px); } 100% { transform: none; } }
+.lf-seg { fill: var(--line); opacity: 0.5; }
+.lf-seg-system.filled { fill: var(--accent); opacity: 0.85; } .lf-seg-user.filled { fill: var(--teal); opacity: 0.85; }
+.lf-seg-untrusted.filled { fill: var(--red); opacity: 0.85; }
+.lf-seg-untrusted.merged { fill: var(--accent); stroke: var(--red); stroke-width: 2; opacity: 1; transition: fill 0.5s; }
+.lf-stream-t { font-size: 8.5px; fill: var(--ink-soft); }
+/* defence chips */
+.lf-chip rect { stroke-width: 1.2; transition: fill 0.15s; }
+.lf-chip text { font-size: 9px; font-weight: 600; }
+.lf-chip.on rect { fill: color-mix(in srgb, var(--green) 18%, var(--surface)); stroke: var(--green); }
+.lf-chip.on text { fill: var(--green); }
+.lf-chip.off rect { fill: transparent; stroke: var(--ink-soft); stroke-dasharray: 3 3; opacity: 0.7; }
+.lf-chip.off text { fill: var(--ink-soft); opacity: 0.8; }
+.lf-chip.hit rect { fill: var(--red); stroke: var(--red); stroke-dasharray: none; opacity: 1; animation: lf-pulse 0.8s 2; }
+.lf-chip.hit text { fill: #fff; opacity: 1; }
+.lf-chip.slipped rect { stroke: var(--amber); stroke-width: 2.2; opacity: 1; }
+@keyframes lf-pulse { 50% { opacity: 0.55; } }
+/* generation loop */
+.lf-pill { fill: color-mix(in srgb, var(--accent) 14%, var(--surface)); stroke: var(--accent); stroke-width: 1; }
+.lf-pill-t { font-size: 11.5px; fill: var(--ink); font-weight: 600; }
+.lf-plabel { font-size: 11px; fill: var(--ink); }
+.lf-pbg { fill: var(--line); opacity: 0.55; }
+.lf-praw { fill: color-mix(in srgb, var(--accent) 35%, transparent); }
+.lf-padj { fill: var(--accent); }
+.lf-ppct { font-size: 10.5px; fill: var(--ink-soft); }
+.lf-prow.dropped .lf-plabel, .lf-prow.dropped .lf-ppct { opacity: 0.45; text-decoration: line-through; }
+.lf-prow.chosen .lf-plabel { font-weight: 700; fill: var(--teal-ink); }
+.lf-prow.chosen .lf-padj { fill: var(--teal); }
+.lf-prow.chosen .lf-pbg { stroke: var(--teal); stroke-width: 2; opacity: 1; }
+.lf-textval { font-size: 13px; fill: var(--ink); font-weight: 500; }
+.lf-looplbl { font-size: 9.5px; fill: var(--ink-soft); font-style: italic; }
+/* narration, transport, legend: fixed heights so nothing below/above jumps */
+.lf-narr { min-height: 5.2rem; max-width: 56rem; margin: 0.5rem auto 0; padding: 0.5rem 0.8rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface); font-size: 0.9rem; line-height: 1.4; overflow-wrap: anywhere; }
+.lf-narr-h { display: block; font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; color: var(--ink-soft); min-height: 1.1rem; letter-spacing: 0.02em; }
+.lf-transport { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; max-width: 56rem; margin: 0.6rem auto 0; min-height: 2.4rem; }
+.lf-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.lf-speed .field-label { margin: 0; }
+.lf-speed input[type="range"] { width: 10rem; max-width: 100%; accent-color: var(--accent); }
+.lf-speed-name { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--ink-soft); min-width: 13rem; }
+.lf-btn { min-width: 6.4rem; }
+.lf-legend { max-width: 56rem; margin: 0.4rem auto 0; font-size: 0.76rem; color: var(--ink-soft); min-height: 2.6rem; }
+.lf-key { display: inline-block; padding: 0 0.45rem; border-radius: 999px; border: 1px solid var(--line); margin-right: 0.15rem; }
+.lf-k-on { border-color: var(--green); color: var(--green); } .lf-k-off { border-style: dashed; }
+.lf-k-stop { border-color: var(--red); color: var(--red); } .lf-k-slip { border-color: var(--amber); color: var(--amber); }
+.lf-k-sys { border-color: var(--accent); color: var(--accent-ink); } .lf-k-user { border-color: var(--teal); color: var(--teal-ink); } .lf-k-unt { border-color: var(--red); color: var(--red); }
+.lf-run-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; max-width: 56rem; margin: 0.4rem auto 0; min-height: 2.6rem; }
+@media (max-width: 560px) { .lf-speed-name { min-width: 0; } .lf-narr { min-height: 7.4rem; } .lf-legend { min-height: 4.4rem; } }
+@media (prefers-reduced-motion: reduce) {
+  .lf-edge.on, .lf-node.lf-v-slip .lf-box, .lf-layer-untrusted.merged, .lf-chip.hit rect { animation: none; }
+  .lf-praw, .lf-padj, .lf-seg-untrusted.merged { transition: none; }
+}

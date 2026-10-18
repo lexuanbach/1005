@@ -31,8 +31,34 @@
 .pj-node.on rect { stroke: var(--accent); stroke-width: 2.5; fill: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
 .pj-nname { font: 600 12.5px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
 .pj-nip { font: 500 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
-.pj-elabel { font: 600 11px "IBM Plex Mono", monospace; fill: var(--accent-ink); }
-.pj-elabel-bg { fill: var(--surface); stroke: var(--accent); stroke-width: 1; }
+.pj-node.src rect { stroke: var(--amber); fill: color-mix(in srgb, var(--amber) 11%, var(--surface)); }
+.pj-node.dst rect { stroke: var(--teal); fill: color-mix(in srgb, var(--teal) 11%, var(--surface)); }
+.pj-node.src.dst rect { stroke: var(--accent); }
+/* travelling packet card */
+.pj-card rect { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+.pj-card.dns rect { stroke: var(--amber); } .pj-card.tcp rect { stroke: var(--teal); } .pj-card.http rect { stroke: var(--accent); }
+.pj-ctitle { font: 700 9.5px "IBM Plex Mono", monospace; fill: var(--ink); }
+.pj-cline { font: 500 8.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+/* layered view */
+.pj-wire { stroke: var(--ink-soft); stroke-width: 2.5; stroke-dasharray: 5 4; fill: none; }
+.pj-stitle { font: 700 11px "Be Vietnam Pro", sans-serif; fill: var(--ink); letter-spacing: 0.02em; }
+.pj-rung rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+.pj-rung.on rect { stroke: var(--accent); stroke-width: 2.5; fill: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
+.pj-rname { font: 700 10px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.pj-rsub { font: 500 8.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.pj-sg { stroke: var(--surface); stroke-width: 1; transform-box: fill-box; transform-origin: center; }
+.pj-sg.app { fill: var(--pj-app); } .pj-sg.tr { fill: var(--pj-tr); } .pj-sg.ip { fill: var(--pj-ip); } .pj-sg.eth { fill: var(--pj-eth); }
+.pj-sgt { font: 700 8px "IBM Plex Mono", monospace; fill: var(--accent-contrast); pointer-events: none; }
+.pj-more { font: 600 8.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.pj-bubble rect { fill: var(--ink); } .pj-bubble text { font: 600 9px "Be Vietnam Pro", sans-serif; fill: var(--paper); }
+/* auto-play row */
+.pj-auto { display: flex; flex-wrap: wrap; gap: 0.5rem 0.8rem; align-items: center; margin-top: 0.6rem; min-height: 2.5rem; }
+.pj-auto .btn { min-width: 10.4rem; justify-content: center; height: 2.5rem; box-sizing: border-box; line-height: 1; }
+.pj-auto .btn:nth-child(2) { min-width: 6.6rem; }
+.pj-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-left: auto; }
+.pj-speed input[type="range"] { width: 9rem; max-width: 100%; accent-color: var(--accent); }
+.pj-speed-name { font: 500 0.78rem "IBM Plex Mono", monospace; color: var(--ink-soft); min-width: 9.5rem; }
+@media (max-width: 640px) { .pj-speed { margin-left: 0; } .pj-auto .btn { min-width: 0; } }
 .pj-detail { min-width: 0; }
 .pj-title { margin: 0 0 0.5rem; font-size: 1.02rem; line-height: 1.3; }
 .pj-detail h4 { margin: 0 0 0.4rem; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
@@ -55,7 +81,7 @@
 .pj-err { color: var(--red); font-weight: 600; }
 .pj-ok { color: var(--green); font-weight: 600; margin: 0.4rem 0 0; }
 .pj-warn { color: var(--amber); font-weight: 600; margin: 0.4rem 0 0; }
-.pj-narr { margin: 0.9rem 0 0.6rem; padding: 0.7rem 0.9rem; border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0;
+.pj-narr { box-sizing: border-box; margin: 0.9rem 0 0.6rem; padding: 0.7rem 0.9rem; border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0;
   background: color-mix(in srgb, var(--accent) 7%, var(--surface)); color: var(--ink); line-height: 1.55; min-height: 3.2em; }
 .pj-ctl { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .pj-count { margin-left: auto; font-size: 0.82rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }

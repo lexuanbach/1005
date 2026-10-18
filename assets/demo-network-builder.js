@@ -228,7 +228,17 @@
 
   /* ------------------------------------------------------------ the simulator */
   function say(T, d, text) { T.log.push({ at: T.moves.length, dev: d ? d.id : null, text: text, phase: T.phase }); }
-  function move(T, from, to, label) { T.moves.push({ from: from, to: to, phase: T.phase, label: label || '' }); }
+  function move(T, from, to, label, extra) {
+    var m = { from: from, to: to, phase: T.phase, label: label || '', hdr: null, pre: null, ev: null };
+    if (extra) for (var k in extra) m[k] = extra[k];
+    T.moves.push(m); return m;
+  }
+  /* The header fields a packet carries while it is on one link (shown by the live header strip). */
+  function protoName(p) { return p === 'icmp' ? 'ICMP' : p === 'udp' ? 'UDP' : 'TCP'; }
+  function hdrOf(H) { return { src: H.src, dst: H.dst, ttl: H.ttl, sport: H.sport, dport: H.dport, proto: H.proto, nat: !!H.nat, reply: !!H.reply }; }
+  function swapHdr(h, ttl) { return { src: h.dst, dst: h.src, sport: h.dport, dport: h.sport, proto: h.proto, ttl: ttl, nat: h.nat, reply: true }; }
+  function portNo(net, node, otherId) { var ls = linksOf(net, node.id); for (var i = 0; i < ls.length; i++) if (peerOf(ls[i], node.id) === otherId) return i + 1; return 0; }
+  function ephemeral(id) { var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 9973; return 49152 + h % 9000; }
   function fail(T, code, d, ctx) {
     ctx = ctx || {}; ctx.n = ctx.n || (d && d.name);
     var m = describe(code, ctx);
@@ -249,17 +259,21 @@
   /* forward one packet from o.src towards o.dst (int) */
   function forward(net, T, o) {
     var cur = o.src, dstStr = PJ.intToIp(o.dst), srcIp = o.srcIp, ttl = 10, nat = false;
-    var label = o.label;
+    var label = o.label, dsp = o.disp || { proto: o.proto, sport: null, dport: o.port };
+    var H = { src: '', dst: dstStr, ttl: o.ttl0 || 64, sport: dsp.sport, dport: dsp.dport, proto: protoName(dsp.proto), nat: false, reply: !!o.stateful };
+    var pend = null;
     o.moveStart = T.moves.length;
     if (T_(cur).host) {
       var c0 = cfgOf(cur.ip, cur.mask);
       if (c0.err) return fail(T, c0.err, cur, { val: c0.val, which: c0.which });
-      srcIp = c0.ip;
+      srcIp = c0.ip; H.src = PJ.intToIp(srcIp);
       if (o.dst === srcIp) { say(T, cur, cur.name + ' is sending to its own address: it never leaves the machine.'); return { ok: true, tgt: cur, kind: 'self' }; }
     }
     while (true) {
       if (--ttl < 0) return fail(T, 'ttl', cur, {});
       var nh, peerId, viaGw = false, byMask = false, viaDefault = false, egress = null, hostNet = '', hostP = 0;
+      if (!H.src) H.src = PJ.intToIp(srcIp);
+      pend = { dev: cur.id, list: [] };
       if (T_(cur).host) {
         var c = cfgOf(cur.ip, cur.mask);
         var nb = neighbors(net, cur.id);
@@ -268,6 +282,7 @@
         if (PJ.sameSubnet(c.ip, o.dst, c.p)) {
           nh = o.dst; byMask = true;
           say(T, cur, cur.name + ' (' + PJ.intToIp(c.ip) + '/' + c.p + '): ' + dstStr + ' is inside my subnet ' + PJ.intToIp(c.info.network) + '/' + c.p + ', so I deliver it directly on the LAN.');
+          pend.list.push({ kind: 'host', text: 'Compares ' + dstStr + ' with its own subnet ' + PJ.intToIp(c.info.network) + '/' + c.p + ': same subnet, so it sends straight to the destination (no gateway).' });
         } else {
           if (!String(cur.gw).trim()) return fail(T, 'no-gw', cur, { dst: dstStr, net: PJ.intToIp(c.info.network) + '/' + c.p });
           var g = PJ.parseIPv4(cur.gw);
@@ -275,6 +290,7 @@
           if (!PJ.sameSubnet(c.ip, g, c.p)) return fail(T, 'gw-offsubnet', cur, { gw: cur.gw, net: PJ.intToIp(c.info.network) + '/' + c.p });
           nh = g; viaGw = true;
           say(T, cur, cur.name + ': ' + dstStr + ' is outside my subnet ' + PJ.intToIp(c.info.network) + '/' + c.p + ', so I send it to my default gateway ' + cur.gw + '.');
+          pend.list.push({ kind: 'host', text: 'Compares ' + dstStr + ' with its own subnet ' + PJ.intToIp(c.info.network) + '/' + c.p + ': different subnet, so the frame goes to the default gateway ' + cur.gw + '.' });
         }
         hostNet = PJ.intToIp(c.info.network) + '/' + c.p; hostP = c.p;
       } else { // router
@@ -286,6 +302,8 @@
         if (best) {
           nh = o.dst; egress = best; peerId = best.peer;
           say(T, cur, cur.name + ' routes ' + dstStr + ': it belongs to the subnet of port eth' + best.slot + ' (' + PJ.intToIp(best.info.network) + '/' + best.p + ') - a connected route.');
+          pend.list.push({ kind: 'route', text: 'Reads the destination ' + dstStr + ', finds it in the connected subnet ' + PJ.intToIp(best.info.network) + '/' + best.p + ' (port eth' + best.slot + '), lowers TTL ' + H.ttl + ' \u2192 ' + (H.ttl - 1) + ' and sends it out of eth' + best.slot + '.' });
+          H.ttl--;
         } else {
           var gw = PJ.parseIPv4(cur.gw);
           if (gw === null) return fail(T, 'no-route', cur, { dst: dstStr });
@@ -296,9 +314,14 @@
           if (!egress) return fail(T, 'no-route-gw', cur, { gw: cur.gw });
           nh = gw; viaGw = true; viaDefault = true; peerId = egress.peer;
           say(T, cur, cur.name + ': no connected subnet contains ' + dstStr + ', so it takes the default route via ' + cur.gw + ' (port eth' + egress.slot + ').');
+          pend.list.push({ kind: 'route', text: 'Reads the destination ' + dstStr + ': no connected subnet matches, so the default route (via ' + cur.gw + ', port eth' + egress.slot + ') is used. TTL ' + H.ttl + ' \u2192 ' + (H.ttl - 1) + '.' });
+          H.ttl--;
           if (cur.nat && !nat) {
             nat = true; srcIp = egress.ip;
             say(T, cur, 'NAT: ' + cur.name + ' rewrites the source address to its own ' + PJ.intToIp(egress.ip) + ' so that the Internet can answer.');
+            var np = H.sport ? 62000 + (H.sport % 1000) : null;
+            pend.list.push({ kind: 'nat', text: 'NAT rewrites the source ' + H.src + (H.sport ? ':' + H.sport : '') + ' \u2192 ' + PJ.intToIp(egress.ip) + (np ? ':' + np : '') + ' and remembers the pair in its translation table, so the reply can be translated back.', priv: H.src + (H.sport ? ':' + H.sport : '') });
+            H.src = PJ.intToIp(egress.ip); if (np) H.sport = np; H.nat = true;
           }
         }
       }
@@ -306,34 +329,45 @@
       var dom = domain(net, cur.id, peerId);
       if (dom.cycle) {
         var first = dev(net, dom.l2[0]);
-        move(T, cur.id, first.id, 'who has ' + PJ.intToIp(nh) + '?');
+        move(T, cur.id, first.id, 'who has ' + PJ.intToIp(nh) + '?', { hdr: { arp: true, ask: PJ.intToIp(nh) } });
         return fail(T, 'loop', first, {});
       }
       var owners = ownersOf(net, dom, nh, cur.id);
       var nhStr = PJ.intToIp(nh);
       if (!owners.length) {
         var f = dev(net, dom.l2[0] || peerId);
-        move(T, cur.id, f.id, 'who has ' + nhStr + '?');
-        for (var i = 1; i < dom.l2.length && i < 3; i++) move(T, dom.l2[i - 1], dom.l2[i], 'who has ' + nhStr + '?');
+        move(T, cur.id, f.id, 'who has ' + nhStr + '?', { hdr: { arp: true, ask: nhStr } });
+        for (var i = 1; i < dom.l2.length && i < 3; i++) move(T, dom.l2[i - 1], dom.l2[i], 'who has ' + nhStr + '?', { hdr: { arp: true, ask: nhStr } });
         return fail(T, 'no-arp', cur, { nh: nhStr, viaGw: viaGw, byMask: byMask, p: hostP, net: hostNet, nhOwner: whoOwnsAnywhere(net, nh), n: cur.name });
       }
       if (owners.length > 1) return fail(T, 'dup-ip', cur, { nh: nhStr, names: owners.map(function (x) { return x.dev.name; }).join(', ') });
       var ow = owners[0], path = pathTo(dom, cur.id, ow);
       for (var k = 1; k < path.length; k++) {
         var node = dev(net, path[k]);
-        move(T, path[k - 1], path[k], label);
+        var mvv = move(T, path[k - 1], path[k], label, { hdr: hdrOf(H), pre: (k === 1 && pend && pend.list.length) ? pend.list : null });
         if (T_(node).fw && !o.stateful) {
           var dec = fwDecide(node, o.proto, o.port);
           say(T, node, node.name + ' checks the packet (' + svcName(o.proto, o.port) + '): ' + dec.text + ' -> ' + (dec.allow ? 'allow' : 'drop') + '.');
+          mvv.ev = { kind: 'fw', allow: dec.allow, text: 'Compares the packet (' + svcName(o.proto, o.port) + ') with its rules, top to bottom: ' + dec.text + ' \u2192 ' + (dec.allow ? 'ALLOW' : 'DROP') + '.' };
           if (!dec.allow) return fail(T, 'firewall', node, { text: dec.text });
+        } else if (T_(node).fw) {
+          mvv.ev = { kind: 'fw', allow: true, text: 'Stateful firewall: this is the answer to a request it already let through, so it passes without a rule check.' };
         } else if (node.type === 'hub') {
           var others = dom.ends.length - 1; // endpoints other than the receiver (the sender is not in ends)
           T.bystanders += Math.max(0, others);
           say(T, node, 'Hub: repeats the signal out of every other port, so ' + Math.max(0, others) + ' other device(s) receive this frame too (one shared collision domain).');
-        } else if (node.type === 'switch' && k === 1) {
-          say(T, node, 'Switch: forwards the frame only to the port where the destination lives (ARP and the MAC table are left out of this toy).');
+          mvv.ev = { kind: 'hub', text: 'Does not look at the addresses: it repeats the signal out of every other port, so ' + Math.max(0, others) + ' other device(s) hear this frame too.' };
+        } else if (node.type === 'switch') {
+          if (k === 1) say(T, node, 'Switch: forwards the frame only to the port where the destination lives (ARP and the MAC table are left out of this toy).');
+          var pIn = portNo(net, node, path[k - 1]), pOut = k + 1 < path.length ? portNo(net, node, path[k + 1]) : 0;
+          mvv.ev = { kind: 'switch', text: 'Learns that the sender sits behind port ' + pIn + ' (MAC table), looks up the destination' + (pOut ? ' and forwards the frame out of port ' + pOut + ' only.' : ' and forwards the frame towards it.') };
         } else if (node.type === 'ap') {
           say(T, node, 'Wi-Fi access point: relays the frame between the radio and the cable.');
+          mvv.ev = { kind: 'ap', text: 'Relays the frame between the radio link and the cable (layer 2, no IP decisions).' };
+        } else if (k === path.length - 1 && T_(node).host) {
+          mvv.ev = { kind: 'host', text: 'Checks that the destination address ' + dstStr + ' is its own and hands the packet up to the ' + (dsp.proto === 'icmp' ? 'ICMP' : svcName(dsp.proto, dsp.dport)) + ' service.' };
+        } else if (k === path.length - 1 && node.type === 'internet') {
+          mvv.ev = { kind: 'isp', text: 'The ISP takes the packet into the (simulated) Internet and passes it on towards ' + dstStr + '.' };
         }
       }
       var tgt = ow.dev;
@@ -372,12 +406,27 @@
     if (kind === 'world' || kind === 'inet') {
       say(T, tgt, 'The reply travels back along the same path' + (nat ? ' (NAT translates the address back for the inside computer).' : '.'));
       T.reverse = 'assumed';
-      for (var i = T.moves.length - 1; i >= o.moveStart; i--) { var mv = T.moves[i]; T.moves.push({ from: mv.to, to: mv.from, phase: T.phase === 'dns' ? 'dns' : 'reply', label: 'reply' }); }
+      var rttl = 64;
+      for (var i = T.moves.length - 1; i >= o.moveStart; i--) {
+        var mv = T.moves[i];
+        if (!mv.hdr || mv.hdr.arp) { T.moves.push({ from: mv.to, to: mv.from, phase: T.phase === 'dns' ? 'dns' : 'reply', label: 'reply', hdr: null, pre: null, ev: null }); continue; }
+        var fromDev = dev(net, mv.to), toDev = dev(net, mv.from), rm = { from: mv.to, to: mv.from, phase: T.phase === 'dns' ? 'dns' : 'reply', label: 'reply', hdr: swapHdr(mv.hdr, rttl), pre: null, ev: null };
+        if (fromDev && T_(fromDev).router) {
+          rm.pre = [{ kind: 'route', text: 'Routes the reply back towards ' + rm.hdr.dst + ': TTL ' + rttl + ' \u2192 ' + (rttl - 1) + '.' }]; rm.hdr.ttl = rttl - 1; rttl--;
+        }
+        var natPre = (mv.pre || []).filter(function (p) { return p.kind === 'nat'; })[0];
+        if (natPre) { rm.ev = { kind: 'nat', text: 'NAT looks the reply up in its translation table and rewrites the destination ' + rm.hdr.dst + (rm.hdr.dport ? ':' + rm.hdr.dport : '') + ' back to the private address ' + natPre.priv + '.' }; rm.natBack = natPre.priv; }
+        else if (mv.ev && mv.ev.kind === 'fw') rm.ev = { kind: 'fw', allow: true, text: 'Stateful firewall: the reply belongs to an allowed request, so it passes.' };
+        else if (mv.ev && (mv.ev.kind === 'switch' || mv.ev.kind === 'hub' || mv.ev.kind === 'ap')) rm.ev = { kind: mv.ev.kind, text: mv.ev.kind === 'hub' ? 'Repeats the reply out of every other port.' : mv.ev.kind === 'ap' ? 'Relays the reply from the cable to the radio.' : 'Looks up the destination MAC and forwards the reply out of one port only.' };
+        else if (toDev && T_(toDev).host) rm.ev = { kind: 'host', text: 'The reply is addressed to this computer, so it is accepted.' };
+        T.moves.push(rm);
+      }
       return res;
     }
     /* reverse leg: the destination now has to send the answer to our source address */
     var saved = T.phase; T.phase = 'reply';
-    var r = forward(net, T, { src: tgt, dst: o.origSrc, proto: 'icmp', port: null, stateful: true, srcIp: o.dst, label: 'reply', origSrc: o.dst });
+    var r = forward(net, T, { src: tgt, dst: o.origSrc, proto: 'icmp', port: null, stateful: true, srcIp: o.dst, label: 'reply', origSrc: o.dst,
+      disp: { proto: o.disp ? o.disp.proto : o.proto, sport: o.disp ? o.disp.dport : null, dport: o.disp ? o.disp.sport : null } });
     if (!r.ok) return r;
     T.phase = saved;
     return res;
@@ -397,7 +446,7 @@
       var dnsIp = PJ.parseIPv4(src.dns);
       if (dnsIp === null) { fail(T, 'dns-none', src, { name: name }); T.headline = 'The name lookup failed. ' + describe('dns-none', { n: src.name, name: name }).head; return T; }
       say(T, src, src.name + ' must turn "' + name + '" into an IP address: it asks its DNS server ' + src.dns + ' (UDP port 53).');
-      var d = forward(net, T, { src: src, dst: dnsIp, proto: 'udp', port: 53, label: 'DNS query', origSrc: null });
+      var d = forward(net, T, { src: src, dst: dnsIp, proto: 'udp', port: 53, label: 'DNS query', origSrc: null, disp: { proto: 'udp', sport: ephemeral(src.id) + 1, dport: 53 } });
       if (!d.ok) return T;
       if (!(d.kind === 'world' && d.world && d.world.dns)) { /* answered something that is not a DNS server */ }
       var ip = RECORDS[name];
@@ -416,7 +465,8 @@
     }
     var c = cfgOf(src.ip, src.mask);
     T.dstStr = PJ.intToIp(dstInt);
-    var r = forward(net, T, { src: src, dst: dstInt, proto: proto, port: port, label: svcName(proto, port), origSrc: c.err ? 0 : c.ip });
+    var r = forward(net, T, { src: src, dst: dstInt, proto: proto, port: port, label: svcName(proto, port), origSrc: c.err ? 0 : c.ip,
+      disp: { proto: proto, sport: proto === 'icmp' ? null : ephemeral(src.id), dport: proto === 'icmp' ? null : port } });
     if (r.ok) {
       T.ok = true; T.code = 'ok'; T.dstDev = r.tgt && r.tgt.id; T.kind = r.kind; T.natted = !!r.natted;
       var hops = 0; T.moves.forEach(function (m) { if (m.phase === 'request') hops++; });
@@ -563,7 +613,33 @@
     return { results: results, constraints: cons, cost: cost, complete: complete, stars: stars };
   }
 
+  /* ------------------------------------------------------------ playback script (pure)
+     A trace is a list of moves; each move may carry `pre` (what the sending device does before it sends:
+     host decision, router lookup + TTL, NAT) and `ev` (what the receiving device does on arrival: switch
+     learn/forward, hub flood, firewall rule, ...). The animation walks this script, one "hop bundle" per move. */
+  function playScript(tr) {
+    var acts = [];
+    tr.moves.forEach(function (m, i) {
+      (m.pre || []).forEach(function (p) { acts.push({ t: 'at', mv: i, dev: m.from, item: p, m: m }); });
+      acts.push({ t: 'go', mv: i, m: m });
+      if (m.ev) acts.push({ t: 'at', mv: i, dev: m.to, item: m.ev, m: m, next: tr.moves[i + 1] || null });
+    });
+    return acts;
+  }
+  /* The header strip as it should look when action `a` starts, given the strip's current header `cur`. */
+  function headerAt(a, cur) {
+    var m = a.m, h = m.hdr;
+    if (!h || h.arp) return h || cur;
+    if (a.t === 'go') return h;
+    var k = a.item.kind, before = a.dev === m.from; // 'pre' item (before sending) or arrival event
+    if (before) return k === 'route' ? Object.assign({}, cur || h, { ttl: h.ttl }) : h; // host: packet is built; route: TTL-1; nat: source rewritten
+    /* arrival event: NAT on the reply path rewrites the destination back while the router is "inside" */
+    if (k === 'nat' && a.next && a.next.hdr && !a.next.hdr.arp && cur) return Object.assign({}, cur, { dst: a.next.hdr.dst, dport: a.next.hdr.dport });
+    return cur || h;
+  }
+
   var engine = {
+    playScript: playScript, headerAt: headerAt,
     TYPES: TYPES, WORLD: WORLD, LEVELS: LEVELS, CABLE_COST: CABLE_COST,
     newNet: newNet, addDevice: addDevice, addLink: addLink, removeLink: removeLink, removeDevice: removeDevice, dev: dev, linksOf: linksOf, peerOf: peerOf, slotOf: slotOf,
     addPlayer: addPlayer, linkPlayer: linkPlayer, buildLevel: buildLevel, send: send, evaluate: evaluate, costOf: costOf, maskPrefix: maskPrefix, cfgOf: cfgOf,
@@ -589,7 +665,7 @@
 
   function mount(root) {
     var S = { li: 0, net: null, sel: null, selLink: null, cable: false, cableFrom: null, drag: null, hint: 0, evalr: null,
-      progress: {}, timer: null, token: null, marks: [], big: false, speed: 320, trace: null, shown: 0 };
+      progress: {}, timer: null, token: null, marks: [], big: false, trace: null, shown: 0 };
     try { S.progress = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S.progress = {}; }
     function save() { try { localStorage.setItem(KEY, JSON.stringify(S.progress)); } catch (e) {} }
 
@@ -603,9 +679,13 @@
     var board = svg('svg', { 'class': 'nb-svg', viewBox: '0 0 ' + W + ' ' + Hh, role: 'group', 'aria-label': 'Network canvas. Devices can be dragged, or moved with the arrow keys.' });
     var budget = el('div', 'nb-budget');
     var cap = el('div', 'nb-cap'); cap.setAttribute('aria-live', 'polite');
-    var explain = el('section', 'nb-explain'); explain.setAttribute('aria-live', 'polite');
+    var explain = el('section', 'nb-explain'); explain.setAttribute('aria-live', 'off');
+    var boardWrap = el('div', 'nb-board'), pop = el('div', 'nb-pop'); pop.hidden = true; pop.setAttribute('aria-hidden', 'true');
+    var playRow = el('div', 'nb-play'); playRow.setAttribute('role', 'group'); playRow.setAttribute('aria-label', 'Animation controls');
+    var strip = el('div', 'nb-hdr'); strip.setAttribute('role', 'group'); strip.setAttribute('aria-label', 'Live packet header: protocol, source, destination, TTL');
     var mission = el('section', 'nb-card nb-mission'), goalsBox = el('section', 'nb-card'), inspector = el('section', 'nb-card nb-insp'), tester = el('section', 'nb-card');
-    stage.appendChild(toolbar); stage.appendChild(el('div', 'nb-board')).appendChild(board); stage.appendChild(budget); stage.appendChild(cap); stage.appendChild(explain);
+    boardWrap.appendChild(board); boardWrap.appendChild(pop);
+    stage.appendChild(toolbar); stage.appendChild(boardWrap); stage.appendChild(playRow); stage.appendChild(strip); stage.appendChild(budget); stage.appendChild(cap); stage.appendChild(explain);
     side.appendChild(mission); side.appendChild(goalsBox); side.appendChild(inspector); side.appendChild(tester);
     main.appendChild(stage); main.appendChild(side);
     root.appendChild(levelBar); root.appendChild(main);
@@ -617,14 +697,17 @@
     function level() { return NB.LEVELS[S.li]; }
     function D(id) { return NB.dev(S.net, id); }
     function setCap(t) { cap.textContent = t || ''; }
-    function stopAnim() { if (S.timer) clearTimeout(S.timer); S.timer = null; S.token = null; gFx.textContent = ''; }
+    function stopAnim() {
+      gen++; if (S.timer) clearTimeout(S.timer); S.timer = null; S.token = null; run = null; gFx.textContent = '';
+      hidePop(); unbusy(); setHdr(null); updatePlay();
+    }
     function clearFx() { stopAnim(); S.trace = null; explain.className = 'nb-explain'; }
     function pos(id) { var d = D(id); return d ? { x: d.x, y: d.y } : { x: 0, y: 0 }; }
     function portLabel(d, l) { return NBt[d.type].router ? 'eth' + NB.slotOf(l, d.id) : ''; }
 
     function loadLevel(i) {
       stopAnim(); S.li = i; S.net = NB.buildLevel(i); S.sel = null; S.selLink = null; S.cable = false; S.cableFrom = null; S.hint = 0; S.trace = null;
-      explain.textContent = ''; explain.className = 'nb-explain'; setCap('');
+      explain.textContent = ''; explain.className = 'nb-explain'; explain.style.minHeight = ''; S.exH = 0; setCap('');
       renderAll(); refresh(true);
     }
 
@@ -674,9 +757,6 @@
       toolbar.appendChild(cb);
       var del = el('button', 'nb-btn', 'Delete'); del.type = 'button'; del.id = 'nb-delete'; del.addEventListener('click', deleteSelected); toolbar.appendChild(del);
       var rs = el('button', 'nb-btn', 'Reset level'); rs.type = 'button'; rs.addEventListener('click', function () { loadLevel(S.li); setCap('Level reset.'); }); toolbar.appendChild(rs);
-      var sp = el('label', 'nb-sel'); sp.appendChild(el('span', '', 'Speed'));
-      var ss = el('select'); [['Slow', 650], ['Normal', 320], ['Fast', 110]].forEach(function (o) { var op = el('option', '', o[0]); op.value = o[1]; if (+o[1] === S.speed) op.selected = true; ss.appendChild(op); });
-      ss.addEventListener('change', function () { S.speed = +ss.value; }); sp.appendChild(ss); toolbar.appendChild(sp);
       var bg = el('label', 'nb-chk'); var cbx = el('input'); cbx.type = 'checkbox'; cbx.checked = S.big;
       cbx.addEventListener('change', function () { S.big = cbx.checked; root.classList.toggle('nb-big', S.big); });
       bg.appendChild(cbx); bg.appendChild(el('span', '', 'Projector size')); toolbar.appendChild(bg);
@@ -952,53 +1032,177 @@
       tester.appendChild(el('p', 'nb-muted', 'Simulation: ARP and MAC addresses are left out, and firewall / NAT behave statefully.'));
     }
 
-    /* ---------- animation ---------- */
+    /* ---------- animation ----------
+       The trace from NB.send() is replayed hop by hop (NB.playScript). For every move:
+       [what the sending device does] -> packet travels along the cable -> [what the receiving device does].
+       The device that is "working" glows, a small pop-over names what it does inside, and the header strip
+       shows the packet's live src/dst/ports/TTL (changed fields flash when a router or NAT rewrites them). */
+    var gen = 0, run = null;
+    var SPEEDS = [['Very slow', 2200], ['Slow', 1400], ['Normal', 800], ['Fast', 400], ['Very fast', 150], ['Instant', 0]];
+    var SPEED_KEY = 'co1005-nb-speed', spIdx = 2;
+    try { var sv = localStorage.getItem(SPEED_KEY); if (sv !== null && +sv >= 0 && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
+    function curMs() { return SPEEDS[spIdx][1]; }
+
+    var spd = el('div', 'nb-speed');
+    var spLab = el('label', 'nb-sel', 'Speed'), spRng = el('input'), spNm = el('span', 'nb-speed-name');
+    spRng.type = 'range'; spRng.min = 0; spRng.max = SPEEDS.length - 1; spRng.step = 1; spRng.value = spIdx; spRng.id = 'nb-speed'; spLab.setAttribute('for', 'nb-speed');
+    function paintSpeed() { spNm.textContent = SPEEDS[spIdx][0] + (SPEEDS[spIdx][1] ? ' · ' + (SPEEDS[spIdx][1] / 1000) + ' s per hop' : ''); spRng.setAttribute('aria-valuetext', SPEEDS[spIdx][0]); }
+    spRng.addEventListener('input', function () { spIdx = +spRng.value; paintSpeed(); try { localStorage.setItem(SPEED_KEY, String(spIdx)); } catch (e) {} });
+    paintSpeed(); spd.appendChild(spLab); spd.appendChild(spRng); spd.appendChild(spNm);
+    var bPause = el('button', 'nb-btn', '⏸ Pause'), bStep = el('button', 'nb-btn', 'Step ▸'), bSkip = el('button', 'nb-btn', 'Skip ⏭');
+    [bPause, bStep, bSkip].forEach(function (b) { b.type = 'button'; b.disabled = true; playRow.appendChild(b); });
+    bPause.setAttribute('aria-live', 'off'); bStep.title = 'Advance one hop (while paused)'; bSkip.title = 'Jump to the end of this run';
+    playRow.appendChild(spd);
+
+    var cells = {};
+    [['pk', 'Packet'], ['pr', 'Protocol'], ['src', 'Source'], ['dst', 'Destination'], ['ttl', 'TTL']].forEach(function (c) {
+      var w = el('div', 'nb-hc nb-hc-' + c[0]); w.appendChild(el('span', 'nb-hl', c[1])); var v = el('b', 'nb-hv', '—'); w.appendChild(v); strip.appendChild(w);
+      cells[c[0]] = { box: w, val: v };
+    });
+    function hdrText(h) {
+      if (!h) return { pk: '', pr: '—', src: '—', dst: '—', ttl: '—' };
+      if (h.arp) return { pk: 'who has ' + h.ask + '?', pr: 'ARP', src: '—', dst: 'broadcast', ttl: '—' };
+      return { pk: '', pr: h.proto, src: h.src + (h.sport ? ':' + h.sport : ''), dst: h.dst + (h.dport ? ':' + h.dport : ''), ttl: String(h.ttl) };
+    }
+    function setHdr(h, label) {
+      var t = hdrText(h); t.pk = label || t.pk || '—';
+      Object.keys(cells).forEach(function (k) {
+        var c = cells[k], changed = c.val.textContent !== t[k] && h && c.val.textContent !== '—' && k !== 'pk';
+        c.val.textContent = t[k];
+        c.box.classList.remove('chg'); if (changed) { void c.box.offsetWidth; c.box.classList.add('chg'); }
+      });
+      if (h) S.hdr = h; else S.hdr = null;
+    }
+    setHdr(null);
+
+    function devG(id) { return gDevs.querySelector('[data-id="' + id + '"]'); }
+    function unbusy() { Array.prototype.forEach.call(gDevs.querySelectorAll('.busy'), function (g) { g.classList.remove('busy'); }); }
+    function busy(id) { unbusy(); var g = devG(id); if (g) g.classList.add('busy'); }
+    function hidePop() { pop.hidden = true; pop.textContent = ''; }
+    var KIND_TITLE = { host: 'host decision', route: 'router: lookup + TTL', nat: 'NAT: rewrite address', fw: 'firewall: rule match', switch: 'switch: learn + forward', hub: 'hub: repeat to all', ap: 'access point: relay', isp: 'ISP' };
+    function showPop(id, item) {
+      var d = D(id); if (!d) return hidePop();
+      pop.textContent = '';
+      pop.className = 'nb-pop k-' + item.kind + (item.kind === 'fw' ? (item.allow ? ' ok' : ' bad') : '');
+      pop.appendChild(el('b', 'nb-pop-t', 'Inside ' + d.name + ' · ' + (KIND_TITLE[item.kind] || '')));
+      pop.appendChild(el('span', 'nb-pop-x', item.text));
+      pop.hidden = false;
+      var bw = boardWrap.clientWidth, bh = boardWrap.clientHeight, x = d.x / W * bw, half = pop.offsetWidth / 2;
+      var left = Math.max(half + 4, Math.min(bw - half - 4, x));
+      var above = d.y / Hh * bh > pop.offsetHeight + BH / 2 * bh / Hh + 14;
+      pop.style.left = left + 'px';
+      var top = (above ? d.y / Hh * bh - BH / 2 * bh / Hh - 24 - pop.offsetHeight : d.y / Hh * bh + BH / 2 * bh / Hh + 30);
+      pop.style.top = Math.max(4, Math.min(bh - pop.offsetHeight - 4, top)) + 'px';
+    }
+    function updatePlay() {
+      var live = !!run && !run.done;
+      bPause.disabled = !live; bSkip.disabled = !live;
+      bPause.textContent = run && run.paused ? '▶ Resume' : '⏸ Pause';
+      bPause.setAttribute('aria-pressed', run && run.paused ? 'true' : 'false');
+      bStep.disabled = !(live && run.paused && !run.busy);
+    }
+    bPause.addEventListener('click', function () {
+      if (!run || run.done) return;
+      run.paused = !run.paused; updatePlay();
+      if (!run.paused && !run.busy) tick();
+    });
+    bStep.addEventListener('click', function () {
+      if (!run || run.done || !run.paused || run.busy) return;
+      run.stepMv = run.idx < run.acts.length ? run.acts[run.idx].mv : null; tick();
+    });
+    bSkip.addEventListener('click', function () { if (run && !run.done) { run.idx = run.acts.length; run.paused = false; if (S.timer) { clearTimeout(S.timer); S.timer = null; } gen++; run.busy = false; finish(); } });
+
+    function tok() {
+      var t = gFx.querySelector('.nb-token');
+      if (!t) { t = svg('g', { 'class': 'nb-token' }); t.appendChild(svg('circle', { r: 9 })); t.appendChild(svg('text', { y: -38, 'text-anchor': 'middle', 'class': 'nb-tlabel' })); gFx.appendChild(t); }
+      return t;
+    }
+    function putTok(id, phase, label, instant) {
+      var p = pos(id), t = tok();
+      t.setAttribute('class', 'nb-token ph-' + phase);
+      t.lastChild.textContent = label || '';
+      if (instant) t.style.transition = 'none';
+      t.style.transform = 'translate(' + p.x + 'px,' + p.y + 'px)';
+      if (instant) void t.getBoundingClientRect();
+    }
+
     function play(tr) {
       stopAnim(); S.trace = tr; S.shown = 0;
-      /* explanation (filled progressively) */
       explain.textContent = ''; explain.className = 'nb-explain ' + (tr.ok ? 'ok' : 'bad') + ' pending';
       var h = el('h3', '', tr.ok ? 'Success' : 'Failed'); explain.appendChild(h);
-      var head = el('p', 'nb-head', tr.headline); head.hidden = true; explain.appendChild(head);
-      var why = el('p', 'nb-why', tr.why); why.hidden = true; explain.appendChild(why);
+      var head = el('p', 'nb-head nb-later', tr.headline); explain.appendChild(head);
+      var why = el('p', 'nb-why nb-later', tr.why); explain.appendChild(why);
       var ol = el('ol', 'nb-steps');
-      tr.log.forEach(function (e) { var li = el('li', 'ph-' + e.phase, e.text); li.hidden = true; ol.appendChild(li); });
+      tr.log.forEach(function (e) { ol.appendChild(el('li', 'nb-later ph-' + e.phase, e.text)); });
       explain.appendChild(ol);
-      var lis = ol.children, i = 0, n = tr.moves.length, tok = null, last = null;
-      function reveal(upTo) { for (var k = 0; k < tr.log.length; k++) if (tr.log[k].at <= upTo && lis[k].hidden) { lis[k].hidden = false; setCap(tr.log[k].text); } }
-      function fin() {
-        reveal(1e9); head.hidden = false; why.hidden = false; explain.className = 'nb-explain ' + (tr.ok ? 'ok' : 'bad');
-        h.textContent = tr.ok ? 'Success' : 'Failed';
-        setCap(tr.headline);
-        var at = tr.ok ? tr.dstDev : tr.failAt;
-        if (!tr.ok && !at) at = last;
-        var p = at && D(at) ? pos(at) : null;
-        gFx.textContent = '';
-        if (p) {
-          var m = svg('g', { 'class': 'nb-mark ' + (tr.ok ? 'ok' : 'bad'), transform: 'translate(' + (p.x + 34) + ',' + (p.y - 26) + ')' });
-          m.appendChild(svg('circle', { r: 13 })); m.appendChild(svg('text', { y: 5, 'text-anchor': 'middle' }, tr.ok ? '✓' : '✗')); gFx.appendChild(m);
-        }
-        S.timer = null;
+      /* keep the explanation box at least as tall as the longest one seen on this level, so the controls below never jump */
+      explain.style.minHeight = ''; var hh = explain.offsetHeight; S.exH = Math.max(S.exH || 0, hh); explain.style.minHeight = S.exH + 'px';
+      var acts = NB.playScript(tr);
+      run = { tr: tr, acts: acts, idx: 0, paused: false, busy: false, done: false, stepMv: null, last: null, g: gen, lis: ol.children, head: head, why: why, h: h, revealed: 0 };
+      if (tr.moves.length) { putTok(tr.moves[0].from, tr.moves[0].phase, '', true); S.tokAt = tr.moves[0].from; }
+      updatePlay();
+      tick();
+    }
+    function reveal(upTo) {
+      var r = run; if (!r) return;
+      for (var k = 0; k < r.tr.log.length; k++) if (r.tr.log[k].at <= upTo && r.lis[k].classList.contains('nb-later')) { r.lis[k].classList.remove('nb-later'); setCap(r.tr.log[k].text); }
+    }
+    function tick() {
+      var r = run; if (!r || r.done || r.busy) return;
+      if (r.idx >= r.acts.length) return finish();
+      var a = r.acts[r.idx];
+      if (curMs() === 0 && r.stepMv === null) { r.idx = r.acts.length; return finish(); } // Instant
+      if (r.paused && !(r.stepMv !== null && a.mv === r.stepMv)) { r.stepMv = null; updatePlay(); return; }
+      if (r.last !== a.mv) { reveal(a.mv); r.last = a.mv; }
+      r.busy = true; updatePlay();
+      var g = gen;
+      runAct(a, function () {
+        if (g !== gen || run !== r) return;
+        r.busy = false; r.idx++;
+        if (r.stepMv !== null && (r.idx >= r.acts.length || r.acts[r.idx].mv !== r.stepMv)) { r.stepMv = null; }
+        tick();
+      });
+    }
+    function wait(ms, cb) { S.timer = setTimeout(function () { S.timer = null; cb(); }, ms); }
+    function runAct(a, done) {
+      var ms = curMs(), m = a.m, fast = reduce;
+      if (a.t === 'go') {
+        hidePop(); unbusy();
+        setHdr(NB.headerAt(a, S.hdr), m.label);
+        var t = tok(), A = pos(m.from), B = pos(m.to);
+        t.setAttribute('class', 'nb-token ph-' + m.phase); t.lastChild.textContent = m.label || '';
+        if (S.tokAt !== m.from || !t.style.transform) { t.style.transition = 'none'; t.style.transform = 'translate(' + A.x + 'px,' + A.y + 'px)'; void t.getBoundingClientRect(); }
+        if (fast) { t.style.transition = 'none'; t.style.transform = 'translate(' + B.x + 'px,' + B.y + 'px)'; S.tokAt = m.to; wait(Math.min(ms, 350), done); return; }
+        t.style.transition = 'transform ' + ms + 'ms ease-in-out';
+        t.style.transform = 'translate(' + B.x + 'px,' + B.y + 'px)'; S.tokAt = m.to;
+        wait(ms + 30, done);
+      } else {
+        busy(a.dev); showPop(a.dev, a.item);
+        setCap((D(a.dev) ? D(a.dev).name + ': ' : '') + a.item.text);
+        setHdr(NB.headerAt(a, S.hdr), m.label);
+        var tk = tok(); tk.setAttribute('class', 'nb-token ph-' + m.phase);
+        wait(fast ? Math.min(ms * 1.1, 700) : Math.round(ms * 1.15) + 120, done);
       }
-      explain.appendChild(skipBtn());
-      function skipBtn() {
-        var b = el('button', 'nb-btn small nb-skip', 'Skip animation'); b.type = 'button';
-        b.addEventListener('click', function () { if (S.timer) { clearTimeout(S.timer); } fin(); b.remove(); });
-        return b;
+    }
+    function finish() {
+      var r = run; if (!r) return; var tr = r.tr;
+      r.done = true; r.busy = false; hidePop(); unbusy();
+      for (var k = 0; k < r.lis.length; k++) r.lis[k].classList.remove('nb-later');
+      r.head.classList.remove('nb-later'); r.why.classList.remove('nb-later');
+      explain.className = 'nb-explain ' + (tr.ok ? 'ok' : 'bad'); r.h.textContent = tr.ok ? 'Success' : 'Failed';
+      setCap(tr.headline);
+      var last = tr.moves.length ? tr.moves[tr.moves.length - 1] : null;
+      if (last && last.hdr) setHdr(last.hdr, last.label);
+      var at = tr.ok ? tr.dstDev : tr.failAt;
+      if (!tr.ok && !at && last) at = last.to;
+      var p = at && D(at) ? pos(at) : null;
+      var t = gFx.querySelector('.nb-token'); if (t) t.parentNode.removeChild(t);
+      S.tokAt = null;
+      if (p) {
+        var m = svg('g', { 'class': 'nb-mark ' + (tr.ok ? 'ok' : 'bad'), transform: 'translate(' + (p.x + 34) + ',' + (p.y - 26) + ')' });
+        m.appendChild(svg('circle', { r: 13 })); m.appendChild(svg('text', { y: 5, 'text-anchor': 'middle' }, tr.ok ? '✓' : '✗')); gFx.appendChild(m);
       }
-      var dur = reduce ? 0 : S.speed;
-      function step() {
-        if (i >= n) { reveal(n); fin(); var sb = explain.querySelector('.nb-skip'); if (sb) sb.remove(); return; }
-        reveal(i);
-        var m = tr.moves[i], a = pos(m.from), b = pos(m.to);
-        if (!tok) { tok = svg('g', { 'class': 'nb-token' }); tok.appendChild(svg('circle', { r: 9 })); gFx.appendChild(tok); }
-        tok.setAttribute('class', 'nb-token ph-' + m.phase);
-        if (last !== m.from) { tok.style.transition = 'none'; tok.style.transform = 'translate(' + a.x + 'px,' + a.y + 'px)'; void tok.getBoundingClientRect(); }
-        tok.style.transition = dur ? 'transform ' + dur + 'ms ease-in-out' : 'none';
-        tok.style.transform = 'translate(' + b.x + 'px,' + b.y + 'px)';
-        last = m.to; i++;
-        S.timer = setTimeout(step, dur ? dur + 40 : 120);
-      }
-      step();
+      updatePlay();
     }
 
     /* ---------- evaluation + budget ---------- */

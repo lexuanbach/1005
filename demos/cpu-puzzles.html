@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/vn-machine.css">
 <link rel="stylesheet" href="../assets/demo-cpu-puzzles.css">
 </head>
 <body class="part2">
@@ -43,6 +44,7 @@
       <summary>What am I looking at?</summary>
       <div class="cp-explain-body">
         <ul>
+          <li><strong>The diagram.</strong> Blocks are the machine's parts; every arrow is a real register transfer of the current tick. A value travels along it (amber block = source, teal = destination) and the registers update when it lands. Numbers enter from the input queue into the Input device and leave the Output device into the output queue. Use the speed slider (Instant skips the animation), Pause and Step to go at your own pace.</li>
           <li><strong>Memory grid.</strong> One box per numbered cell. Your instructions and your data sit in the same memory: this is the <em>stored-program</em> idea. The cell under the amber outline is where PC points; blue shows a read, green a write.</li>
           <li><strong>PC (program counter).</strong> The address of the next instruction. A normal step adds 1; <code>JUMP</code> and a taken conditional jump overwrite it, which is how loops and if-else exist.</li>
           <li><strong>MAR and MDR.</strong> The memory address register holds <em>which</em> cell is being accessed, the memory data register holds <em>what</em> was read or is about to be written. Every memory access passes through this pair.</li>
@@ -65,6 +67,7 @@
 </footer>
 
 <script src="../assets/vn-machine.js"></script>
+<script src="../assets/vn-datapath.js"></script>
 <script src="../assets/demo-cpu-puzzles.js"></script>
 <script src="../assets/course.js"></script>
 </body>

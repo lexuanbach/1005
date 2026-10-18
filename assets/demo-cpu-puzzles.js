@@ -1,6 +1,7 @@
 /* Program the CPU — CO1005 demo for Chapter 7 (Von Neumann architecture).
    Part 1: pure puzzle logic (levels, tests, scoring) on top of assets/vn-machine.js.  Exported for Node.
    Part 2: the UI (only runs in a browser).
+   The machine panel is the shared VNDatapath diagram (assets/vn-datapath.js): each tick animates its engine flow arrows, then values update.
    Everything here is a SIMULATION of the course's toy computer — not x86 or ARM. */
 (function (global) {
   'use strict';
@@ -109,11 +110,7 @@
   if (!root) return;
 
   var STORE = 'co1005-cpu-puzzles-v1';
-  var SPEEDS = [
-    { name: 'Snail', ms: 1100 }, { name: 'Slow', ms: 600 }, { name: 'Medium', ms: 280 },
-    { name: 'Fast', ms: 110 }, { name: 'Very fast', ms: 30 }, { name: 'Turbo', ms: 0, turbo: true }
-  ];
-  var saved = { levels: {}, src: {}, attempts: {}, speed: 2, big: false, lv: 0 };
+  var saved = { levels: {}, src: {}, attempts: {}, big: false, lv: 0 };
   try { var raw = localStorage.getItem(STORE); if (raw) { var p = JSON.parse(raw); if (p && typeof p === 'object') saved = Object.assign(saved, p); } } catch (e) { /* ignore */ }
   function persist() { try { localStorage.setItem(STORE, JSON.stringify(saved)); } catch (e) { /* ignore */ } }
   var reduceMotion = false;
@@ -125,7 +122,8 @@
 
   var lvIndex = Math.min(Math.max(saved.lv | 0, 0), LEVELS.length - 1);
   var level = LEVELS[lvIndex];
-  var asm = null, machine = null, testIdx = 0, timer = null, running = false, sandboxIn = null, sandboxMem = null;
+  var asm = null, machine = null, testIdx = 0, running = false, paused = false, busy = false, gen = 0, sandboxIn = null, sandboxMem = null;
+  var dp = null, speed = null, slideCancel = null, Q = {};
   var UI = {};
 
   /* ---------- build static DOM ---------- */
@@ -166,10 +164,8 @@
     UI.run = btn('Run', 'btn primary small'); UI.reset = btn('Reset', 'btn ghost small');
     [UI.step, UI.stepI, UI.run, UI.reset].forEach(function (b) { row1.appendChild(b); });
     var row2 = el('div', 'cp-row cp-speedrow');
-    var sl = el('label', 'cp-lab', 'Speed'); sl.setAttribute('for', 'cp-speed');
-    UI.speed = el('input'); UI.speed.type = 'range'; UI.speed.id = 'cp-speed'; UI.speed.min = 0; UI.speed.max = SPEEDS.length - 1; UI.speed.step = 1;
-    UI.speedName = el('span', 'cp-speedname');
-    row2.appendChild(sl); row2.appendChild(UI.speed); row2.appendChild(UI.speedName);
+    speed = global.VNDatapath.speedControl({ key: 'co1005-cpu-puzzles-speed', initial: 2 });
+    row2.appendChild(speed.el);
     UI.testSel = el('select', 'cp-testsel'); UI.testSel.setAttribute('aria-label', 'Which test to watch');
     var tl = el('label', 'cp-lab', 'Watch'); tl.setAttribute('for', 'cp-testsel'); UI.testSel.id = 'cp-testsel';
     UI.sbInputWrap = el('span', 'cp-sbinput');
@@ -203,33 +199,16 @@
     mach.appendChild(top);
     UI.say = el('div', 'cp-say'); UI.say.setAttribute('aria-live', 'polite'); mach.appendChild(UI.say);
 
-    var io = el('div', 'cp-io');
-    UI.inBox = el('div', 'cp-dev'); UI.inBox.appendChild(el('div', 'cp-devname', 'INPUT')); UI.inQ = el('div', 'cp-chips'); UI.inBox.appendChild(UI.inQ);
-    UI.outBox = el('div', 'cp-dev'); UI.outBox.appendChild(el('div', 'cp-devname', 'OUTPUT'));
-    UI.outQ = el('div', 'cp-chips'); UI.expRow = el('div', 'cp-chips cp-exp');
-    UI.outBox.appendChild(UI.outQ); UI.expLab = el('div', 'cp-explab', 'target'); UI.outBox.appendChild(UI.expLab); UI.outBox.appendChild(UI.expRow);
-    io.appendChild(UI.inBox); io.appendChild(UI.outBox);
-    mach.appendChild(io);
+    UI.diagram = el('div', 'vn-diagram cp-diagram'); mach.appendChild(UI.diagram);
+    dp = global.VNDatapath.create(UI.diagram);
+    buildQueues();
+    UI.outBox = el('div', 'cp-dev cp-target');
+    UI.outBox.appendChild(el('span', 'cp-explab', 'Expected output (target):'));
+    UI.expRow = el('span', 'cp-chips cp-exp'); UI.outBox.appendChild(UI.expRow);
+    UI.expLab = UI.outBox.firstChild;
+    mach.appendChild(UI.outBox);
 
-    var cpu = el('div', 'cp-cpu'); UI.cpu = cpu;
-    cpu.appendChild(el('div', 'cp-cpuname', 'CPU'));
-    var regs = el('div', 'cp-regs'); UI.reg = {};
-    [['PC', 'program counter'], ['IR', 'instruction register'], ['MAR', 'memory address'], ['MDR', 'memory data'], ['R', 'accumulator']].forEach(function (r) {
-      var b = el('div', 'cp-reg'); b.appendChild(el('span', 'cp-rname', r[0] + ' · ' + r[1]));
-      var v = el('span', 'cp-val', '0'); b.appendChild(v); var sub = el('span', 'cp-sub'); b.appendChild(sub);
-      UI.reg[r[0]] = { box: b, val: v, sub: sub }; regs.appendChild(b);
-    });
-    var fl = el('div', 'cp-reg cp-flags'); fl.appendChild(el('span', 'cp-rname', 'flags'));
-    var fv = el('span', 'cp-val'); fl.appendChild(fv); UI.reg.FLAGS = { box: fl, val: fv };
-    regs.appendChild(fl);
-    var units = el('div', 'cp-units');
-    UI.reg.DEC = { box: el('div', 'cp-unit', 'decoder') }; UI.reg.ALU = { box: el('div', 'cp-unit', 'ALU') };
-    units.appendChild(UI.reg.DEC.box); units.appendChild(UI.reg.ALU.box);
-    cpu.appendChild(regs); cpu.appendChild(units);
-    mach.appendChild(cpu);
-    UI.reg.IN = { box: UI.inBox }; UI.reg.OUT = { box: UI.outBox };
-
-    UI.memBox = el('div', 'cp-mem'); UI.reg.MEM = { box: UI.memBox };
+    UI.memBox = el('div', 'cp-mem');
     UI.memBox.appendChild(el('div', 'cp-cpuname', 'MEMORY'));
     UI.memGrid = el('div', 'cp-memgrid'); UI.memBox.appendChild(UI.memGrid);
     mach.appendChild(UI.memBox);
@@ -332,7 +311,7 @@
 
   /* ---------- machine ---------- */
   function rebuildMachine() {
-    stop();
+    stop(); dp.clear();
     var src = UI.src.value;
     saved.src[level.id] = src; persist();
     asm = VN.assemble(src, { size: memSize() });
@@ -362,30 +341,94 @@
     }
   }
 
-  var REGKEYS = ['PC', 'IR', 'MAR', 'MDR', 'R', 'DEC', 'ALU', 'FLAGS', 'MEM', 'IN', 'OUT'];
-  function render() {
-    var m = machine, k;
-    REGKEYS.forEach(function (key) { var r = UI.reg[key]; if (r) r.box.classList.remove('src', 'dst'); });
-    UI.cells.forEach(function (c) { c.box.classList.remove('pc', 'mar', 'rd', 'wr'); });
+  /* ---------- input / output queues, drawn inside the diagram next to the IN / OUT blocks ---------- */
+  var SVGNS = 'http://www.w3.org/2000/svg', LANE_X = 764, LANE_W = 142, SLOTS = 4, SLOT_X0 = 770, SLOT_DX = 34;
+  var LANE_Y = { IN: 340, OUT: 400 };
+  function sv(tag, attrs, parent) {
+    var n = doc.createElementNS(SVGNS, tag);
+    for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n); return n;
+  }
+  function buildQueues() {
+    var svg = dp.svg;
+    svg.setAttribute('viewBox', '0 0 910 456');
+    svg.setAttribute('aria-label', 'Block diagram of the Von Neumann machine: CPU registers, ALU, decoder, memory, and the input and output devices with their queues, joined by arrows');
+    ['IN', 'OUT'].forEach(function (k) {
+      var g = sv('g', { class: 'cp-lane cp-lane-' + k }, svg);
+      sv('rect', { x: LANE_X, y: LANE_Y[k], width: LANE_W, height: 44, rx: 9, class: 'cp-lane-box' }, g);
+      var t = sv('text', { x: LANE_X + 8, y: LANE_Y[k] + 12, class: 'cp-lane-t' }, g); t.textContent = k === 'IN' ? 'INPUT QUEUE' : 'OUTPUT QUEUE';
+      Q[k] = sv('g', { class: 'cp-chipsg' }, g);
+    });
+  }
+  function slotX(i) { return SLOT_X0 + i * SLOT_DX; }
+  function drawChip(parent, i, text, cls) {
+    var g = sv('g', { class: 'cp-qchip ' + (cls || ''), transform: 'translate(' + slotX(i) + ' ' + 0 + ')' }, parent);
+    var y = parent.__y;
+    sv('rect', { x: 0, y: y + 18, width: 30, height: 20, rx: 6 }, g);
+    var t = sv('text', { x: 15, y: y + 32, 'text-anchor': 'middle', class: text.length > 4 ? 'sm' : '' }, g); t.textContent = text;
+    return g;
+  }
+  function renderQueues(m) {
+    Q.IN.__y = LANE_Y.IN; Q.OUT.__y = LANE_Y.OUT;
+    Q.IN.innerHTML = ''; Q.OUT.innerHTML = ''; Q.firstIn = null;
+    if (!m) return;
+    var pend = currentTest().in.slice(m.inPos), i;
+    var showN = pend.length > SLOTS ? SLOTS - 1 : pend.length;
+    for (i = 0; i < showN; i++) { var c = drawChip(Q.IN, i, String(pend[i]), i === 0 ? 'next' : ''); if (i === 0) Q.firstIn = c; }
+    if (pend.length > SLOTS) { var mt = sv('text', { x: slotX(SLOTS - 1) + 4, y: LANE_Y.IN + 32, class: 'cp-more' }, Q.IN); mt.textContent = '+' + (pend.length - showN); }
+    var exp = level.sandbox ? null : currentTest().out, outs = m.out, off = 0;
+    if (outs.length > SLOTS) { off = outs.length - (SLOTS - 1); }
+    for (i = off; i < outs.length; i++) drawChip(Q.OUT, i - off + (off ? 1 : 0), String(outs[i]), exp ? (exp[i] === outs[i] ? 'good' : 'badc') : '');
+    if (off) { var ot = sv('text', { x: SLOT_X0 + 2, y: LANE_Y.OUT + 32, class: 'cp-more' }, Q.OUT); ot.textContent = '…'; }
+    if (!outs.length) { var nt = sv('text', { x: SLOT_X0 + 2, y: LANE_Y.OUT + 32, class: 'cp-more' }, Q.OUT); nt.textContent = 'nothing yet'; }
+    if (!pend.length) { var et = sv('text', { x: SLOT_X0 + 2, y: LANE_Y.IN + 32, class: 'cp-more' }, Q.IN); et.textContent = 'empty'; }
+  }
+  // a value travels between a queue and its device block (the queue is part of the device, so IN/OUT really exchange values with it)
+  function slide(from, to, text, ms) {
+    return new Promise(function (resolve) {
+      if (ms <= 0) { resolve(); return; }
+      if (reduceMotion) { var tt = setTimeout(function () { slideCancel = null; resolve(); }, Math.min(ms, 350)); slideCancel = function () { clearTimeout(tt); slideCancel = null; resolve(); }; return; }
+      var g = sv('g', { class: 'vn-dp-token cp-slide' }, dp.svg);
+      var w = Math.max(24, text.length * 7.4 + 14);
+      sv('rect', { x: -w / 2, y: -10, width: w, height: 20, rx: 9 }, g);
+      var t = sv('text', { 'text-anchor': 'middle', y: 4 }, g); t.textContent = text;
+      var t0 = null, raf = 0;
+      function done() { if (raf) cancelAnimationFrame(raf); raf = 0; if (g.parentNode) g.parentNode.removeChild(g); slideCancel = null; resolve(); }
+      slideCancel = done;
+      function frame(ts) {
+        if (t0 === null) t0 = ts;
+        var k = Math.min(1, (ts - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        g.setAttribute('transform', 'translate(' + (from[0] + (to[0] - from[0]) * e).toFixed(1) + ' ' + (from[1] + (to[1] - from[1]) * e).toFixed(1) + ')');
+        if (k < 1) raf = requestAnimationFrame(frame); else done();
+      }
+      g.setAttribute('transform', 'translate(' + from[0] + ' ' + from[1] + ')');
+      raf = requestAnimationFrame(frame);
+    });
+  }
+
+  /* ---------- rendering: narration/buttons now, state (diagram values, memory, queues) once the value has landed ---------- */
+  function renderStatic() {
+    var m = machine, lm = m && m.lastMicro;
     ['fetch', 'decode', 'execute'].forEach(function (p) { UI.phases[p].classList.remove('on'); });
-    if (!m) {
-      UI.counter.textContent = ''; ['PC', 'IR', 'MAR', 'MDR', 'R'].forEach(function (r) { UI.reg[r].val.textContent = '–'; UI.reg[r].sub && (UI.reg[r].sub.textContent = ''); });
-      UI.reg.FLAGS.val.textContent = '–'; UI.inQ.innerHTML = ''; UI.outQ.innerHTML = ''; paintExpected(null);
-      UI.cells.forEach(function (c) { c.val.textContent = ''; c.nm.textContent = ''; c.box.className = 'cp-cell'; });
-      setButtons(); return;
-    }
-    var ab = m.addrBits;
-    UI.reg.PC.val.textContent = m.pc; UI.reg.MAR.val.textContent = m.mar; UI.reg.MDR.val.textContent = m.mdr; UI.reg.R.val.textContent = m.r;
-    UI.reg.IR.val.textContent = m.ir; UI.reg.IR.sub.textContent = VN.disasm(m.ir, ab) + (VN.bits(m.ir, ab) ? '  (' + VN.bits(m.ir, ab) + ')' : '');
-    UI.reg.PC.sub.textContent = ''; UI.reg.R.sub.textContent = ''; UI.reg.MAR.sub.textContent = ''; UI.reg.MDR.sub.textContent = '';
-    UI.reg.FLAGS.val.textContent = 'GT ' + m.gt + '   EQ ' + m.eq + '   LT ' + m.lt;
+    if (!m) { UI.counter.textContent = ''; setButtons(); return; }
     UI.counter.textContent = 'cycle ' + m.instrCount + ' · tick ' + m.microCount;
-    var lm = m.lastMicro;
-    if (lm) {
-      UI.phases[lm.phase].classList.add('on');
-      lm.flow.forEach(function (f) { var s = UI.reg[f[0]], d = UI.reg[f[1]]; if (s) s.box.classList.add('src'); if (d) d.box.classList.add('dst'); });
+    if (lm) UI.phases[lm.phase].classList.add('on');
+    if (lm && lm.text) UI.say.textContent = '[' + lm.phase + '] ' + lm.label + ' — ' + lm.text;
+    if (m.error) UI.say.textContent = 'Machine error: ' + m.error;
+    setButtons();
+  }
+  function renderState() {
+    var m = machine, k;
+    UI.cells.forEach(function (c) { c.box.classList.remove('pc', 'mar', 'rd', 'wr'); });
+    if (!m) {
+      dp.clear();
+      Array.prototype.forEach.call(dp.svg.querySelectorAll('.vn-dp-val'), function (t) { t.textContent = '–'; });
+      renderQueues(null); paintExpected(null);
+      UI.cells.forEach(function (c) { c.val.textContent = ''; c.nm.textContent = ''; c.box.className = 'cp-cell'; });
+      return;
     }
-    // memory
+    var ab = m.addrBits, lm = m.lastMicro;
+    dp.setValues(m);
     for (k = 0; k < m.size; k++) {
       var c = UI.cells[k]; if (!c) continue;
       var kind = asm.cells[k].kind, w = m.mem[k];
@@ -398,31 +441,20 @@
     if (lm && UI.cells[m.mar] && lm.phase !== 'decode') UI.cells[m.mar].box.classList.add('mar');
     if (m.lastRead != null && UI.cells[m.lastRead]) UI.cells[m.lastRead].box.classList.add('rd');
     if (m.lastWrite != null && UI.cells[m.lastWrite]) UI.cells[m.lastWrite].box.classList.add('wr');
-    // I/O
-    UI.inQ.innerHTML = '';
-    var tin = currentTest().in;
-    if (!tin.length) UI.inQ.appendChild(el('span', 'cp-dim', 'empty'));
-    tin.forEach(function (v, i) { UI.inQ.appendChild(el('span', 'cp-chip' + (i < m.inPos ? ' used' : i === m.inPos ? ' next' : ''), String(v))); });
-    UI.outQ.innerHTML = '';
-    var exp = level.sandbox ? null : currentTest().out;
-    if (!m.out.length) UI.outQ.appendChild(el('span', 'cp-dim', 'nothing yet'));
-    m.out.forEach(function (v, i) {
-      var cls = 'cp-chip' + (exp ? (exp[i] === v ? ' good' : ' badc') : ''); UI.outQ.appendChild(el('span', cls, String(v)));
-    });
-    paintExpected(exp);
-    if (lm && lm.text) UI.say.textContent = '[' + lm.phase + '] ' + lm.label + ' — ' + lm.text;
-    if (m.error) UI.say.textContent = 'Machine error: ' + m.error;
-    setButtons();
+    renderQueues(m);
+    paintExpected(level.sandbox ? null : currentTest().out);
   }
+  function render() { renderStatic(); renderState(); }
   function paintExpected(exp) {
     UI.expRow.innerHTML = '';
-    UI.expLab.hidden = UI.expRow.hidden = !exp;
+    UI.outBox.hidden = !exp;
     if (exp) exp.forEach(function (v) { UI.expRow.appendChild(el('span', 'cp-chip ghost', String(v))); });
   }
   function finished() { return !machine || machine.halted || machine.error || machine.waiting; }
   function setButtons() {
     var dead = !machine || finished();
-    UI.step.disabled = UI.stepI.disabled = dead; UI.run.disabled = !machine || (finished() && !running);
+    UI.step.disabled = UI.stepI.disabled = dead || busy;
+    UI.run.disabled = !machine || (!running && (finished() || busy));
     UI.run.textContent = running ? 'Pause' : 'Run';
     UI.check.disabled = !asm || !asm.ok;
   }
@@ -440,31 +472,71 @@
     UI.status.textContent = msg;
   }
 
-  /* ---------- running ---------- */
-  function tick() {
-    timer = null;
-    if (!running || !machine) return;
-    var sp = SPEEDS[saved.speed];
-    if (sp.turbo) {
-      var n = 0; while (n++ < 400 && !finished()) VN.stepInstr(machine);
-    } else VN.stepMicro(machine);
-    render();
-    if (finished()) { running = false; UI.say.setAttribute('aria-live', 'polite'); setButtons(); endMessage(); return; }
-    timer = setTimeout(tick, sp.turbo ? 16 : sp.ms);
+  /* ---------- running: every tick sends its value along the engine's own flow arrows, then the state updates ---------- */
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function cancelAll() { if (dp) dp.cancel(); if (slideCancel) slideCancel(); }
+  function lanePoint(k, i) { return [slotX(i) + 15, LANE_Y[k] + 28]; }
+  function center(id) { var b = global.VNDatapath.NODES[id]; return [b[0] + b[2] / 2, b[1] + b[3] / 2]; }
+  // one micro-step; resolves true if the machine moved. `my` is the run generation (a reset/edit bumps it and abandons us).
+  async function stepOnce(my) {
+    var m = VN.stepMicro(machine);
+    if (!m) { renderStatic(); renderState(); return false; }
+    renderStatic();                                   // narration + phase now; values after the arrow lands
+    var f = m.flow || [], ms = speed.ms();
+    var fromIn = f.some(function (p) { return p[0] === 'IN'; }), toOut = f.some(function (p) { return p[1] === 'OUT'; });
+    if (fromIn && ms > 0 && Q.firstIn) {              // the next number leaves the input queue and enters the IN device
+      Q.firstIn.style.opacity = '0';
+      await slide(lanePoint('IN', 0), center('IN'), String(machine.mdr), ms);
+      if (my !== gen) return false;
+    }
+    await dp.animate(f, machine, ms);
+    if (my !== gen) return false;
+    if (toOut && ms > 0) {                            // the printed number leaves OUT and joins the output queue
+      var slot = Math.min(machine.out.length - 1, SLOTS - 1);
+      await slide(center('OUT'), lanePoint('OUT', slot), String(machine.out[machine.out.length - 1]), ms);
+      if (my !== gen) return false;
+    }
+    renderState();
+    return true;
   }
-  function start() {
-    if (!machine) return;
-    if (finished()) return;
-    running = true; UI.say.setAttribute('aria-live', 'off'); setButtons();
-    UI.status.textContent = 'Running at ' + SPEEDS[saved.speed].name.toLowerCase() + ' speed.';
-    timer = setTimeout(tick, 0);
+  // mode: 'micro' (Step 1 tick) | 'instr' (Step 1 instruction) | 'run'
+  async function drive(mode) {
+    if (!machine || finished() || busy) return;
+    var my = ++gen; busy = true; paused = false; running = mode === 'run';
+    if (running) { UI.say.setAttribute('aria-live', 'off'); UI.status.textContent = 'Running at ' + speed.name().toLowerCase() + ' speed.'; } else UI.status.textContent = '';
+    setButtons();
+    try {
+      if (speed.ms() === 0 && mode !== 'micro') {
+        while (my === gen && !finished()) {
+          var n = 0;
+          if (mode === 'instr') VN.stepInstr(machine); else while (n++ < 400 && !finished()) VN.stepInstr(machine);
+          dp.clear(); render();
+          if (mode === 'instr' || finished() || !running) break;
+          await sleep(16);
+        }
+      } else {
+        for (;;) {
+          var ok = await stepOnce(my);
+          if (my !== gen) return;
+          if (!ok || finished() || mode === 'micro') break;
+          if (mode === 'instr' && !machine.queue.length) break;
+          if (mode === 'run' && !running) break;
+          await sleep(speed.gap());
+          if (my !== gen) return;
+        }
+      }
+    } finally {
+      if (my === gen) {
+        busy = false; var wasRun = paused; running = false; paused = false;
+        UI.say.setAttribute('aria-live', 'polite');
+        renderState(); renderStatic();
+        if (finished()) endMessage(); else if (wasRun) UI.status.textContent = 'Paused.';
+      }
+    }
   }
-  function stop() { running = false; if (timer) { clearTimeout(timer); timer = null; } if (UI.say) UI.say.setAttribute('aria-live', 'polite'); }
-  function doStep(whole) {
-    if (!machine || finished()) return;
-    stop(); if (whole) VN.stepInstr(machine); else VN.stepMicro(machine);
-    render(); if (finished()) endMessage(); else UI.status.textContent = '';
-  }
+  function start() { drive('run'); }
+  function stop() { running = false; busy = false; gen++; cancelAll(); if (UI.say) UI.say.setAttribute('aria-live', 'polite'); }
+  function pause() { if (!running) return; running = false; paused = true; cancelAll(); }
 
   /* ---------- scoring ---------- */
   function check() {
@@ -516,17 +588,13 @@
     var deb = null;
     UI.src.addEventListener('input', function () { clearTimeout(deb); deb = setTimeout(onEdit, 250); });
     UI.restore.addEventListener('click', function () { UI.src.value = level.starter; onEdit(); UI.status.textContent = 'Starter code restored.'; });
-    UI.step.addEventListener('click', function () { doStep(false); });
-    UI.stepI.addEventListener('click', function () { doStep(true); });
-    UI.run.addEventListener('click', function () { if (running) { stop(); setButtons(); UI.status.textContent = 'Paused.'; } else start(); });
+    UI.step.addEventListener('click', function () { drive('micro'); });
+    UI.stepI.addEventListener('click', function () { drive('instr'); });
+    UI.run.addEventListener('click', function () { if (running) pause(); else start(); });
     UI.reset.addEventListener('click', function () { rebuildMachine(); UI.status.textContent = 'Machine reset.'; });
     UI.check.addEventListener('click', check);
     UI.next.addEventListener('click', function () { selectLevel(lvIndex + 1); doc.getElementById('cp-app').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); });
     UI.testSel.addEventListener('change', function () { testIdx = Number(UI.testSel.value); rebuildMachine(); });
-    UI.speed.value = saved.speed;
-    function paintSpeed() { UI.speedName.textContent = SPEEDS[saved.speed].name; UI.speed.setAttribute('aria-valuetext', SPEEDS[saved.speed].name); }
-    UI.speed.addEventListener('input', function () { saved.speed = Number(UI.speed.value); persist(); paintSpeed(); });
-    paintSpeed();
     UI.big.addEventListener('click', function () { saved.big = !saved.big; persist(); applyBig(); });
     applyBig();
   }

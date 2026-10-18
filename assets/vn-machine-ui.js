@@ -36,11 +36,12 @@
     var sel = el('select', 'preset-select'); sel.setAttribute('aria-label', 'Example programs');
     PRESETS.forEach(function (p, i) { var o = el('option'); o.value = String(i); o.textContent = p.name; sel.appendChild(o); });
     bar.appendChild(sel);
-    var bMicro = el('button', 'btn primary', 'Micro-step'); bMicro.title = 'One register transfer at a time';
-    var bInstr = el('button', 'btn ghost', 'Next instruction'); bInstr.title = 'Run the rest of this instruction';
-    var bRun = el('button', 'btn ghost', 'Run to HALT');
+    var bMicro = el('button', 'btn primary', 'Micro-step'); bMicro.title = 'One register transfer at a time, with its arrow';
+    var bInstr = el('button', 'btn ghost', 'Next instruction'); bInstr.title = 'Play the rest of this instruction';
+    var bRun = el('button', 'btn ghost', '▶ Play to HALT'); bRun.title = 'Play the whole program, one arrow after another';
+    var bPause = el('button', 'btn ghost', '⏸ Pause'); bPause.disabled = true;
     var bReset = el('button', 'btn ghost small', 'Reset');
-    [bMicro, bInstr, bRun, bReset].forEach(function (b) { b.type = 'button'; bar.appendChild(b); });
+    [bMicro, bInstr, bRun, bPause, bReset].forEach(function (b) { b.type = 'button'; bar.appendChild(b); });
     panel.appendChild(bar);
 
     var story = el('p', 'vn-story'); panel.appendChild(story);
@@ -59,16 +60,15 @@
     var status = el('div', 'sim-status vn-status'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
     panel.appendChild(status);
 
-    var main = el('div', 'vn-main');
-    var cpu = el('div', 'vn-cpu');
-    cpu.innerHTML = '<div class="vn-cpu-title">CPU</div><div class="vn-regs">' +
-      ['PC', 'IR', 'DEC', 'MAR', 'MDR', 'FLAGS', 'R', 'ALU', 'IN', 'OUT'].map(function (n) {
-        var titles = { PC: 'PC · program counter', IR: 'IR · instruction register', DEC: 'Instruction decoder', MAR: 'MAR · memory address reg.', MDR: 'MDR · memory data reg.',
-          FLAGS: 'Condition codes', R: 'R · accumulator', ALU: 'ALU', IN: 'Input device', OUT: 'Output device' };
-        return '<div class="vn-reg vn-n-' + n + '" data-node="' + n + '"><span class="vn-rname">' + titles[n] + '</span><span class="vn-val" data-v="' + n + '"></span></div>';
-      }).join('') + '</div>';
-    main.appendChild(cpu);
+    var diagram = el('div', 'vn-diagram');
+    var dp = global.VNDatapath ? global.VNDatapath.create(diagram) : null;
+    var controls = el('div', 'vn-controls');
+    var speed = global.VNDatapath.speedControl({ key: 'co1005-vn-speed', initial: 2 });
+    controls.appendChild(speed.el);
+    panel.appendChild(controls);
+    panel.appendChild(diagram);
 
+    var main = el('div', 'vn-main vn-main-mem');
     var memBox = el('div', 'vn-memwrap');
     memBox.setAttribute('data-node', 'MEM');
     var memTitle = el('div', 'vn-cpu-title', 'Memory — cells with addresses (click a number to edit it)');
@@ -119,22 +119,10 @@
       tbody.innerHTML = h;
     }
 
+    var deferDiagram = false;
     function render() {
-      ['PC', 'IR', 'DEC', 'MAR', 'MDR', 'FLAGS', 'R', 'ALU', 'IN', 'OUT'].forEach(function (n) {
-        cpu.querySelector('[data-v="' + n + '"]').textContent = regVal(n);
-      });
       var lm = st.lastMicro;
-      var nodes = cpu.querySelectorAll('.vn-reg');
-      Array.prototype.forEach.call(nodes, function (n) { n.classList.remove('vn-src', 'vn-dst'); });
-      memBox.classList.remove('vn-src', 'vn-dst');
-      if (lm && !st.error) {
-        lm.flow.forEach(function (pair) {
-          [[pair[0], 'vn-src'], [pair[1], 'vn-dst']].forEach(function (x) {
-            var n = x[0] === 'MEM' ? memBox : cpu.querySelector('[data-node="' + x[0] + '"]');
-            if (n) n.classList.add(x[1]);
-          });
-        });
-      }
+      if (!deferDiagram && dp) dp.setValues(st);
       Array.prototype.forEach.call(phases.children, function (p) {
         p.className = lm && !st.halted && !st.error && p.getAttribute('data-p') === lm.phase ? 'on' : '';
       });
@@ -174,7 +162,9 @@
         return;
       }
       errBox.style.display = 'none';
+      cancelled = true; gen++; if (dp) dp.cancel();
       asm = r;
+      if (dp) dp.clear();
       st = VN.create(asm, { input: parseInput(inBox.value) });
       buildRows();
       render();
@@ -187,13 +177,53 @@
       load(preset.src);
     }
     function syncInput() { st.input = parseInput(inBox.value); }
-    function act(fn) { if (!st) return; syncInput(); fn(); render(); }
 
+    // ---- animated stepping: each micro-step sends its value along the arrow(s), at the chosen speed ----
+    var busy = false, cancelled = false, gen = 0;
+    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function setBusy(on, playing) {
+      busy = on;
+      [bMicro, bInstr, bRun, bReset, bAsm, sel].forEach(function (b) { b.disabled = on; });
+      bPause.disabled = !playing;
+    }
+    // one micro-step with its arrow; resolves true if a step happened
+    async function stepOnce() {
+      syncInput();
+      var m = VN.stepMicro(st);
+      if (!m) { render(); return false; }
+      deferDiagram = true; render(); deferDiagram = false;       // narration + memory table now, diagram values after the arrow lands
+      if (dp) {
+        await dp.animate(m.flow, st, speed.ms());
+        if (!cancelled) dp.setValues(st);
+      }
+      return true;
+    }
+    async function play(untilBoundary) {
+      if (!st || busy) return;
+      var my = ++gen; cancelled = false;
+      setBusy(true, !untilBoundary || true);
+      try {
+        if (speed.ms() === 0 && !untilBoundary) { syncInput(); VN.run(st); render(); return; }
+        while (!cancelled && my === gen) {
+          var ok = await stepOnce();
+          if (!ok || st.halted || st.error || st.waiting) break;
+          if (untilBoundary && !st.queue.length) break;
+          await sleep(speed.gap());
+        }
+      } finally {
+        if (my === gen) { setBusy(false, false); render(); }
+      }
+    }
     sel.addEventListener('change', function () { loadPreset(+sel.value); });
-    bMicro.addEventListener('click', function () { act(function () { VN.stepMicro(st); }); });
-    bInstr.addEventListener('click', function () { act(function () { VN.stepInstr(st); }); });
-    bRun.addEventListener('click', function () { act(function () { VN.run(st); }); });
-    bReset.addEventListener('click', function () { st = VN.create(asm, { input: parseInput(inBox.value) }); render(); });
+    bMicro.addEventListener('click', async function () {
+      if (!st || busy) return;
+      var my = ++gen; cancelled = false; setBusy(true, false);
+      try { await stepOnce(); } finally { if (my === gen) { setBusy(false, false); render(); } }
+    });
+    bInstr.addEventListener('click', function () { play(true); });
+    bRun.addEventListener('click', function () { play(false); });
+    bPause.addEventListener('click', function () { cancelled = true; if (dp) dp.cancel(); });
+    bReset.addEventListener('click', function () { if (dp) dp.clear(); st = VN.create(asm, { input: parseInput(inBox.value) }); render(); });
     bAsm.addEventListener('click', function () { load(srcBox.value); });
     tbody.addEventListener('change', function (e) {
       var t = e.target;

@@ -438,7 +438,124 @@
     return best;
   }
 
+  /* ───────────── block-by-block events for the animated diagram ─────────────
+     step = { from, to, text, verdict: pass|block|slip|info|off, note, layers?, merge?, branch?, chip? }
+     The verdict is shown on block `to`. Blocks: user, doc, gate, asm, model, tools, outf, atk.
+     trace(level, res, input) turns the result of chat()/level5()/level6()/level7() into steps, using the engine's own trace entries. */
+  function brief(t, n) { t = String(t == null ? '' : t).replace(/\s+/g, ' ').trim(); return t.length > (n || 18) ? t.slice(0, (n || 18) - 1) + '…' : t; }
+  var VMAP = { pass: 'pass', block: 'block', fail: 'slip', info: 'info' };
+  function trace(level, res, input) {
+    var L = LEVELS[level - 1], T = (res && res.trace) || [], steps = [];
+    function ent(rx) { for (var i = 0; i < T.length; i++) if (rx.test(T[i].stage)) return T[i]; return null; }
+    var tools = res.tools || [], net = res.net || [];
+    var hasDoc = L.kind === 'doc' || (L.kind === 'fortress' && (res.stack || []).some(function (x) { return x.role === 'untrusted'; }));
+    var g = ent(/^Input (filter|gateway)/);
+    steps.push({ from: 'user', to: 'gate', text: brief(L.kind === 'doc' ? L.user : input, 20), chip: 'gate',
+      verdict: g ? VMAP[g.verdict] : 'off', note: g ? g.note : 'No input filter at this level.' });
+    if (g && g.verdict === 'block') {
+      steps[0].stop = true;
+      steps.push({ from: 'gate', to: 'user', text: 'refused', verdict: 'info', note: 'The user only gets the gateway’s refusal. The model never saw the message.' });
+      return steps;
+    }
+    steps.push({ from: 'gate', to: 'asm', text: 'system + user', verdict: 'info', layers: ['system', 'user'], note: 'The assembler stacks the developer’s system prompt and the user’s message into one prompt.' });
+    var hostile = false;
+    if (hasDoc) {
+      var dv, dn, merge = false;
+      if (level === 5) {
+        var spoof = T.filter(function (t) { return /^Delimiter/.test(t.stage) && t.verdict === 'fail'; })[0];
+        dv = spoof ? 'slip' : 'pass'; merge = !!spoof; hostile = !!spoof && res.revealed;
+        dn = spoof ? 'The text after the spoofed closing tag escaped the data fence and merged into the instruction stream.' : 'The e-mail stayed inside the <untrusted_document> fence: data stays data.';
+      } else if (level === 6) {
+        hostile = tools.length > 0 || net.length > 0 || !!res.linkOnly; merge = hostile; dv = 'off';
+        dn = hostile ? 'No delimiting at this level: the page text, with its hidden instruction, merges straight into the prompt.' : 'No delimiting at this level, but nothing in the page asks for anything.';
+      } else {
+        dv = 'pass'; dn = (ent(/^Delimiter/) || {}).note || 'The document is fenced as data and look-alike tags are stripped.';
+      }
+      steps.push({ from: 'doc', to: 'asm', text: 'document', verdict: dv, note: dn, layers: ['untrusted'], merge: merge, chip: 'delim' });
+    }
+    var mdl = ent(/^Model/), mv, mn;
+    if (mdl) { mv = VMAP[mdl.verdict]; mn = mdl.note; }
+    else if (level === 5) { mv = res.revealed ? 'slip' : 'pass'; mn = res.revealed ? 'The model obeyed the instruction that followed the spoofed tag.' : 'The model summarised; it was not asked for anything it would give.'; }
+    else { mv = hostile ? 'slip' : 'pass'; mn = hostile ? 'The model followed the instruction hidden in the page.' : 'The model just summarised the page.'; }
+    steps.push({ from: 'asm', to: 'model', text: 'one token stream', verdict: mv, note: mn });
+    if (level === 6) {
+      var k = 0;
+      T.forEach(function (t) {
+        if (!/^(Least privilege|Human confirmation)$/.test(t.stage) || t.verdict !== 'block') return;
+        steps.push({ from: 'model', to: 'tools', text: 'send_email', verdict: 'block', branch: true, chip: t.stage === 'Least privilege' ? 'priv' : 'confirm',
+          note: t.note + (tools[k] ? ' (' + tools[k].result + ')' : '') });
+        k++;
+      });
+    }
+    var o = ent(/^Output (filter|scanner)/);
+    steps.push({ from: 'model', to: 'outf', text: 'reply', chip: 'outf', verdict: o ? VMAP[o.verdict] : 'off', note: o ? o.note : 'No output filter at this level: the reply goes straight on.' });
+    if (o && o.verdict === 'block') {
+      steps[steps.length - 1].stop = true;
+      steps.push({ from: 'outf', to: 'user', text: 'withheld', verdict: 'info', note: 'The reply was withheld; the user sees only a notice.' });
+      return steps;
+    }
+    if (level === 6 && net.length) {
+      steps.push({ from: 'outf', to: 'atk', text: brief(net[0].replace(/^GET\s+/, '').replace(/\s{2,}.*$/, '').replace(/^https?:\/\/[^\/]+/, ''), 22), verdict: res.revealed ? 'slip' : 'info', chip: 'noimg',
+        note: res.revealed ? 'The chat app rendered the image and fetched it automatically: the code left inside the URL, with no click and no tool call.' : 'The image points at an internal host, so it stays inside campus.' });
+    }
+    steps.push({ from: 'outf', to: 'user', text: 'reply', verdict: res.revealed ? 'slip' : 'pass', note: res.revealed ? 'The protected data reached the reader.' : 'The reply contains nothing protected.' });
+    return steps;
+  }
+
+  /* Defender mode: how one fixed attack travels, given the defences switched on.
+     Each defence lives in a block (DEF_AT); the first enabled one along the path stops the attack there. */
+  var DEF_AT = {
+    a1: [['filter', 'gate']], a2: [['filter', 'outf']], a3: [],
+    a4: [['filter', 'gate']], a5: [['filter', 'gate'], ['delimit', 'asm']],
+    a6: [['delimit', 'asm'], ['leastpriv', 'tools'], ['confirm', 'tools']],
+    a7: [['filter', 'outf'], ['leastpriv', 'outf']], a8: [['leastpriv', 'tools'], ['confirm', 'tools']]
+  };
+  var DEF_CHIP = { filter: { gate: 'gate', outf: 'outf' }, delimit: { asm: 'delim' }, leastpriv: { tools: 'priv', outf: 'noimg' }, confirm: { tools: 'confirm' } };
+  var BLOCK_ORDER = ['gate', 'asm', 'model', 'tools', 'outf'];
+  var DEF_DOC = { a4: 1, a5: 1, a6: 1, a7: 1, a8: 1 };
+  function defenderTrace(attackId, enabled) {
+    var A = ATTACKS.filter(function (x) { return x.id === attackId; })[0], on = enabled || {}, steps = [];
+    var hits = (DEF_AT[attackId] || []).filter(function (h) { return on[h[0]]; });
+    hits.sort(function (x, y) { return BLOCK_ORDER.indexOf(x[1]) - BLOCK_ORDER.indexOf(y[1]); });
+    var stopAt = hits.length ? hits[0] : null, goal = A.vector === 'tool' ? (attackId === 'a7' ? 'atk' : 'tools') : 'user';
+    var path = [['user', 'gate', 'attack'], ['gate', 'asm', 'prompt']];
+    if (DEF_DOC[attackId]) path.splice(2, 0, ['doc', 'asm', 'poisoned doc']);
+    path = path.concat([['asm', 'model', 'token stream']]);
+    if (attackId === 'a6' || attackId === 'a8') path.push(['model', 'tools', attackId === 'a6' ? 'send_email(eve@…)' : 'delete(notes)']);
+    else { path.push(['model', 'outf', 'reply']); if (attackId === 'a7') path.push(['outf', 'atk', 'GET …?d=code']); else path.push(['outf', 'user', 'reply']); }
+    for (var i = 0; i < path.length; i++) {
+      var p = path[i], st = { from: p[0], to: p[1], text: p[2], verdict: 'info', note: '' };
+      if (p[1] === 'asm' && p[0] === 'gate') st.layers = ['system', 'user'], st.note = 'System prompt and user message are stacked.';
+      if (p[0] === 'doc') { st.layers = ['untrusted']; st.note = 'The attacker’s text arrives inside the document.'; }
+      if (p[1] === 'asm' && stopAt && stopAt[1] === 'asm' && p[0] === 'doc') { st.verdict = 'block'; st.chip = 'delim'; st.note = 'Delimiting keeps the document inside the data fence: its instruction is not obeyed.'; st.stop = true; steps.push(st); break; }
+      if (p[1] === 'asm' && p[0] === 'doc' && !(stopAt && stopAt[1] === 'asm')) { st.verdict = 'slip'; st.merge = true; st.note = 'Nothing separates the document from the instructions: its text merges into the instruction stream.'; }
+      if (p[1] === 'gate') {
+        if (on.filter && stopAt && stopAt[1] === 'gate') { st.verdict = 'block'; st.chip = 'gate'; st.stop = true; st.note = 'The keyword gateway catches the banned wording.'; steps.push(st); break; }
+        st.verdict = on.filter ? 'pass' : 'off'; st.chip = 'gate'; st.note = on.filter ? 'The gateway finds no banned word (this attack is not caught here).' : 'No input filter is switched on.';
+      }
+      if (p[1] === 'model') { st.verdict = 'slip'; st.note = 'The model cannot tell the attacker’s wording from a real request and goes along with it.'; }
+      if (p[1] === 'tools') {
+        if (stopAt && stopAt[1] === 'tools') { st.verdict = 'block'; st.chip = DEF_CHIP[stopAt[0]].tools; st.stop = true; st.note = stopAt[0] === 'confirm' ? 'The call waits for a human click; nobody approves it.' : 'The tool layer’s allow-list refuses this recipient / action.'; steps.push(st); break; }
+        st.verdict = 'slip'; st.note = 'The tool call runs: nothing in the tool layer stops it.';
+      }
+      if (p[1] === 'outf') {
+        if (stopAt && stopAt[1] === 'outf') { st.verdict = 'block'; st.chip = DEF_CHIP[stopAt[0]].outf; st.stop = true; st.note = stopAt[0] === 'filter' ? 'The output scanner spots the protected data and withholds the reply.' : 'Outbound images and links are not allowed, so nothing is fetched.'; steps.push(st); break; }
+        st.verdict = (on.filter || on.leastpriv) ? 'pass' : 'off'; st.chip = 'outf';
+        st.note = (on.filter || on.leastpriv) ? 'The output stage finds nothing it recognises (this attack is not caught here).' : 'No output filter is switched on.';
+      }
+      if (p[1] === 'atk') { st.verdict = 'slip'; st.note = 'The chat app fetched the image: the secret left inside the URL.'; }
+      if (p[1] === 'user' && p[0] === 'outf') { st.verdict = 'slip'; st.note = 'The protected data reached the attacker.'; }
+      steps.push(st);
+    }
+    var last = steps[steps.length - 1];
+    if (last.stop) {
+      if (last.to === 'gate' || last.to === 'outf') steps.push({ from: last.to, to: 'user', text: 'blocked', verdict: 'info', note: 'Attack stopped: ' + (A.note || '') });
+    }
+    return steps;
+  }
+
   var Engine = {
+    trace: trace, defenderTrace: defenderTrace,
     LEVELS: LEVELS, WORDS: WORDS, FILTER_WORDS: FILTER_WORDS, DOC5: DOC5, DOC6: DOC6, POST: POST, EXPLAIN: EXPLAIN, CHECK: CHECK,
     DEFENCES: DEFENCES, ATTACKS: ATTACKS, BENIGN: BENIGN,
     classify: classify, chat: chat, level5: level5, level6: level6, level7: level7, gradeChecklist: gradeChecklist,
@@ -464,6 +581,32 @@
   function save() { try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (e) {} }
   function P(l) { return progress[l] || (progress[l] = { done: false, attempts: 0, hints: 0, stars: 0, docs: null }); }
   function say(msg) { $('status').textContent = msg; }
+
+  /* ── animated block diagram (assets/llm-flow.js): one for Play, one for Defender mode ── */
+  var LF = window.LLMFlow, flow = null, dflow = null, tp = null, dtp = null, pending = null, runId = 0;
+  function flush() { var f = pending; pending = null; if (f) f(); }
+  function playChips(L) {
+    var d = L.defences, has = function (x) { return d.indexOf(x) >= 0; };
+    return { polite: has('instruction'), hard: has('hardened'), gate: has('input'), outf: has('output'), delim: has('delimit'), strip: L.id === 7,
+      priv: has('leastpriv'), noimg: L.id === 7, confirm: has('confirm') };
+  }
+  function defChips(en) { return { gate: !!en.filter, outf: !!en.filter, delim: !!en.delimit, priv: !!en.leastpriv, noimg: !!en.leastpriv, confirm: !!en.confirm }; }
+  function initFlow() {
+    if (!LF) return;
+    flow = LF.pipeline($('flow'), { idleText: 'Send a message (or the document) and watch it travel through the blocks. The chips show the defences this level has switched on.' });
+    tp = LF.transport({ key: 'co1005-llm-speed' }); $('flow').appendChild(tp.el); tp.runner.cancelHook = flow.cancel;
+    dflow = LF.pipeline($('def-flow'), { idleText: 'Press “Animate” next to an attack to watch it travel through the blocks you switched on.' });
+    dtp = LF.transport({ key: 'co1005-llm-speed' }); $('def-flow').appendChild(dtp.el); dtp.runner.cancelHook = dflow.cancel;
+  }
+  /* run the engine's steps through the diagram; `done` (the visible reply, trace, tool log...) happens when the last token has landed */
+  function play(steps, done) {
+    flush();
+    if (!flow) { done(); return; }
+    var my = ++runId; pending = done;
+    flow.reset(); flow.setChips(playChips(E.LEVELS[cur - 1]));
+    tp.runner.start(flow.unitsFor(steps)).then(function () { if (my === runId) flush(); });
+  }
+  function stopFlow() { pending = null; runId++; if (tp) { tp.runner.cancel(); flow.reset(); } }
 
   /* ── level strip ── */
   function renderStrip() {
@@ -497,6 +640,7 @@
   }
   function openLevel(id) {
     cur = id; var L = E.LEVELS[id - 1], p = P(id); last[id] = last[id] || null;
+    stopFlow(); if (flow) flow.setChips(playChips(L));
     renderStrip();
     $('lv-title').textContent = 'Level ' + id + ' · ' + L.name;
     $('lv-story').textContent = L.story;
@@ -562,26 +706,33 @@
     inp.value = '';
     attempt(); addMsg('me', msg);
     var res = L.kind === 'fortress' ? E.level7(msg, $('doc-in').value) : E.chat(cur, msg);
-    last[cur] = res; addMsg(res.blocked ? 'sys' : 'bot', res.reply); renderTrace(res);
-    say(res.blocked ? 'Blocked by a defence.' : res.revealed ? 'The bot revealed something. Work out the codeword.' : 'The bot did not reveal the codeword.');
-    if (L.kind === 'fortress') afterFortressTry();
+    last[cur] = res; clear($('trace'));
+    play(E.trace(cur, res, msg), function () {
+      addMsg(res.blocked ? 'sys' : 'bot', res.reply); renderTrace(res);
+      say(res.blocked ? 'Blocked by a defence.' : res.revealed ? 'The bot revealed something. Work out the codeword.' : 'The bot did not reveal the codeword.');
+      if (L.kind === 'fortress') afterFortressTry();
+    });
   }
   function runDoc() {
     var L = E.LEVELS[cur - 1];
     if (L.kind === 'fortress') { $('chat-in').value = $('chat-in').value || 'Summarise this for me.'; sendChat(); return; }
     attempt();
     var doc = $('doc-in').value;
-    var res = cur === 5 ? E.level5(doc) : E.level6(doc);
-    last[cur] = res; $('doc-out').textContent = res.reply; renderTrace(res);
-    var tl = (res.tools || []).map(function (t) { return t.call + '  ->  ' + t.result; }).join('\n');
-    $('doc-tools').textContent = tl ? 'Tool log\n' + tl : '';
-    var nb = clear($('netbox'));
-    if (cur === 6) {
-      nb.hidden = false; nb.appendChild(el('h4', null, 'Attacker server log (simulated, nothing is really sent)'));
-      nb.appendChild(el('pre', null, res.net && res.net.length ? res.net.join('\n') : '(no requests received)'));
-    }
-    if (cur === 6 && res.revealed) { say('The code left the building.'); win(L); }
-    else say(res.revealed ? 'The summary leaked something. Read it carefully.' : 'No leak this time.');
+    var res = cur === 5 ? E.level5(doc) : E.level6(doc), lv = cur;
+    last[cur] = res; clear($('trace'));
+    if (cur === 6 && res.revealed) markWon(L); // progress is saved at once; the reveal waits for the animation
+    play(E.trace(cur, res, null), function () {
+      $('doc-out').textContent = res.reply; renderTrace(res);
+      var tl = (res.tools || []).map(function (t) { return t.call + '  ->  ' + t.result; }).join('\n');
+      $('doc-tools').textContent = tl ? 'Tool log\n' + tl : '';
+      var nb = clear($('netbox'));
+      if (lv === 6) {
+        nb.hidden = false; nb.appendChild(el('h4', null, 'Attacker server log (simulated, nothing is really sent)'));
+        nb.appendChild(el('pre', null, res.net && res.net.length ? res.net.join('\n') : '(no requests received)'));
+      }
+      if (lv === 6 && res.revealed) { say('The code left the building.'); win(L); }
+      else say(res.revealed ? 'The summary leaked something. Read it carefully.' : 'No leak this time.');
+    });
   }
   var hints = function () {
     var L = E.LEVELS[cur - 1], p = P(cur), box = $('hintbox');
@@ -591,13 +742,17 @@
     box.appendChild(h); updateCounters(); say('Hint ' + p.hints + ' shown.');
   };
 
-  function win(L) {
+  function markWon(L) {
     var p = P(L.id);
     if (!p.done) {
       p.done = true;
       p.stars = (p.attempts <= 3 && p.hints === 0) ? 3 : (p.attempts <= 8 && p.hints <= 1) ? 2 : 1;
       save();
     }
+  }
+  function win(L) {
+    var p = P(L.id);
+    markWon(L);
     $('lv-system').textContent = L.system;
     renderStrip(); updateCounters(); showPostmortem(L);
     say('Level ' + L.id + ' cleared with ' + p.stars + ' stars. Read the post-mortem.');
@@ -676,6 +831,17 @@
 
   /* ── defender mode ── */
   var enabled = {};
+  function animateAttack(id) {
+    if (!dflow) return;
+    var steps = E.defenderTrace(id, enabled);
+    dflow.reset(); dflow.setChips(defChips(enabled));
+    dtp.runner.start(dflow.unitsFor(steps)).then(function (res) {
+      if (res.cancelled) return;
+      var last = steps[steps.length - 1];
+      say(steps.some(function (s) { return s.stop; }) ? 'Attack ' + id + ' was stopped.' : 'Attack ' + id + ' got through. ' + (last.note || ''));
+    });
+    var w = $('def-flow'); if (w.getBoundingClientRect().top < 0 || w.getBoundingClientRect().bottom > window.innerHeight) w.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+  }
   function renderDefender() {
     var d = clear($('def-toggles'));
     E.DEFENCES.forEach(function (x) {
@@ -684,14 +850,18 @@
       lab.appendChild(cb); var s = el('span'); s.appendChild(el('b', null, ' ' + x.name)); s.appendChild(el('small', null, x.desc)); lab.appendChild(s); d.appendChild(lab);
     });
     var r = E.evaluate(enabled), best = E.bestConfig();
+    if (dflow) { if (dtp.runner.active) dtp.runner.cancel(); dflow.reset(); dflow.setChips(defChips(enabled)); }
     var at = clear($('def-attacks'));
     E.ATTACKS.forEach(function (a, i) {
       var row = el('tr', r.attacks[i].blocked ? 'ok' : 'bad');
       row.appendChild(el('td', null, a.vector));
       row.appendChild(el('td', 'mono', a.text));
       row.appendChild(el('td', 'res', r.attacks[i].blocked ? 'BLOCKED by ' + r.attacks[i].by.map(function (id) { return E.DEFENCES.filter(function (z) { return z.id === id; })[0].name; }).join(' + ') : 'GOT THROUGH'));
+      var ab = el('button', 'btn ghost small', '▶ Animate'); ab.type = 'button'; ab.setAttribute('aria-label', 'Animate attack ' + (i + 1) + ' through the diagram');
+      ab.addEventListener('click', function () { animateAttack(a.id); });
+      var abc = el('td'); abc.appendChild(ab); row.appendChild(abc);
       at.appendChild(row);
-      if (!r.attacks[i].blocked) { var n = el('tr', 'note'); var td = el('td', null, 'Needs: ' + a.by.map(function (id) { return E.DEFENCES.filter(function (z) { return z.id === id; })[0].name; }).join(' or ') || ''); td.colSpan = 3; if (!a.by.length) td.textContent = 'No defence in this list stops it. ' + a.note; else td.textContent = 'Any of: ' + a.by.map(function (id) { return E.DEFENCES.filter(function (z) { return z.id === id; })[0].name; }).join(', ') + '. ' + a.note; n.appendChild(td); at.appendChild(n); }
+      if (!r.attacks[i].blocked) { var n = el('tr', 'note'); var td = el('td', null, 'Needs: ' + a.by.map(function (id) { return E.DEFENCES.filter(function (z) { return z.id === id; })[0].name; }).join(' or ') || ''); td.colSpan = 4; if (!a.by.length) td.textContent = 'No defence in this list stops it. ' + a.note; else td.textContent = 'Any of: ' + a.by.map(function (id) { return E.DEFENCES.filter(function (z) { return z.id === id; })[0].name; }).join(', ') + '. ' + a.note; n.appendChild(td); at.appendChild(n); }
     });
     var bn = clear($('def-benign')), lab = { ok: 'works', click: 'works after a click', degraded: 'works worse', blocked: 'refused' };
     E.BENIGN.forEach(function (b, i) {
@@ -732,6 +902,7 @@
     });
     $('def-clear').addEventListener('click', function () { enabled = {}; renderDefender(); });
     $('def-showbest').addEventListener('click', function () { enabled = Object.assign({}, E.bestConfig().cfg); renderDefender(); });
+    initFlow();
     var first = 1; for (var i = 1; i <= 7; i++) { if (!P(i).done) { first = i; break; } }
     openLevel(first);
     setMode('play');

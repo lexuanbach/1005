@@ -94,3 +94,6 @@ textarea.llm-doc { min-height: 7rem; font-size: 0.82rem; }
 .llm-stats span { font-size: 0.74rem; color: var(--ink-soft); }
 .llm-bad-text { color: var(--red); }
 textarea.llm-doc { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* animated flow diagrams (see llm-flow.css): results dim while a run is animating */
+.llm-panel.llm-stale .llm-answer, .llm-panel.llm-stale .llm-list, .llm-panel.llm-stale .sim-status { opacity: 0.5; }

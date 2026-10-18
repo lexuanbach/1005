@@ -120,3 +120,30 @@
   .np-scen .np-big-btn { margin-left: 0; }
   .np-bar { grid-template-columns: 5.5rem 1fr 3rem; }
 }
+
+/* inspect one sample */
+.np-insp-bar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.2rem 0 0.5rem; }
+.np-insp-bar .btn { min-width: 5.4rem; }
+.np-insp-speed { margin: 0 0 0.5rem; }
+.np-insp .af-speed-name { min-width: 8.5rem; }
+.np-stages { display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 3.5rem; align-content: flex-start; margin-bottom: 0.4rem; }
+.np-stages button { font: 600 0.74rem "IBM Plex Mono", monospace; padding: 0.22rem 0.5rem; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
+.np-stages button.done { color: var(--ink); border-color: color-mix(in srgb, var(--ink-soft) 55%, var(--line)); }
+.np-stages button.cur { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+.np-stages button.bwd.cur { background: var(--amber); border-color: var(--amber); color: #1a1a1a; }
+.np-stages button:disabled { opacity: 0.4; cursor: default; }
+.np-insp-narr { min-height: 8.6rem; margin: 0.2rem 0 0.5rem; padding: 0.5rem 0.7rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--paper); font-size: 0.86rem; line-height: 1.5; color: var(--ink-soft); }
+.np-insp-narr strong { color: var(--ink); }
+.np-insp-narr code { font-family: "IBM Plex Mono", monospace; font-size: 0.82em; }
+.np-insp-nums { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.35rem; min-height: 3.2rem; }
+.np-insp-nums .np-stat b { font-size: 0.9rem; }
+.np-net .np-vlab { font: 600 8.5px "IBM Plex Mono", monospace; text-anchor: middle; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.np-net .np-vlab.d { fill: color-mix(in srgb, var(--amber) 70%, var(--ink)); }
+.np-net .node.hot { stroke: var(--accent); stroke-width: 3; }
+.np-net .node.hot.bwd { stroke: var(--amber); }
+.np-net .node.target { stroke: var(--amber); stroke-width: 3.5; stroke-dasharray: 3 2; }
+.np-net .np-losstxt { font: 700 12px "IBM Plex Mono", monospace; fill: var(--red); text-anchor: end; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.np-net .np-pulse { stroke: var(--surface); stroke-width: 1; pointer-events: none; }
+.np-key { display: inline-block; width: 0.8rem; height: 0.35rem; border-radius: 2px; vertical-align: middle; margin: 0 0.15rem 0 0.1rem; }
+.np-key.warm { background: var(--red); } .np-key.cool { background: var(--c0); }
+@media (max-width: 40rem) { .np-insp-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); } .np-insp-narr { min-height: 13rem; } }

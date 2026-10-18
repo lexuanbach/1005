@@ -546,6 +546,7 @@ CREATE TABLE incident (
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let db, S;     // S = saved state
+  let flow = null;   // 'Inside the database' diagram (assets/sql-flow.js); purely a view of db.trace()
   const fresh = () => ({ solved: [], hints: {}, notebook: [], wrong: 0, runs: 0, closed: false, big: false, view: 0, draft: '' });
   function load() { try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && Array.isArray(v.solved)) return Object.assign(fresh(), v); } catch (e) { /* no storage */ } return fresh(); }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }
@@ -578,7 +579,8 @@ CREATE TABLE incident (
           '<p class="sd-status" id="sd-status" role="status" aria-live="polite"></p></div></div>' +
           '<div id="sd-result" class="sd-result"></div><div id="sd-plan" class="sd-plan" hidden></div><div id="sd-clue"></div>' +
         '</div>' +
-        '<aside class="sd-aside"><section class="sd-card"><h3>Schema browser</h3><div id="sd-schema"></div></section>' +
+        '<aside class="sd-aside"><section class="sd-card sd-machine" aria-label="Inside the database"><h3>Inside the database <span class="sd-sub">every query goes through the machine (a simulation)</span></h3><div id="sd-flow"></div></section>' +
+        '<section class="sd-card"><h3>Schema browser</h3><div id="sd-schema"></div></section>' +
         '<section class="sd-card"><h3>Notebook <span class="sd-sub">your earlier queries</span></h3><ul class="sd-notebook" id="sd-notebook"></ul></section></aside>' +
       '</section>';
     const sel = $('#sd-who');
@@ -715,7 +717,8 @@ CREATE TABLE incident (
   function runQuery() {
     const ta = $('#sd-sql'), sql = ta.value;
     S.draft = sql; S.runs++;
-    const out = db.run(sql);
+    const out = flow && db.trace ? db.trace(sql) : db.run(sql);
+    if (flow && out.events) flow.play(out);
     const box = $('#sd-result'); box.innerHTML = '';
     let state = 'run';
     const msgs = [];
@@ -800,6 +803,7 @@ CREATE TABLE incident (
     if (S.view > nextOpen()) S.view = nextOpen();
     if (S.view >= LEVELS.length) S.view = LEVELS.length - 1;
     skeleton(); applyBig(); renderAll();
+    flow = (typeof root !== 'undefined' && root && root.SqlFlow && $('#sd-flow')) ? root.SqlFlow.create($('#sd-flow'), { speedKey: 'co1005-sql-speed' }) : null;
     $('#sd-sql').value = S.draft || (isReset ? '' : '');
     $('#sd-run').addEventListener('click', runQuery);
     $('#sd-clear').addEventListener('click', () => { $('#sd-sql').value = ''; $('#sd-sql').focus(); });

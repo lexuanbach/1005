@@ -91,3 +91,4 @@ body.big { font-size: 1.2rem; } body.big .ia pre, body.big .ia input, body.big .
   .msg { max-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .mbar i { transition: none; } }
+#def-attacks .btn { white-space: nowrap; }

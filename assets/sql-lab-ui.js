@@ -33,6 +33,7 @@
         '<textarea id="sq-editor" class="sq-editor" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>' +
         '<div class="sq-actions"><button type="button" class="btn primary" id="sq-run">&#9654; Run</button>' +
         '<button type="button" class="btn ghost" id="sq-clear">Clear</button><span class="sq-status" id="sq-status" role="status" aria-live="polite"></span></div>' +
+      '<section class="sq-flowcard" aria-label="Inside the database: the query travels through the system"><h4 class="sq-flowh">Inside the database <span class="sq-sub">your query travels through the machine; every arrow is a real step of the engine (a simulation)</span></h4><div id="sq-flow"></div></section>' +
         '<div id="sq-result" class="sq-result"></div>' +
         '<div id="sq-plan" class="sq-plan"></div>' +
       '</div>' +
@@ -42,6 +43,7 @@
   var selDs = $('#sq-dataset');
   Object.keys(Lab.DATASETS).forEach(function (k) { var o = el('option'); o.value = k; o.textContent = Lab.DATASETS[k].title; selDs.appendChild(o); });
   var editor = $('#sq-editor'), status = $('#sq-status');
+  var flow = window.SqlFlow ? window.SqlFlow.create($('#sq-flow'), { speedKey: 'co1005-sql-speed' }) : null;
 
   function load(name, keepText) {
     state.dataset = name; state.db = Lab.createDatabase(name);
@@ -55,6 +57,7 @@
     });
     if (!keepText) { editor.value = Lab.DATASETS[name].examples[0].sql; $('#sq-exnote').textContent = Lab.DATASETS[name].examples[0].note; }
     $('#sq-result').innerHTML = ''; $('#sq-plan').innerHTML = '';
+    if (flow) flow.reset();
     say('Database "' + Lab.DATASETS[name].title.split(' — ')[0] + '" loaded. Press Run.', false);
     drawSchema();
   }
@@ -145,7 +148,8 @@
 
   function run() {
     var sql = editor.value;
-    var out = state.db.run(sql);
+    var out = flow && state.db.trace ? state.db.trace(sql) : state.db.run(sql);
+    if (flow && out.events) flow.play(out);
     var box = $('#sq-result'); box.innerHTML = '';
     var lastPlan = null, lastSelect = null, msgs = [];
     out.results.forEach(function (r) {
