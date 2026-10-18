@@ -1,0 +1,122 @@
+/* Draw & Teach a Brain — page styles (tokens come from style.css) */
+.np { --c0: #2F6FE4; --c1: #E8842A; --c2: #A23FC0; --pos: var(--teal); --neg: #D4466F; font-size: 16px; }
+:root[data-theme="dark"] .np { --c0: #6FA0FF; --c1: #FFA255; --c2: #D58CF0; --neg: #FF7DA5; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .np { --c0: #6FA0FF; --c1: #FFA255; --c2: #D58CF0; --neg: #FF7DA5; } }
+
+.np-wrap { max-width: 82rem; margin: 0 auto; padding: 0 1.25rem; }
+.np-intro { padding: 2.2rem 0 1rem; }
+.np-intro h1 { font-family: "Archivo", sans-serif; font-weight: 800; font-size: clamp(2rem, 4.5vw, 3rem); line-height: 1.1; margin: 0.3rem 0 0.8rem; }
+.np-intro .lede { max-width: 56rem; }
+.np-toy { max-width: 56rem; margin: 0.9rem 0 0; padding: 0.7rem 1rem; border-left: 4px solid var(--amber); background: color-mix(in srgb, var(--amber) 9%, var(--surface)); border-radius: 0 8px 8px 0; font-size: 0.93rem; line-height: 1.5; }
+.np-stage { padding: 0.8rem 0 3rem; }
+
+/* scenarios */
+.np-scen { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.np-scen button { font: 600 0.9rem "Be Vietnam Pro", system-ui, sans-serif; padding: 0.5rem 0.95rem; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
+.np-scen button b { display: inline-grid; place-items: center; width: 1.35rem; height: 1.35rem; margin-right: 0.35rem; border-radius: 50%; background: color-mix(in srgb, var(--accent) 15%, var(--surface)); color: var(--accent-ink); font-size: 0.78rem; }
+.np-scen button[aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+.np-scen button[aria-checked="true"] b { background: color-mix(in srgb, var(--accent-contrast) 25%, transparent); color: var(--accent-contrast); }
+.np-scen .np-big-btn { margin-left: auto; border-style: dashed; }
+.np-scen .np-big-btn[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.np-story { margin: 0.8rem 0 1rem; padding: 0.85rem 1.1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
+.np-story h2 { font: 700 1.1rem "Archivo", sans-serif; margin: 0 0 0.3rem; }
+.np-story p { margin: 0.25rem 0; font-size: 0.95rem; line-height: 1.55; }
+.np-story .np-story-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+
+/* main grid */
+.np-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.1rem; align-items: start; }
+.np-board, .np-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0.8rem; }
+.np-card { margin: 0 0 1rem; box-shadow: var(--shadow); }
+.np-side .np-card:last-child { margin-bottom: 0; }
+.np-card h3, .np-card legend { font: 700 0.98rem "Archivo", sans-serif; margin: 0 0 0.5rem; padding: 0; color: var(--ink); }
+.np-card legend { padding: 0 0.35rem; }
+.np-sub { font: 400 0.8rem "Be Vietnam Pro", sans-serif; color: var(--ink-soft); margin-left: 0.4rem; }
+.np-tools { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.6rem; }
+.np-tools button { font: 600 0.82rem "Be Vietnam Pro", sans-serif; padding: 0.4rem 0.7rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink-soft); cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
+.np-tools button[aria-checked="true"] { border-color: var(--ink); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: color-mix(in srgb, var(--ink) 6%, var(--surface)); }
+.np-tools button:disabled { opacity: 0.4; cursor: not-allowed; }
+.np-tools .tp[aria-checked="true"] { background: var(--ink); color: var(--surface); }
+.np-canvas-wrap { position: relative; width: 100%; aspect-ratio: 1; max-width: 46rem; margin: 0 auto; }
+#np-canvas { width: 100%; height: 100%; display: block; border-radius: 10px; border: 1px solid var(--line); touch-action: none; cursor: crosshair; background: var(--surface); }
+#np-canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.np-badge { position: absolute; left: 10px; top: 10px; padding: 0.2rem 0.65rem; border-radius: 999px; font: 600 0.78rem "IBM Plex Mono", monospace; background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid var(--line); color: var(--ink-soft); pointer-events: none; }
+.np-badge.training { color: var(--accent-contrast); background: var(--accent); border-color: var(--accent); }
+.np-badge.frozen { color: var(--surface); background: var(--ink); border-color: var(--ink); }
+.np-hover { position: absolute; right: 10px; top: 10px; padding: 0.2rem 0.65rem; border-radius: 8px; font: 500 0.78rem "IBM Plex Mono", monospace; background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid var(--line); pointer-events: none; display: none; }
+.np-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0.6rem 0; font-size: 0.8rem; color: var(--ink-soft); }
+.np-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.np-legend.k2 .np-k3 { display: none; }
+.sh { display: inline-block; width: 0.8rem; height: 0.8rem; background: var(--c0); }
+.sh0 { border-radius: 50%; background: var(--c0); }
+.sh1 { background: var(--c1); border-radius: 2px; }
+.sh2 { background: var(--c2); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.dot { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 50%; }
+.dot.filled { background: var(--ink-soft); }
+.dot.hollow { border: 2.5px solid var(--ink-soft); }
+.dot.probe { border: 2px solid var(--ink); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--ink); }
+.np-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.np-run { min-width: 7.5rem; font-size: 1rem; padding: 0.6rem 1.4rem; }
+.np-run.attn { animation: np-pulse 1.6s ease-in-out infinite; }
+@keyframes np-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 50% { box-shadow: 0 0 0 9px transparent; } }
+@media (prefers-reduced-motion: reduce) { .np-run.attn { animation: none; } * { transition: none !important; } }
+
+/* instruments */
+.np-net { width: 100%; height: auto; display: block; }
+.np-net text { font: 600 12px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.np-net .node { stroke: var(--ink-soft); stroke-width: 1.5; }
+.np-cap { font-size: 0.8rem; color: var(--ink-soft); margin: 0.3rem 0 0; line-height: 1.45; }
+.np-cap .pos { color: var(--pos); font-weight: 600; } .np-cap .neg { color: var(--neg); font-weight: 600; }
+.np-curve { width: 100%; height: auto; display: block; margin-bottom: 0.4rem; border-radius: 6px; }
+.np-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; margin-top: 0.3rem; }
+.np-stat { border: 1px solid var(--line); border-radius: 8px; padding: 0.3rem 0.5rem; background: color-mix(in srgb, var(--ink) 3%, var(--surface)); }
+.np-stat small { display: block; font-size: 0.68rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.np-stat b { font: 600 1rem "IBM Plex Mono", monospace; }
+.np-verdict { margin: 0.5rem 0 0; padding: 0.45rem 0.7rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; line-height: 1.4; border: 1px solid var(--line); }
+.np-verdict.over { border-color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
+.np-verdict.ok { border-color: var(--green); background: color-mix(in srgb, var(--green) 10%, var(--surface)); }
+.np-verdict.under { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--surface)); }
+.np-bar { display: grid; grid-template-columns: 7.5rem 1fr 3.2rem; gap: 0.5rem; align-items: center; margin: 0.35rem 0; font-size: 0.88rem; }
+.np-bar .track { height: 0.9rem; border-radius: 99px; background: color-mix(in srgb, var(--ink) 8%, var(--surface)); overflow: hidden; }
+.np-bar .fill { height: 100%; background: var(--accent); border-radius: 99px; }
+.np-bar .fill.low { background: var(--red); }
+.np-bar b { font-family: "IBM Plex Mono", monospace; text-align: right; }
+.np-medal { font: 700 1.05rem "Archivo", sans-serif; }
+
+/* controls */
+.np-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1.1rem; }
+.np-controls fieldset { margin: 0; min-width: 0; }
+.np-controls fieldset:disabled { opacity: 0.55; }
+.np-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0; }
+.np-lab { font-size: 0.82rem; color: var(--ink-soft); min-width: 6.2rem; }
+.np-row b { min-width: 1.4rem; text-align: center; font-family: "IBM Plex Mono", monospace; }
+.np-controls .btn.small[aria-pressed="true"] { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+.np-sl { display: block; margin: 0.55rem 0; font-size: 0.84rem; color: var(--ink-soft); }
+.np-sl span { display: flex; justify-content: space-between; }
+.np-sl output { font-family: "IBM Plex Mono", monospace; color: var(--ink); font-weight: 600; }
+.np-sl input[type=range] { width: 100%; accent-color: var(--accent); }
+.np-hint { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.45; margin: 0.4rem 0 0; }
+.np-status { min-height: 1.5rem; margin: 0.9rem 0 0.4rem; font: 500 0.9rem "IBM Plex Mono", monospace; color: var(--ink-soft); }
+.np-explain { margin-top: 0.8rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.np-explain summary { cursor: pointer; padding: 0.8rem 1.1rem; font: 700 1rem "Archivo", sans-serif; }
+.np-explain-body { padding: 0 1.1rem 1rem; }
+.np-explain dt { font-weight: 700; margin-top: 0.7rem; }
+.np-explain dd { margin: 0.1rem 0 0; color: var(--ink-soft); line-height: 1.55; font-size: 0.93rem; }
+.np-honest { margin-top: 1rem; font-size: 0.88rem; padding: 0.6rem 0.9rem; border-left: 4px solid var(--amber); background: color-mix(in srgb, var(--amber) 9%, var(--surface)); }
+.np-layer-row .np-lab { font-family: "IBM Plex Mono", monospace; }
+
+/* projector size */
+.np.big { font-size: 19px; }
+.np.big .btn.small, .np.big .np-tools button, .np.big .np-scen button { font-size: 1.05rem; padding: 0.55rem 1rem; }
+.np.big .np-stat b { font-size: 1.25rem; } .np.big .np-sl, .np.big .np-lab, .np.big .np-hint, .np.big .np-cap, .np.big .np-legend { font-size: 1rem; }
+.np.big .np-story p { font-size: 1.1rem; }
+
+@media (max-width: 62rem) {
+  .np-grid { grid-template-columns: minmax(0, 1fr); }
+  .np-controls { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 40rem) {
+  .np-wrap { padding: 0 1rem; }
+  .np-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .np-scen .np-big-btn { margin-left: 0; }
+  .np-bar { grid-template-columns: 5.5rem 1fr 3rem; }
+}

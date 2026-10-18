@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Draw &amp; Teach a Brain · CO1005 Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/demo-neural-playground.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="index.html">Demos</a>
+      <a href="../chapters/chapter-11.html">Chapter 11</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<main class="np" id="np-root">
+  <section class="np-intro">
+    <div class="np-wrap">
+      <span class="eyebrow">Chapter 11 · Artificial Intelligence · Demo</span>
+      <h1>Draw &amp; Teach a Brain</h1>
+      <p class="lede">
+        Paint coloured dots, build a tiny neural network, press <strong>Train</strong> and watch it
+        <em>learn</em> where one colour ends and the next begins. Then switch to <strong>Predict</strong>, freeze the
+        brain, and ask it about dots it has never seen. This is the chapter's idea
+        <code>Y = F(x)</code> with <code>F</code> learned from data, in two dimensions you can see.
+        (<a href="../chapters/chapter-11.html#concepts">Chapter 11</a>, sections 11.5 to 11.9.)
+      </p>
+      <p class="np-toy" role="note"><strong>A toy, not ChatGPT.</strong> This brain has between 6 and about 200 numbers (weights) and
+        learns to colour a flat picture. A chat model like ChatGPT is the same kind of idea (numbers adjusted to reduce an error)
+        scaled up by many orders of magnitude and trained on text. Nothing here talks, reasons or understands.</p>
+    </div>
+  </section>
+
+  <section class="np-stage" aria-label="Neural network playground">
+    <div class="np-wrap">
+
+      <div class="np-scen" role="radiogroup" aria-label="Scenario">
+        <button type="button" role="radio" aria-checked="true" data-scen="sandbox"><b>1</b> Sandbox</button>
+        <button type="button" role="radio" aria-checked="false" data-scen="memorise"><b>2</b> Memorise</button>
+        <button type="button" role="radio" aria-checked="false" data-scen="lr"><b>3</b> Learning rate</button>
+        <button type="button" role="radio" aria-checked="false" data-scen="bias"><b>4</b> Biased data</button>
+        <button type="button" role="radio" aria-checked="false" data-scen="challenge"><b>5</b> Challenge</button>
+        <button type="button" class="np-big-btn" id="np-big" aria-pressed="false" title="Larger type and controls for a projector">Projector size</button>
+      </div>
+      <div class="np-story" id="np-story"></div>
+
+      <div class="np-grid">
+        <!-- ===== left: the drawing board ===== -->
+        <div class="np-board">
+          <div class="np-tools" role="radiogroup" aria-label="Canvas tool">
+            <button type="button" role="radio" aria-checked="true" data-tool="0" class="t0"><i class="sh sh0"></i> Paint 1</button>
+            <button type="button" role="radio" aria-checked="false" data-tool="1" class="t1"><i class="sh sh1"></i> Paint 2</button>
+            <button type="button" role="radio" aria-checked="false" data-tool="2" class="t2"><i class="sh sh2"></i> Paint 3</button>
+            <button type="button" role="radio" aria-checked="false" data-tool="erase" class="te">Erase</button>
+            <button type="button" role="radio" aria-checked="false" data-tool="look" class="te">Look</button>
+            <button type="button" role="radio" aria-checked="false" data-tool="predict" class="tp">Predict (frozen)</button>
+          </div>
+          <div class="np-canvas-wrap">
+            <canvas id="np-canvas" width="640" height="640" tabindex="0"
+              aria-label="Drawing board. Arrow keys move a cursor, Enter drops dots with the chosen tool, Delete erases nearby dots."></canvas>
+            <div class="np-badge" id="np-badge" aria-hidden="true">Paused</div>
+            <div class="np-hover" id="np-hover" aria-hidden="true"></div>
+          </div>
+          <div class="np-legend">
+            <span><i class="sh sh0"></i> class 1</span><span><i class="sh sh1"></i> class 2</span><span class="np-k3"><i class="sh sh2"></i> class 3</span>
+            <span class="np-leg-train"><i class="dot filled"></i> training dot (learned from)</span>
+            <span class="np-leg-test"><i class="dot hollow"></i> test dot (hidden from training)</span>
+            <span class="np-leg-probe"><i class="dot probe"></i> your probe</span>
+          </div>
+          <div class="np-actions">
+            <button type="button" class="btn primary np-run" id="np-run">Train</button>
+            <button type="button" class="btn ghost" id="np-step" title="Train for exactly one epoch">Step 1 epoch</button>
+            <button type="button" class="btn ghost" id="np-reset" title="Throw the weights away and start from a fresh random brain">Reset brain</button>
+            <button type="button" class="btn ghost" id="np-clear-probes">Clear probes</button>
+          </div>
+        </div>
+
+        <!-- ===== right: the instruments ===== -->
+        <div class="np-side">
+          <div class="np-card">
+            <h3>The brain <span class="np-sub" id="np-weights"></span></h3>
+            <svg id="np-net" class="np-net" viewBox="0 0 420 260" role="img" aria-label="Network diagram"></svg>
+            <p class="np-cap">Line colour: <span class="pos">teal = positive weight</span>, <span class="neg">rose = negative</span>; thickness = strength. Move your pointer over the board and the circles light up with what each neuron "thinks" of that spot.</p>
+          </div>
+          <div class="np-card">
+            <h3>Loss and accuracy <span class="np-sub">solid = training, dashed = test</span></h3>
+            <canvas id="np-curve-loss" class="np-curve" width="560" height="150" role="img" aria-label="Loss curve"></canvas>
+            <canvas id="np-curve-acc" class="np-curve" width="560" height="150" role="img" aria-label="Accuracy curve"></canvas>
+            <div class="np-stats" id="np-stats" aria-live="off"></div>
+            <p class="np-verdict" id="np-verdict"></p>
+          </div>
+          <div class="np-card np-extra" id="np-extra" hidden></div>
+        </div>
+      </div>
+
+      <!-- ===== controls ===== -->
+      <div class="np-controls">
+        <fieldset class="np-card" id="np-f-data">
+          <legend>1 · The data</legend>
+          <div class="np-row" role="group" aria-label="Shapes">
+            <button type="button" class="btn ghost small" data-kind="spiral">Spiral</button>
+            <button type="button" class="btn ghost small" data-kind="rings">Rings</button>
+            <button type="button" class="btn ghost small" data-kind="xor">XOR</button>
+            <button type="button" class="btn ghost small" data-kind="moons">Moons</button>
+            <button type="button" class="btn ghost small" data-kind="blobs">Blobs</button>
+            <button type="button" class="btn ghost small" data-kind="blank">Blank (paint)</button>
+          </div>
+          <div class="np-row" role="group" aria-label="Number of classes">
+            <span class="np-lab">Colours</span>
+            <button type="button" class="btn ghost small" data-k="2" aria-pressed="true">2</button>
+            <button type="button" class="btn ghost small" data-k="3" aria-pressed="false">3</button>
+          </div>
+          <label class="np-sl"><span>Noise <output id="o-noise">0.10</output></span><input type="range" id="i-noise" min="0" max="1" step="0.05" value="0.1"></label>
+          <label class="np-sl"><span>Dots <output id="o-n">200</output></span><input type="range" id="i-n" min="40" max="400" step="10" value="200"></label>
+          <label class="np-sl"><span>Held out for testing <output id="o-test">25%</output></span><input type="range" id="i-test" min="0" max="50" step="5" value="25"></label>
+        </fieldset>
+
+        <fieldset class="np-card" id="np-f-net">
+          <legend>2 · The network</legend>
+          <div class="np-row"><span class="np-lab">Hidden layers</span>
+            <button type="button" class="btn ghost small" id="b-layer-minus" aria-label="Remove a hidden layer">−</button>
+            <b id="v-layers">1</b>
+            <button type="button" class="btn ghost small" id="b-layer-plus" aria-label="Add a hidden layer">+</button></div>
+          <div id="np-layer-rows"></div>
+          <div class="np-row"><span class="np-lab">Activation</span>
+            <button type="button" class="btn ghost small" data-act="tanh" aria-pressed="true">tanh</button>
+            <button type="button" class="btn ghost small" data-act="relu" aria-pressed="false">ReLU</button></div>
+          <p class="np-hint" id="np-arch-hint"></p>
+        </fieldset>
+
+        <fieldset class="np-card" id="np-f-train">
+          <legend>3 · The training</legend>
+          <div class="np-row"><span class="np-lab">Optimiser</span>
+            <button type="button" class="btn ghost small" data-opt="adam" aria-pressed="true">Adam</button>
+            <button type="button" class="btn ghost small" data-opt="sgd" aria-pressed="false">SGD</button></div>
+          <label class="np-sl"><span>Learning rate <output id="o-lr">0.03</output></span><input type="range" id="i-lr" min="-3" max="1.7" step="0.05" value="-1.52"></label>
+          <label class="np-sl"><span>Speed <output id="o-speed">30 epochs/s</output></span><input type="range" id="i-speed" min="0" max="3" step="1" value="1"></label>
+          <p class="np-hint">Each <em>step</em> nudges every weight a little to reduce the loss; one <em>epoch</em> = the brain has seen every training dot once. The learning rate is the size of the nudge.</p>
+        </fieldset>
+      </div>
+
+      <p class="np-status" id="np-status" role="status" aria-live="polite"></p>
+
+      <details class="np-explain">
+        <summary>What am I looking at?</summary>
+        <div class="np-explain-body">
+          <dl>
+            <dt>The coloured dots</dt>
+            <dd>The data. Each dot is one example: two numbers in (<code>x</code>, how far right, and <code>y</code>, how high) and one label out (its colour). This is the "data is the fuel" idea from 11.8. You are the data scientist: what you paint is all the brain will ever know.</dd>
+            <dt>The coloured background</dt>
+            <dd>The function <code>F</code> that the network has learned, drawn for every point of the board. Each pixel asks the brain "which colour would you give a dot here?". A muddy blend means "not sure".</dd>
+            <dt>Filled dots versus hollow dots</dt>
+            <dd><strong>Training</strong> dots are the only ones the weights are adjusted on. <strong>Test</strong> dots are held back and only used to check. If the brain does well on training dots but badly on hollow ones, it has memorised instead of learned (overfitting).</dd>
+            <dt>The network diagram</dt>
+            <dd>Inputs <code>x</code>, <code>y</code> go in on the left; each neuron multiplies its inputs by weights, adds them up, and passes the sum through an activation function (11.9). The lines are the weights, which are what training changes. With no hidden layer the brain can only draw straight lines; hidden layers let it bend them.</dd>
+            <dt>The loss curve</dt>
+            <dd>The error that training is trying to push down (cross-entropy: a number that is large when the brain is confidently wrong). Each step moves the weights downhill, exactly the loop of 11.7 but with dozens of weights instead of two. If the learning rate is too large, the steps overshoot and the loss climbs instead.</dd>
+            <dt>Predict (frozen)</dt>
+            <dd><strong>Inference</strong>: the weights are locked, no learning happens, and the brain just applies the function it already has to new inputs. Same <code>F</code>, new <code>x</code>.</dd>
+            <dt>Biased data</dt>
+            <dd>The brain never sees which village an applicant is from, but the position on the board acts as a proxy. With a skewed sample the average accuracy looks great while one group is treated badly. This is the 11.8 lesson: overall accuracy hides who is being failed, so check results by group.</dd>
+          </dl>
+          <p class="np-honest">Honesty note: everything runs in your browser on invented data, with a network of at most 24 hidden neurons. It is a simulation of the training idea, not a model of the human brain and not a language model.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Demo · Chapter 11 · Artificial Intelligence · <a href="../chapters/chapter-11.html">back to the chapter</a></p>
+  </div>
+</footer>
+
+<script src="../assets/demo-neural-playground.js"></script>
+<script src="../assets/demo-neural-playground-ui.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

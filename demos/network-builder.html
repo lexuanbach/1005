@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Network Builder · CO1005 Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/demo-network-builder.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="index.html">Demos</a>
+      <a href="../chapters/chapter-9.html">Chapter 9</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<main class="nb-page">
+  <div class="wrap nb-wrap">
+    <p class="nb-kicker">Demo · Chapter 9 · Computer Networks</p>
+    <h1>Network Builder</h1>
+    <p class="nb-lead">Wire up small networks like a network engineer. Place switches, routers, firewalls and access points, give every device an IP address, mask and gateway, then press <b>Show</b> or <b>Send</b>:
+      a packet walks the network hop by hop, and the simulator says exactly why a ping worked or failed. Eight levels, from two PCs and a switch to a dorm floor on a budget, plus a sandbox.</p>
+    <p class="nb-how"><b>How to play:</b> drag devices, join them with the <i>Cable tool</i> (or the <i>Connect</i> button in the inspector), click a device to edit its settings. Green goals mean you solved that requirement; finish them all to complete the level. It is a <b>simulation</b>: it is the rules of Chapter 9 (subnets, gateways, switches vs routers, NAT, DNS, firewalls), not a real network. The concepts are explained in <a href="../chapters/chapter-9.html">Chapter 9</a>.</p>
+
+    <div id="nb-root" class="nb" aria-label="Network Builder game"><noscript>This demo needs JavaScript.</noscript></div>
+
+    <details class="nb-what">
+      <summary>What am I looking at?</summary>
+      <div class="nb-what-body">
+        <dl>
+          <dt>Hosts (PC, laptop, server)</dt><dd>End devices (§9.3). Each has an IP address and a subnet mask; the mask decides which addresses are "on my own LAN". Anything else goes to the <b>default gateway</b>.</dd>
+          <dt>Switch and hub</dt><dd>Layer-2 boxes (§9.3). A switch forwards a frame only to the right port; a hub copies it to everyone (one collision domain). Neither joins different subnets, and three switches in a ring cause a <b>broadcast storm</b>.</dd>
+          <dt>Router</dt><dd>Layer-3 box. Every port belongs to one subnet and has an address in it. It forwards by destination IP: a connected subnet first, otherwise the default route. Turning on <b>NAT</b> rewrites private source addresses so the ISP does not drop them (§9.5).</dd>
+          <dt>Firewall</dt><dd>Filters packets by protocol and port, first matching rule wins, otherwise the default policy (§9.3). Port 80 is the web, port 23 is Telnet (plain-text passwords).</dd>
+          <dt>Wi-Fi access point</dt><dd>Joins wireless laptops to the wired LAN (§9.4). Dashed lines are Wi-Fi.</dd>
+          <dt>ISP / Internet</dt><dd>The cloud on the right is an invented Internet that uses documentation addresses (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24, RFC 5737), like the Packet Journey lab. Names such as www.example.com need a <b>DNS server</b> (198.51.100.53).</dd>
+          <dt>Orange, blue and teal dots</dt><dd>The packet: blue = the request, orange = the DNS question, teal = the reply. The red cross shows where it was dropped.</dd>
+          <dt>What is left out</dt><dd>ARP and MAC tables (a "who has this address?" broadcast simply finds the owner), random packet loss, routing protocols, IPv6, TCP handshakes. Firewall and NAT are stateful: replies to an allowed request always come back.</dd>
+        </dl>
+        <p>Related: the <a href="../chapters/chapter-9.html">Packet Journey lab</a> in Chapter 9 follows a single web request through DNS, TCP and HTTP; Network Builder is about the <i>network</i> the packet has to cross.</p>
+      </div>
+    </details>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Demo · Chapter 9 · Network Builder (a simulation)</p>
+  </div>
+</footer>
+
+<script src="../assets/packet-journey.js"></script>
+<script src="../assets/demo-network-builder.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Missing Trophy · CO1005 Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="An SQL mystery: the club trophy vanished from a locked room. Solve it by writing SELECT, JOIN, GROUP BY, subqueries and CREATE INDEX against a card-swipe database.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/demo-sql-detective.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="index.html">Demos</a>
+      <a href="../chapters/chapter-10.html">Chapter 10 · Databases</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<main class="sd-page" id="main">
+  <div class="sd-wide">
+    <div class="sd-intro">
+      <p class="sd-kicker">Demo · Chapter 10 · Databases</p>
+      <h1>The Missing Trophy</h1>
+      <p class="sd-lead">At 04:07 on Saturday the night guard found an empty gift box where the <em>Golden Gear</em> should have been. The Hall of Trophies was locked all night. The only witnesses are database tables: door-card swipes, purchases, messages, club lists and a hackathon sign-in sheet. You are the detective, and your only tool is SQL.</p>
+      <p class="sd-how"><b>How to play.</b> Each of the six chapters of the investigation gives you one task. Write a query in the editor and press <kbd>Run</kbd> (or <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd>). When your result contains the clue, the next chapter unlocks and the case board updates. Stuck? Open the hint ladder. When you are sure, accuse someone, but a wrong accusation costs you rank. Everything here is invented: the institute, the people and the data. <a href="../chapters/chapter-10.html">Read Chapter 10</a> if the SQL feels new.</p>
+    </div>
+
+    <div id="sd-root" aria-live="off"></div>
+
+    <noscript><p class="sd-noscript">This demo needs JavaScript: the whole database runs in your browser.</p></noscript>
+
+    <details class="sd-explain">
+      <summary>What am I looking at?</summary>
+      <div class="sd-explain-body">
+        <p>The page contains a small relational database (about 120 people, 7 700 card swipes, 1 200 purchases and 500 messages), built from a fixed seed so every student sees the same case. The SQL engine is the same pure-JavaScript engine as the Chapter 10 lab. Nothing is sent to a server.</p>
+        <table class="sd-map">
+          <thead><tr><th scope="col">On screen</th><th scope="col">Lecture concept</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Schema browser</th><td>Tables, columns, types, primary keys and foreign keys. The little arrow on a column shows which table it references; that is what you JOIN on.</td></tr>
+            <tr><th scope="row">Chapter 1 · door log</th><td><code>SELECT … FROM … WHERE … BETWEEN … ORDER BY</code>: filtering rows by value and by time. Times are stored as text <code>YYYY-MM-DD HH:MM</code>, which sorts in time order.</td></tr>
+            <tr><th scope="row">Chapter 2 · last sighting</th><td><code>LIKE</code>, <code>ORDER BY … DESC</code>, <code>LIMIT</code>: the newest rows only.</td></tr>
+            <tr><th scope="row">Chapter 3 · faces and clubs</th><td><code>JOIN</code> across a chain of foreign keys; <code>LEFT JOIN</code> keeps rows with no match (people without a club), an inner <code>JOIN</code> silently drops them.</td></tr>
+            <tr><th scope="row">Chapter 4 · shopping list</th><td><code>WHERE</code> filters rows, <code>GROUP BY</code> forms groups, <code>HAVING</code> filters groups.</td></tr>
+            <tr><th scope="row">Chapter 5 · broken alibi</th><td>Sub-queries with <code>NOT IN</code> / <code>NOT EXISTS</code>: a query whose condition is the result of another query.</td></tr>
+            <tr><th scope="row">Chapter 6 · follow the card</th><td>Indexes. The plan panel counts the rows the engine had to read: a full scan reads every row, an index jumps to the matching ones. <code>CREATE INDEX</code> makes the same query read about 70 rows instead of 7 700.</td></tr>
+            <tr><th scope="row">Plan panel</th><td>The query plan: full scan or index search, and the work done. It is a simulation of how a real database engine decides.</td></tr>
+            <tr><th scope="row">“Did you mean…?” errors</th><td>The engine checks every name against the schema, so a typo in a table or column is reported with a suggestion.</td></tr>
+            <tr><th scope="row">Case board and accusation</th><td>Data answers questions only when you combine several independent facts. The culprit is the only person who satisfies all four filters at once; each filter alone leaves several suspects.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Demo · The Missing Trophy · a fictional case with invented people and data</p>
+  </div>
+</footer>
+
+<script src="../assets/sql-lab.js"></script>
+<script src="../assets/demo-sql-detective.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

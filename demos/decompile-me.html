@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Decompile Me · CO1005 Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/demo-decompile-me.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="index.html">Demos</a>
+      <a href="../chapters/chapter-8.html">Chapter 8</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<main class="dm-page">
+  <div class="dm-wrap">
+    <section class="dm-intro">
+      <span class="eyebrow">Demo · Chapter 8 · Assembly &amp; compilers</span>
+      <h1>Decompile Me</h1>
+      <p class="lede">
+        A detective game. Each case file holds the <strong>machine code</strong> of a hidden C++ program and a few sample runs.
+        Write C++ that behaves the same. The tiny compiler translates your code, both programs run side by side on hidden
+        test inputs, and the assembly of the two is compared line by line.
+      </p>
+      <ol class="dm-how">
+        <li>Read the machine code and sample runs, and form a theory.</li>
+        <li>Type your C++ (the tiny subset of <a href="../chapters/chapter-8.html#lab">Chapter 8's lab</a>) and press <b>Run on all tests</b>.</li>
+        <li>Watch the compiler stages light up, read the test grid and the assembly diff, then refine.</li>
+        <li>Stars: 1 for the right behaviour, 2 for no more instructions than the target, 3 for the same instruction pattern.</li>
+      </ol>
+      <p class="fine">Everything here is a simulation on the course's <em>toy</em> machine, not x86 or ARM. It runs entirely in your browser.</p>
+    </section>
+
+    <noscript><p>This demo needs JavaScript.</p></noscript>
+    <div id="dm-root"></div>
+
+    <details class="dm-explain">
+      <summary>What am I looking at?</summary>
+      <div class="dm-explain-body">
+        <p><b>Exhibit A, the machine code.</b> This is what the CPU of the toy machine actually receives (Chapter 8.1): every row is a memory cell holding a 4-bit opcode followed by an address, and the data cells hold the variables. With “Friendly labels” on, the page renames cell numbers to <code>v1</code>, <code>v2</code>, constants to <code>k5</code> and jump targets to <code>L1</code> (assembly language, 8.2). Turn it off to see the plain numbers.</p>
+        <p><b>No names, no structure.</b> The original variable names, comments, braces and the words <code>if</code> and <code>while</code> are not in the machine code. An <code>if</code> becomes a COMPARE plus a conditional jump, a <code>while</code> becomes a jump backwards (8.3). That is why a decompiler can only guess, and why the last case has two different sources for the same machine words.</p>
+        <p><b>Compiler stages.</b> The strip follows the pipeline of 8.7: your text is split into <em>tokens</em>, organised into a <em>syntax tree</em>, turned into <em>assembly</em>, assembled into <em>machine code</em>, and finally <em>run</em> by the fetch–decode–execute cycle of Chapter 7. A red stage is where the pipeline stopped. Click any stage to see what it produced.</p>
+        <p><b>Test grid.</b> Programs are compared by behaviour on many inputs, not by reading the source. Passing the samples is not enough: the hidden tests exist because a compiler (or a teacher) must be right on inputs nobody tried.</p>
+        <p><b>Assembly diff.</b> Two correct programs can compile to different instruction sequences, just as a different loop condition or an extra temporary changes the jumps (8.4, 8.8). The diff normalises names so that only the instruction pattern is compared. “Same instructions” (3 stars) is stricter than “same behaviour”.</p>
+        <p>Back to <a href="../chapters/chapter-8.html">Chapter 8: Assembly &amp; Compilers</a>.</p>
+      </div>
+    </details>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Demo · Decompile Me · Chapter 8</p>
+  </div>
+</footer>
+
+<script src="../assets/vn-machine.js"></script>
+<script src="../assets/tiny-compiler.js"></script>
+<script src="../assets/demo-decompile-me.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>

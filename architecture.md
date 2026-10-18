@@ -149,3 +149,7 @@ Quy trình cập nhật: sửa file nguồn → `python3 build.py` → republish
 - Exercises are `type:'text'`; several are "lab tasks" whose model answers were produced by running the lab engines in Node.
 - Labs (pure engine exported for Node + thin UI + own CSS, all linked from the chapter): `vn-machine.js/-ui.js/.css` (Ch7+8 toy Von Neumann machine), `tiny-compiler.js/-ui.js` (Ch8; C++ subset → toy ISA), `packet-journey.js/.css` (Ch9; invented example.* zones and RFC 5737 addresses only), `sql-lab.js/-ui.js/.css` (Ch10; own SQL engine, cross-checked against sqlite3), `ai-lab.js/.css` (Ch11), `llm-engines.js` + `llm-lab.js/.css` (Ch12), `cite-lab.js/.css` (Ch13). Simulations are labelled as such on screen.
 - The final-exam question banks in `261-exam/` are confidential and must never be reused in site quizzes.
+
+## 7. Demo apps (`demos/`, one per Part-2 lecture)
+
+Standalone, projector-friendly games/toys (each: `demos/<slug>.html` + `assets/demo-<slug>.js/.css`, pure logic exported for Node and tested; hub = `demos/index.html`; linked from the chapter's hero chips and from syllabus cards): `cpu-puzzles` (Ch7, reuses vn-machine.js), `decompile-me` (Ch8, vn-machine + tiny-compiler), `network-builder` (Ch9, IPv4 helpers from packet-journey.js), `sql-detective` (Ch10, sql-lab.js; culprit stored only as a hash), `neural-playground` (Ch11, own MLP + backprop), `injection-arena` (Ch12, own rule-based bots), `reference-detective` (Ch13, cite-lab.js; every real reference checked on Crossref 2026-10-18). All are labelled simulations; no network calls at runtime.

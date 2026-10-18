@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Program the CPU · CO1005 Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/demo-cpu-puzzles.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="index.html">Demos</a>
+      <a href="../chapters/chapter-7.html">Chapter 7</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<main class="cp-page">
+  <div class="cp-wrap">
+    <span class="eyebrow">Demo · Chapter 7 · Von Neumann Architecture</span>
+    <h1>Program the CPU</h1>
+    <p class="lede">
+      Each level hands the toy computer from <a href="../chapters/chapter-7.html">Chapter 7</a> some numbers and a target output.
+      You write the assembly; the machine runs it one register transfer at a time, so you can watch
+      <strong>fetch, decode, execute</strong> do your bidding.
+    </p>
+    <p class="cp-how"><strong>How to play.</strong> Pick a level, edit the program, then <em>Step</em> or <em>Run</em> to watch it, and press <em>Check all tests</em> to score it.
+      You earn up to three stars per level: <em>solved</em>, <em>small</em> (few instructions) and <em>fast</em> (few fetch–decode–execute cycles).
+      The memory is tiny, there is no immediate-operand instruction (constants live in <code>.data</code> cells) and the accumulator <code>R</code> starts at 0.
+      This is a <strong>simulation</strong> of the course's teaching machine, not a real x86 or ARM CPU.</p>
+
+    <div id="cp-app" class="cp-app"><noscript>This demo needs JavaScript.</noscript></div>
+
+    <details class="cp-explain">
+      <summary>What am I looking at?</summary>
+      <div class="cp-explain-body">
+        <ul>
+          <li><strong>Memory grid.</strong> One box per numbered cell. Your instructions and your data sit in the same memory: this is the <em>stored-program</em> idea. The cell under the amber outline is where PC points; blue shows a read, green a write.</li>
+          <li><strong>PC (program counter).</strong> The address of the next instruction. A normal step adds 1; <code>JUMP</code> and a taken conditional jump overwrite it, which is how loops and if-else exist.</li>
+          <li><strong>MAR and MDR.</strong> The memory address register holds <em>which</em> cell is being accessed, the memory data register holds <em>what</em> was read or is about to be written. Every memory access passes through this pair.</li>
+          <li><strong>IR and the decoder.</strong> The fetched word is copied into IR; the decoder splits it into a 4-bit opcode and an address field. Words in <code>.data</code> are only numbers: if the PC ever reaches one, the machine tries to run it as code.</li>
+          <li><strong>R, the ALU and the flags.</strong> <code>ADD</code> and <code>SUBTRACT</code> work on R and a memory cell. <code>COMPARE</code> sets GT, EQ or LT, and the conditional jumps read those flags: that is all an <code>if</code> or <code>while</code> is, at this level.</li>
+          <li><strong>Cycle vs tick.</strong> A <em>cycle</em> is one whole instruction (fetch, decode, execute). A <em>tick</em> is one register transfer inside it. The <em>fast</em> star counts cycles; size counts instruction cells, and a <code>JUMPGE</code>/<code>JUMPLE</code> pseudo-instruction costs two.</li>
+          <li><strong>Size versus speed.</strong> A loop saves instructions but spends cycles on bookkeeping (counter, compare, jump). Straight-line code is longer but quicker. Real compilers and CPUs face the same trade-off.</li>
+          <li><strong>Input and output.</strong> <code>IN</code> takes the next number from the input queue; <code>OUT</code> prints a cell. In this game, if the program asks for input when the queue is empty the run simply ends, so a short loop can replace <code>HALT</code>.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Demo · Program the CPU · Chapter 7</p>
+  </div>
+</footer>
+
+<script src="../assets/vn-machine.js"></script>
+<script src="../assets/demo-cpu-puzzles.js"></script>
+<script src="../assets/course.js"></script>
+</body>
+</html>
