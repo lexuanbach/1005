@@ -1,0 +1,114 @@
+/* Program the CPU: full-screen layout (only while html.fs-on, see assets/app-fullscreen.js and the fsLayout() note in demo-cpu-puzzles.js).
+   One screen, no scrolling. Three columns:  A  brief, editor, help pop-overs, score  |  B  controls, narration, data-path diagram  |  C  memory.
+   The app is as tall as the screen but never shorter than --cp-h0, so on small screens the shared fit-to-screen scaling shrinks it a little
+   instead of squeezing the panes. Everything is laid out in px/em at the virtual width, so scaling is exact. */
+html.fs-on #cp-app.fs-active {
+  --cp-h0: 790px;
+  --fs: 1;
+  height: max(var(--cp-h0), calc(100vh - 42px)) !important;
+  display: flex; flex-direction: column; gap: 0.45rem;
+  font-size: clamp(14px, calc((100vh - 42px) / 60), 18px);   /* 14px on laptops, up to 18px on tall screens */
+  overflow: visible;
+  container-type: inline-size;   /* lets the layout react to the virtual width (a scaled screen is wider than the window) */
+}
+html.fs-on #cp-app .cp-ctl .cp-row button[aria-pressed] { display: none; }   /* "Projector size": full screen already fills the screen */
+
+/* level strip */
+html.fs-on #cp-app .cp-levels { flex: none; flex-wrap: nowrap; margin: 0; gap: 0.3rem; }
+html.fs-on #cp-app .cp-lv { flex: 1 1 0; min-width: 0; justify-content: center; padding: 0.28rem 0.4rem; gap: 0.35rem; font-size: 0.86em; }
+html.fs-on #cp-app .cp-lvt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+html.fs-on #cp-app .cp-lvn, html.fs-on #cp-app .cp-lvs { flex: none; }
+
+/* the three columns */
+html.fs-on #cp-app .cp-grid {
+  flex: 1 1 0; min-height: 0; gap: 0.6rem; align-items: stretch;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.75fr) minmax(0, 0.44fr);
+}
+/* a bigger memory (sandbox with 32, 64 or 128 cells) gets a wider column, so that most cells stay visible */
+html.fs-on #cp-app .cp-grid:has(.cp-memgrid .cp-cell:nth-child(17)) { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr) minmax(0, 0.7fr); }
+html.fs-on #cp-app .cp-grid:has(.cp-memgrid .cp-cell:nth-child(33)) { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr) minmax(0, 0.8fr); }
+html.fs-on #cp-app .cp-left, html.fs-on #cp-app .cp-right, html.fs-on #cp-app .cp-fs-mem { min-width: 0; min-height: 0; position: static; }
+html.fs-on #cp-app .cp-card { padding: 0.5rem 0.65rem; border-radius: 10px; }
+
+/* A: brief / editor / help / score */
+html.fs-on #cp-app .cp-left { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 0.45rem; }
+html.fs-on #cp-app .cp-title { font-size: 1.12em; margin: 0 0 0.15rem; }
+html.fs-on #cp-app .cp-story { font-size: 0.9em; margin: 0 0 0.35rem; line-height: 1.4; }
+html.fs-on #cp-app .cp-tests caption { display: none; }
+html.fs-on #cp-app .cp-tests { font-size: 0.8em; }
+html.fs-on #cp-app .cp-tests th, html.fs-on #cp-app .cp-tests td { padding: 0.08rem 0.35rem; }
+html.fs-on #cp-app .cp-budget { font-size: 0.74em; margin: 0.3rem 0 0; line-height: 1.35; }
+html.fs-on #cp-app .cp-sb { gap: 0.25rem 0.6rem; }
+html.fs-on #cp-app .cp-input { min-width: 0; flex: 1 1 8rem; }
+html.fs-on #cp-app .cp-editor { display: flex; flex-direction: column; min-height: 0; }
+html.fs-on #cp-app .cp-editor .cp-edhead { margin: 0 0 0.3rem; flex: none; }
+html.fs-on #cp-app textarea.cp-src { flex: 1 1 0; height: 0; min-height: 4rem; resize: none; line-height: 1.45; padding: 0.45rem 0.55rem; font-size: 0.84em; }
+html.fs-on #cp-app .cp-asmmsg { flex: none; margin-top: 0.3rem; min-height: 0; max-height: 4.4em; overflow: auto; font-size: 0.78em; }
+html.fs-on #cp-app .cp-editor .btn.small, html.fs-on #cp-app .cp-ctl .btn { font-size: 0.82em; padding: 0.3rem 0.65rem; }
+
+/* help: three pop-overs that open upwards over the editor */
+html.fs-on #cp-app .cp-fs-help { position: relative; display: flex; gap: 0.4rem; }
+html.fs-on #cp-app .cp-fs-help .cp-details { flex: 1 1 0; min-width: 0; padding: 0.3rem 0.5rem; border-radius: 10px; }
+html.fs-on #cp-app .cp-fs-help .cp-details[hidden] { display: none; }
+html.fs-on #cp-app .cp-fs-help .cp-details summary { font-size: 0.84em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.fs-on #cp-app .cp-fs-help .cp-details[open] { border-color: var(--accent); }
+html.fs-on #cp-app .cp-fs-help .cp-details[open] > :not(summary) {
+  position: absolute; left: 0; right: 0; bottom: calc(100% + 0.35rem); z-index: 5; margin: 0;
+  max-height: 400px; overflow: auto; box-sizing: border-box; padding: 0.55rem 0.7rem;
+  background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+html.fs-on #cp-app .cp-fs-help .cp-details[open] > p { font-size: 0.86em; line-height: 1.45; }
+html.fs-on #cp-app .cp-fs-help .cp-isa { font-size: 0.78em; margin-top: 0; }
+html.fs-on #cp-app .cp-sol pre { font-size: 0.8em; margin: 0.3rem 0; }
+
+/* score: a compact block under the help row (the pass/fail marks are also in the test table) */
+html.fs-on #cp-app .cp-left > .cp-result:not(:empty) { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 0.4rem 0.65rem; max-height: 11em; overflow: auto; }
+html.fs-on #cp-app .cp-score > p { margin: 0.1rem 0; font-size: 0.86em; }
+html.fs-on #cp-app .cp-score > p.cp-big { font-size: 0.98em; margin: 0 0 0.2rem; }
+html.fs-on #cp-app .cp-score > p.cp-dim { display: none; }
+html.fs-on #cp-app .cp-stars { display: flex; flex-wrap: wrap; gap: 0.1rem 0.9rem; margin: 0.15rem 0 0; font-size: 0.8em; }
+html.fs-on #cp-app .cp-stars li { padding-left: 1.2rem; }
+html.fs-on #cp-app .cp-score .btn { margin-top: 0.2rem; }
+
+/* B: controls, then the machine */
+html.fs-on #cp-app .cp-right { display: flex; flex-direction: column; gap: 0.45rem; }
+html.fs-on #cp-app .cp-ctl { flex: none; }
+html.fs-on #cp-app .cp-ctl .cp-row { margin: 0 0 0.35rem; gap: 0.4rem; }
+html.fs-on #cp-app .cp-speedrow { flex-wrap: nowrap; }
+html.fs-on #cp-app .cp-speedrow .vn-speed { flex: 1 1 0; min-width: 0; flex-wrap: nowrap; gap: 0.4rem; }
+html.fs-on #cp-app .cp-speedrow .vn-speed input[type="range"] { width: 6rem; flex: 0 1 6rem; min-width: 3rem; }
+html.fs-on #cp-app .cp-speedrow .vn-speed-name { min-width: 0; font-size: 0.74em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.fs-on #cp-app .cp-speedrow .field-label, html.fs-on #cp-app .cp-lab { font-size: 0.8em; }
+html.fs-on #cp-app .cp-testsel { font-size: 0.8em; padding: 0.2rem 0.3rem; max-width: 11rem; }
+html.fs-on #cp-app .cp-status { margin: 0; min-height: 1.35em; max-height: 2.8em; overflow: auto; font-size: 0.82em; line-height: 1.35; }
+html.fs-on #cp-app .cp-machine { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0.5rem 0.6rem; }
+html.fs-on #cp-app .cp-phaserow { flex: none; margin: 0 0 0.3rem; }
+html.fs-on #cp-app .cp-say { flex: none; min-height: 0; height: 4.9em; overflow: auto; margin: 0 0 0.35rem; padding: 0.35rem 0.55rem; font-size: 0.84em; line-height: 1.45; }
+html.fs-on #cp-app .cp-diagram { flex: 1 1 0; min-height: 0; margin: 0; padding: 0.2rem; position: relative; }
+html.fs-on #cp-app .cp-diagram svg.vn-dp { position: absolute; left: 0.3rem; top: 0.3rem; width: calc(100% - 0.6rem); height: calc(100% - 0.6rem); max-width: none; margin: 0; }
+html.fs-on #cp-app .cp-target { flex: none; margin: 0.35rem 0 0; min-height: 0; padding: 0.25rem 0.5rem; }
+html.fs-on #cp-app .cp-target[hidden] { display: none; }
+
+/* C: memory, as tall as the screen; many cells scroll inside */
+html.fs-on #cp-app .cp-fs-mem { display: flex; flex-direction: column; }
+html.fs-on #cp-app .cp-fs-mem .cp-mem { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0.5rem 0.55rem; background: var(--surface); }
+html.fs-on #cp-app .cp-memhead { flex: none; margin-bottom: 0.4rem; }
+html.fs-on #cp-app .cp-mtags { margin-left: 0; font-size: 0.72em; gap: 0.15rem 0.6rem; }
+html.fs-on #cp-app .cp-memgrid {
+  flex: 1 1 0; min-height: 0; overflow: auto; align-content: start; gap: 0.3rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(5.2em, 46%), 1fr)); padding: 2px;
+}
+html.fs-on #cp-app .cp-memgrid:has(.cp-cell:nth-child(33)) { grid-template-columns: repeat(auto-fill, minmax(min(3.9em, 31%), 1fr)); gap: 0.22rem; }
+html.fs-on #cp-app .cp-memgrid:has(.cp-cell:nth-child(33)) .cp-cname { display: none; }
+html.fs-on #cp-app .cp-cell { padding: 0.12rem 0.3rem 0.15rem; }
+html.fs-on #cp-app .cp-cval { font-size: 0.74em; }
+html.fs-on #cp-app .cp-memgrid.dense .cp-cval { font-size: 0.64em; }
+html.fs-on #cp-app .cp-ctags { height: 1.3em; }
+
+/* narrow virtual width (about 1024 px screens): keep the diagram big, squeeze brief/editor and memory */
+@container (max-width: 1300px) {
+  html.fs-on #cp-app .cp-grid { grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.9fr) minmax(0, 0.42fr); }
+  html.fs-on #cp-app .cp-grid:has(.cp-memgrid .cp-cell:nth-child(17)) { grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.75fr) minmax(0, 0.55fr); }
+  html.fs-on #cp-app .cp-grid:has(.cp-memgrid .cp-cell:nth-child(33)) { grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.7fr) minmax(0, 0.62fr); }
+  html.fs-on #cp-app .cp-story { font-size: 0.86em; }
+}

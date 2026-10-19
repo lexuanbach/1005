@@ -26,6 +26,17 @@
     return s;
   }
 
+  // Groups a run of the panel's children into one wrapper. The wrapper is display: contents (llm-lab.css), so the normal layout is
+  // unchanged; the full-screen layout (fs-llm.css) turns the wrappers into grid panes.
+  function wrapRange(panel, from, to, cls) {
+    var kids = Array.prototype.slice.call(panel.children, from, to);
+    if (!kids.length) return null;
+    var g = el('div', 'llm-g ' + cls);
+    panel.insertBefore(g, kids[0]);
+    kids.forEach(function (k) { g.appendChild(k); });
+    return g;
+  }
+
   function mount() {
     var host = document.getElementById('llm-root');
     var E = window.LLMEngines;
@@ -66,6 +77,7 @@
       'But the generation loop is the same: <strong>a probability for every possible next token, pick one, append it, repeat</strong>.'));
 
     // A1 — tokenizer
+    var seg = panel.children.length;
     panel.appendChild(el('h4', '', 'A1 · Step 1 of every LLM: text becomes tokens'));
     var tIn = el('input', 'llm-text'); tIn.type = 'text'; tIn.value = 'the computer reads the prompt'; tIn.maxLength = 160;
     var tPre = select([['the computer reads the prompt', 'the computer reads the prompt'], ['tokenization is fun', 'tokenization is fun'], ['unhappiness', 'unhappiness'],
@@ -77,6 +89,7 @@
     var tChips = el('div', 'llm-chips'); tChips.setAttribute('aria-label', 'Tokens with their ids');
     var tStat = el('div', 'sim-status'); tStat.setAttribute('role', 'status'); tStat.setAttribute('aria-live', 'polite');
     panel.appendChild(tChips); panel.appendChild(tStat);
+    wrapRange(panel, seg, panel.children.length, 'llm-g-tok');
     function tokRender() {
       var enc = T.encode(tIn.value);
       tChips.innerHTML = enc.map(function (t) {
@@ -92,6 +105,7 @@
     tokRender();
 
     // A2 — generation
+    seg = panel.children.length;
     panel.appendChild(el('h4', '', 'A2 · Next-token prediction, one token at a time'));
     var orderSel = select([['1', '1 · unigram (no context)'], ['2', '2 · bigram (last word)'], ['3', '3 · trigram (last 2 words)']], 2);
     var temp = el('input'); temp.type = 'range'; temp.min = '0'; temp.max = '2'; temp.step = '0.1'; temp.value = '1';
@@ -117,9 +131,11 @@
     var resetBtn = el('button', 'btn ghost small', '↺ Reset'); resetBtn.type = 'button';
     bar.appendChild(stepBtn); bar.appendChild(allBtn); bar.appendChild(resetBtn);
     panel.appendChild(bar);
+    wrapRange(panel, seg, panel.children.length, 'llm-g-ctl');
 
     // the generation loop, animated: context -> model -> probabilities -> sampled token -> text -> (loop)
     var LF = window.LLMFlow, flow = null, tp = null;
+    seg = panel.children.length;
     if (LF) {
       var gwrap = el('div', 'lf-wrap');
       flow = LF.genloop(gwrap);
@@ -128,6 +144,8 @@
       tp.runner.cancelHook = flow.cancel;
       panel.appendChild(gwrap);
     }
+    wrapRange(panel, seg, panel.children.length, 'llm-g-flow');
+    seg = panel.children.length;
 
     var textBox = el('div', 'llm-textbox'); textBox.setAttribute('aria-label', 'Generated text');
     var status = el('div', 'sim-status'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
@@ -140,6 +158,10 @@
       '<span class="note-tag">Things to try</span>Set temperature to 0 and press Generate twice: same text every time (greedy). ' +
       'Raise it to 2 and the unlikely words get a real chance. Switch to the trigram model: the output becomes a near-copy of a training sentence, ' +
       'a toy version of <strong>memorization</strong> (concept 12.7). Keep temperature 1, change only the seed: same model, different story.'));
+
+    wrapRange(panel, seg, panel.children.length, 'llm-g-out');
+    wrapRange(panel, 1, 3, 'llm-g-aleft');   // children: note, tok, ctl, flow, out -> left column (tokenizer, controls) ...
+    wrapRange(panel, 2, 4, 'llm-g-aright');  // ... and right column (animated loop, text + probability table)
 
     var st = null;
     function params() {
@@ -230,6 +252,7 @@
       '<span class="note-tag">Simulation</span>The “assistant” below is a <strong>scripted, rule-based toy</strong>: no AI model is involved. ' +
       'It spots instruction-like sentences (“ignore the above…”, “send my notes to…”, “say…”) in whatever text it reads and obeys them — the way a real model sometimes does, ' +
       'because for a language model <strong>instructions and data are both just tokens in one stream</strong>. Real attacks are messier; the principle is the same.'));
+    var seg = panel.children.length;
     panel.appendChild(el('h4', '', 'B1 · Break the assistant, then defend it'));
 
     var presetSel = select(I.PRESETS.map(function (p) { return [p.key, p.name]; }), 'hidden-email');
@@ -257,6 +280,8 @@
     var bRun = el('button', 'btn primary', '▶ Run it through the assistant'); bRun.type = 'button';
     qa.appendChild(bRun); qa.appendChild(bVuln); qa.appendChild(bDef); qa.appendChild(bReset);
     panel.appendChild(qa);
+    wrapRange(panel, seg, panel.children.length, 'llm-g-bctl');
+    seg = panel.children.length;
     if (LF) { // the application as blocks: the request and the untrusted text travel through them
       var fwrap = el('div', 'lf-wrap');
       flow = LF.pipeline(fwrap, { idleText: 'Press “Run it through the assistant” to watch the request and the untrusted document travel through the blocks. Toggle a defence to see which block it lives in.' });
@@ -265,6 +290,8 @@
       tp.runner.cancelHook = flow.cancel;
       panel.appendChild(fwrap);
     }
+    wrapRange(panel, seg, panel.children.length, 'llm-g-bflow');
+    seg = panel.children.length;
 
     // the three channels
     var chan = el('div', 'llm-chans');
@@ -281,6 +308,8 @@
     chan.appendChild(sysBox); chan.appendChild(userBox); chan.appendChild(docBox);
     panel.appendChild(chan);
     panel.appendChild(field('What the user asked', reqSel));
+    wrapRange(panel, seg, panel.children.length, 'llm-g-bchan');
+    seg = panel.children.length;
 
     var cols = el('div', 'run-cols');
     var humanBox = el('div'); humanBox.appendChild(el('label', 'field-label', 'What a human sees'));
@@ -289,6 +318,8 @@
     var modelOut = el('pre', 'llm-pre llm-view llm-flat'); modelBox.appendChild(modelOut);
     cols.appendChild(humanBox); cols.appendChild(modelBox);
     panel.appendChild(cols);
+    wrapRange(panel, seg, panel.children.length, 'llm-g-bviews');
+    seg = panel.children.length;
 
     var verdict = el('div', 'sim-status'); verdict.setAttribute('role', 'status'); verdict.setAttribute('aria-live', 'polite');
     panel.appendChild(verdict);
@@ -305,6 +336,7 @@
       '<span class="note-tag">Things to try</span>(1) Run the hidden-e-mail scenario with every defence off, then tick only “Least privilege”: the instruction is still obeyed but the damage is blocked. ' +
       '(2) Load the delimiter breaker, tick only “Delimit” — it still wins — then add “Escape look-alike tags”. ' +
       '(3) Write your own attack in the document box. Real systems also need output filtering, human approval for risky actions, and testing; <strong>no defence is perfect</strong>.'));
+    wrapRange(panel, seg, panel.children.length, 'llm-g-bres');
 
     function currentPreset() { return I.PRESETS.filter(function (p) { return p.key === presetSel.value; })[0]; }
     function renderViews(r) {
@@ -370,6 +402,7 @@
     loadPreset();
 
     // B2 — paste checklist
+    seg = panel.children.length;
     panel.appendChild(el('h4', 'llm-h-gap', 'B2 · Before you paste: what may go into a public chatbot?'));
     panel.appendChild(el('p', 'llm-muted', 'Decide for each item, then check. Rule of thumb from the textbook: only public data may be pasted freely; internal data needs thought; confidential and sensitive data: never.'));
     var list = el('div', 'llm-checks'), selects = [];
@@ -387,6 +420,20 @@
     var cbtn = el('button', 'btn primary', 'Check my answers'); cbtn.type = 'button';
     var cres = el('div', 'sim-status'); cres.setAttribute('role', 'status'); cres.setAttribute('aria-live', 'polite');
     cbar.appendChild(cbtn); panel.appendChild(cbar); panel.appendChild(cres);
+    wrapRange(panel, seg, panel.children.length, 'llm-g-b2');
+
+    // full-screen mode only (fs-llm.css): B1 and B2 are two views of this panel, so each gets the whole screen. Hidden otherwise.
+    var sub = el('div', 'llm-subtabs'); sub.setAttribute('role', 'group'); sub.setAttribute('aria-label', 'Show');
+    var subBtns = [['B1 · Sandbox', false], ['B2 · Paste checklist', true]].map(function (d) {
+      var b = el('button', 'llm-subtab', d[0]); b.type = 'button';
+      b.setAttribute('aria-pressed', d[1] ? 'false' : 'true');
+      b.addEventListener('click', function () {
+        panel.classList.toggle('llm-show-b2', d[1]);
+        subBtns.forEach(function (o, i) { o.setAttribute('aria-pressed', (i === 1) === d[1] ? 'true' : 'false'); });
+      });
+      sub.appendChild(b); return b;
+    });
+    panel.insertBefore(sub, panel.firstChild);
     cbtn.addEventListener('click', function () {
       var answers = selects.map(function (s) { return s.value; });
       var res = C.score(answers);
@@ -407,6 +454,7 @@
     var P = E.Password;
     panel.appendChild(el('div', 'note warn llm-sim-note',
       '<span class="note-tag">Private</span>This estimator runs only in your browser; nothing you type is sent anywhere or saved. Even so, <strong>do not type a password you really use</strong> — make up a similar one.'));
+    var seg = panel.children.length;
     panel.appendChild(el('h4', '', 'C · Why length beats complexity'));
     var pw = el('input', 'llm-text'); pw.type = 'text'; pw.autocomplete = 'off'; pw.spellcheck = false; pw.maxLength = 64; pw.value = 'P@ssw0rd!';
     var presets = el('div', 'ex-actions');
@@ -418,6 +466,7 @@
     panel.appendChild(presets);
     var out = el('div', 'llm-pwout'); out.setAttribute('role', 'status'); out.setAttribute('aria-live', 'polite');
     panel.appendChild(out);
+    wrapRange(panel, seg, panel.children.length, 'llm-g-cin');
     function render() {
       var a = P.assess(pw.value);
       if (!pw.value) { out.innerHTML = '<p class="llm-muted">Type something to see the numbers.</p>'; return; }
@@ -436,6 +485,7 @@
     pw.addEventListener('input', render);
     render();
 
+    seg = panel.children.length;
     panel.appendChild(el('h4', 'llm-h-gap', 'Same effort, very different strength'));
     var rows = [
       ['8 random characters from all 4 types (95 symbols)', P.bitsFor(8, 95), 'hard to remember, easy to mistype'],
@@ -448,6 +498,7 @@
       rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td class="mono">' + r[1].toFixed(1) + '</td><td>' + r[2] + '</td></tr>'; }).join('') + '</tbody></table>'));
     panel.appendChild(el('div', 'note tip', '<span class="note-tag">The pattern</span>Every extra bit doubles the attacker’s work. Adding <em>one character</em> multiplies the search space by the pool size; adding a symbol class only grows the pool a little. ' +
       'That is why the current NIST guidance asks for length and bans forced composition rules (see the Chapter 12.4 note). Unique passwords per site and 2FA matter even more than any of these numbers.'));
+    wrapRange(panel, seg, panel.children.length, 'llm-g-cmore');
   }
 
   document.addEventListener('DOMContentLoaded', mount);

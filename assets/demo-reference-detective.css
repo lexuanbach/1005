@@ -105,3 +105,5 @@
   .rd-ref-text { font-size: 1em; }
 }
 @media (prefers-reduced-motion: reduce) { .rd-ref, .rd-meter-fill, .rd-vote-fill { transition: none; } }
+/* column wrappers of the judge and teacher screens: invisible in the normal layout, real columns in full-screen mode (assets/fs-cite.css) */
+.rd-col { display: contents; }

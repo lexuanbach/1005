@@ -563,7 +563,7 @@ CREATE TABLE incident (
         '<span class="sd-tools"><button type="button" class="btn ghost small" id="sd-big" aria-pressed="false">Large type</button>' +
         '<span id="sd-resetwrap"><button type="button" class="btn ghost small" id="sd-reset">New investigation</button></span></span></div>' +
         '<div class="sd-board-grid"><ul class="sd-suspects" id="sd-suspects" aria-label="People of interest"></ul>' +
-        '<div class="sd-side"><h3>Evidence</h3><ol class="sd-evidence" id="sd-evidence"></ol>' +
+        '<div class="sd-side"><div class="sd-evwrap"><h3>Evidence</h3><ol class="sd-evidence" id="sd-evidence"></ol></div>' +
         '<form class="sd-accuse" id="sd-accuse"><h3>Make your accusation</h3><label for="sd-who">The thief is</label>' +
         '<div class="sd-accuse-row"><select id="sd-who"><option value="">Choose a suspect…</option></select><button type="submit" class="btn primary small">Accuse</button></div>' +
         '<p class="sd-accuse-msg" id="sd-accuse-msg" role="status"></p></form></div></div>' +
@@ -577,11 +577,13 @@ CREATE TABLE incident (
           '<textarea id="sd-sql" class="sd-editor" rows="7" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="SELECT * FROM incident;"></textarea>' +
           '<div class="sd-actions"><button type="button" class="btn primary" id="sd-run">Run</button><button type="button" class="btn ghost small" id="sd-clear">Clear</button>' +
           '<p class="sd-status" id="sd-status" role="status" aria-live="polite"></p></div></div>' +
-          '<div id="sd-result" class="sd-result"></div><div id="sd-plan" class="sd-plan" hidden></div><div id="sd-clue"></div>' +
+          '<div class="sd-outrow"><div id="sd-result" class="sd-result"></div><div id="sd-plan" class="sd-plan" hidden></div></div><div id="sd-clue"></div>' +
         '</div>' +
-        '<aside class="sd-aside"><section class="sd-card sd-machine" aria-label="Inside the database"><h3>Inside the database <span class="sd-sub">every query goes through the machine (a simulation)</span></h3><div id="sd-flow"></div></section>' +
-        '<section class="sd-card"><h3>Schema browser</h3><div id="sd-schema"></div></section>' +
-        '<section class="sd-card"><h3>Notebook <span class="sd-sub">your earlier queries</span></h3><ul class="sd-notebook" id="sd-notebook"></ul></section></aside>' +
+        '<aside class="sd-aside" data-tab="schema"><div class="sd-tabs" role="group" aria-label="Tools">' +
+          '<button type="button" class="sd-tab" data-tab="machine" aria-pressed="false">Inside the database</button><button type="button" class="sd-tab" data-tab="schema" aria-pressed="true">Schema browser</button><button type="button" class="sd-tab" data-tab="notebook" aria-pressed="false">Notebook</button></div>' +
+        '<section class="sd-card sd-machine" aria-label="Inside the database"><h3>Inside the database <span class="sd-sub">every query goes through the machine (a simulation)</span></h3><div id="sd-flow"></div></section>' +
+        '<section class="sd-card sd-schemacard"><h3>Schema browser</h3><div id="sd-schema"></div></section>' +
+        '<section class="sd-card sd-nbcard"><h3>Notebook <span class="sd-sub">your earlier queries</span></h3><ul class="sd-notebook" id="sd-notebook"></ul></section></aside>' +
       '</section>';
     const sel = $('#sd-who');
     CAST.forEach((c) => { const o = document.createElement('option'); o.value = c.name; o.textContent = c.name + ' (' + c.tag + ')'; sel.appendChild(o); });
@@ -773,7 +775,8 @@ CREATE TABLE incident (
     return { hints, title: pen === 0 ? 'Chief Inspector' : pen <= 4 ? 'Inspector' : pen <= 9 ? 'Detective' : 'Junior Sleuth' };
   }
   function renderClosed() {
-    const box = $('#sd-closed'); if (!S.closed) { box.hidden = true; return; }
+    const box = $('#sd-closed'); $('.sd-board').classList.toggle('sd-isclosed', !!S.closed);
+    if (!S.closed) { box.hidden = true; return; }
     const r = rank(), done = S.solved.length;
     box.hidden = false;
     box.innerHTML = '<h3>Case closed: Cassian Dray</h3><p>Confronted with the broken alibi, Cassian led the police to the Drone Hangar, where the Golden Gear sat wrapped in foam padding. He had swapped it for an empty gift box under the display cloth, hoping nobody would look until Monday. Pell, who had signed the hackathon sheet for him, was embarrassed but is not charged.</p>' +
@@ -810,6 +813,10 @@ CREATE TABLE incident (
     $('#sd-sql').addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runQuery(); } });
     $('#sd-sql').addEventListener('input', () => { S.draft = $('#sd-sql').value; });
     $('#sd-accuse').addEventListener('submit', accuse);
+    mount.querySelectorAll('.sd-tab').forEach((b) => b.addEventListener('click', () => {      /* the tool tabs only show in the compact full-screen layout (assets/fs-sql.css) */
+      $('.sd-aside').dataset.tab = b.dataset.tab;
+      mount.querySelectorAll('.sd-tab').forEach((o) => o.setAttribute('aria-pressed', o === b ? 'true' : 'false'));
+    }));
     $('#sd-reset').addEventListener('click', startReset);
     $('#sd-big').addEventListener('click', () => { S.big = !S.big; save(); applyBig(); });
     setStatus(isReset ? 'New investigation. The case file is closed again; no clue is shown.' : (S.solved.length ? 'Welcome back: ' + S.solved.length + ' clue(s) restored. Indexes you created earlier must be created again.' : 'Start with the incident file: SELECT * FROM incident;'));

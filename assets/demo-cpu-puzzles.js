@@ -135,6 +135,7 @@
     var grid = el('div', 'cp-grid'); root.appendChild(grid);
     var left = el('div', 'cp-left'), right = el('div', 'cp-right');
     grid.appendChild(left); grid.appendChild(right);
+    UI.grid = grid; UI.left = left; UI.right = right;
 
     // brief
     var brief = el('section', 'cp-card cp-brief');
@@ -146,7 +147,7 @@
     left.appendChild(brief);
 
     // editor
-    var ed = el('section', 'cp-card');
+    var ed = el('section', 'cp-card cp-editor');
     var edHead = el('div', 'cp-row cp-edhead');
     var lab = el('label', 'cp-lab', 'Your program'); lab.setAttribute('for', 'cp-src');
     UI.restore = el('button', 'btn ghost small', 'Restore starter code'); UI.restore.type = 'button';
@@ -158,7 +159,7 @@
     left.appendChild(ed);
 
     // controls
-    var ctl = el('section', 'cp-card cp-ctl');
+    var ctl = el('section', 'cp-card cp-ctl'); UI.ctl = ctl;
     var row1 = el('div', 'cp-row');
     UI.step = btn('Step (1 tick)', 'btn small'); UI.stepI = btn('Step (1 instruction)', 'btn small');
     UI.run = btn('Run', 'btn primary small'); UI.reset = btn('Reset', 'btn ghost small');
@@ -186,11 +187,11 @@
     UI.solD = el('details', 'cp-card cp-details'); UI.solSum = el('summary'); UI.solD.appendChild(UI.solSum);
     UI.solBody = el('div'); UI.solD.appendChild(UI.solBody);
     var isa = el('details', 'cp-card cp-details'); isa.appendChild(el('summary', null, 'Instruction set cheat sheet'));
-    isa.appendChild(isaTable());
+    isa.appendChild(isaTable()); UI.isaD = isa;
     left.appendChild(UI.hintD); left.appendChild(UI.solD); left.appendChild(isa);
 
     // right: machine
-    var mach = el('section', 'cp-card cp-machine'); right.appendChild(mach);
+    var mach = el('section', 'cp-card cp-machine'); right.appendChild(mach); UI.mach = mach;
     var top = el('div', 'cp-row cp-phaserow');
     UI.phases = {};
     ['fetch', 'decode', 'execute'].forEach(function (p) { var s = el('span', 'cp-phase', p.toUpperCase()); UI.phases[p] = s; top.appendChild(s); });
@@ -628,12 +629,53 @@
     UI.run.addEventListener('click', function () { if (running) pause(); else start(); });
     UI.reset.addEventListener('click', function () { rebuildMachine(); UI.status.textContent = 'Machine reset.'; });
     UI.check.addEventListener('click', check);
-    UI.next.addEventListener('click', function () { selectLevel(lvIndex + 1); doc.getElementById('cp-app').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); });
+    UI.next.addEventListener('click', function () { selectLevel(lvIndex + 1); if (!fsOn()) doc.getElementById('cp-app').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); });
     UI.testSel.addEventListener('change', function () { testIdx = Number(UI.testSel.value); rebuildMachine(); });
     UI.big.addEventListener('click', function () { saved.big = !saved.big; persist(); applyBig(); });
     applyBig();
   }
   function applyBig() { root.classList.toggle('cp-large', !!saved.big); UI.big.setAttribute('aria-pressed', saved.big ? 'true' : 'false'); }
+
+  /* ---------- full-screen layout (assets/fs-cpu.css) ----------
+     While the app is shown full screen, its parts are regrouped into three columns so that everything fits one screen:
+       A = brief + editor + help pop-overs + score,  B = controls + narration + data-path diagram,  C = memory.
+     The nodes are only moved (never re-created), so every listener and all state stay; leaving full screen puts them back. */
+  var fsApplied = false, fsHelp = null, fsMem = null;
+  function fsOn() { return doc.documentElement.classList.contains('fs-on') && root.classList.contains('fs-active'); }
+  function fsLayout() {
+    var on = fsOn();
+    if (on === fsApplied) return;
+    fsApplied = on;
+    var helps = [UI.hintD, UI.solD, UI.isaD];
+    if (on) {
+      fsHelp = el('div', 'cp-fs-help'); fsMem = el('div', 'cp-fs-mem');
+      helps.forEach(function (d) { d.setAttribute('name', 'cp-help'); fsHelp.appendChild(d); });   // name = exclusive group: one pop-over at a time
+      UI.left.appendChild(fsHelp); UI.left.appendChild(UI.result);
+      UI.right.insertBefore(UI.ctl, UI.mach);
+      fsMem.appendChild(UI.memBox); UI.grid.appendChild(fsMem);
+    } else {
+      UI.mach.appendChild(UI.memBox); if (fsMem.parentNode) fsMem.parentNode.removeChild(fsMem);
+      UI.left.insertBefore(UI.ctl, fsHelp);
+      UI.ctl.appendChild(UI.result);
+      helps.forEach(function (d) { d.removeAttribute('name'); d.open = false; UI.left.appendChild(d); });
+      if (fsHelp.parentNode) fsHelp.parentNode.removeChild(fsHelp);
+    }
+    if (global.AppFullscreen && global.AppFullscreen.refit && on) global.AppFullscreen.refit();
+  }
+  function closeHelp(except) {
+    var any = false;
+    [UI.hintD, UI.solD, UI.isaD].forEach(function (d) { if (d !== except && d.open) { d.open = false; any = true; } });
+    return any;
+  }
+  if (typeof MutationObserver !== 'undefined') new MutationObserver(fsLayout).observe(doc.documentElement, { attributes: true, attributeFilter: ['class'] });
+  doc.addEventListener('keydown', function (e) {                // Esc closes an open help pop-over first, full screen stays
+    if (e.key === 'Escape' && fsOn() && closeHelp()) e.preventDefault();
+  });
+  doc.addEventListener('click', function (e) {                  // a click outside the open pop-over closes it
+    if (!fsOn() || !fsHelp) return;
+    var d = [UI.hintD, UI.solD, UI.isaD].filter(function (x) { return x.open; })[0];
+    if (d && !d.contains(e.target)) d.open = false;
+  });
 
   build(); wire(); selectLevel(lvIndex);
 })(typeof window !== 'undefined' ? window : this);

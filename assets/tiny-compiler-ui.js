@@ -30,9 +30,9 @@
     panel.appendChild(el('h4', '', 'Tiny compiler: C++ subset → toy machine code <span class="tc-label">teaching machine, not x86 / ARM</span>'));
 
     /* the toolchain as blocks: tokens, tree, assembly, machine words and CPU cycles travel between them (assets/compiler-flow.js) */
-    var flow = null;
+    var flow = null, flowHost = null;
     if (global.CompilerFlow) {
-      var flowHost = el('div', 'cf-lab');
+      flowHost = el('div', 'cf-lab');
       panel.appendChild(flowHost);
       flow = global.CompilerFlow.create(flowHost, { uid: 'lab', speedKey: 'co1005-cf-speed' });
       flow.blank('Press Compile (on the Source tab) and watch your program travel through the toolchain, block by block.');
@@ -151,7 +151,9 @@
     function byKey(k) { for (var i = 0; i < EXAMPLES.length; i++) if (EXAMPLES[i].key === k) return EXAMPLES[i]; return null; }
     function src() { return ed.getValue(); }
 
+    var curTab = 0;
     function show(i) {
+      curTab = i;
       tabBtns.forEach(function (b, k) { b.setAttribute('aria-selected', k === i ? 'true' : 'false'); b.tabIndex = k === i ? 0 : -1; });
       panes.forEach(function (p, k) { p.hidden = k !== i; });
       if (i === 4 && res && res.ok && !stRun) resetRun();
@@ -516,6 +518,38 @@
     bSaveNew.addEventListener('click', function () { doSave(true); });
     nameBox.addEventListener('input', updateVn);
     nameBox.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doSave(false); } });
+
+    /* ───── full-screen layout (assets/fs-compiler.css): three columns, editor | toolchain diagram + example card | stage tabs and output.
+       Only while the app is full screen: the pieces are moved into three column wrappers and moved back on exit; nothing is re-created. ───── */
+    var fsCols = null, fsPrevTab = 0, tab0Label = tabBtns[0].textContent, fsHtml = document.documentElement;
+    function fsLayout(on) {
+      if (on && !fsCols) {
+        fsCols = { l: el('div', 'tc-fs-col tc-fs-left'), m: el('div', 'tc-fs-col tc-fs-mid'), r: el('div', 'tc-fs-col tc-fs-right') };
+        fsCols.l.appendChild(colL);
+        if (flowHost) fsCols.m.appendChild(flowHost);
+        fsCols.m.appendChild(colR); fsCols.m.appendChild(status);
+        fsCols.r.appendChild(tabs); panes.forEach(function (p) { fsCols.r.appendChild(p); });
+        panel.appendChild(fsCols.l); panel.appendChild(fsCols.m); panel.appendChild(fsCols.r);
+        tabBtns[0].textContent = 'Help & programs';
+        fsPrevTab = curTab;
+        if (res && res.ok) show(1);                                   // the editor is always in view now, so start on the first compiled stage
+        if (global.AppFullscreen && AppFullscreen.refit) AppFullscreen.refit();
+      } else if (!on && fsCols) {
+        var c = fsCols; fsCols = null;
+        grid.appendChild(colL); grid.appendChild(colR);
+        if (flowHost) panel.appendChild(flowHost);
+        panel.appendChild(tabs); panes.forEach(function (p) { panel.appendChild(p); }); panel.appendChild(status);
+        [c.l, c.m, c.r].forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+        tabBtns[0].textContent = tab0Label;
+        if (!tabBtns[fsPrevTab].disabled) show(fsPrevTab);
+      }
+    }
+    function syncFs() { fsLayout(host.classList.contains('fs-active') && fsHtml.classList.contains('fs-on')); }
+    if (global.MutationObserver) {
+      var fsObs = new MutationObserver(syncFs);
+      fsObs.observe(fsHtml, { attributes: true, attributeFilter: ['class'] });
+      fsObs.observe(host, { attributes: true, attributeFilter: ['class'] });
+    }
 
     /* ───── start ───── */
     renderProgs();

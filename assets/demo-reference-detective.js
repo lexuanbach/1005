@@ -703,17 +703,20 @@
       hud.appendChild(stat('Time spent', (state.plays.reduce(function (a, p) { return a + p.checks.length; }, 0) + (state.answered ? 0 : state.opened.length)) * CHECK_SECONDS + ' s'));
       hud.appendChild(meter('Essay credibility', state.cred, 100));
       stage.appendChild(hud);
-      if (flow) { stage.appendChild(flow.root); fctl.fix(); if (!frun.state().active) paintDiagram(); }
-      stage.appendChild(essayBubble(state.i + 1, n));
+      // three column wrappers (diagram + reference | checks, verdict and evidence | the truth); they only matter in full-screen mode (assets/fs-cite.css), elsewhere display: contents
+      var colA = columnBox('a'), colB = columnBox('b'), colC = columnBox('c');
+      stage.appendChild(colA); stage.appendChild(colB); stage.appendChild(colC);
+      if (flow) { colA.appendChild(flow.root); fctl.fix(); if (!frun.state().active) paintDiagram(); }
+      colA.appendChild(essayBubble(state.i + 1, n));
       var area = $('div', 'rd-card-area');
       var ref = refBlock(card, state.i, 'rd-swipe'); ref.tabIndex = 0;
       ref.setAttribute('aria-label', 'Reference card. Swipe left for fake, right for real, down for real with wrong details.');
-      area.appendChild(ref); stage.appendChild(area);
+      area.appendChild(ref); colA.appendChild(area);
       attachSwipe(ref);
       if (flow && !frun.state().active) paintRef();
-      stage.appendChild(checkButtons(card, state.opened, function (k) { openCheck(k); }, state.answered));
+      colB.appendChild(checkButtons(card, state.opened, function (k) { openCheck(k); }, state.answered));
       var act = $('div', 'rd-actions');   // fixed-height row: verdict buttons, then the result + Next button in the same place
-      stage.appendChild(act);
+      colB.appendChild(act);
       if (!state.answered) {
         var vb = $('div', 'rd-verdicts'); vb.setAttribute('role', 'group'); vb.setAttribute('aria-label', 'Your verdict');
         VERDICTS.forEach(function (d) {
@@ -723,8 +726,8 @@
           vb.appendChild(b);
         });
         act.appendChild(vb);
-        stage.appendChild(evidenceList(card, state.opened));
-        stage.appendChild($('p', 'rd-hint', 'Keys: 1-4 open a check; arrow keys or F / W / R give your verdict. On a touch screen, swipe the card.'));
+        colB.appendChild(evidenceList(card, state.opened));
+        colC.appendChild($('p', 'rd-hint', 'Keys: 1-4 open a check; arrow keys or F / W / R give your verdict. On a touch screen, swipe the card.'));
       } else {
         var s = state.answered, res = $('div', 'rd-result ' + (s.result.correct ? 'good' : 'badr'));
         res.appendChild($('b', '', (s.result.correct ? 'Correct. ' : 'Not quite. ') + 'You said "' + VLABEL[s.verdict] + '".'));
@@ -732,11 +735,12 @@
         act.appendChild(res);
         var nx = $('button', 'btn primary rd-next', state.i + 1 < n ? 'Next reference (Enter)' : 'See the report card (Enter)'); nx.type = 'button';
         nx.addEventListener('click', next); act.appendChild(nx);
-        stage.appendChild(evidenceList(card, state.opened)); stage.appendChild(truthBox(card));
+        colB.appendChild(evidenceList(card, state.opened)); colC.appendChild(truthBox(card));
         setTimeout(function () { nx.focus(); }, 0);
       }
-      stage.appendChild(checklist());
+      colC.appendChild(checklist());
     }
+    function columnBox(k) { return $('div', 'rd-col rd-col-' + k); }
     function stat(l, v) { var s = $('div', 'rd-stat'); s.appendChild($('span', 'rd-stat-l', l)); s.appendChild($('b', 'rd-stat-v', v)); return s; }
     function openCheck(k) {
       flowFlush();          // a lookup still on its way lands first
@@ -864,13 +868,15 @@
       var tally = state.t.hist.filter(function (h) { return h.ok; }).length;
       head.appendChild($('span', 'rd-t-class', 'Class: ' + tally + ' of ' + state.t.hist.length + ' cards judged correctly'));
       stage.appendChild(head);
-      if (flow) { stage.appendChild(flow.root); fctl.fix(); if (!frun.state().active) paintDiagram(); }
-      stage.appendChild(refBlock(card, T.i, 'rd-t-ref'));
+      var colA = columnBox('a'), colB = columnBox('b'), colC = columnBox('c');     // diagram, reference and checks | evidence and votes | buttons and the truth (full-screen layout only)
+      stage.appendChild(colA); stage.appendChild(colB); stage.appendChild(colC);
+      if (flow) { colA.appendChild(flow.root); fctl.fix(); if (!frun.state().active) paintDiagram(); }
+      colA.appendChild(refBlock(card, T.i, 'rd-t-ref'));
       if (flow && !frun.state().active) paintRef();
       var opened = CHECKS.slice(0, T.opened);
       var cb = checkButtons(card, opened, function (k) { tOpen(CHECKS.indexOf(k) + 1); }, T.revealed);
-      stage.appendChild(cb);
-      stage.appendChild(evidenceList(card, opened));
+      colA.appendChild(cb);
+      colB.appendChild(evidenceList(card, opened));
       var vr = $('div', 'rd-votes'); vr.setAttribute('role', 'group'); vr.setAttribute('aria-label', 'Class votes (raise hands, then count)');
       var total = T.votes.fake + T.votes.wrong + T.votes.real;
       VERDICTS.forEach(function (d) {
@@ -886,19 +892,19 @@
         minus.addEventListener('click', function () { T.votes[d.v] = Math.max(0, T.votes[d.v] - 1); drawTeacher(); });
         row.appendChild(plus); row.appendChild(minus); col.appendChild(row); vr.appendChild(col);
       });
-      stage.appendChild(vr);
+      colB.appendChild(vr);
       var acts = $('div', 'rd-t-acts');
       var rev = $('button', 'btn primary', T.revealed ? 'Revealed' : 'Reveal the truth (Space)'); rev.type = 'button'; rev.disabled = T.revealed;
       rev.addEventListener('click', tReveal);
       var prev = $('button', 'btn ghost', '← Previous'); prev.type = 'button'; prev.disabled = T.i === 0; prev.addEventListener('click', function () { tGo(-1); });
       var nxt = $('button', 'btn ghost', 'Next →'); nxt.type = 'button'; nxt.disabled = T.i + 1 >= deck.length; nxt.addEventListener('click', function () { tGo(1); });
-      acts.appendChild(prev); acts.appendChild(rev); acts.appendChild(nxt); stage.appendChild(acts);
-      stage.appendChild($('p', 'rd-hint', 'Lecturer keys: 1-4 reveal the next checks, F / W / R add a vote, Space reveals the truth, ← / → move between cards.'));
+      acts.appendChild(prev); acts.appendChild(rev); acts.appendChild(nxt); colC.appendChild(acts);
+      colC.appendChild($('p', 'rd-hint', 'Lecturer keys: 1-4 reveal the next checks, F / W / R add a vote, Space reveals the truth, ← / → move between cards.'));
       if (T.revealed) {
         var majority = ['fake', 'wrong', 'real'].reduce(function (a, k) { return T.votes[k] > T.votes[a] ? k : a; }, 'real');
         var res = $('div', 'rd-result ' + (total && majority === card.truth && T.votes[majority] > 0 ? 'good' : 'badr'));
         res.appendChild($('b', '', total ? 'The class majority said "' + VLABEL[majority] + '". ' + (majority === card.truth ? 'Correct.' : 'Not quite.') : 'No votes were entered. '));
-        stage.appendChild(res); stage.appendChild(truthBox(card));
+        colC.appendChild(res); colC.appendChild(truthBox(card));
       }
     }
     function tOpen(n) {          // reveal checks up to number n, one lookup at a time; evidence appears when the last token is back

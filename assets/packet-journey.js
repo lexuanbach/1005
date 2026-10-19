@@ -661,6 +661,9 @@
     var fixedW = -1;
     function fixHeights() {
       if (!state.j || !root.offsetWidth) { fixedW = -1; return; }
+      if (document.documentElement.classList.contains('fs-on') && root.classList.contains('fs-active')) { // full screen: fixed-size panes (assets/fs-network.css), nothing to equalise
+        stage.style.minHeight = ''; f.narr.style.minHeight = ''; fixedW = -1; return;
+      }
       var keep = state.i, hs = 0, hn = 0;
       stage.style.minHeight = ''; f.narr.style.minHeight = '';
       for (var k = 0; k < state.j.steps.length; k++) {
@@ -674,6 +677,10 @@
       var ro = new ResizeObserver(function () { if (root.offsetWidth !== fixedW) fixHeights(); });
       ro.observe(root);
     } else window.addEventListener('resize', function () { fixHeights(); });
+    /* leaving full screen: put the equal heights back at once (not only when a ResizeObserver happens to fire) */
+    if (window.MutationObserver) new MutationObserver(function () {
+      if (!document.documentElement.classList.contains('fs-on')) { fixedW = -1; fixHeights(); }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
     /* ---- rendering (static: always draws the final state of a step; animation is added on top by playIn) ---- */
     var ctx = null, anims = [], lastDur = 0, auto = { on: false, paused: false, timer: null, due: 0, remain: 0 };

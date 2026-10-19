@@ -516,11 +516,13 @@
     }
     function center(s, top) {
       var b = body.getBoundingClientRect(), r = s.getBoundingClientRect();
-      return [r.left - b.left + r.width / 2, (top ? r.top : r.bottom) - b.top];
+      var k = body.offsetWidth && b.width ? b.width / body.offsetWidth : 1;      // full-screen mode scales the whole app (CSS transform): convert back to layout pixels
+      return [(r.left - b.left + r.width / 2) / k, ((top ? r.top : r.bottom) - b.top) / k];
     }
     function drawArcs(animate) {
       while (arcG.firstChild) arcG.removeChild(arcG.firstChild);
-      var b = body.getBoundingClientRect();
+      var b = body.getBoundingClientRect(), kk = body.offsetWidth && b.width ? b.width / body.offsetWidth : 1;
+      b = { width: b.width / kk, height: b.height / kk };
       arcs.setAttribute('width', b.width); arcs.setAttribute('height', b.height); arcs.setAttribute('viewBox', '0 0 ' + b.width + ' ' + b.height);
       links.forEach(function (l, idx) {
         var a = center(pW[l.pi], true), z = center(sW[l.si], false);

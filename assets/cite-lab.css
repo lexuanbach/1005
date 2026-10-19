@@ -90,3 +90,6 @@ textarea.cl-input { resize: vertical; font-family: "IBM Plex Mono", monospace; f
 .before-after .ba-tag { display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; color: var(--ink-soft); margin-bottom: 0.2rem; }
 
 .cl-status:empty { display: none; }
+
+/* Spot the mistake: the numbered question list is only used in full-screen mode (assets/fs-cite.css) */
+.cl-spotnav { display: none; }

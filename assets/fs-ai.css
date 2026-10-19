@@ -1,0 +1,149 @@
+/* Full-screen layouts for the Chapter 11 AI apps (see assets/app-fullscreen.js): "Learn the Function" lab and the neural playground.
+   Everything that changes the layout is scoped under html.fs-on, so the normal pages are untouched. Tokens only. */
+
+/* ───────────────────────── Learn the Function lab (#ai-root) ───────────────────────── */
+.ai-fs-tabs { display: none; }
+.ai-col { display: contents; }
+
+html.fs-on #ai-root { display: flex; flex-direction: column; gap: 0.5rem; }
+html.fs-on #ai-root .ai-fs-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+html.fs-on #ai-root .ai-fs-tabs button {
+  font: 600 0.84rem "Be Vietnam Pro", system-ui, sans-serif; padding: 0.35rem 0.95rem; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); cursor: pointer;
+}
+html.fs-on #ai-root .ai-fs-tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+html.fs-on #ai-root .ai-fs-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* secondary text that only explains: hidden while full screen */
+html.fs-on #ai-root .ai-toy, html.fs-on #ai-root .ai-end, html.fs-on #ai-root .ai-lede, html.fs-on #ai-root .ai-hint,
+html.fs-on #ai-root .ai-panel > h4 { display: none; }
+html.fs-on #ai-root[data-fs-tab="1"] .ai-p2, html.fs-on #ai-root[data-fs-tab="2"] .ai-p1 { display: none; }
+
+html.fs-on #ai-root .ai-panel {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1rem; align-items: start;
+  margin: 0; padding: 0.6rem 0.8rem; box-shadow: none;
+}
+html.fs-on #ai-root .ai-col { display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; }
+html.fs-on #ai-root .ai-col > * { margin: 0; }
+html.fs-on #ai-root .ai-sub { margin: 0.2rem 0 0; padding-top: 0.4rem; font-size: 0.86rem; }
+html.fs-on #ai-root .ai-chart, html.fs-on #ai-root .ai-svg-sq, html.fs-on #ai-root .ai-svg-loss { max-width: none; }
+html.fs-on #ai-root .ai-sliders, html.fs-on #ai-root .ai-train { grid-template-columns: 1fr; gap: 0.35rem; margin: 0; }
+html.fs-on #ai-root .ai-readout { margin: 0; padding: 0.4rem 0.6rem; font-size: 0.84rem; line-height: 1.45; }
+html.fs-on #ai-root .ai-legend { gap: 0.15rem 0.8rem; font-size: 0.76rem; }
+html.fs-on #ai-root .sim-status { padding: 0.35rem 0.6rem; font-size: 0.76rem; line-height: 1.4; }
+html.fs-on #ai-root .ai-log { min-height: 0; max-height: 3.4rem; overflow: auto; }
+html.fs-on #ai-root .run-cols { grid-template-columns: 1fr; gap: 0.4rem; }
+html.fs-on #ai-root .af-narr { min-height: 0; }
+
+/* compact control rows: label on top, slider and its value side by side */
+html.fs-on #ai-root .ai-field { grid-template-columns: minmax(0, 1fr) auto; gap: 0.1rem 0.6rem; align-items: center; }
+html.fs-on #ai-root .ai-field > label { grid-column: 1 / -1; }
+html.fs-on #ai-root .ai-field > output { min-width: 4.5rem; text-align: right; }
+html.fs-on #ai-root .field-label { font-size: 0.68rem; margin: 0; letter-spacing: 0.04em; }
+html.fs-on #ai-root .ex-actions { gap: 0.4rem; }
+html.fs-on #ai-root .ex-actions .preset-select { flex: 1 1 10rem; min-width: 0; max-width: 100%; }
+html.fs-on #ai-root .ai-check { font-size: 0.8rem; line-height: 1.35; }
+html.fs-on #ai-root .btn { padding-top: 0.35rem; padding-bottom: 0.35rem; }
+
+/* diagrams and plots follow the window height, not just the column width */
+html.fs-on #ai-root .ai-chart { display: flex; justify-content: center; }
+html.fs-on #ai-root .ai-chart > .ai-svg { width: 100%; height: auto; max-height: calc((100vh - 42px) * 0.33); }
+html.fs-on #ai-root .ai-svg-loss { max-height: calc((100vh - 42px) * 0.22); }
+html.fs-on #ai-root .af-diagram { margin: 0; padding: 0.4rem 0.5rem 0.5rem; }
+html.fs-on #ai-root .af-pipe { max-width: none; max-height: calc((100vh - 42px) * 0.36); }
+html.fs-on #ai-root .af-legend { display: none; }
+html.fs-on #ai-root .af-modes { margin: 0 0 0.2rem; }
+html.fs-on #ai-root .af-modes .af-modes-note { display: none; }
+html.fs-on #ai-root .af-flowbar { margin: 0.1rem 0; gap: 0.3rem 0.6rem; }
+html.fs-on #ai-root .af-flowbar .btn { min-width: 0; }
+html.fs-on #ai-root .af-narr { margin: 0.3rem 0 0; padding: 0.35rem 0.7rem; font-size: 0.82rem; line-height: 1.45; }
+html.fs-on #ai-root .tbl-scroll { max-height: 11rem; overflow: auto; }
+html.fs-on #ai-root .ai-tbl td, html.fs-on #ai-root .ai-tbl th { padding: 0.25rem 0.5rem; }
+@media (max-height: 899px) { html.fs-on #ai-root .tbl-scroll { display: none; } }
+
+/* ───────────────────────── Neural playground (.np-stage) ─────────────────────────
+   Four columns: controls | drawing board | brain + inspect | curves + scenario card.  The story strip on top, a status line at the bottom.
+   The board is a square whose side follows the window height (--np-S). */
+html.fs-on .np-stage {
+  --np-S: clamp(270px, calc(100vh - 392px), 820px);
+  padding: 0; font-size: 14px;
+}
+html.fs-on .np-stage .np-wrap {
+  display: grid; max-width: none; margin: 0; padding: 0;
+  grid-template-columns: 15.5rem minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); gap: 0.45rem 0.8rem;
+}
+html.fs-on .np-stage .np-scen { grid-column: 1 / -1; grid-row: 1; }
+html.fs-on .np-stage .np-story { grid-column: 1 / -1; grid-row: 2; }
+/* the status line shares the first row with the scenario tabs (right-aligned, at most two lines) */
+html.fs-on .np-stage .np-status { grid-column: 1 / -1; grid-row: 1; justify-self: end; max-width: calc(100% - 44rem); text-align: right; z-index: 1; }
+html.fs-on .np-stage .np-controls { grid-column: 1; grid-row: 3; display: flex; flex-direction: column; gap: 0.45rem; margin: 0; min-height: 0; }
+html.fs-on .np-stage .np-grid { grid-column: 2; grid-row: 3; grid-template-columns: calc(var(--np-S) + 1.6rem) minmax(0, 1fr); gap: 0.8rem; min-height: 0; }
+html.fs-on .np-stage .np-explain, html.fs-on .np-stage .np-big-btn { display: none; }
+
+/* scenario tabs and the story strip */
+html.fs-on .np-stage .np-scen { gap: 0.35rem; }
+html.fs-on .np-stage .np-scen button { font-size: 0.82rem; padding: 0.3rem 0.8rem; }
+html.fs-on .np-stage .np-story { display: grid; grid-template-columns: minmax(10rem, 15.5rem) minmax(0, 1fr) auto; gap: 0.15rem 1rem; align-items: center; margin: 0; padding: 0.45rem 0.8rem; box-shadow: none; }
+html.fs-on .np-stage .np-story h2 { margin: 0; font-size: 0.95rem; line-height: 1.25; }
+html.fs-on .np-stage .np-story p { margin: 0; font-size: 0.78rem; line-height: 1.4; }
+html.fs-on .np-stage .np-story .np-story-btns { margin: 0; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap: 0.3rem; max-width: 24rem; }
+html.fs-on .np-stage .np-status { margin: 0; min-height: 0; font-size: 0.74rem; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; align-self: center; }
+
+/* cards */
+html.fs-on .np-stage .np-card, html.fs-on .np-stage .np-board { padding: 0.5rem 0.6rem; margin: 0; box-shadow: none; border-radius: 10px; }
+html.fs-on .np-stage .np-card h3, html.fs-on .np-stage .np-card legend { font-size: 0.86rem; margin: 0 0 0.3rem; }
+html.fs-on .np-stage .np-card legend { margin: 0; }
+html.fs-on .np-stage .np-cap, html.fs-on .np-stage .np-hint { display: none; }
+
+/* controls column */
+html.fs-on .np-stage .np-controls fieldset { padding: 0.3rem 0.6rem 0.45rem; }
+html.fs-on .np-stage .np-row { gap: 0.25rem; margin: 0.25rem 0; }
+html.fs-on .np-stage .np-lab { min-width: 4.6rem; font-size: 0.76rem; }
+html.fs-on .np-stage .np-controls .btn.small { padding: 0.2rem 0.5rem; font-size: 0.76rem; }
+html.fs-on .np-stage .np-sl { margin: 0.25rem 0; font-size: 0.76rem; }
+html.fs-on .np-stage .np-sl input[type=range] { margin: 0; display: block; }
+html.fs-on .np-stage .np-row b { min-width: 1.1rem; }
+
+/* board: tools, square canvas, legend, actions */
+html.fs-on .np-stage .np-board { display: flex; flex-direction: column; gap: 0.35rem; align-self: start; }
+html.fs-on .np-stage .np-tools { margin: 0; gap: 0.25rem; }
+html.fs-on .np-stage .np-tools button { font-size: 0.74rem; padding: 0.25rem 0.5rem; }
+html.fs-on .np-stage .np-canvas-wrap { width: var(--np-S); max-width: none; margin: 0; }
+html.fs-on .np-stage .np-legend { margin: 0; font-size: 0.74rem; gap: 0.1rem 0.7rem; }
+html.fs-on .np-stage .np-actions { gap: 0.3rem; }
+html.fs-on .np-stage .np-actions .btn { font-size: 0.78rem; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; flex: 0 0 auto; }
+html.fs-on .np-stage .np-run { min-width: 0; padding: 0.4rem 1rem; font-size: 0.95rem !important; }
+html.fs-on .np-stage .np-actions .btn { padding-top: 0.35rem; padding-bottom: 0.35rem; }
+
+/* side: two columns x two rows (brain | curves, inspect | scenario card) */
+html.fs-on .np-stage .np-side { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-auto-flow: column; grid-template-rows: auto auto; gap: 0.5rem 0.8rem; align-content: start; min-height: 0; }
+html.fs-on .np-stage .np-side .np-card { min-width: 0; }
+html.fs-on .np-stage .np-extra[hidden] { display: none; }
+html.fs-on .np-stage .np-net { max-height: calc((100vh - 42px) * 0.28); margin: 0 auto; }
+html.fs-on .np-stage .np-netleg { font-size: 0.66rem; margin: 0.15rem 0 0; gap: 0.1rem 0.6rem; }
+html.fs-on .np-stage .np-lg-key { font-size: 0.64rem; line-height: 1.35; }
+html.fs-on .np-stage .np-curve { width: 100%; height: calc((100vh - 42px) * 0.105); margin-bottom: 0.25rem; }
+html.fs-on .np-stage .np-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.25rem; }
+html.fs-on .np-stage .np-stat { padding: 0.15rem 0.35rem; }
+html.fs-on .np-stage .np-stat small { font-size: 0.55rem; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.fs-on .np-stage .np-stat b { font-size: 0.82rem; }
+html.fs-on .np-stage .np-verdict { margin: 0.35rem 0 0; padding: 0.3rem 0.5rem; font-size: 0.78rem; }
+html.fs-on .np-stage .np-bar { margin: 0.2rem 0; grid-template-columns: 6rem 1fr 2.8rem; font-size: 0.78rem; }
+html.fs-on .np-stage .np-extra p { font-size: 0.78rem; margin: 0.3rem 0; line-height: 1.4; }
+
+/* inspect card */
+html.fs-on .np-stage .np-insp-bar { gap: 0.25rem; margin: 0.1rem 0 0.3rem; }
+html.fs-on .np-stage .np-insp-bar { flex-wrap: nowrap; }
+html.fs-on .np-stage .np-insp-bar .btn { min-width: 0; padding: 0.2rem 0.4rem; font-size: 0.7rem; white-space: nowrap; }
+html.fs-on .np-stage .np-insp-speed { margin: 0 0 0.3rem; }
+html.fs-on .np-stage .np-insp .af-speed-name { min-width: 0; }
+html.fs-on .np-stage .np-stages { min-height: 0; margin-bottom: 0.3rem; gap: 0.2rem; }
+html.fs-on .np-stage .np-stages button { font-size: 0.64rem; padding: 0.15rem 0.35rem 0.1rem; }
+html.fs-on .np-stage .np-insp-narr { min-height: 0; margin: 0 0 0.3rem; padding: 0.25rem 0.5rem; font-size: 0.72rem; line-height: 1.3; }
+html.fs-on .np-stage .np-insp-nums { min-height: 0; gap: 0.2rem; }
+html.fs-on .np-stage .np-insp-nums .np-stat small { font-size: 0.54rem; letter-spacing: 0; white-space: normal; }
+html.fs-on .np-stage .np-insp-nums .np-stat b { font-size: 0.8rem; }
+html.fs-on .np-stage .np-sub { font-size: 0.7rem; margin-left: 0.25rem; }
+
+/* Panel 2: the square scatter plot may use more of the height (its column has little else in it) */
+html.fs-on #ai-root .ai-p2 .ai-chart > .ai-svg { max-height: calc((100vh - 42px) * 0.46); }

@@ -10,7 +10,10 @@
 .llm-tab-k { font-family: "IBM Plex Mono", monospace; opacity: 0.8; margin-right: 0.15rem; }
 .llm-panel[hidden] { display: none; }
 .llm-panel h4 { margin-top: 1.2rem; }
-.llm-panel h4:first-of-type { margin-top: 0.6rem; }
+/* the grouping wrappers (llm-lab.js wrapRange) leave the layout alone; fs-llm.css makes them panes in full-screen mode */
+.llm-g { display: contents; }
+.llm-subtabs { display: none; }
+.llm-g-tok > h4:first-child, .llm-g-bctl > h4:first-child, .llm-g-cin > h4:first-child { margin-top: 0.6rem; }
 .llm-h-gap { margin-top: 1.8rem !important; }
 .llm-sim-note { margin-bottom: 0.4rem; }
 .llm-row { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: flex-end; margin-bottom: 0.7rem; }

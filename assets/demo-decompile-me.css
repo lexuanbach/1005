@@ -147,3 +147,6 @@
 #dm-root.dm-big .cf-narr p { font-size: 1.05rem; }
 #dm-root.dm-big .cf-narr { height: 11em; }
 @media (max-width: 560px) { .dm-flow-box { padding: 0.9rem; } }
+
+/* column wrappers: invisible on the normal page, real columns in full-screen mode (assets/fs-compiler.css) */
+.dm-app, .dm-col { display: contents; }

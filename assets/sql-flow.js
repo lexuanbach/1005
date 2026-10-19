@@ -388,6 +388,7 @@
     function pickLayout() {
       if (opts.layout === 'tall' || opts.layout === 'wide') return opts.layout;
       var w = container.clientWidth || (container.parentNode && container.parentNode.clientWidth) || 1000;
+      if (document.documentElement.classList.contains('fs-on')) return w < 520 ? 'tall' : 'wide';   // full-screen panes are short: prefer the wide drawing
       return w < 640 ? 'tall' : 'wide';
     }
     function build(name) {

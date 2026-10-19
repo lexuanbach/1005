@@ -216,13 +216,16 @@
     var dpr = Math.min(2, window.devicePixelRatio || 1), w = Math.max(280, Math.round(cv.clientWidth * dpr));
     if (cv.width !== w) { cv.width = w; cv.height = w; }
     ['np-curve-loss', 'np-curve-acc'].forEach(function (id) {
-      var c = $(id), cw = Math.max(280, Math.round(c.clientWidth * dpr));
-      if (c.width !== cw) { c.width = cw; c.height = Math.round(cw * 150 / 560); }
+      var c = $(id), cw = Math.max(280, Math.round(c.clientWidth * dpr)), ch = Math.round(cw * 150 / 560);
+      /* full screen (assets/fs-ai.css): the curves are as tall as the CSS box, not 150:560 */
+      if (document.documentElement.classList.contains('fs-on') && c.clientHeight > 40) ch = Math.round(c.clientHeight * dpr);
+      if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
     });
     S.dirty = true;
   }
   function drawCurve(c, key, o) {
     var h = S.T ? S.T.history : [], P = palette(), g = c.getContext('2d'), W = c.width, H = c.height, u = W / 560;
+    if (document.documentElement.classList.contains('fs-on')) u = Math.max(u, 0.95 * Math.min(2, window.devicePixelRatio || 1));   // narrow full-screen columns: keep the type readable
     var padL = 38 * u, padB = 18 * u, padT = 8 * u, padR = 8 * u, i, hi = o.max, lo = o.min || 0, maxE = Math.max(10, S.T ? S.T.epoch : 10);
     g.clearRect(0, 0, W, H); g.fillStyle = P.bg; g.fillRect(0, 0, W, H);
     if (o.auto) {

@@ -10,21 +10,25 @@
 .fs-btn[aria-pressed="true"] { border-color: var(--accent); }
 .fs-theme { display: none; }
 
-/* the app becomes a viewport-filling panel; !important beats the apps' own width / margin rules */
+/* the app is laid out at a virtual width and scaled down until all of it fits the screen (see app-fullscreen.js) */
 html.fs-on, html.fs-on body { overflow: hidden !important; }
+html.fs-on::before { content: ""; position: fixed; inset: 0; z-index: 55; background: var(--paper, var(--surface)); }
 .fs-active {
-  position: fixed !important; inset: 0 !important; z-index: 60;
-  width: auto !important; max-width: none !important; height: auto !important; max-height: none !important; margin: 0 !important;
-  box-sizing: border-box; padding: 3.1rem clamp(0.6rem, 2vw, 1.5rem) 1.2rem !important;
-  overflow: auto; background: var(--paper, var(--surface)); color: var(--ink);
+  position: fixed !important; left: 0 !important; top: 42px !important; z-index: 60;
+  width: var(--fs-w, 100vw) !important; max-width: none !important; height: auto !important; max-height: none !important; min-height: 0 !important;
+  margin: 0 !important; box-sizing: border-box; padding: 0 clamp(0.5rem, 1.2vw, 1.2rem) 0.6rem !important;
+  transform: scale(var(--fs-s, 1)); transform-origin: 0 0;
+  overflow: visible; background: transparent; color: var(--ink);
 }
+.fs-active.fs-scroll { height: var(--fs-h) !important; overflow: auto; }
+.fs-hidden { display: none !important; }
 .fs-bar.fs-bar-active {
-  position: fixed; top: 0.55rem; right: 0.8rem; left: auto; z-index: 70; margin: 0; padding: 0; max-width: none; width: auto;
+  position: fixed; top: 0.45rem; right: 0.8rem; left: auto; z-index: 70; margin: 0; padding: 0; max-width: none; width: auto;
 }
 .fs-bar.fs-bar-active .fs-theme { display: inline-block; }
 html:fullscreen, html:-webkit-full-screen { background: var(--paper); }
 
 .fs-live { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
-@media (max-width: 560px) { .fs-bar { padding: 0 1rem; } .fs-active { padding-top: 3.4rem !important; } }
+@media (max-width: 560px) { .fs-bar { padding: 0 1rem; } }
 @media print { .fs-bar { display: none; } }

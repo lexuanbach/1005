@@ -1,0 +1,192 @@
+/* Full-screen layouts for the Chapter 9 apps: Packet Journey (#net-root) and Network Builder (#nb-root).
+   Everything is scoped under html.fs-on, so the normal page layout is untouched.
+   Idea: while full screen the app root gets a FIXED height (the screen minus the 42 px strip, divided by the scale that app-fullscreen.js
+   publishes as --fs-s) and its parts are laid out in a grid; long content scrolls inside its own pane instead of making the page taller. */
+
+/* big screens (projector, 1080p and up): everything is sized in rem, so a larger root size makes the whole app larger (it still fits: the layouts are fixed-height grids) */
+@media (min-width: 1700px) and (min-height: 940px) { html.fs-on { font-size: 118%; } }
+@media (min-width: 1700px) { html.fs-on #net-root.fs-active { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(23rem, 0.85fr); } }
+@media (min-width: 2300px) and (min-height: 1300px) { html.fs-on { font-size: 150%; } }
+
+/* ============================================================ Network Builder */
+html.fs-on #nb-root.fs-active {
+  --nb-h: calc((100vh - 42px) / var(--fs-s, 1) - 3px);
+  --nb-h: calc((100dvh - 42px) / var(--fs-s, 1) - 3px);
+  height: var(--nb-h) !important;
+  display: flex; flex-direction: column; gap: 0.45rem;
+  padding-top: 0.15rem !important; padding-bottom: 0.3rem !important;
+}
+html.fs-on #nb-root.nb-big { font-size: 1rem; }                                  /* "Projector size" has no place in full screen (its checkbox is hidden) */
+html.fs-on #nb-root .nb-levels { flex: none; gap: 0.25rem; margin: 0; }
+html.fs-on #nb-root .nb-lv { font-size: 0.74rem; padding: 0.2rem 0.5rem 0.2rem 0.25rem; gap: 0.28rem; }
+html.fs-on #nb-root .nb-lv b { min-width: 1.3rem; height: 1.3rem; font-size: 0.7rem; }
+html.fs-on #nb-root .nb-main {
+  flex: 1 1 0; min-height: 0; min-width: 1220px; gap: 0.7rem; align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) clamp(32rem, 30%, 40rem);
+}
+html.fs-on #nb-root .nb-stage { display: flex; flex-direction: column; gap: 0.35rem; min-height: 0; }
+html.fs-on #nb-root .nb-toolbar { flex: none; margin: 0; gap: 0.3rem; }
+html.fs-on #nb-root .nb-toolbar > .nb-chk { display: none; }                    /* "Projector size": the full screen is the big view */
+html.fs-on #nb-root .nb-btn { font-size: 0.8rem; padding: 0.28rem 0.65rem; }
+html.fs-on #nb-root .nb-btn.small { font-size: 0.72rem; padding: 0.15rem 0.45rem; }
+
+/* the board takes whatever height is left; the drawing keeps its aspect ratio (letter-boxed), the pop-over maths in the JS knows */
+html.fs-on #nb-root .nb-board { flex: 1 1 0; min-height: 9rem; width: 100%; }
+html.fs-on #nb-root .nb-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+html.fs-on #nb-root .nb-key { flex: none; margin: 0; font-size: 0.72rem; gap: 0.15rem 0.7rem; }
+html.fs-on #nb-root .nb-play { flex: none; margin: 0; min-height: 0; gap: 0.3rem 0.5rem; }
+html.fs-on #nb-root .nb-play .nb-btn { min-width: 5.6rem; }
+html.fs-on #nb-root .nb-speed { gap: 0.4rem; font-size: 0.76rem; }
+html.fs-on #nb-root .nb-speed input[type="range"] { width: 8rem; }
+html.fs-on #nb-root .nb-speed-name { min-width: 10.5rem; font-size: 0.74rem; }
+html.fs-on #nb-root .nb-hdr { flex: none; margin: 0; min-height: 0; padding: 0.3rem 0.55rem; gap: 0.15rem 0.4rem; }
+html.fs-on #nb-root .nb-hkey { padding-top: 0.15rem; font-size: 0.7rem; }
+html.fs-on #nb-root .nb-budget { flex: none; margin: 0; }
+html.fs-on #nb-root .nb-cap { flex: none; height: 2.9em; margin: 0; font-size: 0.86rem; line-height: 1.35; }
+
+/* the story card becomes a band under the level bar (moved there by the JS) */
+html.fs-on #nb-root > .nb-mission {
+  flex: none; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 0.9rem; row-gap: 0.15rem; align-items: center;
+  padding: 0.35rem 0.8rem; border-radius: 10px; box-shadow: none;
+}
+html.fs-on #nb-root .nb-mission h3 { grid-column: 1; grid-row: 1; margin: 0; font-size: 0.9rem; white-space: nowrap; }
+html.fs-on #nb-root .nb-mission .nb-story { grid-column: 2; grid-row: 1; margin: 0; font-size: 0.82rem; line-height: 1.35; }
+html.fs-on #nb-root .nb-mission .nb-learn { grid-column: 2; grid-row: 2; margin: 0; font-size: 0.76rem; }
+html.fs-on #nb-root .nb-mission .nb-hints { grid-column: 2; grid-row: 3; margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+html.fs-on #nb-root .nb-mission > button { grid-column: 3; grid-row: 1; align-self: start; }
+html.fs-on #nb-root .nb-mission .nb-done { grid-column: 1 / -1; grid-row: 4; margin: 0.25rem 0 0; padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+
+/* side: two columns. Left: the goals and (moved there by the JS) the explanation of the last run. Right: inspector + "send a packet". */
+html.fs-on #nb-root .nb-side { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 0.6rem; min-height: 0; align-items: stretch; }
+html.fs-on #nb-root .nbfs-col { display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; min-width: 0; overflow: hidden; }
+html.fs-on #nb-root .nb-card { padding: 0.5rem 0.7rem; border-radius: 10px; flex: none; }
+html.fs-on #nb-root .nb-card h3 { font-size: 0.88rem; margin: 0 0 0.25rem; }
+html.fs-on #nb-root .nb-goals-card, html.fs-on #nb-root .nbfs-l > .nb-card { flex: 0 1 auto; min-height: 6rem; overflow: auto; }
+html.fs-on #nb-root .nb-goals { gap: 0.3rem; }
+html.fs-on #nb-root .nb-goal { font-size: 0.8rem; gap: 0.35rem; grid-template-columns: 1.1rem 1fr auto; }
+html.fs-on #nb-root .nb-goal-t { line-height: 1.25; overflow-wrap: anywhere; }
+html.fs-on #nb-root .nb-goal-w { font-size: 0.72rem; line-height: 1.3; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
+html.fs-on #nb-root .nb-cons { font-size: 0.76rem; margin-top: 0.25rem; }
+html.fs-on #nb-root .nb-insp { flex: 1 1 0; min-height: 5rem; overflow: auto; }
+/* forms: the label sits left of its box (one line per field) */
+html.fs-on #nb-root .nb-form { gap: 0.28rem; }
+html.fs-on #nb-root .nb-form > .nb-field { grid-template-columns: 6.6rem minmax(0, 1fr); align-items: center; gap: 0.4rem; font-size: 0.66rem; }
+html.fs-on #nb-root select, html.fs-on #nb-root input[type="text"] { font-size: 0.8rem; padding: 0.2rem 0.4rem; }
+html.fs-on #nb-root .nb-port-row { padding: 0.1rem 0.4rem 0.3rem; gap: 0.3rem; }
+html.fs-on #nb-root .nb-port-row legend { font-size: 0.72rem; }
+html.fs-on #nb-root .nb-field span { font-size: 0.66rem; }
+html.fs-on #nb-root .nb-muted { font-size: 0.72rem; margin: 0.15rem 0; }
+html.fs-on #nb-root .nb-conn { margin-top: 0.25rem; font-size: 0.74rem; }
+html.fs-on #nb-root .nb-connect { margin-top: 0.3rem; }
+html.fs-on #nb-root .nb-rules { font-size: 0.72rem; }
+html.fs-on #nb-root .nb-addrule input { width: 3.4rem; }
+html.fs-on #nb-root .nbfs-r > .nb-card:last-child .nb-muted { display: none; }     /* "Simulation: ARP and MAC ..." (said in the page text and under What am I looking at) */
+/* the explanation box: fills the rest of the left column; the steps scroll inside it */
+html.fs-on #nb-root .nb-explain { flex: 1 1 0; min-height: 9rem !important; overflow: auto; margin: 0; padding: 0.45rem 0.7rem; border-radius: 10px; }
+html.fs-on #nb-root .nb-explain:empty { display: none; }
+html.fs-on #nb-root .nb-explain h3 { font-size: 0.7rem; margin: 0 0 0.1rem; }
+html.fs-on #nb-root .nb-head { font-size: 0.82rem; margin: 0 0 0.2rem; }
+html.fs-on #nb-root .nb-why { font-size: 0.78rem; margin: 0 0 0.25rem; }
+html.fs-on #nb-root .nb-steps { font-size: 0.74rem; margin: 0.1rem 0 0.2rem; padding-left: 1.1rem; }
+html.fs-on #nb-root .nb-steps li { margin: 0.06rem 0; }
+
+/* short windows: drop the two colour keys (the device colours are repeated on the + buttons, the header fields are colour-coded) */
+@media (max-height: 860px) {
+  html.fs-on #nb-root .nb-key, html.fs-on #nb-root .nb-hkey, html.fs-on #nb-root .nb-mission .nb-learn { display: none; }
+}
+
+/* ============================================================ Packet Journey (+ the subnet calculator under it) */
+html.fs-on #net-root.fs-active {
+  --pj-h: calc((100vh - 42px) / var(--fs-s, 1) - 3px);
+  --pj-h: calc((100dvh - 42px) / var(--fs-s, 1) - 3px);
+  height: var(--pj-h) !important; min-width: 1280px;
+  display: grid; column-gap: 0.8rem; row-gap: 0.4rem; align-content: stretch;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(23rem, 0.85fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;      /* form, stories, phases + story, [map | detail], narration, controls */
+  padding-top: 0.15rem !important; padding-bottom: 0.3rem !important;
+  border: 0; border-radius: 0; background: transparent; box-shadow: none;
+}
+html.fs-on #net-root .pj-sim { display: none; }                               /* the page text above the lab already says this is a simulation */
+html.fs-on #net-root .pj-form { grid-column: 1 / 3; grid-row: 1; flex-wrap: nowrap; margin: 0; gap: 0.5rem; align-items: flex-end; }
+html.fs-on #net-root .pj-field { flex: 1 1 7rem; min-width: 0; gap: 0.1rem; }
+html.fs-on #net-root .pj-field.pj-wide { flex: 3 1 12rem; }
+html.fs-on #net-root .pj-lab { font-size: 0.68rem; }
+html.fs-on #net-root input[type="text"], html.fs-on #net-root select { font-size: 0.8rem; padding: 0.3rem 0.45rem; }
+html.fs-on #net-root .pj-form .btn { flex: none; padding: 0.35rem 0.8rem; font-size: 0.82rem; }
+html.fs-on #net-root .pj-presets { grid-column: 1 / 3; grid-row: 2; margin: 0; gap: 0.25rem; }
+html.fs-on #net-root .pj-chip { font-size: 0.7rem; padding: 0.18rem 0.45rem; }
+html.fs-on #net-root .pj-phases { grid-column: 1; grid-row: 3; margin: 0; align-self: center; gap: 0.3rem; }
+html.fs-on #net-root .pj-phase { font-size: 0.78rem; padding: 0.3rem 0.65rem; }
+html.fs-on #net-root .pj-story { grid-column: 2; grid-row: 3; margin: 0; align-self: center; min-height: 0; font-size: 0.8rem; line-height: 1.35; }
+
+/* stage: the diagram under the stories, the step detail beside it */
+html.fs-on #net-root .pj-stage { display: contents; }
+html.fs-on #net-root .pj-map { grid-column: 1; grid-row: 4; min-height: 0; display: flex; flex-direction: column; padding: 0.3rem; }
+html.fs-on #net-root .pj-map > svg { flex: 1 1 0; min-height: 0; width: 100%; height: 100%; }
+html.fs-on #net-root .pj-key { flex: none; margin: 0.2rem 0.2rem 0.1rem; font-size: 0.7rem; }
+html.fs-on #net-root .pj-detail { grid-column: 2; grid-row: 4 / 6; min-height: 0; overflow: auto; padding-right: 0.3rem; }
+html.fs-on #net-root .pj-title { font-size: 0.92rem; margin: 0 0 0.3rem; }
+html.fs-on #net-root .pj-msg { max-height: none; font-size: 0.74rem; padding: 0.4rem 0.55rem; }
+html.fs-on #net-root .pj-kv { font-size: 0.78rem; margin-bottom: 0.4rem; }
+html.fs-on #net-root .pj-hint { font-size: 0.74rem; margin: 0.2rem 0; }
+html.fs-on #net-root .pj-url { font-size: 0.85rem; line-height: 1.6; margin-bottom: 0.4rem; }
+html.fs-on #net-root .pj-lhead { grid-template-columns: 5.6rem minmax(0, 1fr); gap: 0.5rem; }
+html.fs-on #net-root .pj-ladder { gap: 0.2rem; }
+html.fs-on #net-root .pj-ladder li { font-size: 0.66rem; padding: 0.3rem 0.4rem; line-height: 1.25; }
+html.fs-on #net-root .pj-row { grid-template-columns: 4.6rem minmax(0, 1fr) 2.6rem; margin-bottom: 0.2rem; font-size: 0.7rem; }
+html.fs-on #net-root .pj-bar { height: 1.4rem; }
+html.fs-on #net-root .pj-legend { margin: 0.25rem 0; }
+html.fs-on #net-root .pj-legend .pj-b { font-size: 0.62rem; padding: 0.1rem 0.35rem; margin-bottom: 0.15rem; }
+html.fs-on #net-root .pj-detail h4 { font-size: 0.7rem; margin-bottom: 0.25rem; }
+html.fs-on #net-root .pj-narr { grid-column: 1; grid-row: 5; margin: 0; padding: 0.4rem 0.8rem; min-height: 0 !important; height: 6.9rem; overflow: auto; font-size: 0.86rem; line-height: 1.4; }
+html.fs-on #net-root .pj-ctl { grid-column: 1; grid-row: 6; }
+html.fs-on #net-root .pj-auto { grid-column: 1 / 3; grid-row: 6; justify-self: end; margin: 0; min-height: 0; gap: 0.4rem 0.6rem; flex-wrap: nowrap; }
+html.fs-on #net-root .btn { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
+html.fs-on #net-root .pj-auto .btn { min-width: 0; height: auto; white-space: nowrap; }
+html.fs-on #net-root .pj-speed { gap: 0.35rem; flex-wrap: nowrap; }
+html.fs-on #net-root .pj-speed input[type="range"] { width: 6rem; }
+html.fs-on #net-root .pj-speed-name { min-width: 0; font-size: 0.72rem; white-space: nowrap; }
+html.fs-on #net-root .pj-count { font-size: 0.78rem; margin-left: 0.6rem; }
+html.fs-on #net-root .pj-form .pj-field.pj-wide { flex: 2.4 1 9rem; }
+html.fs-on #net-root .pj-form .pj-field:nth-child(2) { flex: 0.8 1 5rem; }
+html.fs-on #net-root .pj-form .pj-field:nth-child(3) { flex: 1.7 1 8rem; }
+html.fs-on #net-root .pj-form .pj-field:nth-child(4), html.fs-on #net-root .pj-form .pj-field:nth-child(5) { flex: 1.2 1 6rem; }
+html.fs-on #net-root .tbl-scroll { margin: 0.3rem 0 0.4rem; }
+html.fs-on #net-root table.tbl.pj-ft th { padding: 0.25rem 0.5rem; font-size: 0.66rem; }
+html.fs-on #net-root table.tbl.pj-ft td { padding: 0.2rem 0.5rem; font-size: 0.76rem; }
+
+/* the subnet calculator: its own column on the right, full height */
+html.fs-on #net-root .pj-subnet { grid-column: 3; grid-row: 1 / -1; margin: 0; padding: 0 0 0 0.8rem; border-top: 0; border-left: 1px solid var(--line); min-height: 0; overflow: auto; }
+html.fs-on #net-root .pj-subnet h3 { font-size: 0.95rem; margin: 0 0 0.2rem; }
+html.fs-on #net-root .pj-subnet > .pj-hint:first-of-type { display: none; }       /* how to type an address: the box already holds an example */
+html.fs-on #net-root .pj-subnet .pj-form { grid-column: auto; flex-wrap: wrap; gap: 0.4rem 0.6rem; margin-bottom: 0.4rem; }
+html.fs-on #net-root .pj-subnet .pj-field.pj-wide { flex: 1 1 100%; }
+html.fs-on #net-root .pj-subtab, html.fs-on #net-root .pj-subtab tbody { display: block; }
+html.fs-on #net-root .pj-subtab tr { display: grid; grid-template-columns: 8rem minmax(0, 1fr); column-gap: 0.4rem; border-bottom: 1px solid var(--line); padding: 0.1rem 0; }
+html.fs-on #net-root .pj-subtab th, html.fs-on #net-root .pj-subtab td { padding: 0.05rem 0; border-bottom: 0; }
+html.fs-on #net-root .pj-subtab td:last-child { grid-column: 1 / -1; }
+html.fs-on #net-root .pj-subtab td.mono { font-size: 0.8rem; }
+html.fs-on #net-root .pj-bits { font-size: 0.7rem; }
+html.fs-on #net-root .pj-sub-out { overflow-x: visible; }
+
+/* squarer screens (4:3 projectors and iPads, 5:4 monitors): the page is tall for its width, so the subnet calculator moves from a right-hand
+   column to a band along the bottom, and the journey (diagram + detail) gets the full width above it */
+@media (max-aspect-ratio: 3/2) {
+  html.fs-on #net-root.fs-active {
+    min-width: 1280px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto auto;
+  }
+  html.fs-on #net-root .pj-detail { grid-row: 4; }
+  html.fs-on #net-root .pj-narr { grid-column: 1 / 3; height: 4.6rem; }
+  html.fs-on #net-root .pj-subnet {
+    grid-column: 1 / 3; grid-row: 7; padding: 0.4rem 0 0; border-left: 0; border-top: 1px solid var(--line); overflow: visible;
+    display: grid; grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); column-gap: 1.2rem; align-content: start;
+  }
+  html.fs-on #net-root .pj-subnet h3 { grid-column: 1; grid-row: 1; }
+  html.fs-on #net-root .pj-subnet > .pj-form { grid-column: 1; grid-row: 2; }
+  html.fs-on #net-root .pj-subnet .pj-sub-out { grid-column: 2; grid-row: 1 / 4; }
+  html.fs-on #net-root .pj-subtab tr { grid-template-columns: 8rem 7.5rem minmax(0, 1fr); padding: 0.02rem 0; }
+  html.fs-on #net-root .pj-subtab td:last-child { grid-column: 3; }
+  html.fs-on #net-root .pj-subtab .pj-bits { font-size: 0.74rem; }
+}

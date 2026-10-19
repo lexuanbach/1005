@@ -1,0 +1,243 @@
+/* Full-screen layouts for the Citation Workshop (#cite-root, Chapter 13) and the Real or Hallucinated demo (#rd-root).
+   Every rule is scoped under html.fs-on, so the normal page layout is untouched. Tokens only, so light and dark both follow the page.
+   The shell (assets/app-fullscreen.js) lays the app out at a virtual width and scales it so that all of it fits one screen. The rules
+   below make the app SHORT at that width: several columns instead of one long column, secondary text hidden, one question at a time. */
+
+/* ================= Citation Workshop ================= */
+html.fs-on #cite-root { container-type: inline-size; container-name: cl; gap: 0.5rem; grid-template-columns: auto minmax(0, 1fr); align-content: start; }
+html.fs-on #cite-root > .cl-tabs { grid-column: 1; grid-row: 1; align-self: center; }
+html.fs-on #cite-root > .cl-status { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; max-width: 100%; margin: 0; padding: 0.25rem 0.6rem; font-size: 0.74rem; line-height: 1.4; min-width: 0; overflow-wrap: anywhere; }
+html.fs-on #cite-root > .cl-panel { grid-column: 1 / -1; grid-row: 2; padding: 0.7rem 0.9rem; gap: 0.6rem; }
+
+/* secondary text that only explains: the introductions, the “titles are converted” footnote, the diagram caption */
+html.fs-on #cite-root .cl-intro,
+html.fs-on #cite-root .cl-fine,
+html.fs-on #cite-root .cf-box > .cl-tag { display: none; }
+html.fs-on #cite-root .cl-story { font-size: 0.8rem; line-height: 1.4; }
+
+/* ---- panel 1: form | diagram | the three references ---- */
+html.fs-on #cite-root #cl-panel-0:not([hidden]) {
+  display: grid; gap: 0.5rem 0.9rem; align-content: start;
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+  grid-template-rows: repeat(5, auto) 1fr;
+  grid-template-areas: "form bar" "form story" "form flow" "form results" "form gen" "form .";
+}
+html.fs-on #cite-root #cl-panel-0 > .ex-actions { grid-area: bar; flex-wrap: nowrap; }
+html.fs-on #cite-root #cl-panel-0 > .ex-actions .preset-select { flex: 1 1 auto; min-width: 0; width: 100%; font-size: 0.8rem; text-overflow: ellipsis; }
+html.fs-on #cite-root #cl-panel-0 > .ex-actions .btn { flex: none; white-space: nowrap; }
+html.fs-on #cite-root #cl-panel-0 > .cl-story { grid-area: story; margin: 0; }
+html.fs-on #cite-root #cl-panel-0 > .cl-form { grid-area: form; align-content: start; gap: 0.4rem 0.6rem; }
+html.fs-on #cite-root #cl-panel-0 > .cf-box { grid-area: flow; margin: 0; align-self: start; padding: 0.4rem 0.6rem 0.5rem; min-width: 0; }
+html.fs-on #cite-root #cl-panel-0 > .cl-results { grid-area: results; min-width: 0; }
+html.fs-on #cite-root #cl-panel-0 > .cl-general { grid-area: gen; margin: 0; }
+
+/* compact form: long fields take a row, short ones sit in pairs, labels stay on one line */
+html.fs-on #cite-root .cl-field { flex: 1 1 100%; gap: 0.1rem; }
+html.fs-on #cite-root .cl-field.cl-sm, html.fs-on #cite-root .cl-field:has(> #cl-f-type) { flex: 1 1 7rem; }
+html.fs-on #cite-root .cl-field .field-label { margin: 0; font-size: 0.66rem; line-height: 1.25; letter-spacing: 0.05em; }
+html.fs-on #cite-root select.preset-select { font: inherit; font-size: 0.8rem; padding: 0.3rem 0.5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+html.fs-on #cite-root .cl-input { padding: 0.28rem 0.5rem; font-size: 0.82rem; }
+html.fs-on #cite-root textarea.cl-input { resize: none; height: 3.75rem; line-height: 1.35; font-size: 0.78rem; padding: 0.25rem 0.5rem; }
+
+/* the diagram: as wide as its column, its controls in one tight row */
+html.fs-on #cite-root .cf-scroll { overflow: visible; }
+html.fs-on #cite-root .cf-svg { max-width: 60rem; min-width: 0; }
+html.fs-on #cite-root .cf-controls { margin: 0 0 0.1rem; gap: 0.35rem 0.7rem; }
+html.fs-on #cite-root .cf-speed-name { min-width: 0; }
+html.fs-on #cite-root .cf-narr { font-size: 0.82rem; margin: 0; }
+html.fs-on #cite-root .cf-legend { margin-top: 0.25rem; }
+
+/* the three references */
+html.fs-on #cite-root .cl-results { gap: 0.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+html.fs-on #cite-root .cl-card { padding: 0.5rem 0.65rem; gap: 0.2rem; }
+html.fs-on #cite-root .cl-ref, html.fs-on #cite-root .cl-cite { padding: 0.35rem 0.5rem; font-size: 0.82rem; line-height: 1.42; }
+html.fs-on #cite-root .cl-cite { font-size: 0.78rem; }
+html.fs-on #cite-root .cl-hint { font-size: 0.74rem; padding: 0.2rem 0.45rem; }
+html.fs-on #cite-root .cl-hints { gap: 0.2rem; }
+
+/* the two small captions of a card become inline labels at the start of their box (one line less per box) */
+html.fs-on #cite-root .cl-card > .cl-tag { display: none; }
+html.fs-on #cite-root .cl-ref::before, html.fs-on #cite-root .cl-cite::before {
+  display: inline; margin-right: 0.45rem; font: 600 0.62rem/1 "IBM Plex Mono", monospace; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
+}
+html.fs-on #cite-root .cl-card .cl-ref::before { content: "Reference list"; }
+html.fs-on #cite-root .cl-card .cl-cite::before { content: "In the text"; }
+html.fs-on #cite-root .cl-card { gap: 0.3rem; }
+
+/* wide screens: the three references stand in a column to the right, the diagram keeps the middle */
+@container cl (min-width: 1250px) {
+  html.fs-on #cite-root #cl-panel-0:not([hidden]) {
+    grid-template-columns: minmax(0, 19rem) minmax(38rem, 52rem) minmax(24rem, 1fr);
+    grid-template-rows: repeat(4, auto) 1fr;
+    grid-template-areas: "form bar results" "form story results" "form flow results" "form gen results" "form . results";
+  }
+  html.fs-on #cite-root .cl-results { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---- panel 3: the inputs and the verdict on the left, the animated scan on the right ---- */
+html.fs-on #cite-root #cl-panel-2:not([hidden]) {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 0.4rem 1rem; align-content: start; grid-auto-flow: row dense;
+}
+html.fs-on #cite-root #cl-panel-2 > * { grid-column: 1; min-width: 0; }
+html.fs-on #cite-root #cl-panel-2 > .cf-scan-host { grid-column: 2; grid-row: 1 / span 7; align-self: start; }
+html.fs-on #cite-root #cl-panel-2 > .note { margin: 0; padding: 0.4rem 0.7rem; font-size: 0.78rem; line-height: 1.4; }
+html.fs-on #cite-root #cl-panel-2 > .note .note-tag { display: inline; margin-right: 0.4rem; }
+html.fs-on #cite-root #cl-panel-2 textarea.cl-input { height: 4rem; }
+html.fs-on #cite-root #cl-panel-2 .field-label { margin: 0; }
+html.fs-on #cite-root .cl-p3out { gap: 0.4rem; }
+html.fs-on #cite-root .cl-hlp { font-size: 0.84rem; line-height: 1.55; padding: 0.35rem 0.55rem; }
+html.fs-on #cite-root .cl-verdict { font-size: 0.82rem; padding: 0.4rem 0.65rem; }
+html.fs-on #cite-root .cf-scan { padding: 0.5rem 0.7rem 0.6rem; }
+html.fs-on #cite-root .cf-words { line-height: 1.95; font-size: 0.9rem; }
+html.fs-on #cite-root .cf-scan-gap { height: 2.6rem; }
+
+/* ---- panel 2: the list of questions on the left, one question at a time on the right ---- */
+html.fs-on #cite-root #cl-panel-1:not([hidden]) {
+  grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr); grid-template-rows: auto auto 1fr; gap: 0.5rem 1.1rem; align-content: start;
+  grid-template-areas: "score card" "nav card" "reset card";
+}
+html.fs-on #cite-root #cl-panel-1 > .cl-score { grid-area: score; font-size: 0.8rem; }
+html.fs-on #cite-root #cl-panel-1 > .cl-spotnav { grid-area: nav; display: grid; gap: 0.3rem; align-content: start; }
+html.fs-on #cite-root #cl-panel-1 > .cl-spot { grid-area: card; display: none; align-content: start; gap: 0.5rem; padding: 0.9rem 1.2rem 1.1rem; }
+html.fs-on #cite-root #cl-panel-1 > .cl-spot.cl-cur { display: grid; }
+html.fs-on #cite-root #cl-panel-1 > .btn { grid-area: reset; justify-self: start; align-self: start; }
+html.fs-on #cite-root .cl-chip { display: grid; grid-template-columns: 1.6rem 1fr 1.2rem; align-items: center; gap: 0.4rem; text-align: left; font: inherit; font-size: 0.82rem; cursor: pointer; padding: 0.35rem 0.6rem; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); }
+html.fs-on #cite-root .cl-chip:hover { border-color: var(--ink-soft); color: var(--ink); }
+html.fs-on #cite-root .cl-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.fs-on #cite-root .cl-chip-n { font-family: "IBM Plex Mono", monospace; font-weight: 700; }
+html.fs-on #cite-root .cl-chip-cur { background: var(--surface); border-color: var(--accent); color: var(--ink); box-shadow: inset 3px 0 0 var(--accent); }
+html.fs-on #cite-root .cl-chip-mark { font-weight: 800; text-align: center; }
+html.fs-on #cite-root .cl-chip-ok .cl-chip-mark { color: var(--green); }
+html.fs-on #cite-root .cl-chip-bad .cl-chip-mark { color: var(--red); }
+html.fs-on #cite-root .cl-spotstep { display: flex; gap: 0.4rem; margin-top: 0.3rem; }
+html.fs-on #cite-root .cl-spotstep .btn { flex: 1 1 0; white-space: nowrap; }
+html.fs-on #cite-root #cl-panel-1 .cl-spot legend { font-size: 0.9rem; }
+html.fs-on #cite-root #cl-panel-1 .cl-ref { font-size: 1rem; line-height: 1.55; padding: 0.6rem 0.8rem; }
+html.fs-on #cite-root #cl-panel-1 .cl-q { font-size: 1.02rem; }
+html.fs-on #cite-root #cl-panel-1 .cl-opt { font-size: 0.95rem; padding: 0.4rem 0.5rem; }
+html.fs-on #cite-root #cl-panel-1 .cl-fb { font-size: 0.92rem; }
+
+
+/* ================= Real or Hallucinated? (#rd-root) ================= */
+html.fs-on #rd-root { font-size: 0.95rem; }
+html.fs-on #rd-root.rd-big { font-size: 1.12rem; }
+html.fs-on #rd-root .rd-bar { margin-bottom: 0.4rem; gap: 0.4rem; }
+html.fs-on #rd-root .rd-tab { padding: 0.35rem 0.8rem; font-size: 0.86rem; }
+html.fs-on #rd-root .rd-stage { padding: 0.65rem 0.85rem 0.75rem; border-radius: 12px; }
+html.fs-on #rd-root .rd-status { margin-top: 0.4rem; padding: 0.3rem 0.7rem; font-size: 0.74rem; }
+html.fs-on #rd-root .rd-hud { margin-bottom: 0; gap: 0.4rem 1.4rem; }
+html.fs-on #rd-root .rd-stat-v { font-size: 1.1em; }
+html.fs-on #rd-root .rd-meter-track { height: 0.7rem; }
+/* the diagram caption only explains: hidden while the app has the whole screen */
+html.fs-on #rd-root .rd-flowcap { display: none; }
+html.fs-on #rd-root .rd-list { margin-top: 0; padding: 0.3rem 0.8rem; font-size: 0.86em; }
+
+/* ---- judge mode and teacher mode: three columns (ecosystem diagram | the question | the evidence); two columns when the screen is narrower ---- */
+html.fs-on #rd-root { container-type: inline-size; container-name: rd; }
+html.fs-on #rd-root[data-mode="judge"] .rd-stage:not(:has(.rd-report)),
+html.fs-on #rd-root[data-mode="teacher"] .rd-stage {
+  display: grid; gap: 0.45rem 1rem; align-content: start; align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 50rem);
+}
+html.fs-on #rd-root .rd-stage > * { min-width: 0; margin-top: 0; margin-bottom: 0; }
+html.fs-on #rd-root .rd-col { display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; }
+html.fs-on #rd-root .rd-col > * { margin-top: 0; margin-bottom: 0; }
+html.fs-on #rd-root .rd-stage > .rd-hud, html.fs-on #rd-root .rd-stage > .rd-t-head { grid-column: 1 / -1; grid-row: 1; }
+html.fs-on #rd-root .rd-col-a { grid-column: 2; grid-row: 2; }
+html.fs-on #rd-root .rd-col-b { grid-column: 1; grid-row: 2; }
+html.fs-on #rd-root .rd-col-c { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.45rem 1rem; align-items: start; }
+html.fs-on #rd-root .rd-col-c > .rd-hint { grid-column: 1 / -1; }
+html.fs-on #rd-root .rd-stage > .cf-eco, html.fs-on #rd-root .rd-col > .cf-eco { padding: 0.4rem 0.6rem 0.5rem; }
+html.fs-on #rd-root .cf-svg { max-width: 56rem; min-width: 0; }
+html.fs-on #rd-root .cf-scroll { overflow: visible; }
+html.fs-on #rd-root .cf-controls { margin: 0 0 0.1rem; gap: 0.3rem 0.7rem; }
+html.fs-on #rd-root .cf-speed-name { min-width: 0; }
+html.fs-on #rd-root .cf-narr, html.fs-on #rd-root .cf-eco .cf-narr { font-size: 0.8rem; margin: 0; }
+html.fs-on #rd-root .cf-legend { margin-top: 0.2rem; font-size: 0.72rem; gap: 0.2rem 0.7rem; }
+@container rd (min-width: 1100px) {
+  html.fs-on #rd-root[data-mode="judge"] .rd-stage:not(:has(.rd-report)),
+  html.fs-on #rd-root[data-mode="teacher"] .rd-stage { grid-template-columns: minmax(30rem, 1.6fr) minmax(0, 1.1fr) minmax(0, 1fr); }
+  html.fs-on #rd-root .rd-col-a { grid-column: 1; grid-row: 2; }
+  html.fs-on #rd-root .rd-col-b { grid-column: 2; grid-row: 2; }
+  html.fs-on #rd-root .rd-col-c { grid-column: 3; grid-row: 2; display: flex; }
+  html.fs-on #rd-root .rd-col-b > .rd-checks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+html.fs-on #rd-root .rd-chat { margin-bottom: 0; }
+html.fs-on #rd-root .rd-chat p { font-size: 0.86em; }
+html.fs-on #rd-root .rd-ref { min-height: 5.6rem; padding: 0.9rem 1rem 0.7rem; }
+html.fs-on #rd-root .rd-ref-text { font-size: 1.02em; line-height: 1.5; }
+html.fs-on #rd-root .rd-checks { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; margin: 0; }
+html.fs-on #rd-root .rd-check { padding: 0.35rem 0.5rem; font-size: 0.8em; }
+html.fs-on #rd-root .rd-check-k { width: 1.4rem; height: 1.4rem; }
+html.fs-on #rd-root .rd-actions { min-height: 4.6rem; margin: 0; }
+html.fs-on #rd-root .rd-verdict { padding: 0.45rem 0.4rem; border-radius: 10px; }
+html.fs-on #rd-root .rd-verdict-a { font-size: 1.15em; }
+html.fs-on #rd-root .rd-result { padding: 0.35rem 0.7rem; margin: 0 0 0.35rem; }
+html.fs-on #rd-root .rd-evlist { gap: 0.3rem; margin: 0; }
+html.fs-on #rd-root .rd-ev { padding: 0.35rem 0.6rem; font-size: 0.86em; }
+html.fs-on #rd-root .rd-hint, html.fs-on #rd-root .rd-note { margin: 0; font-size: 0.78em; }
+html.fs-on #rd-root .rd-truth { padding: 0.5rem 0.8rem; }
+html.fs-on #rd-root .rd-truth p { margin: 0.25rem 0; font-size: 0.9em; }
+html.fs-on #rd-root .rd-truth h3 { margin-bottom: 0.15rem; }
+html.fs-on #rd-root .rd-truth h4 { margin: 0.35rem 0 0.1rem; }
+html.fs-on #rd-root .rd-flags { font-size: 0.86em; }
+html.fs-on #rd-root .rd-flags li { margin-bottom: 0.15rem; }
+
+/* ---- teacher mode ---- */
+@container rd (min-width: 1100px) { html.fs-on #rd-root[data-mode="teacher"] .rd-stage { grid-template-columns: minmax(30rem, 1.6fr) minmax(0, 1fr) minmax(0, 1.2fr); } }
+html.fs-on #rd-root[data-mode="teacher"], html.fs-on #rd-root.rd-big[data-mode="teacher"] { font-size: 1.08rem; }
+html.fs-on #rd-root[data-mode="teacher"] .rd-stage { padding: 0.65rem 0.85rem 0.75rem; }
+html.fs-on #rd-root[data-mode="teacher"] .rd-t-head { margin: 0; }
+html.fs-on #rd-root[data-mode="teacher"] .rd-ref-text { font-size: 1.25em; }
+html.fs-on #rd-root[data-mode="teacher"] .rd-t-head { font-size: 0.95em; margin-bottom: 0; }
+html.fs-on #rd-root .rd-votes { gap: 0.4rem; margin: 0; }
+html.fs-on #rd-root .rd-vote { padding: 0.35rem 0.5rem; gap: 0.2rem; }
+html.fs-on #rd-root .rd-vote-n { font-size: 1.7em; }
+html.fs-on #rd-root .rd-t-acts { margin: 0; gap: 0.4rem; }
+html.fs-on #rd-root[data-mode="teacher"] .btn { font-size: 0.95em; padding: 0.4rem 0.9rem; }
+html.fs-on #rd-root[data-mode="teacher"] .rd-check { font-size: 0.9em; }
+html.fs-on #rd-root[data-mode="teacher"] .rd-ev { font-size: 0.95em; }
+
+/* ---- fix the format: the three versions side by side ---- */
+html.fs-on #rd-root[data-mode="fix"] .rd-stage { display: grid; gap: 0.5rem 1rem; align-content: start; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+html.fs-on #rd-root[data-mode="fix"] .rd-stage > * { grid-column: 1 / -1; min-width: 0; margin: 0; }
+html.fs-on #rd-root[data-mode="fix"] .rd-stage > .rd-opts { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 0.8rem; }
+html.fs-on #rd-root[data-mode="fix"] .rd-stage > .rd-opts .rd-opt { height: 100%; align-content: start; }
+html.fs-on #rd-root .rd-q { font-size: 1.15em; }
+html.fs-on #rd-root .rd-opt { padding: 0.65rem 0.8rem; }
+html.fs-on #rd-root .rd-opt-t { font-size: 0.95em; }
+
+/* ---- report card and "format check finished": two columns, the long list scrolls inside its own pane ---- */
+html.fs-on #rd-root .rd-report { display: grid; gap: 0.4rem 1.6rem; align-content: start; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+html.fs-on #rd-root .rd-report > * { grid-column: 1 / -1; min-width: 0; margin: 0; }
+html.fs-on #rd-root .rd-report > h3:has(+ .rd-flags), html.fs-on #rd-root .rd-report > .rd-flags { grid-column: 1; }
+html.fs-on #rd-root .rd-report > h3:has(+ .rd-miss), html.fs-on #rd-root .rd-report > .rd-miss { grid-column: 2; }
+html.fs-on #rd-root .rd-report > h3:has(+ .rd-flags) { grid-row: 6; } html.fs-on #rd-root .rd-report > .rd-flags { grid-row: 7; }
+html.fs-on #rd-root .rd-report > h3:has(+ .rd-miss) { grid-row: 6; } html.fs-on #rd-root .rd-report > .rd-miss { grid-row: 7; }
+html.fs-on #rd-root .rd-report > .rd-miss { max-height: 24rem; overflow: auto; padding-right: 0.3rem; gap: 0.35rem; align-content: start; }
+html.fs-on #rd-root .rd-report > .rd-flags { max-height: 24rem; overflow: auto; }
+html.fs-on #rd-root .rd-report > .btn { grid-row: 8; justify-self: start; }
+html.fs-on #rd-root .rd-miss li { padding: 0.35rem 0.7rem; font-size: 0.86em; }
+html.fs-on #rd-root .rd-report > p { font-size: 0.9em; }
+
+/* ================= narrow screens (phones, small windows): one column; the shell scrolls what cannot fit ================= */
+html.fs-on #rd-root .rd-next { justify-self: start; }
+@container cl (max-width: 899px) {
+  html.fs-on #cite-root #cl-panel-0:not([hidden]) { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "bar" "story" "form" "flow" "results" "gen"; }
+  html.fs-on #cite-root .cl-results { grid-template-columns: minmax(0, 1fr); }
+  html.fs-on #cite-root #cl-panel-1:not([hidden]) { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "score" "nav" "card" "reset"; }
+  html.fs-on #cite-root #cl-panel-2:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
+  html.fs-on #cite-root #cl-panel-2 > .cf-scan-host { grid-column: 1; grid-row: auto; }
+  html.fs-on #cite-root > .cl-status { grid-column: 1 / -1; grid-row: 3; justify-self: start; }
+}
+@container rd (max-width: 899px) {
+  html.fs-on #rd-root[data-mode="judge"] .rd-stage:not(:has(.rd-report)),
+  html.fs-on #rd-root[data-mode="teacher"] .rd-stage { grid-template-columns: minmax(0, 1fr); }
+  html.fs-on #rd-root .rd-col-a, html.fs-on #rd-root .rd-col-b, html.fs-on #rd-root .rd-col-c { grid-column: 1; grid-row: auto; display: flex; }
+  html.fs-on #rd-root .rd-stage > .rd-hud, html.fs-on #rd-root .rd-stage > .rd-t-head { grid-column: 1; }
+  html.fs-on #rd-root[data-mode="fix"] .rd-stage, html.fs-on #rd-root[data-mode="fix"] .rd-stage > .rd-opts { grid-template-columns: minmax(0, 1fr); }
+  html.fs-on #rd-root .rd-report { grid-template-columns: minmax(0, 1fr); }
+  html.fs-on #rd-root .rd-report > * { grid-column: 1 !important; grid-row: auto !important; }
+  html.fs-on #rd-root .rd-verdicts, html.fs-on #rd-root .rd-votes { grid-template-columns: 1fr; }
+}

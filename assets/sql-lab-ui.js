@@ -27,12 +27,14 @@
     '<p class="sq-blurb" id="sq-blurb"></p>' +
     '<div class="sq-grid">' +
       '<div class="sq-left">' +
+        '<div class="sq-pane-edit">' +
         '<div class="sq-examples" id="sq-examples" role="group" aria-label="Example queries"></div>' +
         '<p class="sq-exnote" id="sq-exnote" aria-live="polite"></p>' +
         '<label class="sq-label" for="sq-editor">SQL <span>(Ctrl/Cmd + Enter runs it; separate statements with ;)</span></label>' +
         '<textarea id="sq-editor" class="sq-editor" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>' +
         '<div class="sq-actions"><button type="button" class="btn primary" id="sq-run">&#9654; Run</button>' +
         '<button type="button" class="btn ghost" id="sq-clear">Clear</button><span class="sq-status" id="sq-status" role="status" aria-live="polite"></span></div>' +
+        '</div>' +
       '<section class="sq-flowcard" aria-label="Inside the database: the query travels through the system"><h4 class="sq-flowh">Inside the database <span class="sq-sub">your query travels through the machine; every arrow is a real step of the engine (a simulation)</span></h4><div id="sq-flow"></div></section>' +
         '<div id="sq-result" class="sq-result"></div>' +
         '<div id="sq-plan" class="sq-plan"></div>' +

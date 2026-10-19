@@ -256,19 +256,23 @@
     el.resetAll = h('button', 'btn ghost small', 'Forget progress'); el.resetAll.type = 'button';
     tools.appendChild(el.friendBtn); tools.appendChild(el.bigBtn); tools.appendChild(el.resetAll);
     bar.appendChild(el.levels); bar.appendChild(el.score); bar.appendChild(tools);
-    root.appendChild(bar);
+    var app = h('div', 'dm-app'); root.appendChild(app);
+    app.appendChild(bar);
 
-    el.case = h('section', 'dm-case'); root.appendChild(el.case);
-    el.work = h('section', 'dm-work'); root.appendChild(el.work);
+    /* three column wrappers (display: contents on the normal page; assets/fs-compiler.css turns them into the full-screen columns) */
+    var colL = h('div', 'dm-col dm-col-l'), colM = h('div', 'dm-col dm-col-m'), colR = h('div', 'dm-col dm-col-r');
+    app.appendChild(colL); app.appendChild(colM); app.appendChild(colR);
+    el.case = h('section', 'dm-case'); colL.appendChild(el.case);
+    el.work = h('section', 'dm-work'); colL.appendChild(el.work);
     el.status = h('p', 'dm-status'); el.status.setAttribute('role', 'status'); el.status.setAttribute('aria-live', 'polite');
-    root.appendChild(el.status);
+    colL.appendChild(el.status);
     el.flowBox = h('section', 'dm-flow-box');
     el.flowBox.innerHTML = '<h3>Watch your program travel through the toolchain</h3><p class="fine">Every block has its own colour, and so does whatever it produces (tokens, tree, assembly, machine words, memory cells). Your code follows blocks 1 to 9. The faded row at the bottom is the hidden target program going through the same toolchain, in the same block colours: if your machine words equal its words, the two pipelines converge on the same memory (green ✓ cells; red ✗ cells differ).</p>';
-    root.appendChild(el.flowBox);
+    colM.appendChild(el.flowBox);
     el.flowHost = h('div', 'dm-flow'); el.flowBox.appendChild(el.flowHost);
     flow = global.CompilerFlow ? global.CompilerFlow.create(el.flowHost, { ghost: true, uid: 'dm', speedKey: 'co1005-cf-speed', initialSpeed: 3 }) : null;
-    el.stagesBox = h('section', 'dm-stages-box'); root.appendChild(el.stagesBox);
-    el.results = h('section', 'dm-results'); root.appendChild(el.results);
+    el.stagesBox = h('section', 'dm-stages-box'); colR.appendChild(el.stagesBox);
+    el.results = h('section', 'dm-results'); colR.appendChild(el.results);
 
     el.bigBtn.addEventListener('click', function () { saved.big = !saved.big; persist(); root.classList.toggle('dm-big', saved.big); el.bigBtn.setAttribute('aria-pressed', String(saved.big)); });
     el.friendBtn.addEventListener('click', function () { saved.friendly = !saved.friendly; persist(); el.friendBtn.setAttribute('aria-pressed', String(saved.friendly)); renderCase(); renderStageView(); if (state.last) renderResults(); });

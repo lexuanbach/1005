@@ -1,0 +1,211 @@
+/* Full-screen layouts for the SQL Query Lab (#sql-root, Chapter 10) and The Missing Trophy (#sd-root, demo).
+   Everything is scoped under html.fs-on, so the normal page is untouched.  The app root gets a fixed height of one screen
+   (never shorter than 740 px: below that the shared fit-to-screen code scales it) and its panes scroll inside themselves.
+   Compact layout = 3 columns; a roomier one (taller than 950 px and wider than 1500 px) moves the query plan under the diagram. */
+
+/* ====================================================================== SQL Query Lab */
+html.fs-on #sql-root.fs-active {
+  --fs-H: max(calc(100vh - 42px), 740px);
+  height: var(--fs-H) !important; min-width: 1300px; overflow: hidden;
+  display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0.5rem;
+}
+html.fs-on #sql-root .sq-blurb { display: none; }
+html.fs-on #sql-root .sq-bar { flex-wrap: nowrap; gap: 0.7rem 1rem; padding-top: 0.2rem; }
+html.fs-on #sql-root .sq-sim { flex: 1 1 0; min-width: 0; font-size: 0.74rem; line-height: 1.3; }
+html.fs-on #sql-root .sq-reset { white-space: nowrap; }
+
+html.fs-on #sql-root .sq-grid {
+  min-height: 0; column-gap: 0.6rem; row-gap: 0; align-items: stretch;
+  grid-template-columns: minmax(340px, 1fr) minmax(600px, 1.7fr) minmax(300px, 1fr);
+  grid-template-rows: repeat(20, minmax(0, 1fr));      /* fine rows so each column can split its height differently */
+  margin: -0.3rem 0;
+}
+html.fs-on #sql-root .sq-grid > *, html.fs-on #sql-root .sq-left > * { margin-top: 0.3rem; margin-bottom: 0.3rem; }
+html.fs-on #sql-root .sq-left { display: contents; }
+html.fs-on #sql-root .sq-pane-edit { grid-column: 1; grid-row: 1 / 10; min-height: 0; display: flex; flex-direction: column; }
+html.fs-on #sql-root #sq-result { grid-column: 1; grid-row: 10 / 21; }
+html.fs-on #sql-root .sq-flowcard { grid-column: 2; grid-row: 1 / 21; }
+html.fs-on #sql-root #sq-plan { grid-column: 3; grid-row: 1 / 13; }
+html.fs-on #sql-root .sq-schema { grid-column: 3; grid-row: 13 / 21; }
+
+/* editor column */
+html.fs-on #sql-root .sq-examples { flex: 0 1 auto; min-height: 2.2rem; max-height: 8.6rem; overflow: auto; align-content: flex-start; padding: 1px; }
+html.fs-on #sql-root .sq-exnote { flex: 0 0 auto; min-height: 0; max-height: 4.6rem; overflow: auto; margin: 0.45rem 0; padding: 0.35rem 0.7rem; font-size: 0.8rem; line-height: 1.35; }
+html.fs-on #sql-root .sq-label { flex: 0 0 auto; margin-bottom: 0.2rem; }
+html.fs-on #sql-root .sq-editor { flex: 1 1 5rem; min-height: 3.5rem; height: auto; resize: none; font-size: 0.84rem; }
+html.fs-on #sql-root .sq-actions { flex: 0 0 auto; margin: 0.45rem 0 0; flex-wrap: nowrap; }
+html.fs-on #sql-root .sq-status { flex: 1 1 0; font-size: 0.78rem; line-height: 1.3; max-height: 2.6em; overflow: auto; }
+
+/* result: a pane of its own; a long table scrolls inside it */
+html.fs-on #sql-root #sq-result {
+  display: flex; flex-direction: column; min-height: 0; padding: 0.4rem 0.6rem; overflow: auto;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+}
+html.fs-on #sql-root #sq-result:empty { align-items: center; justify-content: center; border-style: dashed; background: transparent; }
+html.fs-on #sql-root #sq-result:empty::before { content: "The rows your query returns appear here."; color: var(--ink-soft); font-size: 0.85rem; }
+html.fs-on #sql-root #sq-result > * { flex: 0 0 auto; }
+html.fs-on #sql-root #sq-result > .sq-tablewrap { flex: 1 1 auto; min-height: 5rem; max-height: none; margin: 0.3rem 0; }
+html.fs-on #sql-root .sq-table { font-size: 0.8rem; line-height: 1.3; }
+html.fs-on #sql-root .sq-table th, html.fs-on #sql-root .sq-table td { padding: 0.25rem 0.55rem; white-space: nowrap; }
+html.fs-on #sql-root .sq-table th { font-size: 0.7rem; }
+html.fs-on #sql-root .sq-msg, html.fs-on #sql-root .sq-err { margin: 0.2rem 0; }
+
+/* plan and schema */
+html.fs-on #sql-root #sq-plan { min-height: 0; overflow: auto; padding: 0.6rem 0.8rem; }
+html.fs-on #sql-root #sq-plan .tbl-scroll { margin: 0.4rem 0; }
+html.fs-on #sql-root .sq-plantable { font-size: 0.74rem; }
+html.fs-on #sql-root .sq-plantable th { font-size: 0.66rem; padding: 0.25rem 0.4rem; line-height: 1.2; }
+html.fs-on #sql-root .sq-plantable td { padding: 0.25rem 0.4rem; }
+html.fs-on #sql-root .sq-op { white-space: nowrap; }
+html.fs-on #sql-root .sq-plain { font-size: 0.8rem; }
+html.fs-on #sql-root .sq-meter-row { font-size: 0.78rem; gap: 0.1rem 0.9rem; }
+html.fs-on #sql-root .sq-schema { min-height: 0; overflow: auto; padding: 0.6rem 0.8rem; }
+html.fs-on #sql-root .sq-schema h4 { position: sticky; top: -0.6rem; z-index: 1; margin: -0.6rem -0.8rem 0.4rem; padding: 0.6rem 0.8rem 0.3rem; background: var(--surface); }
+html.fs-on #sql-root .sq-schema details { margin-bottom: 0.45rem; }
+
+/* the diagram: wide drawing, sized by the height it may take */
+html.fs-on #sql-root .sq-flowcard {
+  --svg-h: calc(var(--fs-H) - 380px);
+  display: flex; flex-direction: column; min-height: 0; overflow: auto;
+  padding: 0.55rem 0.8rem 0.6rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+}
+html.fs-on #sql-root .sq-flowh { flex: 0 0 auto; }
+html.fs-on #sql-root .sq-flowh .sq-sub { display: none; }
+html.fs-on #sql-root .sq-flowcard .sf-wrap { flex: 1 1 auto; margin: 0.2rem 0 0; padding: 0; border: 0; background: transparent; min-height: 0; }
+html.fs-on #sql-root .sf-wide .sf-svg { max-width: min(100%, calc(var(--svg-h) * 1.704)); }
+html.fs-on #sql-root .sf-legend { margin-top: 0.3rem; gap: 0.1rem 0.8rem; font-size: 0.72rem; }
+html.fs-on #sql-root .sf-narr { margin-top: 0.4rem; }
+html.fs-on #sql-root .sf-controls { margin-top: 0.4rem; min-height: 2.2rem; }
+html.fs-on #sql-root .sf-prog { margin-top: 0.2rem; min-height: 1.4em; }
+
+/* roomy screens: diagram on top of the plan, schema browser the full height of the right-hand column */
+@media (min-height: 950px) and (min-width: 1500px) {
+  html.fs-on #sql-root .sq-grid { grid-template-columns: minmax(420px, 1fr) minmax(700px, 1.7fr) minmax(300px, 0.9fr); }
+  html.fs-on #sql-root .sq-pane-edit { grid-row: 1 / 9; }
+  html.fs-on #sql-root #sq-result { grid-row: 9 / 21; }
+  html.fs-on #sql-root .sq-flowcard { grid-row: 1 / 14; --svg-h: calc((var(--fs-H) - 100px) * 0.65 - 195px); }
+  html.fs-on #sql-root #sq-plan { grid-column: 2; grid-row: 14 / 21; }
+  html.fs-on #sql-root .sq-schema { grid-column: 3; grid-row: 1 / 21; }
+}
+
+/* ====================================================================== The Missing Trophy (#sd-root) */
+.sd-tabs { display: none; }     /* the tool tabs exist for the compact full-screen layout only */
+
+html.fs-on #sd-root.fs-active {
+  --fs-H: max(calc(100vh - 42px), 860px);
+  height: var(--fs-H) !important; min-width: 1400px; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.2fr) minmax(0, 0.85fr); grid-template-rows: minmax(0, 1fr); gap: 0.6rem;
+}
+html.fs-on #sd-root .sd-work { display: contents; }
+html.fs-on #sd-root .sd-main { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; min-width: 0; }
+html.fs-on #sd-root .sd-board { grid-column: 2; grid-row: 1; }
+html.fs-on #sd-root .sd-aside { grid-column: 3; grid-row: 1; }
+html.fs-on #sd-root [hidden] { display: none !important; }
+
+/* column 1: the desk */
+html.fs-on #sd-root .sd-steps { grid-template-columns: repeat(6, minmax(0, 1fr)); flex: 0 0 auto; margin: 0; gap: 0.3rem; }
+html.fs-on #sd-root .sd-step { padding: 0.3rem 0.2rem; font-size: 0.72em; gap: 0.1rem; }
+html.fs-on #sd-root .sd-step-n { width: 1.35rem; height: 1.35rem; font-size: 0.9em; }
+html.fs-on #sd-root .sd-mission { flex: 0 3 auto; max-height: 40%; overflow: auto; margin: 0; padding: 0.6rem 0.85rem; }
+/* once the chapter is solved the task text matters less than the clue and the rows: give them the room */
+html.fs-on #sd-root .sd-main:has(.sd-clue) .sd-mission { max-height: 8.5rem; }
+html.fs-on #sd-root .sd-mission h3 { font-size: 1.05em; margin-bottom: 0.2rem; }
+html.fs-on #sd-root .sd-mission-top { margin-bottom: 0.15rem; }
+html.fs-on #sd-root .sd-task { margin-bottom: 0.45rem; font-size: 0.88em; }
+html.fs-on #sd-root .sd-hints { margin-top: 0.4rem; gap: 0.35rem; }
+html.fs-on #sd-root .sd-editor-wrap { flex: 1 1 8rem; min-height: 5.8rem; display: flex; flex-direction: column; }
+html.fs-on #sd-root .sd-label { flex: 0 0 auto; margin-bottom: 0.2rem; }
+html.fs-on #sd-root .sd-editor { flex: 1 1 3rem; min-height: 3rem; height: auto; resize: none; font-size: 0.84em; }
+html.fs-on #sd-root .sd-actions { flex: 0 0 auto; margin: 0.4rem 0 0; flex-wrap: nowrap; }
+html.fs-on #sd-root .sd-status { flex: 1 1 0; font-size: 0.78em; line-height: 1.3; max-height: 2.7em; overflow: auto; }
+html.fs-on #sd-root .sd-outrow { flex: 2 1 9rem; min-height: 8rem; display: flex; gap: 0.5rem; }
+html.fs-on #sd-root #sd-result {
+  flex: 1 1 0; min-width: 0; min-height: 0; margin: 0; padding: 0.4rem 0.6rem; overflow: auto; display: flex; flex-direction: column;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+}
+html.fs-on #sd-root #sd-result:empty { align-items: center; justify-content: center; border-style: dashed; background: transparent; }
+html.fs-on #sd-root #sd-result:empty::before { content: "The rows your query returns appear here."; color: var(--ink-soft); font-size: 0.85em; }
+html.fs-on #sd-root #sd-result > * { flex: 0 0 auto; }
+html.fs-on #sd-root #sd-result > div:has(> .sd-tablewrap) { flex: 1 1 auto; min-height: 5rem; display: flex; flex-direction: column; }
+html.fs-on #sd-root .sd-tablewrap { flex: 1 1 auto; max-height: none; min-height: 4rem; margin: 0.3rem 0; }
+html.fs-on #sd-root .sd-table { font-size: 0.78em; }
+html.fs-on #sd-root .sd-table th, html.fs-on #sd-root .sd-table td { padding: 0.25rem 0.5rem; }
+html.fs-on #sd-root .sd-table td { white-space: nowrap; max-width: 24rem; overflow: hidden; text-overflow: ellipsis; }
+html.fs-on #sd-root #sd-plan { flex: 0 1 40%; min-width: 0; min-height: 0; margin: 0; padding: 0.55rem 0.75rem; overflow: auto; }
+html.fs-on #sd-root .sd-plan h4 { margin-bottom: 0.3rem; }
+html.fs-on #sd-root .sd-plan h4 .sd-sub { display: none; }
+html.fs-on #sd-root .sd-meter-row { font-size: 0.78em; }
+html.fs-on #sd-root .sd-steps-list { font-size: 0.78em; }
+html.fs-on #sd-root #sd-clue { flex: 0 0 auto; }
+html.fs-on #sd-root .sd-clue { margin: 0; padding: 0.55rem 0.85rem; max-height: 13rem; overflow: auto; }
+html.fs-on #sd-root .sd-clue p { margin-bottom: 0.35rem; font-size: 0.84em; line-height: 1.4; }
+html.fs-on #sd-root .sd-clue h4 { margin-bottom: 0.15rem; }
+
+/* column 2: the case board */
+html.fs-on #sd-root .sd-board {
+  display: grid; grid-template-rows: auto minmax(0, max-content) minmax(4.2rem, 1fr) auto; min-height: 0; min-width: 0; margin: 0; padding: 0.6rem 0.75rem; overflow: hidden;
+}
+html.fs-on #sd-root .sd-board-head { margin-bottom: 0.45rem; gap: 0.3rem 0.7rem; }
+html.fs-on #sd-root .sd-board-head h2 { font-size: 1.1rem; }
+html.fs-on #sd-root .sd-board-head .btn { padding: 0.2rem 0.6rem; font-size: 0.74rem; }
+html.fs-on #sd-root .sd-board-grid, html.fs-on #sd-root .sd-side { display: contents; }
+html.fs-on #sd-root .sd-suspects { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem 0.5rem; padding: 0.4rem 0.1rem 0.1rem; overflow: auto; min-height: 0; align-content: start; }
+html.fs-on #sd-root .sd-sus { padding: 0.4rem 0.5rem; gap: 0.5rem; }
+html.fs-on #sd-root .sd-sus-body { gap: 0.1rem; }
+html.fs-on #sd-root .sd-photo { width: 46px; height: 46px; border-radius: 10px; }
+html.fs-on #sd-root .sd-sus-name { font-size: 0.88em; }
+html.fs-on #sd-root .sd-sus-bio { display: none; }
+html.fs-on #sd-root .sd-sus-why { font-size: 0.72em; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+html.fs-on #sd-root .sd-sus-tag { font-size: 0.64em; }
+html.fs-on #sd-root .sd-evwrap { min-height: 0; overflow: auto; margin-top: 0.4rem; }
+html.fs-on #sd-root .sd-evwrap h3 { position: sticky; top: 0; background: color-mix(in srgb, var(--teal) 6%, var(--surface)); margin-bottom: 0.2rem; }
+html.fs-on #sd-root .sd-evidence { margin: 0; font-size: 0.78em; gap: 0.25rem; }
+html.fs-on #sd-root .sd-accuse { position: relative; margin-top: 0.4rem; padding: 0.5rem 0.65rem; }
+html.fs-on #sd-root .sd-accuse h3 { margin-bottom: 0.1rem; }
+html.fs-on #sd-root .sd-accuse label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* visually hidden, still the select's label */
+html.fs-on #sd-root .sd-accuse-msg { margin: 0.3rem 0 0; min-height: 0; max-height: 3.4em; overflow: auto; }
+/* case closed: the closing story takes the place of the evidence list and the accusation form */
+html.fs-on #sd-root .sd-board.sd-isclosed .sd-sus-why { display: none; }
+html.fs-on #sd-root .sd-board.sd-isclosed .sd-evwrap, html.fs-on #sd-root .sd-board.sd-isclosed .sd-accuse { display: none; }
+html.fs-on #sd-root .sd-board.sd-isclosed { grid-template-rows: auto minmax(0, 1fr) auto auto; }
+html.fs-on #sd-root .sd-closed { grid-row: 3; margin: 0.4rem 0 0; padding: 0.6rem 0.85rem; overflow: auto; min-height: 0; }
+html.fs-on #sd-root .sd-closed h3 { font-size: 1.02rem; margin-bottom: 0.25rem; }
+html.fs-on #sd-root .sd-closed p { margin-top: 0.3rem; font-size: 0.82em; }
+html.fs-on #sd-root .sd-closed .sd-sub { display: none; }
+
+/* column 3: tools (tabs in the compact layout, all at once in the roomy one) */
+html.fs-on #sd-root .sd-aside { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0.5rem; min-height: 0; min-width: 0; }
+html.fs-on #sd-root .sd-tabs { display: flex; gap: 0.3rem; }
+html.fs-on #sd-root .sd-tab {
+  flex: 1 1 0; min-width: 0; font: inherit; font-size: 0.74em; line-height: 1.2; font-weight: 600; cursor: pointer; padding: 0.4rem 0.3rem; border-radius: 10px 10px 0 0;
+  color: var(--ink-soft); background: var(--paper, var(--surface)); border: 1px solid var(--line); border-bottom-color: transparent;
+}
+html.fs-on #sd-root .sd-tab[aria-pressed="true"] { color: var(--ink); background: var(--surface); border-color: var(--accent); border-bottom-color: var(--surface); }
+html.fs-on #sd-root .sd-tab:hover { color: var(--accent-ink); }
+html.fs-on #sd-root .sd-aside > .sd-card { grid-row: 2; grid-column: 1; min-height: 0; overflow: auto; margin: 0; padding: 0.6rem 0.8rem; border-radius: 0 0 12px 12px; display: none; }
+html.fs-on #sd-root .sd-aside[data-tab="machine"] > .sd-machine,
+html.fs-on #sd-root .sd-aside[data-tab="schema"] > .sd-schemacard,
+html.fs-on #sd-root .sd-aside[data-tab="notebook"] > .sd-nbcard { display: block; }
+html.fs-on #sd-root .sd-card h3 .sd-sub { display: none; }
+html.fs-on #sd-root .sd-machine h3 { display: none; }
+html.fs-on #sd-root .sd-notebook { max-height: none; }
+html.fs-on #sd-root .sd-machine .sf-wrap { margin: 0; }
+html.fs-on #sd-root .sd-machine .sf-narr { margin-top: 0.4rem; }
+html.fs-on #sd-root .sd-machine .sf-legend { margin-top: 0.3rem; font-size: 0.7rem; }
+html.fs-on #sd-root .sd-machine .sf-prog { display: none; }
+html.fs-on #sd-root .sd-machine .sf-controls { margin-top: 0.4rem; min-height: 0; }
+
+/* roomy screens: everything at once, the tools stacked in the right-hand column */
+@media (min-width: 1700px) and (min-height: 960px) {
+  html.fs-on #sd-root.fs-active { grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.95fr) minmax(0, 1.3fr); }
+  html.fs-on #sd-root .sd-tabs { display: none; }
+  html.fs-on #sd-root .sd-aside { grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  html.fs-on #sd-root .sd-aside > .sd-card { display: block; border-radius: 12px; }
+  html.fs-on #sd-root .sd-aside > .sd-machine { grid-column: 1 / -1; grid-row: 1; overflow: visible; }
+  html.fs-on #sd-root .sd-aside > .sd-schemacard { grid-column: 1; grid-row: 2; }
+  html.fs-on #sd-root .sd-aside > .sd-nbcard { grid-column: 2; grid-row: 2; }
+  html.fs-on #sd-root .sd-machine h3 { display: block; margin-bottom: 0.2rem; }
+  html.fs-on #sd-root .sd-machine .sf-prog { display: block; min-height: 1.4em; }
+  html.fs-on #sd-root .sd-sus-why { -webkit-line-clamp: 3; }
+  html.fs-on #sd-root .sd-closed .sd-sub { display: block; }
+}

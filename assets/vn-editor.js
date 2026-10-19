@@ -496,17 +496,26 @@
     }
 
     /* -- measuring and layout -- */
+    /* on-screen size / layout size of the textarea: 1, unless an ancestor is drawn with transform: scale() (full-screen mode scales the app);
+       getBoundingClientRect() then reports screen pixels while offsets, paddings, scroll positions and the CSS metrics stay in layout pixels */
+    function scaleK() {
+      var w = ta.offsetWidth;
+      if (!w) return 1;
+      var k = ta.getBoundingClientRect().width / w;
+      return k > 0.2 && k < 5 && Math.abs(k - 1) > 0.004 ? k : 1;
+    }
     function measure() {
+      var K = scaleK();
       var cs = win.getComputedStyle(ta);
       var fs = parseFloat(cs.fontSize) || 13;
       var lh = parseFloat(cs.lineHeight);
-      if (lineEls[0]) { var r = lineEls[0].getBoundingClientRect(); if (r.height > 0) lh = r.height; }
+      if (lineEls[0]) { var r = lineEls[0].getBoundingClientRect(); if (r.height > 0) lh = r.height / K; }
       if (!cssRound) {     // old browsers: no CSS round(); snap the row height to whole pixels ourselves
         var want = Math.round(fs * 1.6);
         if (root.style.getPropertyValue('--vne-lh') !== want + 'px') { root.style.setProperty('--vne-lh', want + 'px'); lh = want; }
       }
       M.lh = lh > 0 ? lh : fs * 1.6;
-      var pw = probe.getBoundingClientRect().width;
+      var pw = probe.getBoundingClientRect().width / K;
       M.cw = pw > 0 ? pw / 100 : fs * 0.6;
       M.padT = parseFloat(cs.paddingTop) || 0;
       M.padB = parseFloat(cs.paddingBottom) || 0;
@@ -866,11 +875,14 @@
     function placeFixed(box, left, top) {
       box.style.left = Math.round(left) + 'px';
       box.style.top = Math.round(top) + 'px';
-      var r = box.getBoundingClientRect();
-      var dx = r.left - Math.round(left), dy = r.top - Math.round(top);
-      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-        box.style.left = Math.round(left - dx) + 'px';
-        box.style.top = Math.round(top - dy) + 'px';
+      var cl = Math.round(left), ct = Math.round(top);
+      for (var pass = 0; pass < 4; pass++) {       // one pass is exact unless an ancestor is scaled (full-screen mode); then it converges
+        var r = box.getBoundingClientRect();
+        var dx = r.left - Math.round(left), dy = r.top - Math.round(top);
+        if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) break;
+        cl -= dx; ct -= dy;
+        box.style.left = Math.round(cl) + 'px';
+        box.style.top = Math.round(ct) + 'px';
       }
     }
 
@@ -936,8 +948,8 @@
     }
     function hit(clientX, clientY) {
       if (M.dirty) measure();
-      var r = ta.getBoundingClientRect();
-      var x = clientX - r.left - M.border + ta.scrollLeft - M.padL, y = clientY - r.top - M.border + ta.scrollTop - M.padT;
+      var r = ta.getBoundingClientRect(), K = scaleK();
+      var x = (clientX - r.left) / K - M.border + ta.scrollLeft - M.padL, y = (clientY - r.top) / K - M.border + ta.scrollTop - M.padT;
       if (y < 0) return null;
       var idx = Math.floor(y / M.lh);
       if (idx >= lines.length) return null;
@@ -963,10 +975,10 @@
         if (destroyed) return;
         var rows = hoverRowsFor(h.idx, h.eol ? lines[h.idx].length : h.col, !h.eol);
         if (!rows.length) return;
-        var r = ta.getBoundingClientRect();
-        var x0 = r.left + M.border + M.padL - ta.scrollLeft + visCol(lines[h.idx], tok ? tok.start : h.col) * cw;
-        var y0 = r.top + M.border + M.padT - ta.scrollTop + h.idx * lh;
-        showTip(rows, { left: x0, top: y0, bottom: y0 + lh });
+        var r = ta.getBoundingClientRect(), K = scaleK();
+        var x0 = r.left + K * (M.border + M.padL - ta.scrollLeft + visCol(lines[h.idx], tok ? tok.start : h.col) * cw);
+        var y0 = r.top + K * (M.border + M.padT - ta.scrollTop + h.idx * lh);
+        showTip(rows, { left: x0, top: y0, bottom: y0 + K * lh });
       };
       if (hoverDelay <= 0) run(); else tipTimer = setTimeout(run, hoverDelay);
     });
@@ -994,10 +1006,10 @@
       var rows = hoverRowsFor(idx, Math.min(col, Math.max(0, lines[idx].length - 1)), true);
       if (col > 0 && col <= lines[idx].length && !rows.length) rows = hoverRowsFor(idx, col - 1, true);
       if (!rows.length) { announce('No help for this position.'); return; }
-      var r = ta.getBoundingClientRect();
-      var x0 = r.left + M.border + M.padL - ta.scrollLeft + visCol(lines[idx], col) * M.cw;
-      var y0 = r.top + M.border + M.padT - ta.scrollTop + idx * M.lh;
-      showTip(rows, { left: x0, top: y0, bottom: y0 + M.lh });
+      var r = ta.getBoundingClientRect(), K = scaleK();
+      var x0 = r.left + K * (M.border + M.padL - ta.scrollLeft + visCol(lines[idx], col) * M.cw);
+      var y0 = r.top + K * (M.border + M.padT - ta.scrollTop + idx * M.lh);
+      showTip(rows, { left: x0, top: y0, bottom: y0 + K * M.lh });
       announce(rows.map(function (r2) { return (r2.sev ? r2.sev + ': ' : '') + r2.text; }).join('. '));
     }
 
@@ -1141,14 +1153,14 @@
     function positionPopup() {
       if (!pop.open) return;
       if (M.dirty) measure();
-      var r = ta.getBoundingClientRect();
+      var r = ta.getBoundingClientRect(), K = scaleK();
       var lt = lines[pop.lineIdx] || '';
-      var x = r.left + M.border + M.padL - ta.scrollLeft + visCol(lt, Math.min(pop.from, lt.length)) * M.cw;
-      var yTop = r.top + M.border + M.padT - ta.scrollTop + pop.lineIdx * M.lh;
+      var x = r.left + K * (M.border + M.padL - ta.scrollLeft + visCol(lt, Math.min(pop.from, lt.length)) * M.cw);
+      var yTop = r.top + K * (M.border + M.padT - ta.scrollTop + pop.lineIdx * M.lh);
       var e = popEl, vw = win.innerWidth || doc.documentElement.clientWidth, vh = win.innerHeight || doc.documentElement.clientHeight;
       var pr = e.getBoundingClientRect();
       var left = Math.min(Math.max(4, x), Math.max(4, vw - pr.width - 4));
-      var top = yTop + M.lh + 2;
+      var top = yTop + K * M.lh + 2;
       if (top + pr.height > vh - 4 && yTop - pr.height - 2 >= 4) top = yTop - pr.height - 2;
       placeFixed(e, left, top);
     }

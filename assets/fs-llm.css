@@ -1,0 +1,371 @@
+/* Full-screen layout for the Chapter 12 lab (#llm-root) and the Break the Bot demo (.ia-app).
+   Everything here applies only while html.fs-on is set (assets/app-fullscreen.js). The app is exactly one screen high
+   (100vh minus the 42px exit strip); long things scroll inside their own pane, never the page. */
+
+/* The one-screen layouts below need at least a tablet-landscape window (1000 x 560); anything smaller keeps the shared
+   fit-by-scaling behaviour of app-fullscreen.js. */
+@media (min-width: 1000px) and (min-height: 560px) {
+/* big screens have room to spare: everything in rem grows with the root size */
+@media (min-width: 1500px) and (min-height: 850px) { html.fs-on { font-size: 112%; } }
+@media (min-width: 1800px) and (min-height: 1000px) { html.fs-on { font-size: 125%; } }
+/* =====================================================================
+   Chapter 12 lab
+   ===================================================================== */
+html.fs-on #llm-root.fs-active {
+  display: flex; flex-direction: column; height: calc(100vh - 42px) !important; overflow: hidden;
+  --fs-pad: 0.55rem;
+}
+html.fs-on #llm-root .llm-tabs { flex: none; margin: 0 0 0.45rem; }
+html.fs-on #llm-root .llm-tab { padding: 0.3rem 0.85rem; }
+html.fs-on #llm-root .llm-panel {
+  flex: 1 1 auto; min-height: 0; overflow: hidden; box-sizing: border-box;
+  display: grid; gap: 0.5rem 0.9rem; padding: 0.7rem 0.9rem 0.8rem; align-content: stretch;
+}
+html.fs-on #llm-root .llm-panel[hidden] { display: none; }
+/* secondary text that only explains: the chapter text and the notes already say it */
+html.fs-on #llm-root .llm-sim-note,
+html.fs-on #llm-root .llm-g-tok .note.tip, html.fs-on #llm-root .llm-g-out .note.tip, html.fs-on #llm-root .llm-g-bres .note.tip,
+html.fs-on #llm-root .llm-g-bchan .llm-chan > p.llm-muted { display: none; }
+html.fs-on #llm-root .llm-panel h4,
+html.fs-on #llm-root .llm-panel .llm-g > h4 { margin: 0 0 0.1rem; font-size: 0.66rem; letter-spacing: 0.04em; }
+html.fs-on #llm-root .llm-g { min-width: 0; min-height: 0; }
+html.fs-on #llm-root .llm-g > * { flex-shrink: 0; }
+html.fs-on #llm-root .llm-panel .field-label { margin-bottom: 0.15rem; font-size: 0.68rem; }
+html.fs-on #llm-root .llm-text, html.fs-on #llm-root .llm-seed, html.fs-on #llm-root .llm-panel select.preset-select {
+  font-size: 0.82rem; padding: 0.3rem 0.5rem;
+}
+html.fs-on #llm-root .llm-row { gap: 0.4rem 0.5rem; margin-bottom: 0.3rem; flex-wrap: nowrap; }
+html.fs-on #llm-root .llm-row > .llm-field { flex: 0 1 auto; }
+html.fs-on #llm-root .llm-row > .llm-field.llm-grow { flex: 1 1 0; }
+html.fs-on #llm-root .llm-row select.preset-select { width: 100%; max-width: 9.5rem; }
+html.fs-on #llm-root .llm-panel .btn { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
+html.fs-on #llm-root .llm-panel .btn.small { padding: 0.28rem 0.65rem; font-size: 0.76rem; }
+html.fs-on #llm-root .llm-panel .ex-actions { gap: 0.35rem; }
+html.fs-on #llm-root .llm-panel .sim-status { margin: 0; padding: 0.3rem 0.55rem; font-size: 0.72rem; line-height: 1.4; }
+
+/* animated diagrams: the picture on the left, narration and controls beside it; the legends repeat what the blocks already say */
+html.fs-on #llm-root .lf-wrap {
+  margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) 13.5rem; grid-template-rows: auto auto minmax(0, 1fr);
+  column-gap: 0.8rem; align-items: start; min-height: 0;
+}
+html.fs-on #llm-root .lf-svg { grid-column: 1; grid-row: 1 / 5; max-width: none; width: 100%; height: auto; max-height: 46vh; }
+html.fs-on #llm-root .lf-narr { grid-column: 2; grid-row: 1; min-height: 0; margin: 0; max-width: none; padding: 0.35rem 0.6rem; font-size: 0.78rem; line-height: 1.35; }
+html.fs-on #llm-root .lf-narr-h { min-height: 0.9rem; font-size: 0.66rem; }
+html.fs-on #llm-root .lf-transport { grid-column: 2; grid-row: 2; max-width: none; margin: 0.5rem 0 0; min-height: 0; gap: 0.35rem 0.5rem; }
+html.fs-on #llm-root .lf-speed { gap: 0.2rem 0.5rem; }
+html.fs-on #llm-root .lf-speed-name { min-width: 0; font-size: 0.7rem; }
+html.fs-on #llm-root .lf-speed input[type="range"] { width: 6.5rem; }
+html.fs-on #llm-root .lf-btn { min-width: 0; }
+html.fs-on #llm-root .lf-legend { grid-column: 2; grid-row: 3; max-width: none; margin: 0.5rem 0 0; font-size: 0.66rem; gap: 0.1rem 0.6rem; justify-content: flex-start; }
+html.fs-on #llm-root .lf-vkey, html.fs-on #llm-root .llm-g-bflow .lf-legend { display: none; }
+@media (max-height: 640px) { html.fs-on #llm-root .lf-legend { display: none; } }
+/* narrower windows: the picture takes the whole width of its pane, narration and controls go under it */
+@media (max-width: 1180px) {
+  html.fs-on #llm-root .lf-wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; row-gap: 0.4rem; }
+  html.fs-on #llm-root .lf-svg { grid-column: 1 / -1; grid-row: 1; max-height: 40vh; }
+  html.fs-on #llm-root .lf-narr { grid-column: 1; grid-row: 2; }
+  html.fs-on #llm-root .lf-transport { grid-column: 2; grid-row: 2; margin: 0; max-width: 11rem; }
+  html.fs-on #llm-root .lf-legend { display: none; }
+  html.fs-on #llm-root .llm-chan.lf-L-system { display: none; }
+}
+/* short windows: the system prompt box is the same text as in the chapter, so it gives way first */
+@media (max-height: 760px) { html.fs-on #llm-root .llm-chan.lf-L-system { display: none; } }
+
+/* ---- A · next-token machine ----
+   left: tokenizer, then the controls; right: the animated loop, then the text so far next to the probability table */
+html.fs-on #llm-root #llm-panel-0 { grid-template-columns: minmax(16rem, 23rem) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+html.fs-on #llm-root .llm-g-aleft, html.fs-on #llm-root .llm-g-aright { display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; min-width: 0; }
+html.fs-on #llm-root .llm-g-tok, html.fs-on #llm-root .llm-g-ctl { display: flex; flex-direction: column; gap: 0.3rem; flex: none; }
+html.fs-on #llm-root .llm-g-flow { display: block; flex: none; }
+html.fs-on #llm-root .llm-g-out {
+  flex: 1 1 0; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0.2rem 0.8rem; align-content: start; min-height: 0;
+}
+html.fs-on #llm-root .llm-g-out > :nth-child(1) { grid-column: 1; grid-row: 1; }
+html.fs-on #llm-root .llm-g-out > :nth-child(2) { grid-column: 1; grid-row: 2; }
+html.fs-on #llm-root .llm-g-out > :nth-child(3) { grid-column: 1; grid-row: 3; overflow: auto; }
+html.fs-on #llm-root .llm-g-out > :nth-child(4) { grid-column: 2; grid-row: 1; }
+html.fs-on #llm-root .llm-g-out > :nth-child(5) { grid-column: 2; grid-row: 2 / 4; overflow: auto; margin: 0; }
+html.fs-on #llm-root .llm-textbox { font-size: 0.95rem; line-height: 1.45; min-height: 3rem; max-height: 9rem; overflow: auto; padding: 0.5rem 0.7rem; }
+html.fs-on #llm-root .llm-chips { margin: 0.2rem 0 0.3rem; gap: 0.25rem; max-height: 5.6rem; overflow: auto; }
+html.fs-on #llm-root .llm-chip { padding: 0.1rem 0.4rem; }
+html.fs-on #llm-root .llm-g-tok .sim-status { max-height: 8rem; overflow: auto; }
+html.fs-on #llm-root .llm-g-out .sim-status { max-height: 100%; }
+html.fs-on #llm-root .llm-table th, html.fs-on #llm-root .llm-table td { padding: 0.15rem 0.55rem; font-size: 0.76rem; }
+html.fs-on #llm-root .llm-table th { font-size: 0.66rem; }
+html.fs-on #llm-root .llm-bar { width: 3.2rem; }
+html.fs-on #llm-root .llm-g-out .tbl-scroll p.llm-muted { margin: 0.2rem 0 0; font-size: 0.72rem; }
+html.fs-on #llm-root .llm-g-ctl .llm-row:nth-of-type(2) { flex-wrap: wrap; }
+html.fs-on #llm-root .llm-g-ctl .llm-row:nth-of-type(2) > .llm-field { flex: 1 1 8rem; }
+
+/* ---- B · sandbox, and (second view) the paste checklist ---- */
+/* B1 / B2 switch: sits at the right end of the tab row, so it costs no height */
+html.fs-on #llm-root .llm-subtabs { display: flex; gap: 0.4rem; position: absolute; top: 0.2rem; right: 0.6rem; z-index: 2; }
+html.fs-on #llm-root .llm-subtab {
+  font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; padding: 0.2rem 0.75rem;
+  border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft);
+}
+html.fs-on #llm-root .llm-subtab:hover { color: var(--ink); border-color: var(--ink-soft); }
+html.fs-on #llm-root .llm-subtab[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent-ink); border-color: var(--accent); }
+html.fs-on #llm-root .llm-subtab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.fs-on #llm-root #llm-panel-1 {
+  grid-template-columns: minmax(16rem, 23rem) minmax(0, 0.6fr) minmax(0, 1.4fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "ctl flow flow" "chan views res";
+}
+html.fs-on #llm-root .llm-g-bctl { grid-area: ctl; display: flex; flex-direction: column; gap: 0.35rem; }
+html.fs-on #llm-root .llm-g-bflow { grid-area: flow; display: block; }
+html.fs-on #llm-root .llm-g-bchan { grid-area: chan; display: flex; flex-direction: column; gap: 0.3rem; overflow: auto; }
+html.fs-on #llm-root .llm-g-bviews { grid-area: views; display: flex; flex-direction: column; gap: 0.35rem; overflow: auto; }
+html.fs-on #llm-root .llm-g-bres { grid-area: res; display: flex; flex-direction: column; gap: 0.35rem; overflow: auto; }
+html.fs-on #llm-root .llm-g-b2 { display: none; }
+html.fs-on #llm-root #llm-panel-1.llm-show-b2 { grid-template-areas: "b2"; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+html.fs-on #llm-root #llm-panel-1.llm-show-b2 .llm-g-b2 { display: flex; flex-direction: column; gap: 0.35rem; grid-area: b2; overflow: hidden; }
+html.fs-on #llm-root .llm-g-b2 > .llm-checks { flex: 1 1 0; min-height: 0; overflow: auto; align-content: start; padding-right: 0.2rem; }
+html.fs-on #llm-root .llm-g-b2 > h4.llm-h-gap { margin-top: 0 !important; }
+html.fs-on #llm-root #llm-panel-1.llm-show-b2 .llm-g:not(.llm-g-b2) { display: none; }
+html.fs-on #llm-root .llm-defs { padding: 0.35rem 0.65rem 0.45rem; gap: 0.3rem; margin: 0 0 0.4rem; }
+html.fs-on #llm-root .llm-chk { font-size: 0.8rem; gap: 0.45rem; }
+html.fs-on #llm-root .llm-chk small { font-size: 0.7rem; line-height: 1.3; }
+html.fs-on #llm-root .llm-g-bctl .llm-row { margin-bottom: 0.2rem; }
+html.fs-on #llm-root .llm-g-bctl > h4 { display: none; }
+html.fs-on #llm-root .llm-g-bctl .btn.small { font-size: 0.72rem; padding: 0.28rem 0.5rem; }
+html.fs-on #llm-root .llm-g-bctl .llm-row select.preset-select { max-width: none; }
+html.fs-on #llm-root .llm-chans { display: contents; }
+html.fs-on #llm-root .llm-chan { padding: 0.3rem 0.6rem 0.4rem; border-radius: 8px; }
+html.fs-on #llm-root .llm-chan-k { margin-bottom: 0.15rem; font-size: 0.66rem; }
+html.fs-on #llm-root .llm-chan .llm-pre { font-size: 0.72rem; line-height: 1.4; max-height: 4.2rem; overflow: auto; }
+html.fs-on #llm-root .llm-trusted.lf-L-user { display: none; }   /* the request is shown in the select below */
+html.fs-on #llm-root .llm-untrusted { flex: 1 1 7rem; min-height: 7rem; display: flex; flex-direction: column; }
+html.fs-on #llm-root textarea.llm-doc { flex: 1 1 auto; min-height: 4.5rem; height: 100%; font-size: 0.76rem; line-height: 1.45; padding: 0.4rem 0.55rem; resize: none; }
+html.fs-on #llm-root .llm-g-bchan > .llm-field { flex: none; }
+html.fs-on #llm-root .llm-g-bviews .run-cols { grid-template-columns: 1fr; gap: 0.4rem; margin-bottom: 0.4rem; }
+html.fs-on #llm-root .llm-g-bres .run-cols { gap: 0.5rem; margin-bottom: 0.4rem; }
+html.fs-on #llm-root .llm-view { min-height: 2.4rem; padding: 0.35rem 0.55rem; max-height: 6rem; overflow: auto; }
+html.fs-on #llm-root .llm-pre { font-size: 0.74rem; line-height: 1.45; }
+html.fs-on #llm-root .llm-answer { padding: 0.4rem 0.6rem; font-size: 0.84rem; line-height: 1.45; margin: 0 0 0.4rem; max-height: 6.5rem; overflow: auto; }
+html.fs-on #llm-root .llm-g-bres .sim-status { margin-bottom: 0.4rem; }
+html.fs-on #llm-root .llm-list { font-size: 0.74rem; gap: 0.25rem; line-height: 1.35; }
+html.fs-on #llm-root .llm-list li { padding: 0.2rem 0.5rem; }
+html.fs-on #llm-root .llm-list code { font-size: 0.7rem; }
+html.fs-on #llm-root .llm-checks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem 0.7rem; margin-bottom: 0.5rem; }
+html.fs-on #llm-root .llm-check-row { font-size: 0.82rem; padding: 0.35rem 0.6rem; grid-template-columns: minmax(0, 1fr) minmax(0, 13.5rem); }
+html.fs-on #llm-root .llm-g-b2 > p.llm-muted { margin: 0.1rem 0 0.4rem; font-size: 0.78rem; }
+
+/* ---- C · password check ---- */
+html.fs-on #llm-root #llm-panel-2 {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "cin more"; grid-template-rows: minmax(0, 1fr); align-content: stretch; gap: 0.5rem 1.4rem;
+}
+html.fs-on #llm-root .llm-g-cin { grid-area: cin; overflow: auto; }
+html.fs-on #llm-root .llm-g-cmore { grid-area: more; overflow: auto; }
+html.fs-on #llm-root .llm-g-cin, html.fs-on #llm-root .llm-g-cmore { display: flex; flex-direction: column; gap: 0.6rem; }
+html.fs-on #llm-root .llm-g-cmore > h4.llm-h-gap { margin-top: 0.6rem !important; }
+html.fs-on #llm-root .llm-g-cmore .note.tip { display: block; margin: 0.2rem 0 0; padding: 0.55rem 0.85rem; font-size: 0.84rem; }
+html.fs-on #llm-root .llm-pwout { margin-top: 0; gap: 0.6rem; }
+html.fs-on #llm-root .llm-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+html.fs-on #llm-root .llm-stats b { font-size: 1.2rem; }
+html.fs-on #llm-root .llm-g-cin .tbl-scroll, html.fs-on #llm-root .llm-g-cmore .tbl-scroll { margin: 0; }
+html.fs-on #llm-root .llm-g-cin td, html.fs-on #llm-root .llm-g-cin th, html.fs-on #llm-root .llm-g-cmore td, html.fs-on #llm-root .llm-g-cmore th { padding: 0.4rem 0.7rem; font-size: 0.84rem; }
+html.fs-on #llm-root .llm-g-cin p, html.fs-on #llm-root .llm-g-cmore p { margin: 0; font-size: 0.86rem; line-height: 1.45; }
+
+/* lab, short windows: a little tighter */
+@media (max-height: 800px) {
+  html.fs-on #llm-root .llm-g-tok .sim-status { max-height: 6rem; }
+  html.fs-on #llm-root .llm-g-cin, html.fs-on #llm-root .llm-g-cmore { gap: 0.4rem; }
+  html.fs-on #llm-root .llm-g-cin td, html.fs-on #llm-root .llm-g-cin th, html.fs-on #llm-root .llm-g-cmore td, html.fs-on #llm-root .llm-g-cmore th { padding: 0.28rem 0.6rem; font-size: 0.78rem; }
+  html.fs-on #llm-root .llm-g-cin p, html.fs-on #llm-root .llm-g-cmore p { font-size: 0.8rem; line-height: 1.4; }
+  html.fs-on #llm-root .llm-stats div { padding: 0.3rem 0.6rem; }
+  html.fs-on #llm-root .llm-stats b { font-size: 1.05rem; }
+  html.fs-on #llm-root .llm-g-cmore .note.tip { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
+}
+
+/* =====================================================================
+   Break the Bot (.ia-app)
+   top row: the two mode tabs and the seven levels; below: Play (story | diagram, chat | what happened) or Defender mode
+   ===================================================================== */
+html.fs-on .ia-app.fs-active {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 0.4rem 0.8rem; align-content: stretch;
+  height: calc(100vh - 42px) !important; overflow: hidden;
+}
+html.fs-on .ia-app > .tabs { grid-area: 1 / 1; margin: 0; flex-wrap: nowrap; align-self: center; }
+html.fs-on .ia-app > .tabs button { padding: 0.35rem 0.9rem; font-size: 0.86rem; white-space: nowrap; }
+html.fs-on .ia-app > .levelstrip { grid-area: 1 / 2; margin: 0; gap: 0.3rem; }
+html.fs-on .ia-app > details.what { display: none; }
+html.fs-on .ia-app > #play:not([hidden]), html.fs-on .ia-app > #defender:not([hidden]) { grid-column: 1 / -1; grid-row: 2; min-height: 0; display: grid; gap: 0.5rem 0.9rem; }
+/* level strip: number and stars on one line, the name under them */
+html.fs-on .ia-app .lv { display: grid; grid-template-columns: auto 1fr; column-gap: 0.4rem; row-gap: 0; align-items: baseline; padding: 0.25rem 0.55rem; min-height: 0; border-radius: 8px; }
+html.fs-on .ia-app .lv .n { grid-area: 1 / 1; }
+html.fs-on .ia-app .lv .st { grid-area: 1 / 2; justify-self: end; font-size: 0.7rem; letter-spacing: 0; }
+html.fs-on .ia-app .lv .t { grid-area: 2 / 1 / 3 / 3; font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* panes */
+html.fs-on .ia-app #play > .card, html.fs-on .ia-app #defender > .card { display: contents; }
+html.fs-on .ia-app .ia-g-info, html.fs-on .ia-app .ia-g-act, html.fs-on .ia-app .ia-g-d1, html.fs-on .ia-app .ia-g-d3 {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 0.6rem 0.8rem; min-width: 0; min-height: 0; box-sizing: border-box;
+}
+html.fs-on .ia-app .ia-g-info, html.fs-on .ia-app .ia-g-act, html.fs-on .ia-app .ia-g-d1, html.fs-on .ia-app .ia-g-d2, html.fs-on .ia-app .ia-g-d3, html.fs-on .ia-app .ia-g-out { display: flex; flex-direction: column; gap: 0.35rem; overflow: auto; }
+html.fs-on .ia-app .ia-g > * { flex-shrink: 0; }
+html.fs-on .ia-app .card h2 { font-size: 1.15rem; line-height: 1.2; }
+html.fs-on .ia-app .card h3 { margin: 0 0 0.2rem; font-size: 0.92rem; }
+html.fs-on .ia-app .card h4 { margin: 0.2rem 0 0.15rem; font-size: 0.8rem; }
+html.fs-on .ia-app .muted, html.fs-on .ia-app p { margin: 0; }
+html.fs-on .ia-app .btn { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
+html.fs-on .ia-app .btn.small { padding: 0.25rem 0.6rem; font-size: 0.76rem; }
+html.fs-on .ia-app input[type="text"], html.fs-on .ia-app textarea { padding: 0.35rem 0.55rem; font-size: 0.86rem; }
+
+/* diagram: picture left, narration and controls beside it (stacked under the picture in narrow windows); legends are redundant */
+html.fs-on .ia-app .lf-wrap {
+  margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) 13.5rem; grid-template-rows: auto auto minmax(0, 1fr); column-gap: 0.8rem; align-items: start; min-height: 0;
+}
+html.fs-on .ia-app .lf-svg { grid-column: 1; grid-row: 1 / 5; max-width: none; width: 100%; height: auto; max-height: 40vh; }
+html.fs-on .ia-app .lf-narr { grid-column: 2; grid-row: 1; min-height: 0; margin: 0; max-width: none; padding: 0.35rem 0.6rem; font-size: 0.78rem; line-height: 1.35; }
+html.fs-on .ia-app .lf-narr-h { min-height: 0.9rem; font-size: 0.66rem; }
+html.fs-on .ia-app .lf-transport { grid-column: 2; grid-row: 2; max-width: none; margin: 0.5rem 0 0; min-height: 0; gap: 0.35rem 0.5rem; }
+html.fs-on .ia-app .lf-speed { gap: 0.2rem 0.5rem; }
+html.fs-on .ia-app .lf-speed-name { min-width: 0; font-size: 0.7rem; }
+html.fs-on .ia-app .lf-speed input[type="range"] { width: 6.5rem; }
+html.fs-on .ia-app .lf-btn { min-width: 0; }
+html.fs-on .ia-app .lf-legend, html.fs-on .ia-app .lf-vkey { display: none; }
+@media (max-width: 1180px) {
+  html.fs-on .ia-app .lf-wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; row-gap: 0.4rem; }
+  html.fs-on .ia-app .lf-svg { grid-column: 1 / -1; grid-row: 1; max-height: 34vh; }
+  html.fs-on .ia-app .lf-narr { grid-column: 1; grid-row: 2; }
+  html.fs-on .ia-app .lf-transport { grid-column: 2; grid-row: 2; margin: 0; max-width: 11rem; }
+}
+
+/* ---- Play ---- */
+html.fs-on .ia-app #play:not([hidden]) { grid-template-columns: minmax(17rem, 0.8fr) minmax(0, 1.5fr); grid-template-rows: auto minmax(0, 1fr); }
+html.fs-on .ia-app .ia-g-info { grid-area: 1 / 1; }
+html.fs-on .ia-app #flow { grid-area: 1 / 2; }
+html.fs-on .ia-app .ia-g-act { grid-area: 2 / 2; }
+html.fs-on .ia-app .ia-g-out { grid-area: 2 / 1; }
+html.fs-on .ia-app .lv-head { gap: 0.2rem 0.8rem; }
+html.fs-on .ia-app .counters { font-size: 0.72rem; gap: 0.7rem; }
+html.fs-on .ia-app #lv-story { font-size: 0.86rem; line-height: 1.4; }
+html.fs-on .ia-app .goal { font-size: 0.86rem; padding: 0.3rem 0.6rem; }
+html.fs-on .ia-app .chips { margin: 0; gap: 0.3rem; }
+html.fs-on .ia-app .chip { font-size: 0.7rem; padding: 0.05rem 0.5rem; }
+html.fs-on .ia-app details.sys summary { font-size: 0.82rem; }
+html.fs-on .ia-app details.sys pre { font-size: 0.74rem; margin: 0.3rem 0 0; padding: 0.4rem 0.6rem; max-height: 7rem; overflow: auto; }
+/* chat: the log takes whatever height is left and scrolls inside itself */
+html.fs-on .ia-app #chatbox:not([hidden]) { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 7rem; gap: 0.35rem; }
+html.fs-on .ia-app .chatlog { flex: 1 1 0; height: auto; min-height: 4rem; margin: 0; padding: 0.4rem 0.5rem; gap: 0.35rem; }
+html.fs-on .ia-app .msg { padding: 0.25rem 0.6rem; max-width: 92%; }
+html.fs-on .ia-app .msg pre { font-size: 0.86rem; margin: 0; }
+html.fs-on .ia-app .row { gap: 0.4rem; flex: none; }
+html.fs-on .ia-app .claim:not([hidden]) { flex: none; }
+html.fs-on .ia-app #docbox label, html.fs-on .ia-app .claim label, html.fs-on .ia-app .explain label { margin: 0 0 0.15rem; font-size: 0.82rem; }
+html.fs-on .ia-app #claim-msg { min-height: 0; font-size: 0.8rem; }
+html.fs-on .ia-app #claim-msg:empty { display: none; }
+html.fs-on .ia-app .tools { margin: 0; gap: 0.4rem; flex: none; }
+html.fs-on .ia-app .hint { margin: 0.2rem 0 0; padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+html.fs-on .ia-app #hintbox { flex: none; display: grid; gap: 0.25rem; }
+/* document levels: your text on the left, the assistant's reply, tool log and attacker log on the right */
+html.fs-on .ia-app #docbox:not([hidden]) {
+  display: grid; flex: 1 1 auto; min-height: 0; gap: 0.2rem 0.8rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  grid-template-areas: "dl dh" "dt do" "dt dk" "du dn" "dg dn";
+}
+html.fs-on .ia-app #doc-label { grid-area: dl; }
+html.fs-on .ia-app #doc-in { grid-area: dt; resize: none; min-height: 5rem; height: 100%; font-size: 0.8rem; }
+html.fs-on .ia-app #doc-user { grid-area: du; font-size: 0.8rem; }
+html.fs-on .ia-app #doc-go { grid-area: dg; justify-self: start; }
+html.fs-on .ia-app #docbox > h4 { grid-area: dh; margin: 0 0 0.15rem; }
+html.fs-on .ia-app #doc-out { grid-area: do; margin: 0; font-size: 0.8rem; min-height: 2rem; padding: 0.35rem 0.55rem; overflow: auto; }
+html.fs-on .ia-app #doc-tools { grid-area: dk; margin: 0; font-size: 0.74rem; padding: 0.3rem 0.5rem; overflow: auto; max-height: 6rem; }
+html.fs-on .ia-app #netbox { grid-area: dn; font-size: 0.74rem; padding: 0.25rem 0.55rem; overflow: auto; max-height: 8rem; }
+html.fs-on .ia-app #netbox h4 { margin: 0; }
+html.fs-on .ia-app #netbox pre { font-size: 0.72rem; margin: 0.15rem 0 0; }
+/* what happened / post-mortem */
+html.fs-on .ia-app .ia-g-out { gap: 0.5rem; }
+html.fs-on .ia-app .ia-g-out > .card { margin: 0; padding: 0.6rem 0.8rem; border-radius: 12px; min-height: 0; box-sizing: border-box; }
+html.fs-on .ia-app #trace { flex: 1 1 auto; overflow: auto; }
+html.fs-on .ia-app #trace:empty { display: block; }
+html.fs-on .ia-app #trace:empty::before { content: "What happened inside the application (the defence trace) appears here after each attempt."; color: var(--ink-soft); font-size: 0.84rem; }
+html.fs-on .ia-app #trace h4 { margin-top: 0; }
+html.fs-on .ia-app .tr { gap: 0.25rem; }
+html.fs-on .ia-app .tr li, html.fs-on .ia-app .def { padding: 0.25rem 0.55rem; font-size: 0.82rem; line-height: 1.35; }
+html.fs-on .ia-app .badge { font-size: 0.64rem; }
+html.fs-on .ia-app #postmortem:not([hidden]) { flex: 1 1 0; overflow: auto; }
+html.fs-on .ia-app .layer { padding: 0.25rem 0.6rem; }
+html.fs-on .ia-app .layer pre { font-size: 0.74rem; margin: 0.1rem 0 0; }
+html.fs-on .ia-app .pm h3 { margin: 0 0 0.2rem; }
+html.fs-on .ia-app .analogue { margin: 0.4rem 0; padding: 0.35rem 0.7rem; font-size: 0.84rem; }
+html.fs-on .ia-app .pm > .btn { position: sticky; bottom: 0; margin-top: 0.4rem; box-shadow: 0 0 0 0.45rem var(--surface); }
+html.fs-on .ia-app #play:has(#postmortem:not([hidden])) #trace { flex: 0 1 auto; max-height: 30%; }
+/* the post-mortem is long: it gets the whole right-hand side, and the diagram makes room (the chat replies at once) */
+html.fs-on .ia-app #play:has(#postmortem:not([hidden])) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+html.fs-on .ia-app #play:has(#postmortem:not([hidden])) #flow { display: none; }
+html.fs-on .ia-app #play:has(#postmortem:not([hidden])) .ia-g-info { grid-area: 1 / 2; }
+html.fs-on .ia-app #play:has(#postmortem:not([hidden])) .ia-g-act { grid-area: 2 / 2; }
+html.fs-on .ia-app #play:has(#postmortem:not([hidden])) .ia-g-out { grid-area: 1 / 1 / 3 / 2; }
+/* level 7: chat and document on the left, the explanation exercise on the right */
+html.fs-on .ia-app .explain:not([hidden]) { flex: none; }
+html.fs-on .ia-app #play[data-kind="fortress"]:not([hidden]) {
+  grid-template-columns: minmax(15rem, 0.85fr) minmax(0, 1.15fr) 0; column-gap: 0.9rem;
+  grid-template-rows: auto minmax(7rem, 0.6fr) minmax(8rem, 1fr) auto auto;
+}
+html.fs-on .ia-app #play[data-kind="fortress"]:not([hidden]):has(.explain:not([hidden])) { grid-template-columns: minmax(15rem, 0.8fr) minmax(0, 1fr) minmax(0, 0.95fr); }
+html.fs-on .ia-app #play[data-kind="fortress"] .ia-g-act { display: contents; }
+html.fs-on .ia-app #play[data-kind="fortress"] .ia-g-info { grid-area: 1 / 1 / 3 / 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] #flow { grid-area: 1 / 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] .ia-g-out { grid-area: 3 / 1 / 6 / 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] #chatbox:not([hidden]) { grid-area: 2 / 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] #docbox:not([hidden]) { grid-area: 3 / 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] .explain:not([hidden]) { grid-area: 1 / 3 / 6 / 4; overflow: auto; }
+html.fs-on .ia-app #play[data-kind="fortress"] .tools { grid-area: 4 / 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] #hintbox { grid-area: 5 / 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] #chatbox:not([hidden]), html.fs-on .ia-app #play[data-kind="fortress"] #docbox:not([hidden]), html.fs-on .ia-app #play[data-kind="fortress"] .explain:not([hidden]) {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 0.5rem 0.7rem; min-width: 0; min-height: 0; box-sizing: border-box; overflow: auto;
+}
+/* the flow diagram sits above the chat here: picture on top, narration and controls under it */
+html.fs-on .ia-app #play[data-kind="fortress"] .lf-wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; row-gap: 0.4rem; }
+html.fs-on .ia-app #play[data-kind="fortress"] .lf-svg { grid-column: 1 / -1; grid-row: 1; max-height: 30vh; }
+html.fs-on .ia-app #play[data-kind="fortress"] .lf-narr { grid-column: 1; grid-row: 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] .lf-transport { grid-column: 2; grid-row: 2; margin: 0; max-width: 11rem; }
+html.fs-on .ia-app #play[data-kind="fortress"] #docbox:not([hidden]) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(3rem, 1fr) auto auto auto auto auto; grid-template-areas: "dl" "dt" "du" "dg" "dh" "do" "dk"; }
+html.fs-on .ia-app #play[data-kind="fortress"] #netbox { display: none; }
+/* after the post-mortem opens, it takes the left column */
+html.fs-on .ia-app #play[data-kind="fortress"]:has(#postmortem:not([hidden])) #lv-story { display: none; }
+html.fs-on .ia-app #play[data-kind="fortress"]:not([hidden]):has(#postmortem:not([hidden])) { grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 0.9fr); grid-template-rows: auto minmax(7rem, 0.6fr) minmax(8rem, 1fr) auto auto; }
+html.fs-on .ia-app #play[data-kind="fortress"]:has(#postmortem:not([hidden])) .ia-g-info { grid-area: 1 / 2 / 2 / 3; }
+html.fs-on .ia-app #play[data-kind="fortress"]:has(#postmortem:not([hidden])) .ia-g-out { grid-area: 1 / 1 / 6 / 2; }
+html.fs-on .ia-app #play[data-kind="fortress"] #explain-out { font-size: 0.82rem; }
+html.fs-on .ia-app .explain h3 { margin: 0 0 0.25rem; }
+html.fs-on .ia-app .explain fieldset { padding: 0.3rem 0.6rem; margin: 0 0 0.3rem; }
+html.fs-on .ia-app .explain legend { font-size: 0.82rem; }
+html.fs-on .ia-app .opt { margin: 0.15rem 0 !important; padding: 0.2rem 0.4rem; font-size: 0.82rem; }
+html.fs-on .ia-app .explain textarea { min-height: 3.5rem; height: 4.5rem; }
+
+/* ---- Defender mode ----
+   top left: switches, meters and verdict; top right: the diagram; bottom: the eight attacks next to the seven ordinary requests */
+html.fs-on .ia-app #defender:not([hidden]) { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+html.fs-on .ia-app .ia-g-d1 { grid-area: 1 / 1; }
+html.fs-on .ia-app .ia-g-d2 { grid-area: 1 / 2; overflow: visible; }
+html.fs-on .ia-app .ia-g-d3 {
+  grid-area: 2 / 1 / 3 / 3; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 0.2rem 0.9rem; overflow: hidden;
+}
+html.fs-on .ia-app .ia-g-d3 > :nth-child(1) { grid-area: 1 / 1; } html.fs-on .ia-app .ia-g-d3 > :nth-child(2) { grid-area: 2 / 1; }
+html.fs-on .ia-app .ia-g-d3 > :nth-child(3) { grid-area: 1 / 2; } html.fs-on .ia-app .ia-g-d3 > :nth-child(4) { grid-area: 2 / 2; }
+html.fs-on .ia-app .ia-g-d3 .tbl-scroll { margin: 0; overflow: auto; min-height: 0; }
+html.fs-on .ia-app .ia-g-d3 table.tbl { box-shadow: none; }
+html.fs-on .ia-app .ia-g-d3 table.tbl th { padding: 0.25rem 0.6rem; font-size: 0.66rem; }
+html.fs-on .ia-app .ia-g-d3 table.tbl td { padding: 0.22rem 0.6rem; font-size: 0.8rem; }
+html.fs-on .ia-app .ia-g-d3 td.mono { font-size: 0.74rem; }
+html.fs-on .ia-app #def-attacks tr.note td { font-size: 0.72rem; padding-top: 0.1rem; padding-bottom: 0.2rem; }
+html.fs-on .ia-app #def-attacks .btn { padding: 0.15rem 0.5rem; }
+html.fs-on .ia-app .ia-g-d1 > p:first-of-type, html.fs-on .ia-app .ia-g-d2 > p.muted { display: none; }
+html.fs-on .ia-app .toggles { grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.4rem; margin: 0; }
+html.fs-on .ia-app .tog { padding: 0.35rem 0.6rem; gap: 0.4rem; font-size: 0.84rem; }
+html.fs-on .ia-app .tog small { font-size: 0.72rem; line-height: 1.3; }
+html.fs-on .ia-app .tog input { width: 1.05rem; height: 1.05rem; }
+html.fs-on .ia-app .meters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+html.fs-on .ia-app .meters .mlabel { font-size: 0.78rem; line-height: 1.3; }
+html.fs-on .ia-app .mbar { height: 0.6rem; margin-top: 0.2rem; }
+html.fs-on .ia-app .verdict { font-size: 0.8rem; line-height: 1.35; }
+html.fs-on .ia-app #def-best { font-size: 0.78rem; }
+html.fs-on .ia-app .ia-g-d2 .lf-wrap { margin: 0; }
+html.fs-on .ia-app .ia-g-d2 .lf-wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; row-gap: 0.4rem; }
+html.fs-on .ia-app .ia-g-d2 .lf-svg { grid-column: 1 / -1; grid-row: 1; max-height: 34vh; }
+html.fs-on .ia-app .ia-g-d2 .lf-narr { grid-column: 1; grid-row: 2; }
+html.fs-on .ia-app .ia-g-d2 .lf-transport { grid-column: 2; grid-row: 2; margin: 0; max-width: 11rem; }
+
+}

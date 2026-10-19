@@ -1130,11 +1130,13 @@
       pop.appendChild(ttl);
       pop.appendChild(el('span', 'nb-pop-x', item.text));
       pop.hidden = false;
-      var bw = boardWrap.clientWidth, bh = boardWrap.clientHeight, x = d.x / W * bw, half = pop.offsetWidth / 2;
+      /* the drawing is centred and keeps its aspect ratio, so there can be bars at the sides or top (full-screen board): k, ox, oy map drawing units to pixels */
+      var bw = boardWrap.clientWidth, bh = boardWrap.clientHeight, k = Math.min(bw / W, bh / Hh), ox = (bw - W * k) / 2, oy = (bh - Hh * k) / 2;
+      var x = ox + d.x * k, dy = oy + d.y * k, half = pop.offsetWidth / 2;
       var left = Math.max(half + 4, Math.min(bw - half - 4, x));
-      var above = d.y / Hh * bh > pop.offsetHeight + BH / 2 * bh / Hh + 14;
+      var above = dy > pop.offsetHeight + BH / 2 * k + 14;
       pop.style.left = left + 'px';
-      var top = (above ? d.y / Hh * bh - BH / 2 * bh / Hh - 24 - pop.offsetHeight : d.y / Hh * bh + BH / 2 * bh / Hh + 30);
+      var top = (above ? dy - BH / 2 * k - 24 - pop.offsetHeight : dy + BH / 2 * k + 30);
       pop.style.top = Math.max(4, Math.min(bh - pop.offsetHeight - 4, top)) + 'px';
     }
     function updatePlay() {
@@ -1179,7 +1181,7 @@
       tr.log.forEach(function (e) { ol.appendChild(el('li', 'nb-later ph-' + e.phase, e.text)); });
       explain.appendChild(ol);
       /* keep the explanation box at least as tall as the longest one seen on this level, so the controls below never jump */
-      explain.style.minHeight = ''; var hh = explain.offsetHeight; S.exH = Math.max(S.exH || 0, hh); explain.style.minHeight = S.exH + 'px';
+      if (!document.documentElement.classList.contains('fs-on')) { explain.style.minHeight = ''; var hh = explain.offsetHeight; S.exH = Math.max(S.exH || 0, hh); explain.style.minHeight = S.exH + 'px'; } // (full screen: a scrolling pane of its own, no reserved height)
       var acts = NB.playScript(tr);
       run = { tr: tr, acts: acts, idx: 0, paused: false, busy: false, done: false, stepMv: null, last: null, g: gen, lis: ol.children, head: head, why: why, h: h, revealed: 0 };
       if (tr.moves.length) { putTok(tr.moves[0].from, tr.moves[0].phase, '', true); S.tokAt = tr.moves[0].from; }
@@ -1280,6 +1282,28 @@
       if (e.target && /input|select|textarea/i.test(e.target.tagName)) return;
       if (e.key === 'Delete' && (S.sel || S.selLink)) deleteSelected();
     });
+    /* full-screen layout (assets/fs-network.css): while html.fs-on, the story card becomes a band under the level bar, the side panel becomes two columns
+       (goals + explanation | inspector + send a packet), and the explanation box moves from under the board into the first column, so the board can use
+       the height; everything goes back when full screen ends */
+    (function () {
+      var html = document.documentElement, colL = null, colR = null;
+      function arrange() {
+        var on = html.classList.contains('fs-on') && root.classList.contains('fs-active');
+        if (on && !colL) {
+          colL = el('div', 'nbfs-col nbfs-l'); colR = el('div', 'nbfs-col nbfs-r');
+          colL.appendChild(goalsBox); colL.appendChild(explain);
+          colR.appendChild(inspector); colR.appendChild(tester);
+          side.appendChild(colL); side.appendChild(colR);
+          root.insertBefore(mission, main);
+          if (window.AppFullscreen) AppFullscreen.refit();
+        } else if (!on && colL) {
+          [mission, goalsBox, inspector, tester].forEach(function (n) { side.appendChild(n); });
+          stage.appendChild(explain);
+          side.removeChild(colL); side.removeChild(colR); colL = colR = null;
+        }
+      }
+      if (window.MutationObserver) new MutationObserver(arrange).observe(html, { attributes: true, attributeFilter: ['class'] });
+    })();
     loadLevel(0);
     root.__nb = S; S.api = { renderAll: renderAll, refresh: refresh, play: play, loadLevel: loadLevel, connect: connect };
   }

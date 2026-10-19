@@ -257,6 +257,35 @@
       xlab: 'size (m²)', ylab: 'price (thousand $)', xs: 'm²', unit: 'thousand $', predictX: 1200 }
   ];
 
+  /* Full-screen layout (assets/fs-ai.css): each panel's parts are grouped into three columns, and a tab bar switches between the two panels.
+     Outside full screen the column wrappers are display:contents and the tab bar is hidden, so the normal page is unchanged. */
+  function fsColumns(panel, split) {
+    var kids = Array.prototype.slice.call(panel.children);
+    split(kids).forEach(function (nodes, i) {
+      var col = el('div', 'ai-col ai-col' + (i + 1));
+      panel.appendChild(col);
+      nodes.forEach(function (n) { col.appendChild(n); });
+    });
+  }
+  function fsTabs(host) {
+    var bar = el('div', 'ai-fs-tabs'); bar.setAttribute('role', 'tablist'); bar.setAttribute('aria-label', 'Lab panels');
+    var btns = [];
+    [['1', 'Panel 1 · Learn a line (house prices)'], ['2', 'Panel 2 · Learn a boundary (spam filter)']].forEach(function (t) {
+      var b = el('button', '', t[1]); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('data-tab', t[0]);
+      b.addEventListener('click', function () { show(t[0]); });
+      b.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { var o = btns[t[0] === '1' ? 1 : 0]; show(o.getAttribute('data-tab')); o.focus(); e.preventDefault(); }
+      });
+      bar.appendChild(b); btns.push(b);
+    });
+    function show(n) {
+      host.setAttribute('data-fs-tab', n);
+      btns.forEach(function (b) { var on = b.getAttribute('data-tab') === n; b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; });
+    }
+    show('1');
+    host.insertBefore(bar, host.firstChild);
+  }
+
   function mount() {
     var host = document.getElementById('ai-root');
     if (!host) return;
@@ -268,7 +297,7 @@
       'But the loop you will watch here (guess the parameters, measure the error, nudge the parameters, repeat) is the same idea at the bottom of all of them.'));
 
     /* ============ Panel 1 ============ */
-    var p1 = el('div', 'run-panel ai-panel');
+    var p1 = el('div', 'run-panel ai-panel ai-p1');
     p1.appendChild(el('h4', '', 'Panel 1 · Learn a line: house size → price'));
     p1.appendChild(el('p', 'ai-lede',
       'The function is <span class="mono">F(x) = a·x + b</span>. Its two <strong>parameters</strong> <span class="mono">a</span> and <span class="mono">b</span> are what the model “knows”. ' +
@@ -389,6 +418,7 @@
     var infOut = el('div', 'ai-readout');
     infOut.setAttribute('aria-live', 'polite');
     p1.appendChild(infOut);
+    fsColumns(p1, function (k) { return [k.slice(2, 8), k.slice(8, 13).concat([k[14]]), [k[13]].concat(k.slice(15))]; });
     host.appendChild(p1);
 
     /* ---- state for panel 1 ---- */
@@ -671,7 +701,7 @@
     infIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') infBtn.click(); });
 
     /* ============ Panel 2 ============ */
-    var p2 = el('div', 'run-panel ai-panel');
+    var p2 = el('div', 'run-panel ai-panel ai-p2');
     p2.appendChild(el('h4', '', 'Panel 2 · Learn a boundary: spam or not spam?'));
     p2.appendChild(el('p', 'ai-lede',
       'Each email is described by two numbers (its <strong>features</strong>): how many links it has and how many ALL-CAPS words. ' +
@@ -746,6 +776,7 @@
     var probeOut = el('div', 'ai-readout');
     probeOut.setAttribute('aria-live', 'polite');
     p2.appendChild(probeOut);
+    fsColumns(p2, function (k) { return [[k[2], k[3], k[4], k[6], k[7]], [k[5]], k.slice(8)]; });
     host.appendChild(p2);
 
     /* ---- state for panel 2 ---- */
@@ -917,6 +948,7 @@
       'In both panels you saw <strong>training</strong> (many small parameter updates driven by data and an error measure) followed by <strong>inference</strong> (frozen parameters, one quick evaluation). ' +
       'A modern model repeats exactly that with billions of parameters and a few thousand times more data — which is why training needs data centres but a chat reply only needs one pass through the function.'));
 
+    fsTabs(host);
     loadDataset(0);
     renderClf(); resetView2();
     status2.textContent = 'Ready. Press ×100 to train the classifier, then switch on the biased sample and train again.';

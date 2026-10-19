@@ -614,7 +614,7 @@
   /* run the engine's steps through the diagram; `done` (the visible reply, trace, tool log...) happens when the last token has landed */
   function play(steps, done) {
     flush();
-    if (!flow) { done(); return; }
+    if (!flow || !$('flow').offsetParent) { done(); return; } // no diagram on screen (full-screen post-mortem): answer at once
     var my = ++runId; pending = done;
     flow.reset(); flow.setChips(playChips(E.LEVELS[cur - 1]));
     tp.runner.start(flow.unitsFor(steps)).then(function () { if (my === runId) flush(); });
@@ -653,6 +653,7 @@
   }
   function openLevel(id) {
     cur = id; var L = E.LEVELS[id - 1], p = P(id); last[id] = last[id] || null;
+    $('play').setAttribute('data-kind', L.kind); // the full-screen layout differs for chat, document and fortress levels
     stopFlow(); if (flow) flow.setChips(playChips(L));
     renderStrip();
     $('lv-title').textContent = 'Level ' + id + ' · ' + L.name;
@@ -813,7 +814,7 @@
     an.appendChild(p2); pm.appendChild(an);
     if (L.id < 7) {
       var nx = el('button', 'btn primary', 'Next level'); nx.type = 'button';
-      nx.addEventListener('click', function () { openLevel(L.id + 1); window.scrollTo({ top: $('play').offsetTop - 80, behavior: reduced ? 'auto' : 'smooth' }); });
+      nx.addEventListener('click', function () { openLevel(L.id + 1); if (!document.documentElement.classList.contains('fs-on')) window.scrollTo({ top: $('play').offsetTop - 80, behavior: reduced ? 'auto' : 'smooth' }); });
       pm.appendChild(nx);
     }
   }
@@ -855,7 +856,7 @@
       var last = steps[steps.length - 1];
       say(steps.some(function (s) { return s.stop; }) ? 'Attack ' + id + ' was stopped.' : 'Attack ' + id + ' got through. ' + (last.note || ''));
     });
-    var w = $('def-flow'); if (w.getBoundingClientRect().top < 0 || w.getBoundingClientRect().bottom > window.innerHeight) w.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+    var w = $('def-flow'); if (!document.documentElement.classList.contains('fs-on') && (w.getBoundingClientRect().top < 0 || w.getBoundingClientRect().bottom > window.innerHeight)) w.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
   }
   function renderDefender() {
     var d = clear($('def-toggles'));
@@ -900,8 +901,30 @@
     say(r.blocked + ' of 8 attacks blocked, friction ' + r.friction.toFixed(1));
   }
 
+  /* ── layout groups ──
+     Runs of neighbouring elements get one wrapper each. The wrappers are display: contents (demo-injection-arena.css), so the normal
+     page is unchanged; the full-screen layout (fs-llm.css) turns them into panes. */
+  function wrapRun(first, last, cls) {
+    if (!first || !last || first.parentNode !== last.parentNode) return null;
+    var g = el('div', 'ia-g ' + cls), n = first, stop = last.nextSibling;
+    first.parentNode.insertBefore(g, first);
+    while (n && n !== stop) { var nx = n.nextSibling; g.appendChild(n); n = nx; }
+    return g;
+  }
+  function groupLayout() {
+    var card = document.querySelector('#play > .card'), dc = document.querySelector('#defender > .card');
+    wrapRun(card.querySelector('.lv-head'), card.querySelector('details.sys'), 'ia-g-info');
+    wrapRun($('chatbox'), $('hintbox'), 'ia-g-act');
+    wrapRun($('trace'), $('postmortem'), 'ia-g-out');
+    var tbls = dc.querySelectorAll('.tbl-scroll'), flowWrap = $('def-flow');
+    wrapRun(dc.querySelector('h2'), $('def-best'), 'ia-g-d1');
+    wrapRun(flowWrap.previousElementSibling.previousElementSibling, flowWrap, 'ia-g-d2');
+    wrapRun(tbls[0].previousElementSibling, tbls[tbls.length - 1], 'ia-g-d3');
+  }
+
   /* ── wiring ── */
   function init() {
+    groupLayout();
     $('tab-play').addEventListener('click', function () { setMode('play'); });
     $('tab-def').addEventListener('click', function () { setMode('def'); });
     $('chat-send').addEventListener('click', sendChat);

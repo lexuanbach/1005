@@ -1016,9 +1016,38 @@
     p2.appendChild(el('p', 'cl-intro', 'Eight citations, each with one planted problem – all about the real works from the builder. Choose what is wrong, then read the corrected version.'));
     var score = el('div', 'cl-score'); score.setAttribute('aria-live', 'polite'); p2.appendChild(score);
     var answered = {}, right = 0;
-    function updScore() { score.textContent = 'Answered ' + Object.keys(answered).length + ' of ' + SPOT.length + ' · correct first time: ' + right; }
+    // Full-screen mode (assets/fs-cite.css) shows one question at a time: a numbered list of the eight questions next to the open one.
+    // Outside full screen the list is hidden and all eight questions stay on the page, so nothing changes there.
+    var spotNav = el('div', 'cl-spotnav'), spotChips = [], spotCards = [], spotCur = 0;
+    function paintChips() {
+      spotChips.forEach(function (c, k) {
+        var st = k in answered ? (answered[k] ? 'ok' : 'bad') : 'todo';
+        c.className = 'cl-chip cl-chip-' + st + (k === spotCur ? ' cl-chip-cur' : '');
+        c.setAttribute('aria-current', k === spotCur ? 'true' : 'false');
+        c.querySelector('.cl-chip-mark').textContent = st === 'ok' ? '\u2713' : st === 'bad' ? '\u2717' : '';
+      });
+    }
+    function showSpot(k) {
+      spotCur = Math.max(0, Math.min(SPOT.length - 1, k));
+      spotCards.forEach(function (c, i) { c.classList.toggle('cl-cur', i === spotCur); });
+      spotPrev.disabled = spotCur === 0; spotNext.disabled = spotCur === SPOT.length - 1;
+      paintChips();
+    }
+    var spotStep = el('div', 'cl-spotstep');
+    var spotPrev = el('button', 'btn ghost small', '\u25C2 Previous'); spotPrev.type = 'button';
+    var spotNext = el('button', 'btn small', 'Next question \u25B8'); spotNext.type = 'button';
+    spotPrev.addEventListener('click', function () { showSpot(spotCur - 1); });
+    spotNext.addEventListener('click', function () { showSpot(spotCur + 1); });
+    spotStep.appendChild(spotPrev); spotStep.appendChild(spotNext);
+    function updScore() { score.textContent = 'Answered ' + Object.keys(answered).length + ' of ' + SPOT.length + ' · correct first time: ' + right; paintChips(); }
     SPOT.forEach(function (s, idx) {
       var card = el('fieldset', 'cl-spot'); var leg = el('legend', '', (idx + 1) + ' · ' + s.style + ' · ' + s.kind); card.appendChild(leg);
+      spotCards.push(card);
+      var chip = el('button', 'cl-chip'); chip.type = 'button';
+      chip.appendChild(el('span', 'cl-chip-n', String(idx + 1))); chip.appendChild(el('span', 'cl-chip-t', s.style + ' \u00B7 ' + s.kind)); chip.appendChild(el('span', 'cl-chip-mark'));
+      chip.setAttribute('aria-label', 'Question ' + (idx + 1) + ' of ' + SPOT.length + ': ' + s.style + ' ' + s.kind);
+      chip.addEventListener('click', function () { showSpot(idx); });
+      spotChips.push(chip); spotNav.appendChild(chip);
       var fl = el('p', 'cl-ref cl-flawed'); fmt(fl, s.flawed); card.appendChild(fl);
       card.appendChild(el('p', 'cl-q', s.q));
       var fb = el('div', 'cl-fb'); fb.hidden = true; fb.setAttribute('role', 'status');
@@ -1041,11 +1070,13 @@
     });
     var resetSpot = el('button', 'btn ghost small', '↺ Try again from scratch'); resetSpot.type = 'button';
     resetSpot.addEventListener('click', function () {
-      answered = {}; right = 0; updScore();
+      answered = {}; right = 0; updScore(); showSpot(0);
       var rs = p2.querySelectorAll('input[type=radio]'); for (var i = 0; i < rs.length; i++) rs[i].checked = false;
       var fbs = p2.querySelectorAll('.cl-fb'); for (var j = 0; j < fbs.length; j++) fbs[j].hidden = true;
     });
-    p2.appendChild(resetSpot); updScore();
+    p2.appendChild(resetSpot);
+    spotNav.appendChild(spotStep); p2.insertBefore(spotNav, spotCards[0]);
+    updScore(); showSpot(0);
 
     // ───── Panel 3
     var p3 = el('div', 'run-panel cl-panel'); p3.id = 'cl-panel-2'; p3.setAttribute('role', 'tabpanel'); p3.setAttribute('aria-labelledby', 'cl-tab-2');
