@@ -310,3 +310,10 @@
 .vnw-golink:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 /* the editor's Tab trap is advertised, not hidden */
 .vnw-edhint { margin: 0; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.4; }
+
+/* program text size control (A- / A+) in the editor header */
+.vnw-edhead { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+.vnw-edhead .field-label { margin: 0; }
+.vnw-fontgrp { display: inline-flex; align-items: center; gap: 0.3rem; }
+.vnw-fontgrp .btn { min-width: 2.2rem; }
+.vnw-fpct { font: 500 0.74rem "IBM Plex Mono", monospace; color: var(--ink-soft); min-width: 2.6rem; text-align: center; font-variant-numeric: tabular-nums; }

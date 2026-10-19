@@ -75,7 +75,39 @@
     var staleHint = h('p', { cls: 'vnw-stale' });
     var edHint = h('p', { cls: 'vnw-edhint', text: 'Tab indents. To leave the editor with the keyboard press Esc, then Tab. F9 sets a breakpoint, Ctrl/Cmd+Enter assembles, Ctrl+Space suggests.' });
     var msgList = h('ul', { cls: 'vnw-msgs', attrs: { 'aria-label': 'Assembler messages' } });
-    var editCol = h('div', { cls: 'vnw-editcol' }, [h('label', { cls: 'field-label', text: 'Assembly source', attrs: { id: 'vnw-srclabel' } }), editHost,
+    // program text size: the same site-wide preference, scale steps and storage key as every other code window (assets/course.js);
+    // changing it fires 'co1005-view', which the editor listens to in order to re-measure
+    var CODE_SCALES = [0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
+    function currentScale() {
+      var v = NaN;
+      try { v = parseFloat(localStorage.getItem('co1005-code-scale')); } catch (e) { /* storage blocked */ }
+      if (CODE_SCALES.indexOf(v) < 0) { v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--code-scale')); }
+      if (!(v > 0)) v = 1;
+      var best = 0; CODE_SCALES.forEach(function (c, i) { if (Math.abs(c - v) < Math.abs(CODE_SCALES[best] - v)) best = i; });
+      return best;
+    }
+    var fMinus = btn('A−', 'ghost', function () { stepFont(-1); });
+    var fPlus = btn('A+', 'ghost', function () { stepFont(1); });
+    var fPct = h('span', { cls: 'vnw-fpct', attrs: { 'aria-hidden': 'true' } });
+    var fontGroup = h('div', { cls: 'vnw-fontgrp', attrs: { role: 'group', 'aria-label': 'Program text size' } }, [fMinus, fPct, fPlus]);
+    function paintFont() {
+      var i = currentScale(), pct = Math.round(CODE_SCALES[i] * 100) + '%';
+      fPct.textContent = pct;
+      fMinus.disabled = i === 0; fPlus.disabled = i === CODE_SCALES.length - 1;
+      fMinus.title = 'Smaller program text (now ' + pct + ')';
+      fPlus.title = 'Larger program text (now ' + pct + ')';
+      fMinus.setAttribute('aria-label', fMinus.title); fPlus.setAttribute('aria-label', fPlus.title);
+    }
+    function stepFont(d) {
+      var i = Math.min(CODE_SCALES.length - 1, Math.max(0, currentScale() + d)), v = CODE_SCALES[i];
+      try { localStorage.setItem('co1005-code-scale', String(v)); } catch (e) { /* storage blocked: still applies for this visit */ }
+      document.documentElement.style.setProperty('--code-scale', String(v));
+      window.dispatchEvent(new Event('co1005-view'));
+      paintFont();
+    }
+    window.addEventListener('co1005-view', paintFont);
+    paintFont();
+    var editCol = h('div', { cls: 'vnw-editcol' }, [h('div', { cls: 'vnw-edhead' }, [h('label', { cls: 'field-label', text: 'Assembly source', attrs: { id: 'vnw-srclabel' } }), fontGroup]), editHost,
       edHint, h('div', { cls: 'vnw-asmrow' }, [summary, bAsm]), staleHint, msgList]);
     var notes = h('aside', { cls: 'vnw-notes', attrs: { 'aria-label': 'Notes about this program' } });
     var editRow = h('div', { cls: 'vnw-editrow' }, [editCol, notes]);
