@@ -95,7 +95,37 @@
     colL.appendChild(linkBox);
 
     var srcLab = el('div', 'field-label', 'Your C++ (a small subset — the list below says what is supported)'); srcLab.id = 'tc-src-label';
-    colL.appendChild(srcLab);
+    // program text size: the site-wide code-size preference (same steps and storage key as assets/course.js); the editor re-measures on 'co1005-view'
+    var SCALES = [0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
+    function scaleIdx() {
+      var v = NaN;
+      try { v = parseFloat(localStorage.getItem('co1005-code-scale')); } catch (e) { /* storage blocked */ }
+      if (SCALES.indexOf(v) < 0) v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--code-scale'));
+      if (!(v > 0)) v = 1;
+      var best = 0; SCALES.forEach(function (c, i) { if (Math.abs(c - v) < Math.abs(SCALES[best] - v)) best = i; });
+      return best;
+    }
+    var fMinus = btn('A−', 'ghost small'), fPlus = btn('A+', 'ghost small'), fPct = el('span', 'tc-fpct'); fPct.setAttribute('aria-hidden', 'true');
+    var fGroup = el('div', 'tc-fontgrp'); fGroup.setAttribute('role', 'group'); fGroup.setAttribute('aria-label', 'Program text size');
+    fGroup.appendChild(fMinus); fGroup.appendChild(fPct); fGroup.appendChild(fPlus);
+    function paintFont() {
+      var i = scaleIdx(), pct = Math.round(SCALES[i] * 100) + '%';
+      fPct.textContent = pct; fMinus.disabled = i === 0; fPlus.disabled = i === SCALES.length - 1;
+      fMinus.title = 'Smaller program text (now ' + pct + ')'; fPlus.title = 'Larger program text (now ' + pct + ')';
+      fMinus.setAttribute('aria-label', fMinus.title); fPlus.setAttribute('aria-label', fPlus.title);
+    }
+    function stepFont(d) {
+      var v = SCALES[Math.min(SCALES.length - 1, Math.max(0, scaleIdx() + d))];
+      try { localStorage.setItem('co1005-code-scale', String(v)); } catch (e) { /* storage blocked: still applies for this visit */ }
+      document.documentElement.style.setProperty('--code-scale', String(v));
+      window.dispatchEvent(new Event('co1005-view'));
+      paintFont();
+    }
+    fMinus.addEventListener('click', function () { stepFont(-1); });
+    fPlus.addEventListener('click', function () { stepFont(1); });
+    window.addEventListener('co1005-view', paintFont); paintFont();
+    var srcHead = el('div', 'tc-edhead'); srcHead.appendChild(srcLab); srcHead.appendChild(fGroup);
+    colL.appendChild(srcHead);
     var edHost = el('div', 'tc-edhost'); colL.appendChild(edHost);
     var ed;
     if (ED) ed = ED.create(edHost, { id: 'tc-src', label: 'C++ source code', describedBy: 'tc-diag tc-ed-help', onChange: onEdit, onCompile: function () { compileNow(true); } });

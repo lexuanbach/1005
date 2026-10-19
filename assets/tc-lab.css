@@ -145,3 +145,10 @@
   .tc-lab .tc-ed { height: 18rem; font-size: 0.8rem; }
   .tc-lab .tc-sep { display: none; }
 }
+
+/* editor header: label + A- / A+ program text size */
+.tc-edhead { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+.tc-edhead .field-label { margin: 0; }
+.tc-fontgrp { display: inline-flex; align-items: center; gap: 0.3rem; }
+.tc-fontgrp .btn { min-width: 2.2rem; }
+.tc-fpct { font: 500 0.74rem "IBM Plex Mono", monospace; color: var(--ink-soft); min-width: 2.6rem; text-align: center; font-variant-numeric: tabular-nums; }
