@@ -1,0 +1,312 @@
+/* Von Neumann Machine workbench (Chapter 7 lab + demos/von-neumann-machine.html). Theme tokens only (light + dark).
+   Prefix vnw-. Loaded after vn-machine.css (data-path diagram, vn-dp-c-* colours) and vn-editor.css (the code editor). */
+.vnw [hidden], .vnw-dialog [hidden] { display: none !important; }
+.vnw { display: flex; flex-direction: column; gap: 0.85rem; padding: 0.9rem; min-width: 0; max-width: 100%; }
+.vnw > * { min-width: 0; }
+.vnw button { font-family: inherit; }
+.vnw .btn.small { min-height: 2rem; }
+.vnw .btn.ghost.danger { color: var(--red); border-color: color-mix(in srgb, var(--red) 55%, var(--line)); }
+.vnw input[type="text"], .vnw input[type="search"], .vnw input[type="number"], .vnw select, .vnw-dialog input[type="text"], .vnw-dialog input[type="search"], .vnw-dialog input[type="number"], .vnw-dialog select {
+  font: inherit; font-size: 0.86rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0.35rem 0.6rem; min-height: 2rem; max-width: 100%; box-sizing: border-box; }
+.vnw input[type="text"], .vnw input[type="search"], .vnw input[type="number"], .vnw select, .vnw-dialog input[type="text"], .vnw-dialog input[type="search"], .vnw-dialog input[type="number"], .vnw-dialog select { border-color: color-mix(in srgb, var(--ink-soft) 60%, var(--line)); }
+.vnw input:focus-visible, .vnw select:focus-visible, .vnw-dialog input:focus-visible, .vnw-dialog select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.vnw input[aria-invalid="true"] { border-color: var(--red); outline: 2px solid color-mix(in srgb, var(--red) 40%, transparent); }
+
+/* contrast fixes on top of the shared button / table styles (the machine tables dim unused cells; keep text >= 4.5:1) */
+.vnw .btn.primary { background: var(--accent-ink); color: var(--accent-contrast); }
+.vnw .btn.primary:disabled { background: color-mix(in srgb, var(--accent-ink) 55%, var(--surface)); }
+.vnw tr.vn-free, .vnw tr.vn-data td.vn-dis { opacity: 1; }
+.vnw tr.vn-free td { color: var(--ink-soft); }
+.vnw tr.vn-data td.vn-dis, .vnw tr.vn-data td.vn-bits { color: var(--ink-soft); }
+.vnw tr.vn-free td.vn-dis, .vnw tr.vn-free td.vn-bits, .vnw tr.vn-free td.mono { color: var(--ink-soft); }
+
+/* toolbar */
+.vnw-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+.vnw-tg { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.vnw-tg-name { flex: 1 1 20rem; }
+.vnw-name { flex: 1 1 10rem; min-width: 7rem; }
+.vnw-dirty { font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; font-weight: 600; color: var(--amber); white-space: nowrap; }
+.vnw-auto { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: var(--ink-soft); cursor: pointer; white-space: nowrap; }
+.vnw-auto input { width: 1rem; height: 1rem; accent-color: var(--accent); }
+
+/* banner */
+.vnw-bannerhost:empty { display: none; }
+.vnw-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; padding: 0.55rem 0.8rem; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-radius: 10px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); font-size: 0.88rem; }
+.vnw-banner.bad { border-color: color-mix(in srgb, var(--red) 55%, var(--line)); background: color-mix(in srgb, var(--red) 8%, var(--surface)); }
+.vnw-banner-t { flex: 1 1 16rem; }
+
+/* editor row */
+.vnw-editrow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.9rem; align-items: start; }
+.vnw-wide .vnw-editrow { grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 1fr); }
+.vnw-huge .vnw-editrow { grid-template-columns: minmax(0, 1.8fr) minmax(20rem, 1fr); }
+.vnw-editcol { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.vnw-editcol .field-label { margin: 0; }
+.vnw-editor { min-width: 0; }
+.vnw-asmrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.8rem; }
+.vnw-summary { margin: 0; font-size: 0.84rem; font-weight: 600; color: var(--ink-soft); min-height: 1.3rem; }
+.vnw-summary.ok { color: var(--green); } .vnw-summary.warn { color: var(--amber); } .vnw-summary.bad { color: var(--red); }
+.vnw-summary.ok::before { content: "✓ "; } .vnw-summary.warn::before { content: "▲ "; } .vnw-summary.bad::before { content: "✖ "; }
+.vnw-stale { margin: 0; font-size: 0.82rem; color: var(--amber); }
+.vnw-msgs { list-style: none; margin: 0; padding: 0; max-height: 9.5rem; overflow: auto; display: flex; flex-direction: column; gap: 0.25rem; }
+.vnw-msgs:empty { display: none; }
+.vnw-msg { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 0.1rem 0.6rem; align-items: baseline; width: 100%; text-align: left; padding: 0.3rem 0.6rem; border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 0.82rem; cursor: pointer; }
+.vnw-msg:hover { border-color: var(--ink-soft); }
+.vnw-msg:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.vnw-msg-error { border-left-color: var(--red); } .vnw-msg-warning { border-left-color: var(--amber); } .vnw-msg-info { border-left-color: var(--accent); }
+.vnw-sev { font-weight: 700; white-space: nowrap; }
+.vnw-msg-error .vnw-sev { color: var(--red); } .vnw-msg-warning .vnw-sev { color: var(--amber); } .vnw-msg-info .vnw-sev { color: var(--accent-ink); }
+.vnw-where { font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; color: var(--ink-soft); white-space: nowrap; }
+.vnw-mhint { grid-column: 3; color: var(--ink-soft); font-size: 0.78rem; }
+.vnw-more { font-size: 0.8rem; color: var(--ink-soft); padding: 0 0.6rem; }
+
+/* notes panel */
+.vnw-notes { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.8rem 0.95rem; font-size: 0.88rem; max-height: 38rem; overflow: auto; min-width: 0; }
+.vnw-notes-h { margin: 0 0 0.3rem; font-size: 1.1rem; }
+.vnw-notes-h4 { margin: 0.8rem 0 0.2rem; font-size: 0.74rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); font-family: "IBM Plex Mono", monospace; }
+.vnw-notes p { margin: 0.4rem 0; }
+.vnw-notes-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; }
+.vnw-story { color: var(--ink); line-height: 1.55; }
+.vnw-slide { color: var(--ink-soft); font-size: 0.82rem; }
+.vnw-notes-list { margin: 0.2rem 0 0.4rem; padding-left: 1.2rem; }
+.vnw-notes-list li { margin: 0.35rem 0; line-height: 1.5; }
+.vnw-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.3rem 0; }
+.vnw-tag { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; padding: 0.1rem 0.5rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: var(--paper); }
+.vnw-cpp { margin: 0.6rem 0; border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.7rem; background: var(--paper); }
+.vnw-cpp summary { cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+.vnw-cppcode { margin: 0.5rem 0; padding: 0.6rem; background: var(--code-bg); color: var(--code-text); border-radius: 8px; overflow: auto; max-height: 16rem; font-size: 0.78rem; line-height: 1.5; }
+.vnw-cppcode code { font-family: "IBM Plex Mono", monospace; white-space: pre; color: inherit; background: none; padding: 0; font-size: inherit; border-radius: 0; }
+.vnw-notes-actions { margin-top: 0.6rem; }
+.vnw-dots { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--accent-ink); }
+.vnw-dots > span:first-child { letter-spacing: 0.1em; }
+.vnw-lvname { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--ink-soft); }
+.vnw-badge { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; font-weight: 600; padding: 0.08rem 0.5rem; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-soft); background: var(--paper); white-space: nowrap; }
+.vnw-badge.lec { color: var(--teal-ink); border-color: color-mix(in srgb, var(--teal) 55%, var(--line)); }
+.vnw-badge.ext { color: color-mix(in srgb, var(--cmp-5) 70%, var(--ink)); border-color: color-mix(in srgb, var(--cmp-5) 60%, var(--line)); }
+
+/* run bar */
+.vnw-runbar { display: flex; flex-direction: column; gap: 0.5rem; }
+.vnw-runbtns { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+.vnw-runbtns .btn { min-width: 6.4rem; }
+.vnw-runbtns .btn.primary { min-width: 6.9rem; }
+.vnw-runopts { display: flex; flex-wrap: wrap; gap: 0.4rem 1.6rem; align-items: center; }
+.vnw-runopts .vn-inrow { margin: 0; flex: 1 1 22rem; }
+.vnw-runopts .vn-input { flex: 1 1 10rem; min-width: 8rem; }
+.vnw-inhint { font-size: 0.78rem; color: var(--red); flex-basis: 100%; min-height: 0; }
+.vnw-inhint:empty { display: none; }
+.vnw .vn-phases { margin: 0; }
+.vnw .vnw-status { min-height: 0; height: 5.7rem; overflow-y: auto; margin: 0; }
+.vnw-narrow .vnw-status { height: 9rem; }
+.vnw .vn-diagram { margin: 0; }
+.vnw-outrow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.8rem; min-height: 2.5rem; }
+.vnw-outrow .field-label { margin: 0; white-space: nowrap; }
+.vnw-outlog { flex: 1 1 14rem; max-height: 5.2rem; overflow: auto; overflow-wrap: anywhere; font-size: 0.95rem; }
+.vnw .vn-fine { margin: 0; }
+
+/* tabs */
+.vnw-tablist { display: flex; flex-wrap: wrap; gap: 0.2rem; border-bottom: 1px solid var(--line); }
+.vnw-tab { background: none; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0; padding: 0.45rem 0.95rem; font-size: 0.86rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; position: relative; top: 1px; }
+.vnw-tab:hover { color: var(--ink); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.vnw-tab[aria-selected="true"] { color: var(--ink); background: var(--surface); border-color: var(--line); box-shadow: inset 0 3px 0 var(--accent); }
+.vnw-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.vnw-panel { height: 30rem; overflow: hidden; padding: 0.7rem 0.8rem; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 12px 12px; background: var(--surface); }
+.vnw-narrow .vnw-panel { height: 34rem; }
+.vnw-panel > div { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.vnw-panel > div > :not(.vnw-scroll) { flex-shrink: 0; }
+.vnw-panel:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.vnw-scroll { flex: 1 1 auto; min-height: 5rem; overflow: auto; margin: 0.4rem 0 0 !important; }
+.vnw-paneltools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.7rem; }
+.vnw-hint { font-size: 0.8rem; color: var(--ink-soft); margin: 0.2rem 0; }
+.vnw-inl { font-size: 0.84rem; color: var(--ink-soft); display: inline-flex; align-items: center; gap: 0.4rem; }
+.vnw-empty { color: var(--ink-soft); font-size: 0.88rem; margin: 0.6rem 0; }
+.vnw-h3 { font-size: 0.78rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); font-family: "IBM Plex Mono", monospace; margin: 0.8rem 0 0.3rem; }
+.vnw .tbl { margin: 0; width: 100%; }
+.vnw .tbl th { position: sticky; top: 0; z-index: 1; background: var(--surface); box-shadow: 0 1px 0 var(--line); font-size: 0.74rem; white-space: nowrap; }
+.vnw .tbl td, .vnw .tbl th { padding: 0.22rem 0.5rem; font-size: 0.8rem; }
+.vnw tr.vnw-click { cursor: pointer; }
+.vnw tr.vnw-click:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+
+/* memory */
+.vnw .vnw-memwrap.vn-memwrap { border: 0; padding: 0; background: transparent; border-radius: 0; transition: box-shadow 0.15s; }
+.vnw .vnw-memwrap.vn-src { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--cmp-3) 55%, transparent); background: transparent; }
+.vnw .vnw-memwrap.vn-dst { box-shadow: inset 0 0 0 3px var(--cmp-3); background: transparent; }
+.vnw .vn-cell { width: 9.2rem; min-height: 1.6rem; padding: 0.1rem 0.4rem; }
+.vnw-memmsg { margin: 0.3rem 0 0; font-size: 0.8rem; min-height: 1.2rem; color: var(--ink-soft); }
+.vnw-memmsg.bad { color: var(--red); }
+.vnw tr.vnw-linked td { background: color-mix(in srgb, var(--accent) 11%, transparent); }
+.vnw tr.vnw-linked td:first-child { box-shadow: inset 4px 0 0 var(--accent); }
+.vnw-mk { display: inline-block; margin-left: 0.25rem; font-family: "IBM Plex Mono", monospace; font-size: 0.66rem; font-weight: 700; line-height: 1.3; padding: 0 0.35em; border-radius: 4px; color: color-mix(in srgb, var(--c) 58%, var(--ink)); background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: inset 0 -2px 0 var(--c); }
+.vnw-mk.strong { box-shadow: inset 0 -2px 0 var(--c), 0 0 0 1px var(--c); }
+.vnw-ref { font-family: "IBM Plex Mono", monospace; font-weight: 700; padding: 0 0.28em; border-radius: 4px; color: color-mix(in srgb, var(--c) 58%, var(--ink)); background: color-mix(in srgb, var(--c) 15%, transparent); box-shadow: inset 0 -2px 0 var(--c); }
+
+/* listing, trace */
+.vnw-srcline { max-width: 24rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vnw-lnno { display: inline-block; min-width: 1.8em; color: var(--ink-soft); }
+.vnw-tracewrap > .vnw-paneltools, .vnw-listwrap > .vnw-hint { flex: 0 0 auto; }
+
+/* stats */
+.vnw-statswrap { overflow: auto; }
+.vnw-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.5rem; margin: 0 0 0.3rem; }
+.vnw-metric { border: 1px solid var(--line); border-radius: 10px; padding: 0.35rem 0.6rem; background: var(--paper); }
+.vnw-metric dt { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-family: "IBM Plex Mono", monospace; }
+.vnw-mv { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 1.25rem; font-weight: 600; color: var(--ink); }
+.vnw-mh { margin: 0; font-size: 0.72rem; color: var(--ink-soft); }
+.vnw-share { margin: 0.1rem 0 0.4rem; font-weight: 600; font-size: 0.92rem; }
+.vnw-bar { display: flex; height: 1.7rem; border: 1px solid var(--ink-soft); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.vnw-seg { display: block; height: 100%; flex: 0 0 auto; }
+.vnw-seg-ifetch, .vnw-sw.vnw-seg-ifetch { background: var(--cmp-3); }
+.vnw-seg-dread, .vnw-sw.vnw-seg-dread { background: repeating-linear-gradient(45deg, var(--cmp-3) 0 4px, color-mix(in srgb, var(--cmp-3) 30%, var(--surface)) 4px 8px); }
+.vnw-seg-dwrite, .vnw-sw.vnw-seg-dwrite { background: radial-gradient(circle at 3px 3px, var(--surface) 1px, transparent 1.6px) 0 0 / 6px 6px, var(--cmp-3); }
+.vnw-seg-other, .vnw-sw.vnw-seg-other { background: color-mix(in srgb, var(--ink-soft) 28%, var(--surface)); }
+.vnw-barlegend { list-style: none; margin: 0.4rem 0 0.2rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 0.2rem 1rem; font-size: 0.82rem; }
+.vnw-barlegend li { display: flex; align-items: center; gap: 0.4rem; }
+.vnw-sw { display: inline-block; width: 1rem; height: 1rem; border-radius: 3px; border: 1px solid var(--ink-soft); flex: 0 0 auto; }
+.vnw-segv { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--ink-soft); }
+.vnw-explain { font-size: 0.84rem; color: var(--ink-soft); margin: 0.4rem 0; max-width: 56rem; }
+.vnw-mix { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.vnw-mix li { display: grid; grid-template-columns: 7rem minmax(4rem, 1fr) 7rem; align-items: center; gap: 0.6rem; font-size: 0.8rem; }
+.vnw-mixbar { height: 0.8rem; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.vnw-mixfill { display: block; height: 100%; background: var(--accent); }
+
+/* tests */
+.vnw-testswrap { overflow: auto; }
+.vnw-testsum { margin: 0.4rem 0; font-weight: 600; font-size: 0.88rem; min-height: 1.3rem; }
+.vnw-testsum.good { color: var(--green); } .vnw-testsum.bad { color: var(--red); }
+.vnw-testswrap .vnw-scroll { flex: 1 0 8rem; }
+.vnw-tin { width: 100%; min-width: 7rem; font-family: "IBM Plex Mono", monospace !important; font-size: 0.8rem !important; }
+.vnw-actual { max-width: 16rem; overflow-wrap: anywhere; }
+.vnw-tact { white-space: nowrap; }
+.vnw-mini { font-size: 0.74rem; padding: 0.15rem 0.5rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink-soft); cursor: pointer; margin-right: 0.25rem; }
+.vnw-mini:hover { color: var(--ink); border-color: var(--ink-soft); }
+.vnw-v { display: inline-block; font-weight: 700; font-size: 0.76rem; padding: 0.08rem 0.55rem; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+.vnw-v-pass { color: color-mix(in srgb, var(--green) 78%, var(--ink)); border-color: color-mix(in srgb, var(--green) 55%, var(--line)); background: color-mix(in srgb, var(--green) 10%, var(--surface)); }
+.vnw-v-fail, .vnw-v-error { color: var(--red); border-color: color-mix(in srgb, var(--red) 55%, var(--line)); background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
+.vnw-v-needs-input, .vnw-v-timeout, .vnw-v-invalid { color: color-mix(in srgb, var(--amber) 70%, var(--ink)); border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); background: color-mix(in srgb, var(--amber) 10%, var(--surface)); }
+
+/* reference */
+.vnw-refwrap { overflow: auto; }
+.vnw-refscroll { flex: 0 0 auto; max-height: none; overflow: visible !important; }
+.vnw-refcols { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 0.4rem 1.5rem; margin-top: 0.4rem; }
+.vnw-reflist { margin: 0; padding-left: 1.1rem; font-size: 0.84rem; } .vnw-reflist li { margin: 0.3rem 0; }
+.vnw-reflist code, .vnw-keys code { font-family: "IBM Plex Mono", monospace; font-size: 0.82em; background: var(--paper); padding: 0 0.3em; border-radius: 4px; }
+.vnw-insert { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 0.8rem; color: var(--accent-ink); background: none; border: 1px solid transparent; border-radius: 6px; padding: 0.05rem 0.4rem; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.vnw-insert:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.vnw-extbadge { margin-left: 0.35rem; font-size: 0.64rem; font-weight: 700; padding: 0 0.4em; border-radius: 4px; border: 1px solid color-mix(in srgb, var(--cmp-5) 60%, var(--line)); color: color-mix(in srgb, var(--cmp-5) 70%, var(--ink)); }
+.vnw-keys td { padding: 0.15rem 0.5rem; }
+.vnw kbd, .vnw-dialog kbd { font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; padding: 0.05rem 0.4rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; background: var(--paper); color: var(--ink); }
+
+/* toasts */
+.vnw-toasts { display: flex; flex-direction: column; gap: 0.4rem; }
+.vnw-rootToasts { position: fixed; left: 1rem; bottom: 1rem; z-index: 90; max-width: min(30rem, calc(100vw - 2rem)); pointer-events: none; }
+.vnw-rootToasts > * { pointer-events: auto; }
+.vnw-toast { display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.8rem; border-radius: 10px; background: var(--ink); color: var(--paper); font-size: 0.86rem; box-shadow: var(--shadow); }
+.vnw-toast span { flex: 1 1 auto; }
+.vnw-toast-act { background: none; border: 0; color: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0.1rem 0.3rem; }
+.vnw-toast-x { background: none; border: 0; color: inherit; cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0 0.2rem; opacity: 0.85; }
+.vnw-toast button:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+.vnw-d-examples .vnw-dfoot { padding: 0; border-top: 0; }
+.vnw-dfoot .vnw-toasts { margin-top: 0.5rem; }
+.vnw-dfoot .vnw-toasts:empty { display: none; }
+
+/* dialogs */
+.vnw-dialog { margin: auto; padding: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); width: min(40rem, 96vw); max-width: 96vw; max-height: 92vh; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35); overflow: hidden; font-family: "Be Vietnam Pro", system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
+.vnw-dialog::backdrop { background: rgba(8, 14, 26, 0.6); }
+.vnw-dialog.vnw-nomodal[open] { position: fixed; inset: 4vh 2vw; margin: auto; height: fit-content; z-index: 80; }
+.vnw-d-examples { width: min(74rem, 96vw); height: min(48rem, 92vh); }
+.vnw-d-programs { width: min(44rem, 96vw); }
+.vnw-d-share { width: min(38rem, 96vw); }
+.vnw-d-settings { width: min(46rem, 96vw); }
+.vnw-dinner { display: flex; flex-direction: column; max-height: 92vh; height: 100%; }
+.vnw-dhead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.7rem 1rem 0.7rem 1.2rem; border-bottom: 1px solid var(--line); background: var(--surface); }
+.vnw-dtitle { margin: 0; font-size: 1.15rem; }
+.vnw-dclose { width: 2.2rem; height: 2.2rem; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.vnw-dclose:hover { border-color: var(--ink-soft); }
+.vnw-dclose:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.vnw-dbody { flex: 1 1 auto; overflow: auto; padding: 0.9rem 1.2rem; min-height: 0; }
+.vnw-dfoot { padding: 0.6rem 1.2rem 0.9rem; border-top: 1px solid var(--line); background: var(--surface); }
+.vnw-dactions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+.vnw-dbody p { margin: 0.4rem 0; }
+.vnw-dbody .field-label { margin: 0.6rem 0 0.2rem; }
+
+/* examples browser */
+.vnw-exfilters { display: flex; flex-direction: column; gap: 0.5rem; position: sticky; top: -0.9rem; background: var(--paper); padding: 0.1rem 0 0.4rem; z-index: 2; margin-top: -0.2rem; }
+.vnw-exrow { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.vnw-search { flex: 1 1 14rem; min-width: 10rem; }
+.vnw-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.vnw-chip { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 600; padding: 0.28rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); cursor: pointer; }
+.vnw-chip:hover { border-color: var(--ink-soft); }
+.vnw-chip.on { background: var(--accent-ink); border-color: var(--accent-ink); color: var(--accent-contrast); }
+.vnw-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.vnw-chip-n { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; }
+.vnw-blurb { font-size: 0.84rem; color: var(--ink-soft); margin: 0.1rem 0 0; }
+.vnw-count { font-size: 0.8rem; color: var(--ink-soft); margin: 0.2rem 0 0.5rem; }
+.vnw-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.7rem; }
+.vnw-card { display: flex; flex-direction: column; align-items: stretch; gap: 0.35rem; text-align: left; padding: 0.7rem 0.8rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); cursor: pointer; font: inherit; }
+.vnw-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+.vnw-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.vnw-card.cur { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.vnw-card > span { display: block; }
+.vnw-card-top { display: flex !important; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.vnw-card-title { font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
+.vnw-card-sum { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.4; }
+.vnw-card-meta { display: flex !important; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.vnw-card-tags { display: flex !important; flex-wrap: wrap; gap: 0.25rem; }
+
+/* settings */
+.vnw-setgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 0.8rem; }
+.vnw-fs { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.8rem 0.7rem; margin: 0; min-width: 0; background: var(--surface); }
+.vnw-fs legend, .vnw-legend { font-weight: 700; font-size: 0.84rem; padding: 0 0.3rem; display: block; margin-bottom: 0.2rem; }
+.vnw-radios { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
+.vnw-radio { display: flex; align-items: flex-start; gap: 0.45rem; min-width: 7rem; }
+.vnw-radio input { margin-top: 0.3rem; width: 1rem; height: 1rem; accent-color: var(--accent); }
+.vnw-radio label { display: flex; flex-direction: column; cursor: pointer; font-size: 0.88rem; }
+.vnw-rn { font-size: 0.76rem; color: var(--ink-soft); max-width: 22rem; }
+.vnw-latrow { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.vnw-latrow input[type="range"] { flex: 1 1 8rem; accent-color: var(--accent); }
+.vnw-num { width: 4.5rem; }
+
+/* My programs, share */
+.vnw-plist { list-style: none; margin: 0.4rem 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.vnw-prog { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.8rem; padding: 0.5rem 0.7rem; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.vnw-prog.cur { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+.vnw-pinfo { display: flex; flex-direction: column; min-width: 0; flex: 1 1 12rem; }
+.vnw-pname { font-weight: 700; overflow-wrap: anywhere; }
+.vnw-pmeta { font-size: 0.78rem; color: var(--ink-soft); }
+.vnw-pbtns { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.vnw-rename { width: 100%; }
+.vnw-linkfield { width: 100%; font-family: "IBM Plex Mono", monospace !important; font-size: 0.78rem !important; }
+
+/* standalone page (demos/von-neumann-machine.html) */
+.vnp-page { padding: 2rem 0 3rem; }
+.vnp-wrap { max-width: 96rem; margin: 0 auto; padding: 0 1.25rem; }
+.vnp-page h1 { margin: 0.2rem 0 0.6rem; }
+.vnp-how { color: var(--ink-soft); max-width: 62rem; font-size: 0.92rem; margin: 0.6rem 0 1.2rem; }
+.vnp-explain { margin-top: 1.5rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.8rem 1rem; }
+.vnp-explain summary { cursor: pointer; font-weight: 700; }
+.vnp-explain-body li { margin: 0.45rem 0; font-size: 0.93rem; }
+
+@media (max-width: 560px) {
+  .vnw { padding: 0.6rem; }
+  .vnw-runbtns .btn { min-width: 0; flex: 1 1 8rem; }
+  .vnw-panel { padding: 0.5rem; }
+  .vnw-dhead, .vnw-dbody, .vnw-dfoot { padding-left: 0.8rem; padding-right: 0.8rem; }
+  .vnw-mix li { grid-template-columns: 5.5rem minmax(3rem, 1fr) 5.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { .vnw *, .vnw-dialog * { transition: none !important; animation: none !important; } }
+@media (forced-colors: active) {
+  .vnw-tab[aria-selected="true"] { outline: 2px solid Highlight; }
+  .vnw-chip.on { outline: 2px solid Highlight; }
+  .vnw-bar, .vnw-seg { border: 1px solid CanvasText; }
+}
+
+/* pages with the workbench contain <pre> (the editor), so course.js adds its code-size tools to the top bar; on phones that made the bar wider than the screen */
+@media (max-width: 640px) {
+  body:has(.vnw) .topbar .wrap { flex-wrap: wrap; height: auto; min-height: 3.5rem; padding-top: 0.35rem; padding-bottom: 0.35rem; row-gap: 0.2rem; }
+  body:has(.vnw) .topbar .topnav { flex: 1 1 100%; order: 3; }
+}
+
+/* keyboard access to "jump to the source line" (rows keep their mouse click) */
+.vnw-golink { font: inherit; color: var(--accent-ink); background: none; border: 1px solid transparent; border-radius: 5px; padding: 0 0.35em; min-width: 1.6em; text-align: center; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.vnw-golink:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.vnw-golink:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* the editor's Tab trap is advertised, not hidden */
+.vnw-edhint { margin: 0; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.4; }

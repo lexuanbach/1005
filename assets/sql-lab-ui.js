@@ -110,10 +110,10 @@
     var lines = [];
     plan.forEach(function (p) {
       if (p.kind === 'scan') {
-        lines.push('<li><strong>Full table scan of ' + esc(p.table) + '</strong>' + (p.sub ? ' (inside a sub-query)' : '') + ': ' + (p.loops > 1 ? 'repeated ' + num(p.loops) + ' times, ' : '') +
+        lines.push('<li class="sf-c-S"><strong>Full table scan of ' + esc(p.table) + '</strong>' + (p.sub ? ' (inside a sub-query)' : '') + ': ' + (p.loops > 1 ? 'repeated ' + num(p.loops) + ' times, ' : '') +
           'the database read ' + num(p.rowsRead) + ' row' + (p.rowsRead === 1 ? '' : 's') + ' to keep ' + num(p.matches) + '. There was no index it could use, so every row had to be looked at.</li>');
       } else if (p.kind === 'search') {
-        lines.push('<li><strong>Index lookup on ' + esc(p.table) + '</strong> using <code>' + esc(p.index) + '</code> (' + esc(p.cond) + ')' + (p.sub ? ' (inside a sub-query)' : '') + ': ' + (p.loops > 1 ? num(p.loops) + ' lookups, ' : '') +
+        lines.push('<li class="sf-c-I"><strong>Index lookup on ' + esc(p.table) + '</strong> using <code>' + esc(p.index) + '</code> (' + esc(p.cond) + ')' + (p.sub ? ' (inside a sub-query)' : '') + ': ' + (p.loops > 1 ? num(p.loops) + ' lookups, ' : '') +
           num(p.indexSteps) + ' index step' + (p.indexSteps === 1 ? '' : 's') + ' (binary search + walking along the sorted entries) and only ' + num(p.rowsRead) + ' row' + (p.rowsRead === 1 ? '' : 's') + ' read, instead of ' + num(p.loops * p.tableRows) + '.</li>');
       } else {
         lines.push('<li><strong>' + esc(p.title) + '</strong>: ' + esc(p.detail) + '.</li>');
@@ -130,14 +130,14 @@
     var usedIndex = plan.some(function (p) { return p.kind === 'search'; });
     var head = '<h4>Query plan <span class="sq-sub">what the database actually did</span></h4>';
     var meter = '<div class="sq-meter" role="img" aria-label="Work done: ' + num(st.work) + ' out of ' + num(st.fullScanWork) + ' for a full scan">' +
-      '<div class="sq-meter-row"><span>Rows read: <b>' + num(st.rowsRead) + '</b></span><span>Index steps: <b>' + num(st.indexSteps) + '</b></span><span>Total work: <b>' + num(st.work) + '</b></span>' +
+      '<div class="sq-meter-row"><span class="sf-c-S"><i></i>Rows read: <b>' + num(st.rowsRead) + '</b></span><span class="sf-c-I"><i></i>Index steps: <b>' + num(st.indexSteps) + '</b></span><span>Total work: <b>' + num(st.work) + '</b></span>' +
       '<span>Same query with full scans only: <b>' + num(st.fullScanWork) + '</b></span></div>' +
       '<div class="sq-bar-track"><div class="sq-bar-fill' + (usedIndex ? ' sq-fast' : '') + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
       '<div class="sq-meter-note">' + (usedIndex ? (st.work < st.fullScanWork ? 'The index cut the work to ' + (st.work * 100 / full).toFixed(1) + '% of a full scan.' : 'An index was used, but here it did not save work.') : 'No index used: work grows with the size of the table.') + '</div></div>';
     var rows = '';
     plan.forEach(function (p, i) {
       if (p.kind === 'note') { rows += '<tr class="sq-planrow"><td>' + (i + 1) + '</td><td colspan="5">' + esc(p.title) + ': ' + esc(p.detail) + '</td></tr>'; return; }
-      rows += '<tr><td>' + (i + 1) + '</td><td><code>' + (p.kind === 'scan' ? 'SCAN ' : 'SEARCH ') + esc(p.table) + (p.alias !== p.table ? ' ' + esc(p.alias) : '') + (p.kind === 'search' ? ' USING INDEX ' + esc(p.index) + ' (' + esc(p.cond) + ')' : '') + '</code></td>' +
+      rows += '<tr><td>' + (i + 1) + '</td><td><code><span class="sq-op ' + (p.kind === 'scan' ? 'sf-c-S' : 'sf-c-I') + '">' + (p.kind === 'scan' ? 'SCAN' : 'SEARCH') + '</span> ' + esc(p.table) + (p.alias !== p.table ? ' ' + esc(p.alias) : '') + (p.kind === 'search' ? ' USING INDEX ' + esc(p.index) + ' (' + esc(p.cond) + ')' : '') + '</code></td>' +
         '<td class="sq-num">' + num(p.loops) + '</td><td class="sq-num">' + num(p.tableRows) + '</td><td class="sq-num">' + num(p.rowsRead) + '</td><td class="sq-num">' + num(p.indexSteps) + '</td></tr>';
     });
     var tbl = '<div class="tbl-scroll"><table class="tbl sq-plantable"><caption class="sq-cap">EXPLAIN-style plan</caption><thead><tr><th scope="col">#</th><th scope="col">Step</th><th scope="col">Times run</th><th scope="col">Table size</th><th scope="col">Rows read</th><th scope="col">Index steps</th></tr></thead><tbody>' + rows + '</tbody></table></div>';

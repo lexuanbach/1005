@@ -1,0 +1,147 @@
+/* Tiny compiler lab (Chapter 8): workbench styles.  Theme tokens only (style.css): --paper --surface --ink --ink-soft --line --accent --teal --amber --red --green,
+   and the three code themes --code-* (Midnight / Paper / Contrast).  Self-contained: nothing here depends on vn-machine.css. */
+.tc-lab .tc-sr { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.tc-lab .tc-fine { font-size: 0.8rem; color: var(--ink-soft); }
+.tc-lab .tc-label { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 999px; border: 1px solid var(--amber); color: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--surface)); margin-left: 0.4rem; vertical-align: middle; }
+.tc-lab button:focus-visible, .tc-lab a:focus-visible, .tc-lab input:focus-visible, .tc-lab select:focus-visible, .tc-lab summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tc-lab textarea:focus-visible { outline: none; }
+
+/* stage tabs and panes (same look as before) */
+.tc-lab .tc-stages { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.8rem 0 0.6rem; padding: 0; }
+.tc-lab .tc-stage { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.8rem; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
+.tc-lab .tc-stage[aria-selected="true"] { color: var(--teal-ink); border-color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, var(--surface)); }
+.tc-lab .tc-stage:disabled { opacity: 0.45; cursor: not-allowed; }
+.tc-lab .tc-pane { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.8rem; min-height: 8rem; }
+.tc-lab .tc-pane[hidden] { display: none; }
+.tc-lab .tc-what { font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 0.6rem; }
+.tc-lab .tc-stale { font-size: 0.82rem; padding: 0.35rem 0.7rem; margin-bottom: 0.6rem; border-radius: 8px; border: 1px solid var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--surface)); color: var(--ink); }
+.tc-lab .tc-stale[hidden] { display: none; }
+.tc-lab .tc-tok { display: inline-flex; flex-direction: column; align-items: center; margin: 0.15rem; padding: 0.15rem 0.45rem; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; }
+.tc-lab .tc-tok { color: var(--ink); }
+.tc-lab .tc-tok small { font-size: 0.62rem; color: var(--ink-soft); }
+.tc-lab .tc-tok.kw { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.tc-lab .tc-tok.num { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); }
+.tc-lab .tc-tok.id { border-color: color-mix(in srgb, var(--teal) 55%, var(--line)); }
+.tc-lab .tc-line { margin: 0.2rem 0 0.6rem; }
+.tc-lab .tc-line > b { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--ink-soft); margin-right: 0.4rem; }
+.tc-lab pre.tc-ast { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem; overflow-x: auto; margin-top: 0.6rem; color: var(--ink); }
+.tc-lab tr.tc-grp td { border-top: 2px solid var(--line); }
+.tc-lab tr.tc-explain td { background: color-mix(in srgb, var(--cmp-7) 10%, var(--surface)); font-size: 0.82rem; color: var(--ink); border-top: 2px solid var(--cmp-7); }
+.tc-lab tr.tc-expand td:first-child { box-shadow: inset 3px 0 0 var(--cmp-7); }
+.tc-lab tr.tc-pc td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); font-weight: 600; }
+.tc-lab .tc-run-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.8rem; margin-top: 0.6rem; }
+.tc-lab .tc-box { border: 1px solid var(--line); border-radius: 10px; padding: 0.55rem 0.7rem; background: var(--paper); }
+.tc-lab .tc-box h5 { margin: 0 0 0.3rem; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.tc-lab .tc-badge { display: inline-block; margin: 0.5rem 0 0.8rem; font-weight: 700; font-size: 0.85rem; padding: 0.2rem 0.7rem; border-radius: 999px; }
+.tc-lab .tc-badge.ok { color: var(--green); background: color-mix(in srgb, var(--green) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--green) 50%, var(--line)); }
+.tc-lab .tc-badge.bad { color: var(--red); background: color-mix(in srgb, var(--red) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--red) 50%, var(--line)); }
+.tc-lab .tc-trace { max-height: 14rem; overflow: auto; }
+.tc-lab .tc-inrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.7rem; margin: 0.55rem 0; }
+.tc-lab .tc-inrow .field-label { margin: 0; }
+.tc-lab .tc-input, .tc-lab .tc-name { font-family: "IBM Plex Mono", monospace; font-size: 0.88rem; padding: 0.35rem 0.6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); min-width: 10rem; max-width: 100%; }
+.tc-lab .tc-input { flex: 1 1 14rem; }
+.tc-lab select.tc-guard { font-size: 0.82rem; padding: 0.25rem 0.4rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
+
+/* source pane: editor + example card side by side on wide screens */
+.tc-lab .tc-src-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+@media (max-width: 900px) { .tc-lab .tc-src-grid { grid-template-columns: minmax(0, 1fr); } }
+.tc-lab .tc-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.6rem; margin-bottom: 0.5rem; }
+.tc-lab .tc-pick select { flex: 1 1 16rem; min-width: 0; max-width: 100%; }
+.tc-lab .tc-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; align-items: center; }
+.tc-lab .tc-tools .btn { white-space: nowrap; }
+.tc-lab .tc-tools .btn.primary { min-width: 6.4rem; }
+.tc-lab .tc-sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 0.15rem; }
+.tc-lab a.btn { text-decoration: none; display: inline-flex; align-items: center; cursor: pointer; }
+.tc-lab a.btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+.tc-lab .tc-hint { font-size: 0.78rem; color: var(--ink-soft); margin: 0.3rem 0 0; }
+.tc-lab kbd { font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; padding: 0 0.3rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--paper); }
+
+/* diagnostics under the editor: fixed minimum height so the page below does not jump while you type */
+.tc-lab .tc-diag { margin-top: 0.5rem; min-height: 4.6rem; max-height: 11rem; overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 0.4rem 0.7rem; font-size: 0.86rem; }
+.tc-lab .tc-dg { margin: 0.25rem 0; padding-left: 0.6rem; border-left: 4px solid var(--line); }
+.tc-lab .tc-dg.err { border-left-color: var(--red); }
+.tc-lab .tc-dg.warn { border-left-color: var(--amber); }
+.tc-lab .tc-dg.ok { border-left-color: var(--green); }
+.tc-lab .tc-dg .tc-dg-tag { font-weight: 700; margin-right: 0.35rem; }
+.tc-lab .tc-dg.err .tc-dg-tag { color: var(--red); }
+.tc-lab .tc-dg.warn .tc-dg-tag { color: var(--amber); }
+.tc-lab .tc-dg.ok .tc-dg-tag { color: var(--green); }
+.tc-lab .tc-dg button.tc-goto { font: inherit; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; border: 1px solid var(--line); background: var(--surface); color: var(--accent-ink); border-radius: 6px; padding: 0 0.4rem; cursor: pointer; margin-right: 0.35rem; }
+.tc-lab .tc-dg .tc-dg-hint { display: block; color: var(--ink-soft); font-size: 0.82rem; margin-top: 0.1rem; }
+.tc-lab .tc-dg code { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; }
+
+/* the code editor (assets/tc-editor.js) */
+.tc-lab .tc-ed { position: relative; height: 21rem; min-height: 8rem; max-height: 70vh; overflow: auto; resize: vertical; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--code-bg); color: var(--code-text); font-family: "IBM Plex Mono", monospace; font-size: 0.84rem; line-height: 1.55; tab-size: 4; -moz-tab-size: 4; }
+.tc-lab .tc-ed:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.tc-lab .tc-ed-in { display: flex; min-height: 100%; width: max-content; min-width: 100%; }
+.tc-lab .tc-ed-gutter { position: sticky; left: 0; z-index: 2; flex: none; min-width: 2.9rem; padding: 0.6rem 0.5rem 0.6rem 0.4rem; text-align: right; background: var(--code-gutter); color: var(--code-hl-cm); user-select: none; border-right: 1px solid color-mix(in srgb, var(--code-hl-cm) 30%, transparent); }
+.tc-lab .tc-ed-n { white-space: pre; }
+.tc-lab .tc-ed-n.is-err { color: var(--red); font-weight: 700; }
+.tc-lab .tc-ed-n.is-err::before { content: "✗ "; }
+.tc-lab .tc-ed-n.is-warn { color: var(--amber); font-weight: 700; }
+.tc-lab .tc-ed-n.is-warn:not(.is-err)::before { content: "! "; }
+.tc-lab .tc-ed-n.is-active { color: var(--code-text); font-weight: 700; }
+.tc-lab .tc-ed-n.is-active::before { content: "▶ "; color: var(--accent); }
+.tc-lab .tc-ed-main { position: relative; flex: 1 0 auto; min-width: 0; }
+.tc-lab .tc-ed-back, .tc-lab .tc-ed-ta { margin: 0; padding: 0.6rem 1rem 0.6rem 0.8rem; font: inherit; line-height: inherit; letter-spacing: 0; tab-size: 4; -moz-tab-size: 4; white-space: pre; word-spacing: 0; }
+.tc-lab .tc-ed-back { display: block; color: var(--code-text); background: transparent; pointer-events: none; }
+.tc-lab .tc-ed-ta { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; outline: none; resize: none; overflow: hidden; background: transparent; color: transparent; caret-color: var(--code-caret); -webkit-text-fill-color: transparent; }
+.tc-lab .tc-ed-ta::selection { background: color-mix(in srgb, var(--accent) 45%, transparent); -webkit-text-fill-color: transparent; }
+.tc-lab .tc-ed-l { min-height: 1.55em; }
+.tc-lab .tc-ed-l.is-err { background: color-mix(in srgb, var(--red) 22%, transparent); }
+.tc-lab .tc-ed-l.is-warn:not(.is-err) { background: color-mix(in srgb, var(--amber) 16%, transparent); }
+.tc-lab .tc-ed-l.is-active { background: color-mix(in srgb, var(--accent) 24%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.tc-lab .tc-mk-err { text-decoration: underline wavy var(--red); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.tc-lab .tc-mk-warn { text-decoration: underline wavy var(--amber); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.tc-lab .tc-mk-end { display: inline-block; width: 0.8ch; }
+.tc-lab .tc-t-kw { color: var(--code-hl-kw); font-weight: 600; }
+.tc-lab .tc-t-io { color: var(--code-hl-stream); }
+.tc-lab .tc-t-num { color: var(--code-hl-num); }
+.tc-lab .tc-t-str { color: var(--code-hl-str); }
+.tc-lab .tc-t-op { color: var(--code-hl-op); }
+.tc-lab .tc-t-cm { color: var(--code-hl-cm); font-style: italic; }
+.tc-lab .tc-t-pp { color: var(--code-hl-pre); }
+
+/* example card, subset list, my programs */
+.tc-lab .tc-card { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); padding: 0.7rem 0.9rem; }
+.tc-lab .tc-card h5 { margin: 0 0 0.2rem; font-family: "Archivo", sans-serif; font-size: 1rem; }
+.tc-lab .tc-card h6 { margin: 0.7rem 0 0.2rem; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.tc-lab .tc-card p { margin: 0.3rem 0; font-size: 0.88rem; }
+.tc-lab .tc-card ul { margin: 0.2rem 0 0.2rem 1.1rem; padding: 0; font-size: 0.86rem; }
+.tc-lab .tc-card li { margin: 0.25rem 0; }
+.tc-lab .tc-lvl { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.05rem 0.5rem; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-soft); margin-left: 0.4rem; vertical-align: middle; }
+.tc-lab .tc-lvl.l1 { border-color: var(--green); color: var(--green); }
+.tc-lab .tc-lvl.l2 { border-color: var(--amber); color: var(--amber); }
+.tc-lab .tc-lvl.l3 { border-color: var(--red); color: var(--red); }
+.tc-lab .tc-expect { font-size: 0.82rem; margin-top: 0.35rem; }
+.tc-lab .tc-expect b { font-family: "IBM Plex Mono", monospace; }
+.tc-lab details.tc-more { margin-top: 0.8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 0.4rem 0.8rem; }
+.tc-lab details.tc-more summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.tc-lab .tc-subset { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 0.2rem 1.4rem; margin-top: 0.4rem; font-size: 0.84rem; }
+.tc-lab .tc-subset h6 { margin: 0.5rem 0 0.2rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.tc-lab .tc-subset h6.yes { color: var(--green); }
+.tc-lab .tc-subset h6.no { color: var(--red); }
+.tc-lab .tc-subset dl { margin: 0; }
+.tc-lab .tc-subset dt { font-weight: 700; margin-top: 0.3rem; }
+.tc-lab .tc-subset dd { margin: 0 0 0 0.2rem; color: var(--ink-soft); }
+.tc-lab .tc-summary { font-size: 0.82rem; color: var(--ink-soft); margin: 0.5rem 0 0; }
+.tc-lab .tc-summary b { color: var(--green); }
+.tc-lab .tc-summary b.no { color: var(--red); }
+.tc-lab table.tc-progs { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-top: 0.4rem; }
+.tc-lab table.tc-progs td { padding: 0.25rem 0.3rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.tc-lab table.tc-progs td.tc-pname { width: 100%; word-break: break-word; }
+.tc-lab table.tc-progs td.tc-pact { white-space: nowrap; text-align: right; }
+.tc-lab table.tc-progs .btn.small { padding: 0.2rem 0.55rem; }
+.tc-lab .tc-saverow { display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; align-items: center; margin-top: 0.4rem; }
+.tc-lab .tc-saverow .tc-name { flex: 1 1 12rem; }
+.tc-lab .tc-note { font-size: 0.84rem; margin: 0.4rem 0 0; min-height: 1.3em; color: var(--ink-soft); }
+.tc-lab .tc-note.bad { color: var(--red); }
+.tc-lab .tc-note.good { color: var(--green); }
+.tc-lab .tc-linkbox { width: 100%; font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; padding: 0.3rem 0.5rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); margin-top: 0.3rem; }
+
+@media (max-width: 560px) {
+  .tc-lab .tc-pane { padding: 0.55rem; }
+  .tc-lab .tc-ed { height: 18rem; font-size: 0.8rem; }
+  .tc-lab .tc-sep { display: none; }
+}

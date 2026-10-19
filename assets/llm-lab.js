@@ -268,12 +268,12 @@
 
     // the three channels
     var chan = el('div', 'llm-chans');
-    var sysBox = el('div', 'llm-chan llm-trusted');
+    var sysBox = el('div', 'llm-chan llm-trusted lf-L-system');
     sysBox.innerHTML = '<span class="llm-chan-k">1 · System prompt <em>trusted · written by the developer</em></span><pre class="llm-pre"></pre>';
     sysBox.querySelector('pre').textContent = I.SYSTEM;
-    var userBox = el('div', 'llm-chan llm-trusted');
+    var userBox = el('div', 'llm-chan llm-trusted lf-L-user');
     userBox.innerHTML = '<span class="llm-chan-k">2 · User request <em>trusted · typed by you</em></span><pre class="llm-pre"></pre>';
-    var docBox = el('div', 'llm-chan llm-untrusted');
+    var docBox = el('div', 'llm-chan llm-untrusted lf-L-untrusted');
     docBox.innerHTML = '<span class="llm-chan-k">3 · Untrusted document <em>anyone could have written this — edit it!</em></span>';
     var docTa = el('textarea', 'code-edit llm-doc'); docTa.rows = 6; docTa.setAttribute('aria-label', 'Untrusted document text (editable)'); docTa.spellcheck = false;
     docBox.appendChild(docTa);
@@ -286,7 +286,7 @@
     var humanBox = el('div'); humanBox.appendChild(el('label', 'field-label', 'What a human sees'));
     var humanOut = el('pre', 'llm-pre llm-view'); humanBox.appendChild(humanOut);
     var modelBox = el('div'); modelBox.appendChild(el('label', 'field-label', 'What the model receives (one flat stream)'));
-    var modelOut = el('pre', 'llm-pre llm-view'); modelBox.appendChild(modelOut);
+    var modelOut = el('pre', 'llm-pre llm-view llm-flat'); modelBox.appendChild(modelOut);
     cols.appendChild(humanBox); cols.appendChild(modelBox);
     panel.appendChild(cols);
 

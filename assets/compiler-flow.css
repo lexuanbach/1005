@@ -1,93 +1,122 @@
-/* Compiler toolchain flow diagram (assets/compiler-flow.js). Theme tokens come from style.css (light + dark). */
+/* Compiler toolchain flow diagram (assets/compiler-flow.js).
+   One colour per component, from the shared palette --cmp-1 … --cmp-11 in style.css (light + dark variants), same scheme as the
+   Von Neumann data-path (vn-machine.css): `.cf-c-<id>` sets --c; frame = tint of --c with a --c stroke; arrows and travelling tokens use the
+   colour of the SOURCE block; artefacts take the colour of the block that produced them (they inherit --c from their block);
+   active source / destination = glow + thicker stroke. Labels are always printed, so colour is never the only cue. */
+.cf-c-source { --c: var(--cmp-10); }
+.cf-c-lexer { --c: var(--cmp-5); }
+.cf-c-parser { --c: var(--cmp-9); }
+.cf-c-codegen { --c: var(--cmp-7); }
+.cf-c-assembler { --c: var(--cmp-4); }
+.cf-c-loader { --c: var(--cmp-1); }
+.cf-c-memory { --c: var(--cmp-3); }
+.cf-c-cpu { --c: var(--cmp-2); }
+.cf-c-io { --c: var(--cmp-6); }
+/* CPU parts and the cout chip: same colours as the data-path of Chapter 7 (PC=1, IR=4, R=8, flags=10, OUT=11) */
+.cf-c-pc { --c: var(--cmp-1); }
+.cf-c-ir { --c: var(--cmp-4); }
+.cf-c-r { --c: var(--cmp-8); }
+.cf-c-flags { --c: var(--cmp-10); }
+.cf-c-out { --c: var(--cmp-11); }
+.cf-c-twin { --c: var(--green); }
+.cf-c-diff { --c: var(--red); }
+
 .cf-root { margin: 0.4rem 0 0.9rem; }
-.cf-diagram { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.6rem 0.6rem 0.4rem; }
+.cf-diagram { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.6rem 0.6rem 0.5rem; }
 .cf-svg { width: 100%; height: auto; display: block; max-width: 52rem; margin: 0 auto; overflow: visible; }
 .cf-svg text { font-family: "IBM Plex Mono", monospace; }
 
 /* blocks */
-.cf-frame { fill: var(--paper); stroke: var(--line); stroke-width: 1.4; transition: fill 0.15s, stroke 0.15s; }
-.cf-badge { fill: var(--accent); }
-.cf-badge-n { fill: var(--accent-contrast); font-size: 10px; font-weight: 700; }
-.cf-svg .cf-title { font-family: "Be Vietnam Pro", sans-serif; font-size: 11.5px; font-weight: 700; fill: var(--ink); }
+.cf-frame { fill: color-mix(in srgb, var(--c, var(--ink-soft)) 8%, var(--surface)); stroke: var(--c, var(--line)); stroke-width: 1.8; transition: fill 0.15s, stroke-width 0.15s; }
+.cf-badge { fill: color-mix(in srgb, var(--c) 16%, var(--surface)); stroke: var(--c); stroke-width: 1.6; }
+.cf-badge-n { fill: color-mix(in srgb, var(--c) 55%, var(--ink)); font-size: 10px; font-weight: 700; }
+.cf-svg .cf-title { font-family: "Be Vietnam Pro", sans-serif; font-size: 11.5px; font-weight: 700; fill: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); }
 .cf-svg .cf-sub { font-family: "Be Vietnam Pro", sans-serif; font-size: 9px; fill: var(--ink-soft); }
 .cf-svg .cf-count { font-size: 9.5px; fill: var(--ink-soft); }
-.cf-svg .cf-faint { font-size: 10px; fill: var(--ink-soft); opacity: 0.8; font-family: "Be Vietnam Pro", sans-serif; font-style: italic; }
+.cf-svg .cf-faint { font-size: 10px; fill: var(--ink-soft); opacity: 0.85; font-family: "Be Vietnam Pro", sans-serif; font-style: italic; }
 .cf-svg .cf-code { font-size: 10.5px; fill: var(--ink); }
-.cf-svg .cf-code.cf-lbl { fill: var(--accent-ink); font-weight: 600; }
+.cf-svg .cf-code.cf-lbl { fill: color-mix(in srgb, var(--c) 62%, var(--ink)); font-weight: 700; }
 .cf-svg .cf-ln { font-size: 9px; fill: var(--ink-soft); }
-.cf-svg .cf-bits { font-size: 9.5px; fill: var(--ink-soft); letter-spacing: 0.02em; }
-.cf-svg .cf-err-t { font-size: 10px; fill: var(--red); font-weight: 600; }
-.cf-svg .cf-twin-t { fill: var(--green); font-weight: 600; }
-.cf-line-on { fill: color-mix(in srgb, var(--amber) 16%, transparent); }
-.cf-line-err { fill: color-mix(in srgb, var(--red) 22%, transparent); }
+.cf-svg .cf-bits { font-size: 9.5px; fill: color-mix(in srgb, var(--c) 62%, var(--ink)); letter-spacing: 0.02em; }
+.cf-svg .cf-err-t { font-size: 10px; fill: var(--red); font-weight: 700; }
+.cf-svg .cf-twin-t { fill: var(--green); font-weight: 700; }
+.cf-line-on { fill: color-mix(in srgb, var(--c, var(--ink-soft)) 22%, transparent); }
+.cf-line-err { fill: color-mix(in srgb, var(--red) 24%, transparent); }
+/* "L4" tag in the code generator: points back to the SOURCE block, so it wears the source colour */
+.cf-ltag rect { fill: color-mix(in srgb, var(--c) 14%, var(--surface)); stroke: var(--c); stroke-width: 1; }
+.cf-svg .cf-ltag-t { font-size: 8.5px; fill: color-mix(in srgb, var(--c) 62%, var(--ink)); font-weight: 700; }
 
-.cf-block.cf-src .cf-frame { stroke: var(--amber); stroke-width: 2.6; fill: color-mix(in srgb, var(--amber) 12%, var(--surface)); }
-.cf-block.cf-dst .cf-frame { stroke: var(--teal); stroke-width: 2.6; fill: color-mix(in srgb, var(--teal) 14%, var(--surface)); }
-.cf-block.cf-busy .cf-frame { stroke: var(--accent); stroke-width: 2.6; fill: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
-.cf-block.cf-fail .cf-frame { stroke: var(--red); stroke-width: 3; fill: color-mix(in srgb, var(--red) 10%, var(--surface)); }
-.cf-block.cf-fail .cf-badge { fill: var(--red); }
+.cf-block.cf-src .cf-frame { stroke-width: 3.4; fill: color-mix(in srgb, var(--c) 20%, var(--surface)); filter: drop-shadow(0 0 3px var(--c)); }
+.cf-block.cf-dst .cf-frame { stroke-width: 3.4; fill: color-mix(in srgb, var(--c) 34%, var(--surface)); filter: drop-shadow(0 0 6px var(--c)); }
+.cf-block.cf-busy .cf-frame { stroke-width: 3; fill: color-mix(in srgb, var(--c) 15%, var(--surface)); filter: drop-shadow(0 0 4px var(--c)); }
+.cf-block.cf-fail .cf-frame { stroke: var(--red); stroke-width: 3.2; fill: color-mix(in srgb, var(--red) 12%, var(--surface)); filter: none; }
+.cf-block.cf-fail .cf-badge { stroke: var(--red); fill: color-mix(in srgb, var(--red) 22%, var(--surface)); }
 .cf-block.cf-skip { opacity: 0.4; }
 .cf-block.cf-skip .cf-frame { stroke-dasharray: 5 4; }
 
-/* arrows */
-.cf-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.6; opacity: 0.45; }
-.cf-edge.on { stroke: var(--accent); stroke-width: 3; opacity: 1; stroke-dasharray: 8 5; animation: cf-dash 0.6s linear infinite; }
-.cf-edge.cf-cut { stroke: var(--red); opacity: 0.8; stroke-dasharray: 3 5; }
+/* arrows: colour of the source block */
+.cf-edge { fill: none; stroke: var(--c, var(--ink-soft)); stroke-width: 1.8; opacity: 0.55; }
+.cf-edge.on { stroke-width: 3.2; opacity: 1; stroke-dasharray: 8 5; animation: cf-dash 0.6s linear infinite; }
+.cf-edge.cf-cut { stroke: var(--red); opacity: 0.9; stroke-dasharray: 3 5; animation: none; }
 @keyframes cf-dash { to { stroke-dashoffset: -26; } }
-.cf-head { fill: var(--ink-soft); opacity: 0.6; }
-.cf-head.on { fill: var(--accent); opacity: 1; }
+.cf-head { fill: var(--ink-soft); opacity: 0.7; }
+.cf-head.on { fill: var(--ink); opacity: 1; }
+@supports (fill: context-stroke) { .cf-head, .cf-head.on { fill: context-stroke; } }
 
-/* artefacts */
-.cf-chip rect { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+/* artefacts: they inherit --c from the block that holds them */
+.cf-chip rect { fill: color-mix(in srgb, var(--c) 10%, var(--surface)); stroke: var(--c); stroke-width: 1; }
 .cf-svg .cf-chip-t { font-size: 9.5px; fill: var(--ink); }
-.cf-chip.cf-t-kw rect { stroke: color-mix(in srgb, var(--accent) 60%, var(--line)); fill: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
-.cf-chip.cf-t-id rect { stroke: color-mix(in srgb, var(--teal) 60%, var(--line)); fill: color-mix(in srgb, var(--teal) 9%, var(--surface)); }
-.cf-chip.cf-t-num rect { stroke: color-mix(in srgb, var(--amber) 60%, var(--line)); fill: color-mix(in srgb, var(--amber) 9%, var(--surface)); }
-.cf-chip.cf-t-out rect { stroke: var(--green); fill: color-mix(in srgb, var(--green) 12%, var(--surface)); }
-.cf-chip.bad rect { stroke: var(--red); fill: color-mix(in srgb, var(--red) 18%, var(--surface)); }
-.cf-bar { fill: var(--line); }
-.cf-bar-fill { fill: var(--teal); }
+.cf-chip.cf-t-kw .cf-chip-t { font-weight: 700; }                                   /* keyword: bold */
+.cf-chip.cf-t-num rect { fill: color-mix(in srgb, var(--c) 28%, var(--surface)); }  /* number: stronger fill */
+.cf-chip.cf-t-op rect, .cf-chip.cf-t-punct rect { stroke-dasharray: 2 2; }          /* operator / symbol: dashed */
+.cf-chip.cf-t-out rect { fill: color-mix(in srgb, var(--c) 22%, var(--surface)); stroke-width: 1.4; }
+.cf-chip.bad rect { stroke: var(--red); fill: color-mix(in srgb, var(--red) 20%, var(--surface)); stroke-width: 1.6; }
+.cf-chip.bad .cf-chip-t { font-weight: 700; }
+.cf-bar { fill: color-mix(in srgb, var(--c) 16%, var(--line)); }
+.cf-bar-fill { fill: var(--c); }
 
-/* memory cells */
-.cf-cell rect { fill: var(--surface); stroke: var(--line); stroke-width: 0.8; stroke-dasharray: 2 2; }
-.cf-cell.k-code rect, .cf-cell.k-data rect { stroke-dasharray: none; }
-.cf-cell.k-code rect { fill: color-mix(in srgb, var(--accent) 8%, var(--surface)); stroke: color-mix(in srgb, var(--accent) 45%, var(--line)); }
-.cf-cell.k-data rect { fill: color-mix(in srgb, var(--amber) 9%, var(--surface)); stroke: color-mix(in srgb, var(--amber) 50%, var(--line)); }
+/* memory cells (memory colour) */
+.cf-cell rect { fill: var(--surface); stroke: var(--c); stroke-opacity: 0.45; stroke-width: 0.9; stroke-dasharray: 2 2; }
+.cf-cell.k-code rect { fill: color-mix(in srgb, var(--c) 16%, var(--surface)); stroke-opacity: 1; stroke-dasharray: none; }
+.cf-cell.k-data rect { fill: color-mix(in srgb, var(--c) 6%, var(--surface)); stroke-opacity: 1; stroke-dasharray: none; }
 .cf-svg .cf-cell-a { font-size: 6px; fill: var(--ink-soft); }
-.cf-svg .cf-cell-v { font-size: 8.5px; fill: var(--ink); font-weight: 600; }
-.cf-cell.ghosted { opacity: 0.45; }
-.cf-cell.ghosted rect { stroke-dasharray: 3 2; stroke: var(--ink-soft); fill: var(--paper); }
-.cf-cell.hit rect { stroke: var(--teal); stroke-width: 2.2; stroke-dasharray: none; }
-.cf-cell.twin rect { stroke: var(--green); stroke-width: 2; stroke-dasharray: none; fill: color-mix(in srgb, var(--green) 14%, var(--surface)); }
-.cf-cell.diff rect { stroke: var(--red); stroke-width: 2; stroke-dasharray: 2 1.5; fill: color-mix(in srgb, var(--red) 10%, var(--surface)); }
-.cf-cell.wrote rect { fill: color-mix(in srgb, var(--teal) 20%, var(--surface)); }
+.cf-svg .cf-cell-d { font-size: 6px; fill: var(--ink-soft); font-style: italic; }
+.cf-svg .cf-cell-v { font-size: 8.5px; fill: var(--ink); font-weight: 700; }
+.cf-cell.ghosted { opacity: 0.5; }
+.cf-cell.ghosted rect { stroke-dasharray: 3 2; stroke-opacity: 0.8; fill: var(--paper); }
+.cf-cell.hit rect { stroke-width: 2.6; stroke-opacity: 1; stroke-dasharray: none; filter: drop-shadow(0 0 3px var(--c)); }
+.cf-cell.wrote rect { fill: color-mix(in srgb, var(--c) 34%, var(--surface)); }
+.cf-cell.twin rect { stroke: var(--green); stroke-width: 2.2; stroke-opacity: 1; stroke-dasharray: none; fill: color-mix(in srgb, var(--green) 16%, var(--surface)); filter: none; }
+.cf-cell.diff rect { stroke: var(--red); stroke-width: 2.2; stroke-opacity: 1; stroke-dasharray: 2 1.5; fill: color-mix(in srgb, var(--red) 12%, var(--surface)); filter: none; }
 
-/* CPU */
-.cf-reg { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
-.cf-svg .cf-reg-l { font-size: 8.5px; fill: var(--ink-soft); font-weight: 600; }
-.cf-svg .cf-reg-v { font-size: 10px; fill: var(--ink); font-weight: 600; }
-.cf-pill { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
-.cf-pill.on { fill: var(--accent); stroke: var(--accent); }
-.cf-svg .cf-pill-t { font-size: 8.5px; fill: var(--ink-soft); font-weight: 600; }
-.cf-pill.on + .cf-pill-t { fill: var(--accent-contrast); }
+/* CPU parts: each register has its own colour (same as the Chapter 7 data-path) */
+.cf-reg { fill: color-mix(in srgb, var(--c) 11%, var(--surface)); stroke: var(--c); stroke-width: 1.5; }
+.cf-svg .cf-reg-l { font-size: 8.5px; fill: color-mix(in srgb, var(--c) 62%, var(--ink)); font-weight: 700; }
+.cf-svg .cf-reg-v { font-size: 10px; fill: var(--ink); font-weight: 700; }
+.cf-pill { fill: var(--surface); stroke: var(--c); stroke-width: 1.2; }
+.cf-pill.on { fill: color-mix(in srgb, var(--c) 32%, var(--surface)); stroke-width: 2.2; }
+.cf-svg .cf-pill-t { font-size: 8.5px; fill: color-mix(in srgb, var(--c) 62%, var(--ink)); font-weight: 700; }
+.cf-pill.on + .cf-pill-t { fill: var(--ink); }
 
-/* source-line link + moving tokens */
-.cf-link { fill: none; stroke: var(--amber); stroke-width: 2; stroke-dasharray: 5 4; opacity: 0.9; animation: cf-dash 0.8s linear infinite; pointer-events: none; }
-.cf-token rect { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
-.cf-token text { fill: var(--accent-contrast); font-size: 11px; font-weight: 700; }
-.cf-token.word rect { fill: var(--amber); }
-.cf-token.out rect { fill: var(--green); }
-.cf-token.ghost { opacity: 0.45; }
-.cf-token.ghost rect { fill: var(--ink-soft); }
+/* source-line link + moving tokens (colour of the block they come from) */
+.cf-link { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-dasharray: 5 4; opacity: 0.95; animation: cf-dash 0.8s linear infinite; pointer-events: none; }
+.cf-token rect { fill: color-mix(in srgb, var(--c, var(--accent)) 20%, var(--surface)); stroke: var(--c, var(--accent)); stroke-width: 2.4; filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--c, var(--accent)) 55%, transparent)); }
+.cf-token text { fill: var(--ink); font-size: 11px; font-weight: 700; }
+.cf-token.ghost { opacity: 0.55; }
 
-/* ghost (target) pipeline */
+/* ghost (target) pipeline: same block colours, faded */
 .cf-ghost { opacity: 0.55; }
-.cf-ghost.lit { opacity: 0.8; }
-.cf-gframe { fill: none; stroke: var(--ink-soft); stroke-width: 1.2; stroke-dasharray: 5 4; }
-.cf-svg .cf-gtitle { font-family: "Be Vietnam Pro", sans-serif; font-size: 10.5px; font-weight: 700; fill: var(--ink-soft); }
+.cf-ghost.lit { opacity: 0.85; }
+.cf-gframe { fill: color-mix(in srgb, var(--c) 7%, transparent); stroke: var(--c); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.cf-svg .cf-gtitle { font-family: "Be Vietnam Pro", sans-serif; font-size: 10.5px; font-weight: 700; fill: color-mix(in srgb, var(--c) 62%, var(--ink)); }
 .cf-svg .cf-gsub { font-size: 9px; fill: var(--ink-soft); }
 .cf-svg .cf-gnote { font-family: "Be Vietnam Pro", sans-serif; font-size: 9.5px; font-style: italic; fill: var(--ink-soft); }
-.cf-gedge { fill: none; stroke: var(--ink-soft); stroke-width: 1.4; stroke-dasharray: 4 3; }
+.cf-gedge { fill: none; stroke: var(--c); stroke-width: 1.6; stroke-dasharray: 4 3; }
+
+/* legend: swatch + name for every component */
+.cf-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; justify-content: center; margin: 0.55rem 0 0; font-size: 0.74rem; color: var(--ink-soft); }
+.cf-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.cf-legend i { width: 0.8rem; height: 0.8rem; border-radius: 3px; background: var(--c); display: inline-block; }
 
 /* speed slider (same look as VNDatapath.speedControl in vn-machine.css) */
 .cf-root .vn-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
@@ -109,7 +138,7 @@
 .cf-root button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 @media (max-width: 560px) {
-  .cf-diagram { padding: 0.3rem; }
+  .cf-diagram { padding: 0.3rem 0.3rem 0.5rem; }
   .cf-narr { height: 10.5em; }
 }
 @media (prefers-reduced-motion: reduce) {

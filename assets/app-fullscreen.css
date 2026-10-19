@@ -1,0 +1,30 @@
+/* Full-screen mode for the course apps (assets/app-fullscreen.js). Tokens only; light and dark follow the page. */
+.fs-bar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.4rem; max-width: 80rem; margin: 0 auto 0.5rem; padding: 0 1.5rem; }
+.fs-btn {
+  font: 600 0.8rem "IBM Plex Mono", monospace; letter-spacing: 0.02em;
+  padding: 0.35rem 0.8rem; border-radius: 999px; cursor: pointer;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+}
+.fs-btn:hover { border-color: var(--accent); color: var(--accent-ink); }
+.fs-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fs-btn[aria-pressed="true"] { border-color: var(--accent); }
+.fs-theme { display: none; }
+
+/* the app becomes a viewport-filling panel; !important beats the apps' own width / margin rules */
+html.fs-on, html.fs-on body { overflow: hidden !important; }
+.fs-active {
+  position: fixed !important; inset: 0 !important; z-index: 60;
+  width: auto !important; max-width: none !important; height: auto !important; max-height: none !important; margin: 0 !important;
+  box-sizing: border-box; padding: 3.1rem clamp(0.6rem, 2vw, 1.5rem) 1.2rem !important;
+  overflow: auto; background: var(--paper, var(--surface)); color: var(--ink);
+}
+.fs-bar.fs-bar-active {
+  position: fixed; top: 0.55rem; right: 0.8rem; left: auto; z-index: 70; margin: 0; padding: 0; max-width: none; width: auto;
+}
+.fs-bar.fs-bar-active .fs-theme { display: inline-block; }
+html:fullscreen, html:-webkit-full-screen { background: var(--paper); }
+
+.fs-live { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+@media (max-width: 560px) { .fs-bar { padding: 0 1rem; } .fs-active { padding-top: 3.4rem !important; } }
+@media print { .fs-bar { display: none; } }

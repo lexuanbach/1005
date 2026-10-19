@@ -1,5 +1,11 @@
 /* Draw & Teach a Brain — page styles (tokens come from style.css) */
-.np { --c0: #2F6FE4; --c1: #E8842A; --c2: #A23FC0; --pos: var(--teal); --neg: #D4466F; font-size: 16px; }
+.np { --c0: #2F6FE4; --c1: #E8842A; --c2: #A23FC0; --pos: var(--teal); --neg: #D4466F; font-size: 16px;
+  /* one colour per layer / stage in the network diagram, from the shared --cmp-N palette (style.css). Chosen from tokens the
+     class dots do not use (the dots are blue, orange, purple): slate, teal, green, cyan, sienna, rose, amber. */
+  --lc-in: var(--cmp-10); --lc-h1: var(--cmp-2); --lc-h2: var(--cmp-6); --lc-h3: var(--cmp-8); --lc-out: var(--cmp-11);
+  --lc-loss: var(--cmp-4); --lc-grad: var(--cmp-3); }
+.np-lc-in { --c: var(--lc-in); } .np-lc-h1 { --c: var(--lc-h1); } .np-lc-h2 { --c: var(--lc-h2); } .np-lc-h3 { --c: var(--lc-h3); }
+.np-lc-out { --c: var(--lc-out); } .np-lc-loss { --c: var(--lc-loss); } .np-lc-grad { --c: var(--lc-grad); }
 :root[data-theme="dark"] .np { --c0: #6FA0FF; --c1: #FFA255; --c2: #D58CF0; --neg: #FF7DA5; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .np { --c0: #6FA0FF; --c1: #FFA255; --c2: #D58CF0; --neg: #FF7DA5; } }
 
@@ -63,9 +69,9 @@
 /* instruments */
 .np-net { width: 100%; height: auto; display: block; }
 .np-net text { font: 600 12px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
-.np-net .node { stroke: var(--ink-soft); stroke-width: 1.5; }
+.np-net .node { stroke: var(--lc, var(--ink-soft)); stroke-width: 2.4; transition: stroke-width 0.15s; }
+.np-net .np-lcap { font: 700 9.5px "IBM Plex Mono", monospace; letter-spacing: 0.03em; text-anchor: middle; }
 .np-cap { font-size: 0.8rem; color: var(--ink-soft); margin: 0.3rem 0 0; line-height: 1.45; }
-.np-cap .pos { color: var(--pos); font-weight: 600; } .np-cap .neg { color: var(--neg); font-weight: 600; }
 .np-curve { width: 100%; height: auto; display: block; margin-bottom: 0.4rem; border-radius: 6px; }
 .np-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; margin-top: 0.3rem; }
 .np-stat { border: 1px solid var(--line); border-radius: 8px; padding: 0.3rem 0.5rem; background: color-mix(in srgb, var(--ink) 3%, var(--surface)); }
@@ -126,24 +132,36 @@
 .np-insp-bar .btn { min-width: 5.4rem; }
 .np-insp-speed { margin: 0 0 0.5rem; }
 .np-insp .af-speed-name { min-width: 8.5rem; }
-.np-stages { display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 3.5rem; align-content: flex-start; margin-bottom: 0.4rem; }
-.np-stages button { font: 600 0.74rem "IBM Plex Mono", monospace; padding: 0.22rem 0.5rem; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
-.np-stages button.done { color: var(--ink); border-color: color-mix(in srgb, var(--ink-soft) 55%, var(--line)); }
-.np-stages button.cur { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
-.np-stages button.bwd.cur { background: var(--amber); border-color: var(--amber); color: #1a1a1a; }
-.np-stages button:disabled { opacity: 0.4; cursor: default; }
-.np-insp-narr { min-height: 8.6rem; margin: 0.2rem 0 0.5rem; padding: 0.5rem 0.7rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--paper); font-size: 0.86rem; line-height: 1.5; color: var(--ink-soft); }
+.np-stages { display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 1.8rem; align-content: flex-start; margin-bottom: 0.4rem; }
+.np-stages button { font: 600 0.74rem "IBM Plex Mono", monospace; padding: 0.22rem 0.5rem 0.18rem; border-radius: 6px 6px 3px 3px; border: 1px solid var(--line); border-bottom: 4px solid var(--c, var(--line)); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
+.np-stages button.done { color: var(--ink); }
+.np-stages button.cur { background: color-mix(in srgb, var(--c) 24%, var(--surface)); border-color: var(--c); color: var(--ink); box-shadow: 0 0 0 1px var(--c), 0 0 6px color-mix(in srgb, var(--c) 60%, transparent); }
+.np-stages button:disabled { opacity: 0.45; cursor: default; }
+.np-insp-narr { min-height: 4rem; margin: 0.2rem 0 0.5rem; padding: 0.5rem 0.7rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--paper); font-size: 0.86rem; line-height: 1.5; color: var(--ink-soft); }
 .np-insp-narr strong { color: var(--ink); }
 .np-insp-narr code { font-family: "IBM Plex Mono", monospace; font-size: 0.82em; }
+.np-k { font-weight: 700; color: var(--ink); background: color-mix(in srgb, var(--c) 14%, transparent); border-bottom: 3px solid var(--c); border-radius: 3px 3px 0 0; padding: 0 0.28rem; white-space: nowrap; }
+.np-insp-nums .np-stat[class*="np-lc-"] { border-top: 4px solid var(--c); }
 .np-insp-nums { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.35rem; min-height: 3.2rem; }
 .np-insp-nums .np-stat b { font-size: 0.9rem; }
 .np-net .np-vlab { font: 600 8.5px "IBM Plex Mono", monospace; text-anchor: middle; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
-.np-net .np-vlab.d { fill: color-mix(in srgb, var(--amber) 70%, var(--ink)); }
-.np-net .node.hot { stroke: var(--accent); stroke-width: 3; }
-.np-net .node.hot.bwd { stroke: var(--amber); }
-.np-net .node.target { stroke: var(--amber); stroke-width: 3.5; stroke-dasharray: 3 2; }
-.np-net .np-losstxt { font: 700 12px "IBM Plex Mono", monospace; fill: var(--red); text-anchor: end; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
-.np-net .np-pulse { stroke: var(--surface); stroke-width: 1; pointer-events: none; }
-.np-key { display: inline-block; width: 0.8rem; height: 0.35rem; border-radius: 2px; vertical-align: middle; margin: 0 0.15rem 0 0.1rem; }
-.np-key.warm { background: var(--red); } .np-key.cool { background: var(--c0); }
-@media (max-width: 40rem) { .np-insp-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); } .np-insp-narr { min-height: 13rem; } }
+.np-net .np-sgn { font: 800 12px "IBM Plex Mono", monospace; text-anchor: middle; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.np-net .np-vlab.d { fill: color-mix(in srgb, var(--lc-grad) 55%, var(--ink)); }
+.np-net .node.hot { stroke-width: 4.2; filter: drop-shadow(0 0 4px var(--lc)); }
+.np-net .np-ring { fill: none; stroke: var(--lc-loss); stroke-width: 3; stroke-dasharray: 4 3; filter: drop-shadow(0 0 3px var(--lc-loss)); pointer-events: none; }
+.np-net .np-losstxt { font: 700 12px "IBM Plex Mono", monospace; fill: color-mix(in srgb, var(--lc-loss) 60%, var(--ink)); text-anchor: end; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.np-net .np-pulse { pointer-events: none; }
+@media (max-width: 40rem) { .np-insp-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* legend of the brain diagram (fixed height: it switches between "layers" and "layers + loss + gradient") */
+.np-netleg { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.85rem; min-height: 2.4rem; align-content: flex-start; margin: 0.3rem 0 0.1rem; font-size: 0.76rem; color: var(--ink-soft); }
+.np-lg { display: inline-flex; align-items: center; gap: 0.3rem; }
+.np-lg i { display: inline-block; width: 0.9rem; height: 0.9rem; flex: none; }
+.np-lg-n { border-radius: 50%; border: 2.4px solid var(--c); background: color-mix(in srgb, var(--c) 18%, var(--surface)); }
+.np-lg-ring { border-radius: 50%; border: 2.4px dashed var(--c); }
+.np-lg-dia { background: var(--c); transform: rotate(45deg) scale(0.72); }
+.np-lg-key { flex-basis: 100%; display: block; font-size: 0.72rem; line-height: 1.5; }
+.np-lgsw { display: inline-block; vertical-align: middle; width: 1.6rem; height: 0.55rem; margin: 0 0.1rem 0 0.35rem; }
+.np-lg-key .np-lgsw:first-child { margin-left: 0; }
+.np-lgsw line { stroke: var(--ink); stroke-width: 2.4; }
+.np-lgsw line.d { stroke-dasharray: 5 3.5; }

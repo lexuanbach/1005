@@ -5,12 +5,15 @@
      machine words drop from the assembler through the loader into memory cells, then the CPU runs fetch / decode / execute.
    A compile error stops the animation in the block that found it (lexer = token error, parser = syntax error, assembler); later blocks go grey.
    Optional ghost band (opts.ghost): the *target* program's pipeline, faded, converging on the same memory (Decompile Me).
+   start(trace, {onLine}) : onLine(line, phase) is called whenever the C++ line the toolchain is working on changes (phase = lexer | parser | codegen | cpu; line 0 = none),
+   so a code editor can highlight it.  Codegen events may carry `explain` (what a construct such as a for loop or a multiply routine turns into): it is narrated once.
    Teaching simulation of the toy machine of vn-machine.js, not x86 / ARM. Theme tokens only (see compiler-flow.css). */
 (function (global) {
   'use strict';
   if (typeof document === 'undefined') return;
   var NS = 'http://www.w3.org/2000/svg';
   var BW = 220, BH = 130, XS = [0, 280, 560], YS = [0, 186, 372], GY = 558, GH = 44;
+  var GIDS = ['source', 'lexer', 'parser', 'codegen', 'assembler'];
   var ORDER = ['source', 'lexer', 'parser', 'codegen', 'assembler', 'loader', 'memory', 'cpu', 'io'];
   var BLOCKS = {
     source: { c: 0, r: 0, n: 1, title: 'Source file', sub: 'C++ text' },
@@ -67,6 +70,15 @@
     var svg = mk('svg', { viewBox: '0 0 780 ' + H, class: 'cf-svg', role: 'img',
       'aria-label': 'Block diagram of the toolchain: source file, lexer, parser, code generator, assembler, loader, memory, CPU and input/output, joined by arrows' + (ghostOn ? ', with the hidden target program’s pipeline faded below, converging on the same memory' : '') });
     diag.appendChild(svg);
+    /* legend: one colour per component (colours come from --cmp-N in style.css; labels repeat the names) */
+    var legend = document.createElement('div'); legend.className = 'cf-legend'; legend.setAttribute('role', 'list'); legend.setAttribute('aria-label', 'Colour key');
+    var lg = ORDER.map(function (id) { return [id, BLOCKS[id].n + ' ' + BLOCKS[id].title]; }).concat([['pc', 'PC'], ['ir', 'IR'], ['r', 'R'], ['flags', 'flags'], ['out', 'cout value']]);
+    if (ghostOn) lg.push(['twin', '✓ same word as target'], ['diff', '✗ different word']);
+    lg.forEach(function (it) {
+      var sp = document.createElement('span'); sp.className = 'cf-c-' + it[0]; sp.setAttribute('role', 'listitem');
+      var sw = document.createElement('i'); sw.setAttribute('aria-hidden', 'true'); sp.appendChild(sw); sp.appendChild(document.createTextNode(it[1])); legend.appendChild(sp);
+    });
+    diag.appendChild(legend);
 
     var defs = mk('defs', {}, svg);
     [['cf-arrow', 'cf-head'], ['cf-arrow-on', 'cf-head on']].forEach(function (m) {
@@ -79,12 +91,12 @@
     var gEdges = mk('g', {}, svg), edgeEls = {}, edgeD = {};
     EDGES.forEach(function (k) {
       edgeD[k] = edgePath(k);
-      edgeEls[k] = mk('path', { d: edgeD[k], class: 'cf-edge', 'marker-end': 'url(#cf-arrow-' + uid + ')' }, gEdges);
+      edgeEls[k] = mk('path', { d: edgeD[k], class: 'cf-edge cf-c-' + k.split('>')[0], 'marker-end': 'url(#cf-arrow-' + uid + ')' }, gEdges);
     });
     var blockEls = {}, contentEls = {}, countEls = {};
     ORDER.forEach(function (id) {
       var B = BLOCKS[id], x = bx(id), y = by(id);
-      var g = mk('g', { class: 'cf-block cf-b-' + id, 'data-block': id }, svg);
+      var g = mk('g', { class: 'cf-block cf-b-' + id + ' cf-c-' + id, 'data-block': id }, svg);
       mk('rect', { x: x, y: y, width: BW, height: BH, rx: 10, class: 'cf-frame' }, g);
       mk('circle', { cx: x + 15, cy: y + 15, r: 9, class: 'cf-badge' }, g);
       tx(g, x + 15, y + 19, B.n, 'cf-badge-n', 'middle');
@@ -99,17 +111,17 @@
       gGhost = mk('g', { class: 'cf-ghost', 'aria-hidden': 'true' }, svg);
       var gl = [['Target source', '(hidden C++)'], ['Lexer', ''], ['Parser', ''], ['Code gen.', ''], ['Assembler', '']];
       gl.forEach(function (lab, i) {
-        var x = 652 - 163 * i;
-        mk('rect', { x: x, y: GY, width: 128, height: GH, rx: 8, class: 'cf-gframe' }, gGhost);
-        tx(gGhost, x + 64, GY + 17, lab[0], 'cf-gtitle', 'middle');
-        ghostBlocks.push(tx(gGhost, x + 64, GY + 33, lab[1], 'cf-gsub', 'middle'));
-        if (i < 4) { var d = 'M ' + (x - 2) + ' ' + (GY + GH / 2) + ' L ' + (x - 33) + ' ' + (GY + GH / 2); ghostEdges.push(d); mk('path', { d: d, class: 'cf-gedge', 'marker-end': 'url(#cf-arrow-' + uid + ')' }, gGhost); }
+        var x = 652 - 163 * i, gg = mk('g', { class: 'cf-c-' + GIDS[i] }, gGhost);      // same colour as the matching block of the main pipeline
+        mk('rect', { x: x, y: GY, width: 128, height: GH, rx: 8, class: 'cf-gframe' }, gg);
+        tx(gg, x + 64, GY + 17, lab[0], 'cf-gtitle', 'middle');
+        ghostBlocks.push(tx(gg, x + 64, GY + 33, lab[1], 'cf-gsub', 'middle'));
+        if (i < 4) { var d = 'M ' + (x - 2) + ' ' + (GY + GH / 2) + ' L ' + (x - 33) + ' ' + (GY + GH / 2); ghostEdges.push(d); mk('path', { d: d, class: 'cf-gedge cf-c-' + GIDS[i], 'marker-end': 'url(#cf-arrow-' + uid + ')' }, gGhost); }
       });
       var up = 'M 64 ' + (GY - 2) + ' L 64 ' + (YS[2] + BH + 3); ghostEdges.push(up);
-      mk('path', { d: up, class: 'cf-gedge', 'marker-end': 'url(#cf-arrow-' + uid + ')' }, gGhost);
+      mk('path', { d: up, class: 'cf-gedge cf-c-assembler', 'marker-end': 'url(#cf-arrow-' + uid + ')' }, gGhost);
       tx(gGhost, 392, GY - 8, 'the hidden target program, compiled by the same toolchain', 'cf-gnote', 'middle');
     }
-    var link = mk('path', { class: 'cf-link', d: 'M 0 0', visibility: 'hidden' }, svg);
+    var link = mk('path', { class: 'cf-link cf-c-codegen', d: 'M 0 0', visibility: 'hidden' }, svg);
     var gTokens = mk('g', { class: 'cf-tokens' }, svg);
 
     /* ── controls + narration ── */
@@ -150,6 +162,11 @@
     function say(l, d) {
       if (l !== undefined && l !== null && live.textContent !== l) live.textContent = l;
       if (d !== undefined) detail.textContent = d;
+    }
+
+    function active(line, phase) {
+      M.srcActive = line || 0;
+      if (lastOpts.onLine) { try { lastOpts.onLine(M.srcActive, phase || ''); } catch (e) { /* the editor must never break the animation */ } }
     }
 
     function setState(id, cls) {
@@ -233,7 +250,11 @@
       vis.forEach(function (a, i) {
         var yy = y + 50 + i * 14;
         if (i === vis.length - 1 && a.fresh) mk('rect', { x: x + 4, y: yy - 10, width: BW - 8, height: 14, rx: 3, class: 'cf-line-on' }, g);
-        tx(g, x + 8, yy, a.cline ? 'L' + a.cline : '  ', 'cf-ln');
+        if (a.cline) {
+          var tg = mk('g', { class: 'cf-ltag cf-c-source' }, g);
+          mk('rect', { x: x + 6, y: yy - 9, width: 22, height: 12, rx: 3 }, tg);
+          tx(tg, x + 17, yy, 'L' + a.cline, 'cf-ltag-t', 'middle');
+        }
         tx(g, x + 34, yy, clip(a.text, 26), 'cf-code' + (a.lineKind === 'label' ? ' cf-lbl' : ''));
       });
       countEls.codegen.textContent = M.asm.length ? M.asm.length + ' lines' : '';
@@ -281,6 +302,7 @@
         var cg = mk('g', { class: cls, 'data-addr': a }, g);
         mk('rect', { x: p.x, y: p.y, width: p.w, height: p.h, rx: 3 }, cg);
         tx(cg, p.x + 2, p.y + 6.5, a, 'cf-cell-a');
+        if (M.kinds[a] === 'data') tx(cg, p.x + p.w - 2, p.y + 6.5, 'd', 'cf-cell-d', 'end');
         var val = w !== undefined ? hex(w) : (showGhost ? hex(gw) : '');
         if (val) tx(cg, p.x + p.w - 2, p.y + p.h - 3, val, 'cf-cell-v', 'end');
       });
@@ -290,10 +312,10 @@
     function renderCpu() {
       var g = contentEls.cpu; clear(g); var x = bx('cpu'), y = by('cpu'), c = M.cpu;
       [['PC', c.pc, 0, 0], ['IR', c.ir, 1, 0], ['R', c.r, 0, 1], ['flags', c.flags, 1, 1]].forEach(function (r) {
-        var rx = x + 6 + r[2] * 105, ry = y + 40 + r[3] * 26;
-        mk('rect', { x: rx, y: ry, width: 103, height: 22, rx: 5, class: 'cf-reg' }, g);
-        tx(g, rx + 5, ry + 14.5, r[0], 'cf-reg-l');
-        tx(g, rx + 99, ry + 14.5, clip(r[1], r[0] === 'IR' ? 11 : 11), 'cf-reg-v', 'end');
+        var rx = x + 6 + r[2] * 105, ry = y + 40 + r[3] * 26, rg = mk('g', { class: 'cf-c-' + r[0].toLowerCase() }, g);
+        mk('rect', { x: rx, y: ry, width: 103, height: 22, rx: 5, class: 'cf-reg' }, rg);
+        tx(rg, rx + 5, ry + 14.5, r[0], 'cf-reg-l');
+        tx(rg, rx + 99, ry + 14.5, clip(r[1], 11), 'cf-reg-v', 'end');
       });
       ['FETCH', 'DECODE', 'EXECUTE'].forEach(function (p, i) {
         var px = x + 6 + i * 71;
@@ -309,7 +331,7 @@
       if (!items.length) tx(g, x, y + 66, M.srcLines.length ? '(empty)' : '', 'cf-faint');
       else chipRows(g, x, y + 54, BW - 16, 17, 2, items, function (it) { return chipW(it.v); });
       tx(g, x, y + 92, 'output (cout)', 'cf-sub');
-      var outs = M.io.out.map(function (v) { return { v: v, draw: function (p, xx, yy, w) { chip(p, xx, yy, w, String(v), 'cf-t-out'); } }; });
+      var outs = M.io.out.map(function (v) { return { v: v, draw: function (p, xx, yy, w) { chip(p, xx, yy, w, String(v), 'cf-t-out cf-c-out'); } }; });
       if (!outs.length) tx(g, x, y + 110, '(nothing printed yet)', 'cf-faint');
       else chipRows(g, x, y + 98, BW - 16, 17, 2, outs, function (it) { return chipW(it.v); });
     }
@@ -344,7 +366,7 @@
       });
     }
     function clearTokens() { activeNodes.splice(0).forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); }); }
-    function hop(from, to, text, cls) { flowOn(from, to); return travel(edgeD[from + '>' + to], text, Math.max(90, spd() * 0.45), cls); }
+    function hop(from, to, text) { flowOn(from, to); return travel(edgeD[from + '>' + to], text, Math.max(90, spd() * 0.45), 'cf-c-' + from); }
 
     function showLink(fromBlock, row, line) {
       if (!line || line < 1 || line > M.srcLines.length || instant() || reduced()) { link.setAttribute('visibility', 'hidden'); return; }
@@ -403,7 +425,7 @@
       return '';
     }
     function errNote(stage, e, total) {
-      var where = e.line ? ' on line ' + e.line : '';
+      var where = e.line ? ' on line ' + e.line + (e.col ? ', column ' + e.col : '') : '';
       var after = {
         lexer: 'The lexer could not turn the text into a token, so the parser never received anything: no tree, no assembly, no machine words.',
         parser: 'The tokens were fine (the lexer finished), but they do not form a valid statement, so no complete tree exists and the code generator never ran.',
@@ -424,11 +446,11 @@
         for (i = 0; i < evs.length; i++) {
           await gate(g); e = evs[i];
           if (e.kind === 'token') {
-            M.tokens.push({ type: e.type, v: e.v, line: e.line }); M.srcActive = e.line; M.srcErr = false;
+            M.tokens.push({ type: e.type, v: e.v, line: e.line }); active(e.line, 'lexer'); M.srcErr = false;
             renderSource(); renderLexer(); say(undefined, 'token ' + (e.index + 1) + ': “' + e.v + '” (' + { kw: 'keyword', id: 'name', num: 'number', op: 'operator', punct: 'symbol', str: 'text' }[e.type] + ') from line ' + e.line);
             await sleep(u);
           } else if (e.kind === 'error') { await failAt('lexer', e, g); return; }
-          else if (e.kind === 'done') { M.srcActive = 0; renderSource(); say(undefined, e.count + ' tokens produced. Whitespace and comments are gone.'); }
+          else if (e.kind === 'done') { active(0, 'lexer'); renderSource(); say(undefined, e.count + ' tokens produced. Whitespace and comments are gone.'); }
         }
       } else if (st === 'parser') {
         say(stageNote('parser'), ''); flowOn('lexer', 'parser');
@@ -439,11 +461,11 @@
           await gate(g); e = evs[i];
           if (e.kind === 'node') {
             M.nodes.forEach(function (n) { n.fresh = false; });
-            M.nodes.push({ label: e.label, depth: e.depth, line: e.line, fresh: true }); M.srcActive = e.line; M.srcErr = false;
+            M.nodes.push({ label: e.label, depth: e.depth, line: e.line, fresh: true }); active(e.line, 'parser'); M.srcErr = false;
             renderSource(); renderParser(); say(undefined, 'node: ' + e.label + ' (line ' + e.line + ')');
             await sleep(up);
           } else if (e.kind === 'error') { await failAt('parser', e, g); return; }
-          else if (e.kind === 'done') { M.srcActive = 0; M.nodes.forEach(function (n) { n.fresh = false; }); renderSource(); renderParser(); say(undefined, 'Tree complete: ' + e.count + ' nodes. Whitespace and punctuation are no longer needed.'); }
+          else if (e.kind === 'done') { active(0, 'parser'); M.nodes.forEach(function (n) { n.fresh = false; }); renderSource(); renderParser(); say(undefined, 'Tree complete: ' + e.count + ' nodes. Whitespace and punctuation are no longer needed.'); }
         }
       } else if (st === 'codegen') {
         say(stageNote('codegen'), ''); flowOn('parser', 'codegen');
@@ -455,11 +477,12 @@
           if (e.kind === 'asm') {
             M.asm.forEach(function (a) { a.fresh = false; });
             M.asm.push({ text: e.text, cline: e.cline, lineKind: e.lineKind, fresh: true });
-            M.srcActive = e.cline || 0; M.srcErr = false;
+            active(e.cline || 0, 'codegen'); M.srcErr = false;
             renderSource(); renderCodegen(); showLink('codegen', Math.min(M.asm.length, 6) - 1, e.cline);
+            if (e.explain) say(e.explain, undefined);
             say(undefined, e.text + (e.cline ? '  ← came from C++ line ' + e.cline : '  (added by the compiler)') + (e.comment ? '  — ' + e.comment : ''));
             await sleep(ua);
-          } else if (e.kind === 'done') { hideLink(); M.srcActive = 0; M.asm.forEach(function (a) { a.fresh = false; }); renderSource(); renderCodegen(); say(undefined, e.count + ' assembly lines.'); }
+          } else if (e.kind === 'done') { hideLink(); active(0, 'codegen'); M.asm.forEach(function (a) { a.fresh = false; }); renderSource(); renderCodegen(); say(stageNote('codegen'), e.count + ' assembly lines.'); }
         }
       } else if (st === 'assembler') {
         say(stageNote('assembler'), ''); flowOn('codegen', 'assembler');
@@ -502,7 +525,7 @@
     function land(e, g) {
       var p = cellPos(e.addr), d = 'M ' + (bx('assembler') + BW / 2) + ' ' + (by('assembler') + BH / 2) + ' L ' + (p.x + p.w / 2) + ' ' + (by('assembler') + BH / 2) + ' L ' + (p.x + p.w / 2) + ' ' + (p.y + p.h / 2);
       var dur = Math.max(160, spd() * 0.7);
-      return travel(d, e.hex || String(e.word), dur, 'word').then(function () {
+      return travel(d, e.hex || String(e.word), dur, 'cf-c-assembler').then(function () {
         if (g !== gen) return;
         M.memWord[e.addr] = e.word; M.loaded++; M.hitCell = e.addr; M.cellCls[e.addr] = 'landed';
         if (ghostAsm) {
@@ -516,7 +539,7 @@
       M.ghostShown = false; renderGhost();
       var ms = spd();
       if (ms && !reduced()) {
-        for (var i = 0; i < ghostEdges.length; i++) { await travel(ghostEdges[i], i === ghostEdges.length - 1 ? 'target words' : '·', Math.max(90, ms * 0.3), 'ghost'); if (g !== gen) throw CANCEL; await gate(g); }
+        for (var i = 0; i < ghostEdges.length; i++) { await travel(ghostEdges[i], i === ghostEdges.length - 1 ? 'target words' : '·', Math.max(90, ms * 0.3), 'ghost cf-c-' + GIDS[i]); if (g !== gen) throw CANCEL; await gate(g); }
       }
       M.ghostShown = true; renderGhost(); renderMemory(); renderLoader();
       say(undefined, 'The hidden target program went through the same toolchain. Its words appear faded in the cells they will occupy; yours will land on top of them.');
@@ -529,8 +552,9 @@
       function chk() { if (g !== gen) throw CANCEL; }
       if (first) { say(stageNote('cpu'), ''); }
       M.cpu.n = e.n; M.hitCell = e.at; busy('cpu'); setState('memory', 'cf-src');
+      active(e.cline || 0, 'cpu'); renderSource();
       phase('FETCH'); M.cpu.pc = String(e.at); renderCpu(); renderMemory();
-      say(undefined, 'cell ' + e.at + ': FETCH — PC = ' + e.at + ' is sent to memory (MAR), the word comes back (MDR) into IR.');
+      say(undefined, 'cell ' + e.at + (e.cline ? ' (C++ line ' + e.cline + ')' : '') + ': FETCH — PC = ' + e.at + ' is sent to memory (MAR), the word comes back (MDR) into IR.');
       await hop('cpu', 'memory', 'addr ' + e.at, 'req'); chk();
       await hop('memory', 'cpu', hex(M.memWord[e.at] !== undefined ? M.memWord[e.at] : 0), 'word'); chk();
       M.cpu.ir = M.memText[e.at] || e.text; M.cpu.pc = String(e.pc); renderCpu(); await gate(g);
@@ -539,7 +563,7 @@
       await sleep(unit(0.3)); chk(); await gate(g);
       phase('EXECUTE');
       var lastMicro = e.micros[e.micros.length - 1];
-      say(undefined, 'cell ' + e.at + ': EXECUTE ' + (M.memText[e.at] || e.text) + ' — ' + (lastMicro ? lastMicro.text : ''));
+      say(undefined, 'cell ' + e.at + ': EXECUTE ' + (M.memText[e.at] || e.text) + ' — ' + (lastMicro ? lastMicro.text : '') + (/^JUMP/.test(e.op) && e.pc !== e.at + 1 ? ' (PC jumped ' + (e.pc < e.at ? 'BACK: this is how a loop repeats)' : 'forward: code is skipped)') : ''));
       var operandReads = e.reads.slice(1);
       for (var i = 0; i < operandReads.length; i++) {
         var a = operandReads[i]; M.hitCell = a; renderMemory();
@@ -568,19 +592,21 @@
         if (e.input !== null) M.io.inp.shift();
         M.cpu.n = e.n; M.cpu.pc = String(e.pc); M.cpu.r = String(e.r); M.cpu.flags = 'G' + e.gt + ' E' + e.eq + ' L' + e.lt; M.cpu.ir = M.memText[e.at] || e.text;
         if (i % batch === 0 || i === evs.length - 1) {
-          renderCpu(); renderMemory(); renderIo(); say(undefined, 'instruction ' + e.n + ' · cell ' + e.at + ': ' + (M.memText[e.at] || e.text));
+          active(e.cline || 0, 'cpu'); renderSource(); renderCpu(); renderMemory(); renderIo(); say(undefined, 'instruction ' + e.n + ' · cell ' + e.at + ': ' + (M.memText[e.at] || e.text));
           await gate(g); await sleep(Math.min(30, unit(0.05)));
         }
       }
     }
     function cpuEnd(e) {
       clearStates(); setState('cpu', 'cf-busy'); phase('');
+      active(0, 'cpu'); renderSource();
       // jump to the final state (covers the instructions that ran at full speed)
       for (var a = 0; a < e.finalMem.length; a++) if (M.memWord[a] !== undefined) M.memWord[a] = e.finalMem[a];
       M.cpu.pc = String(e.pc); M.cpu.r = String(e.r); M.cpu.flags = 'G' + e.gt + ' E' + e.eq + ' L' + e.lt; M.cpu.n = e.instrCount;
       if (e.truncated) { M.io.out = e.out.slice(); M.io.inp = []; }
       renderCpu(); renderMemory(); renderIo();
-      var msg = e.reason === 'halt' ? 'HALT after ' + e.instrCount + ' instructions. The program printed: ' + (e.out.length ? e.out.join(' ') : '(nothing)') + '.'
+      var msg = e.reason === 'halt' && !e.divzero ? 'HALT after ' + e.instrCount + ' instructions. The program printed: ' + (e.out.length ? e.out.join(' ') : '(nothing)') + '.'
+        : e.reason === 'halt' && e.divzero ? 'Division by zero: the program jumped to the HALT labelled Ldiv0 after ' + e.instrCount + ' instructions. Printed so far: ' + (e.out.length ? e.out.join(' ') : '(nothing)') + '. (Real C++ would crash.)'
         : e.reason === 'waiting' ? 'The program asked for more input than the box contains (IN with an empty queue).'
         : e.reason === 'error' ? 'The machine stopped: ' + e.error
         : 'Stopped after ' + e.instrCount + ' instructions without HALT (infinite loop?).';
@@ -590,13 +616,13 @@
     async function failAt(stage, e, g) {
       M.errStage = stage; M.errText[stage] = e.msg;
       if (stage === 'lexer') { M.tokens.push({ type: 'err', v: '?', line: e.line, bad: true }); }
-      M.srcActive = e.line || 0; M.srcErr = true;
+      active(e.line || 0, stage); M.srcErr = true;
       clearStates(); setState(stage, ''); blockEls[stage].classList.add('cf-fail');
       var idx = ORDER.indexOf(stage);
       ORDER.forEach(function (id, k) { if (k > idx) blockEls[id].classList.add('cf-skip'); });
       edgeEls[stage === 'lexer' ? 'lexer>parser' : stage === 'parser' ? 'parser>codegen' : 'assembler>loader'].classList.add('cf-cut');
       renderSource(); renderLexer(); renderParser(); renderAssembler(); hideLink();
-      say(errNote(stage, e), 'Failed in block ' + BLOCKS[stage].n + ' (' + BLOCKS[stage].title + '), not later.');
+      say(errNote(stage, e), (e.hint ? 'Hint: ' + e.hint : 'Failed in block ' + BLOCKS[stage].n + ' (' + BLOCKS[stage].title + '), not later.'));
       if (opts.onFail) opts.onFail(stage, e);
     }
 
@@ -605,7 +631,7 @@
     function finish() {
       finished = true; running = false; paused = true; clearStates(); hideLink(); paint();
       var failed = tr && !tr.ok;
-      if (!failed) { M.srcActive = 0; renderSource(); }
+      if (!failed) { active(0, ''); renderSource(); }
       if (lastOpts.onDone) lastOpts.onDone({ ok: tr.ok, failedAt: tr.failedAt });
     }
     async function runner(g) {
@@ -628,6 +654,7 @@
 
     function resetView() {
       gen++; flush(); clearTokens(); hideLink();
+      if (lastOpts.onLine && tr) { try { lastOpts.onLine(0, ''); } catch (e) { /* ignore */ } }
       ORDER.forEach(function (id) { blockEls[id].classList.remove('cf-fail', 'cf-skip'); });
       EDGES.forEach(function (k) { edgeEls[k].classList.remove('cf-cut'); });
       clearStates(); skipping = false; stepOne = false; next = 0; finished = false; running = false;

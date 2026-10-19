@@ -8,9 +8,9 @@
 .cp-app { font-size: calc(1rem * var(--fs)); }
 .cp-levels { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
 .cp-lv { display: flex; align-items: center; gap: 0.45rem; font: inherit; font-size: 0.85rem; padding: 0.35rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); cursor: pointer; }
-.cp-lv:hover { border-color: var(--teal); }
-.cp-lv.on { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, var(--surface)); font-weight: 600; }
-.cp-lvn { font-family: "IBM Plex Mono", monospace; font-weight: 600; color: var(--teal-ink); }
+.cp-lv:hover { border-color: var(--accent); }
+.cp-lv.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); font-weight: 600; }
+.cp-lvn { font-family: "IBM Plex Mono", monospace; font-weight: 600; color: var(--accent-ink); }
 .cp-lvs { font-size: 0.75rem; letter-spacing: 0.05em; color: var(--amber); }
 .cp-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr); gap: 1rem; align-items: start; }
 @media (max-width: 960px) { .cp-grid { grid-template-columns: minmax(0, 1fr); } }
@@ -28,24 +28,19 @@
 .mono { font-family: "IBM Plex Mono", monospace; }
 .cp-tests td:nth-child(2), .cp-tests td:nth-child(3) { font-family: "IBM Plex Mono", monospace; }
 .cp-tmark { font-weight: 700; font-size: 0.85em; }
-.cp-tmark.good, .cp-chip.good { color: var(--teal-ink); }
-.cp-tmark.bad { color: #C0392B; }
-:root[data-theme="dark"] .cp-tmark.bad { color: #FF8F80; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cp-tmark.bad { color: #FF8F80; } }
+.cp-tmark.good { color: var(--green); }
+.cp-tmark.bad { color: var(--red); }
 .cp-sb { display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; align-items: center; }
 .cp-input, .cp-sb select, .cp-testsel { font-family: "IBM Plex Mono", monospace; font-size: 0.85em; padding: 0.3rem 0.5rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); max-width: 100%; }
 .cp-input { min-width: 12rem; }
 textarea.cp-src { width: 100%; box-sizing: border-box; font-family: "IBM Plex Mono", monospace; font-size: 0.85em; line-height: 1.5; padding: 0.6rem; border: 1px solid var(--line); border-radius: 10px; background: var(--code-bg); color: #E8EDF6; resize: vertical; tab-size: 4; }
-textarea.cp-src:focus-visible, .cp-lv:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+textarea.cp-src:focus-visible, .cp-lv:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .cp-asmmsg { font-size: 0.8em; margin-top: 0.4rem; min-height: 1.2em; }
-.cp-asmmsg.ok { color: var(--teal-ink); }
-.cp-asmmsg.bad { color: #C0392B; }
-:root[data-theme="dark"] .cp-asmmsg.bad { color: #FF8F80; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cp-asmmsg.bad { color: #FF8F80; } }
+.cp-asmmsg.ok { color: var(--green); }
+.cp-asmmsg.bad { color: var(--red); }
 .cp-status { font-size: 0.88em; margin: 0.4rem 0; min-height: 1.3em; color: var(--ink); }
-.cp-big { font-weight: 700; font-size: 1.05em; margin: 0.3rem 0; color: var(--teal-ink); }
-.cp-big.bad { color: #C0392B; }
-:root[data-theme="dark"] .cp-big.bad { color: #FF8F80; }
+.cp-big { font-weight: 700; font-size: 1.05em; margin: 0.3rem 0; color: var(--green); }
+.cp-big.bad { color: var(--red); }
 .cp-stars { list-style: none; padding: 0; margin: 0.4rem 0; font-size: 0.9em; }
 .cp-stars li { padding-left: 1.5rem; position: relative; color: var(--ink-soft); }
 .cp-stars li::before { content: "☆"; position: absolute; left: 0; color: var(--ink-soft); }
@@ -65,30 +60,36 @@ textarea.cp-src:focus-visible, .cp-lv:focus-visible { outline: 2px solid var(--t
 .cp-machine { padding: 0.9rem; }
 .cp-phaserow { margin-top: 0; }
 .cp-phase { font-family: "IBM Plex Mono", monospace; font-size: 0.72em; font-weight: 600; padding: 0.15rem 0.7rem; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-soft); transition: background 0.15s, color 0.15s; }
-.cp-phase.on { color: var(--teal-ink); border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--surface)); }
+.cp-phase.on { color: var(--surface); border-color: var(--ink); background: var(--ink); }
 .cp-counter { margin-left: auto; font-family: "IBM Plex Mono", monospace; font-size: 0.78em; color: var(--ink-soft); }
-.cp-say { min-height: 4.6em; font-size: 0.88em; padding: 0.5rem 0.7rem; border-radius: 8px; background: var(--paper); border: 1px dashed var(--line); margin-bottom: 0.7rem; overflow-wrap: anywhere; }
+.cp-say { min-height: 4.6em; font-size: 0.88em; padding: 0.5rem 0.7rem; border-radius: 8px; background: var(--paper); border: 1px dashed var(--line); margin-bottom: 0.7rem; overflow-wrap: anywhere; line-height: 1.55; }
 .cp-dev, .cp-mem { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.6rem; background: var(--paper); transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
 .cp-cpuname, .cp-explab { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 0.7em; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 0.3rem; }
 .cp-explab { margin: 0.4rem 0 0.2rem; font-weight: 600; }
 .cp-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 1.7em; align-items: center; }
 .cp-chip { font-family: "IBM Plex Mono", monospace; font-size: 0.85em; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); }
-.cp-chip.used { opacity: 0.35; text-decoration: line-through; }
-.cp-chip.next { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 16%, var(--surface)); }
-.cp-chip.good { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--surface)); }
-.cp-chip.badc { border-color: #C0392B; background: color-mix(in srgb, #C0392B 18%, var(--surface)); }
 .cp-chip.ghost { opacity: 0.6; border-style: dashed; font-weight: 500; }
+.cp-mem { border-left: 4px solid var(--cmp-3); }                                 /* MEM colour: the memory block owns this whole card */
+.cp-memhead { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.8rem; margin-bottom: 0.45rem; }
+.cp-memtitle { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 0.7em; letter-spacing: 0.06em; color: color-mix(in srgb, var(--c) 58%, var(--ink)); }
+.cp-mtags { display: flex; flex-wrap: wrap; gap: 0.2rem 0.7rem; font-size: 0.68em; color: var(--ink-soft); margin-left: auto; }
+.cp-mtag { display: inline-flex; align-items: center; gap: 0.3rem; }
 .cp-memgrid { display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: 0.35rem; }
-.cp-cell { position: relative; border: 1px solid var(--line); border-radius: 8px; padding: 0.2rem 0.4rem 0.25rem; background: var(--surface); min-height: 3.1em; min-width: 0; display: flex; flex-direction: column; transition: background 0.15s, border-color 0.15s; }
+.cp-cell { position: relative; border: 1px solid color-mix(in srgb, var(--cmp-3) 34%, var(--line)); border-radius: 8px; padding: 0.2rem 0.4rem 0.25rem; background: var(--surface); min-width: 0; display: flex; flex-direction: column; transition: background 0.15s, border-color 0.15s, box-shadow 0.15s; }
 .cp-cell.free { opacity: 0.5; }
-.cp-cell.data { background: color-mix(in srgb, var(--teal) 7%, var(--surface)); }
-.cp-addr { font-family: "IBM Plex Mono", monospace; font-size: 0.62em; color: var(--ink-soft); }
-.cp-cname { position: absolute; top: 0.15rem; right: 0.35rem; font-size: 0.62em; font-weight: 600; color: var(--teal-ink); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cp-cval { font-family: "IBM Plex Mono", monospace; font-size: 0.78em; font-weight: 600; overflow-wrap: anywhere; }
-.cp-cell.pc { outline: 2px solid var(--amber); outline-offset: 0; }
-.cp-cell.mar { border-style: dashed; border-color: var(--ink-soft); }
-.cp-cell.rd { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); border-color: var(--accent); }
-.cp-cell.wr { background: color-mix(in srgb, var(--teal) 28%, var(--surface)); border-color: var(--teal); }
+.cp-cell.data { background: color-mix(in srgb, var(--cmp-3) 8%, var(--surface)); }
+.cp-addr { font-family: "IBM Plex Mono", monospace; font-size: 0.62em; color: color-mix(in srgb, var(--cmp-3) 50%, var(--ink-soft)); }
+.cp-cname { position: absolute; top: 0.15rem; right: 0.35rem; font-size: 0.62em; font-weight: 600; color: color-mix(in srgb, var(--cmp-3) 58%, var(--ink)); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-cval { font-family: "IBM Plex Mono", monospace; font-size: 0.78em; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.3em; }
+.cp-ctags { display: flex; gap: 0.2em; height: 1.5em; margin-top: 0.1em; align-items: center; overflow: hidden; font-size: 0.6em; }   /* always present, so a cell never changes height */
+.cp-ctag { display: inline-block; font-family: "IBM Plex Mono", monospace; font-weight: 700; line-height: 1.25; padding: 0 0.35em; border-radius: 4px; border: 1px solid var(--c); color: color-mix(in srgb, var(--c) 58%, var(--ink)); background: color-mix(in srgb, var(--c) 16%, var(--surface)); white-space: nowrap; }
+.cp-ctag-wr { background: color-mix(in srgb, var(--c) 40%, var(--surface)); box-shadow: inset 0 0 0 1px var(--c); }
+/* markers: PC = PC colour, MAR = MAR colour, read / write = the memory block's colour (read = glow like a source, write = stronger glow like a destination) */
+.cp-cell.pc { outline: 2px solid var(--cmp-1); outline-offset: 0; }
+.cp-cell.mar { border-style: dashed; border-color: var(--cmp-5); background: color-mix(in srgb, var(--cmp-5) 10%, var(--surface)); }
+.cp-cell.rd { background: color-mix(in srgb, var(--cmp-3) 24%, var(--surface)); border-color: var(--cmp-3); box-shadow: 0 0 5px color-mix(in srgb, var(--cmp-3) 65%, transparent); }
+.cp-cell.wr { background: color-mix(in srgb, var(--cmp-3) 38%, var(--surface)); border-color: var(--cmp-3); box-shadow: 0 0 0 2px var(--cmp-3), 0 0 9px color-mix(in srgb, var(--cmp-3) 70%, transparent); }
+.cp-memgrid.dense .cp-cval { font-size: 0.66em; }
 .cp-explain { margin-top: 1.5rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.8rem 1rem; }
 .cp-explain summary { cursor: pointer; font-weight: 700; }
 .cp-explain-body li { margin: 0.45rem 0; font-size: 0.93rem; }
@@ -99,14 +100,20 @@ textarea.cp-src:focus-visible, .cp-lv:focus-visible { outline: 2px solid var(--t
 .cp-diagram { margin: 0 0 0.6rem; }
 .cp-target { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.7rem; min-height: 2.4em; }
 .cp-target .cp-explab { margin: 0; }
+.cp-target[hidden] { display: none; }
 .cp-speedrow .vn-speed { flex: 1 1 18rem; }
 .cp-speedrow .vn-speed-name { min-width: 0; font-size: 0.78em; }
-.cp-lane-box { fill: var(--paper); stroke: color-mix(in srgb, var(--ink-soft) 60%, var(--line)); stroke-width: 1.4; stroke-dasharray: 4 3; }
-.cp-lane-t { font-size: 8.5px; fill: var(--ink-soft); font-weight: 600; letter-spacing: 0.05em; }
-.cp-qchip rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
-.cp-qchip text { font-size: 12px; font-weight: 600; fill: var(--ink); }
+/* queue lanes: same colour class as the device block they belong to (IN = vn-dp-c-IN, OUT = vn-dp-c-OUT) */
+.cp-lane-box { fill: color-mix(in srgb, var(--c) 8%, var(--surface)); stroke: var(--c); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.cp-lane-link { stroke: var(--c); stroke-width: 2.2; fill: none; }
+.cp-lane-t { font-size: 8.5px; fill: color-mix(in srgb, var(--c) 60%, var(--ink)); font-weight: 700; letter-spacing: 0.05em; }
+.cp-qchip rect { fill: color-mix(in srgb, var(--c) 16%, var(--surface)); stroke: var(--c); stroke-width: 1.3; }
+.cp-qchip text { font-size: 12px; font-weight: 700; fill: var(--ink); }
 .cp-qchip text.sm { font-size: 9px; }
-.cp-qchip.next rect { stroke: var(--amber); fill: color-mix(in srgb, var(--amber) 18%, var(--surface)); }
-.cp-qchip.good rect { stroke: var(--teal); fill: color-mix(in srgb, var(--teal) 20%, var(--surface)); }
-.cp-qchip.badc rect { stroke: #C0392B; fill: color-mix(in srgb, #C0392B 20%, var(--surface)); }
+.cp-qchip.next rect { stroke-width: 2.8; fill: color-mix(in srgb, var(--c) 32%, var(--surface)); filter: drop-shadow(0 0 3px var(--c)); }
+.cp-st { font-weight: 800; }
+.cp-st-ok { fill: var(--green); }
+.cp-st-bad { fill: var(--red); }
+/* names in the narration and the explanation: a chip in the owning block's colour, the name itself stays as text */
+.cp-ref { font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 0.95em; padding: 0 0.28em; border-radius: 4px; color: color-mix(in srgb, var(--c) 58%, var(--ink)); background: color-mix(in srgb, var(--c) 15%, transparent); box-shadow: inset 0 -2px 0 var(--c); white-space: nowrap; }
 .cp-more { font-size: 10px; fill: var(--ink-soft); }

@@ -209,10 +209,33 @@
     mach.appendChild(UI.outBox);
 
     UI.memBox = el('div', 'cp-mem');
-    UI.memBox.appendChild(el('div', 'cp-cpuname', 'MEMORY'));
+    var mh = el('div', 'cp-memhead');
+    mh.appendChild(el('span', 'cp-memtitle vn-dp-c-MEM', 'MEMORY'));
+    var lg = el('span', 'cp-mtags'); lg.setAttribute('aria-label', 'Cell markers');
+    [['PC', 'pc', 'PC: next instruction'], ['MAR', 'mar', 'MAR: address in use'], ['read', 'rd', 'just read'], ['write', 'wr', 'just written']].forEach(function (t) {
+      var sp = el('span', 'cp-mtag'); sp.appendChild(tagEl(t[0], t[1])); sp.appendChild(doc.createTextNode(t[2].replace(/^[A-Za-z]+: /, ''))); lg.appendChild(sp);
+    });
+    mh.appendChild(lg); UI.memBox.appendChild(mh);
     UI.memGrid = el('div', 'cp-memgrid'); UI.memBox.appendChild(UI.memGrid);
     mach.appendChild(UI.memBox);
   }
+  /* Narration: every register / unit name is wrapped in a chip that carries its block's colour (the word itself stays, so colour is never the only cue). */
+  var REF_RE = /\b(PC|MAR|MDR|IR|ALU|R)\b|\b(GT|EQ|LT|[Mm]emory|[Dd]ecoder|[Ff]lags?)\b|\b([Ii]nput (?:queue|device)|[Oo]utput device)\b/g;
+  var REF_ID = { memory: 'MEM', decoder: 'DEC', flag: 'FLAGS', flags: 'FLAGS', GT: 'FLAGS', EQ: 'FLAGS', LT: 'FLAGS', 'input queue': 'IN', 'input device': 'IN', 'output device': 'OUT' };
+  function refId(tok) { return REF_ID[tok] || REF_ID[tok.toLowerCase()] || tok; }
+  function refSpan(tok) { return el('span', 'cp-ref vn-dp-c-' + refId(tok), tok); }
+  function fillRefs(node, str) {
+    node.textContent = '';
+    var last = 0, m; REF_RE.lastIndex = 0;
+    while ((m = REF_RE.exec(str))) {
+      if (m.index > last) node.appendChild(doc.createTextNode(str.slice(last, m.index)));
+      node.appendChild(refSpan(m[0])); last = m.index + m[0].length;
+    }
+    if (last < str.length) node.appendChild(doc.createTextNode(str.slice(last)));
+  }
+  function say(str) { fillRefs(UI.say, str); }
+  var TAG_CLS = { pc: 'vn-dp-c-PC', mar: 'vn-dp-c-MAR', rd: 'vn-dp-c-MEM', wr: 'vn-dp-c-MEM' };
+  function tagEl(text, kind) { return el('span', 'cp-ctag cp-ctag-' + kind + ' ' + TAG_CLS[kind], text); }
   function btn(t, cls) { var b = el('button', cls, t); b.type = 'button'; return b; }
   function isaTable() {
     var t = el('table', 'cp-isa'); var th = el('tr');
@@ -328,16 +351,17 @@
     }
     machine = (asm && asm.ok) ? VN.create(asm, { input: t.in, maxInstr: MAXI }) : null;
     buildMem();
-    UI.say.textContent = machine ? 'Press Step or Run. The CPU will fetch the instruction at address 0 first.' : 'Fix the problems above, then the machine can start.';
+    say(machine ? 'Press Step or Run. The CPU will fetch the instruction at address 0 first.' : 'Fix the problems above, then the machine can start.');
     render();
   }
   function buildMem() {
     UI.memGrid.innerHTML = ''; UI.cells = [];
     var n = asm && asm.ok ? asm.size : memSize();
     UI.memGrid.style.setProperty('--cols', n <= 16 ? 4 : n <= 32 ? 4 : 8);
+    UI.memGrid.classList.toggle('dense', n > 32);
     for (var a = 0; a < n; a++) {
-      var c = el('div', 'cp-cell'); var ad = el('span', 'cp-addr', String(a)); var nm = el('span', 'cp-cname'); var v = el('span', 'cp-cval');
-      c.appendChild(ad); c.appendChild(nm); c.appendChild(v); UI.memGrid.appendChild(c); UI.cells.push({ box: c, nm: nm, val: v });
+      var c = el('div', 'cp-cell'); var ad = el('span', 'cp-addr', String(a)); var nm = el('span', 'cp-cname'); var v = el('span', 'cp-cval'); var tg = el('span', 'cp-ctags');
+      c.appendChild(ad); c.appendChild(nm); c.appendChild(v); c.appendChild(tg); UI.memGrid.appendChild(c); UI.cells.push({ box: c, nm: nm, val: v, tags: tg });
     }
   }
 
@@ -354,41 +378,51 @@
     svg.setAttribute('viewBox', '0 0 910 456');
     svg.setAttribute('aria-label', 'Block diagram of the Von Neumann machine: CPU registers, ALU, decoder, memory, and the input and output devices with their queues, joined by arrows');
     ['IN', 'OUT'].forEach(function (k) {
-      var g = sv('g', { class: 'cp-lane cp-lane-' + k }, svg);
-      sv('rect', { x: LANE_X, y: LANE_Y[k], width: LANE_W, height: 44, rx: 9, class: 'cp-lane-box' }, g);
-      var t = sv('text', { x: LANE_X + 8, y: LANE_Y[k] + 12, class: 'cp-lane-t' }, g); t.textContent = k === 'IN' ? 'INPUT QUEUE' : 'OUTPUT QUEUE';
+      var g = sv('g', { class: 'cp-lane vn-dp-c-' + k }, svg);          // same colour class as the device block, so the queue reads as part of it
+      sv('path', { d: 'M 758 ' + (LANE_Y[k] + 22) + ' H 768', class: 'cp-lane-link' }, g);
+      sv('rect', { x: LANE_X + 2, y: LANE_Y[k], width: LANE_W - 2, height: 44, rx: 9, class: 'cp-lane-box' }, g);
+      var t = sv('text', { x: LANE_X + 10, y: LANE_Y[k] + 12, class: 'cp-lane-t' }, g); t.textContent = k === 'IN' ? 'INPUT QUEUE' : 'OUTPUT QUEUE';
       Q[k] = sv('g', { class: 'cp-chipsg' }, g);
     });
   }
   function slotX(i) { return SLOT_X0 + i * SLOT_DX; }
-  function drawChip(parent, i, text, cls) {
-    var g = sv('g', { class: 'cp-qchip ' + (cls || ''), transform: 'translate(' + slotX(i) + ' ' + 0 + ')' }, parent);
-    var y = parent.__y;
+  // status: undefined | 'ok' | 'bad' (output chips only; shown as a glyph, so it is not colour alone)
+  function drawChip(parent, y, i, text, cls, status, tip) {
+    var g = sv('g', { class: 'cp-qchip ' + (cls || ''), transform: 'translate(' + slotX(i) + ' 0)' }, parent);
+    if (tip) sv('title', {}, g).textContent = tip;
     sv('rect', { x: 0, y: y + 18, width: 30, height: 20, rx: 6 }, g);
-    var t = sv('text', { x: 15, y: y + 32, 'text-anchor': 'middle', class: text.length > 4 ? 'sm' : '' }, g); t.textContent = text;
+    var long = text.length + (status ? 1 : 0) > 3;
+    var t = sv('text', { x: 15, y: y + 32, 'text-anchor': 'middle', class: long ? 'sm' : '' }, g);
+    t.appendChild(doc.createTextNode(text));
+    if (status) { var ts = sv('tspan', { class: 'cp-st cp-st-' + status }, t); ts.textContent = status === 'ok' ? '\u2713' : '\u2717'; }
     return g;
   }
   function renderQueues(m) {
-    Q.IN.__y = LANE_Y.IN; Q.OUT.__y = LANE_Y.OUT;
     Q.IN.innerHTML = ''; Q.OUT.innerHTML = ''; Q.firstIn = null;
     if (!m) return;
     var pend = currentTest().in.slice(m.inPos), i;
     var showN = pend.length > SLOTS ? SLOTS - 1 : pend.length;
-    for (i = 0; i < showN; i++) { var c = drawChip(Q.IN, i, String(pend[i]), i === 0 ? 'next' : ''); if (i === 0) Q.firstIn = c; }
+    for (i = 0; i < showN; i++) {
+      var c = drawChip(Q.IN, LANE_Y.IN, i, String(pend[i]), i === 0 ? 'next' : '', null, i === 0 ? 'Next input number: ' + pend[i] : 'Waiting in the input queue: ' + pend[i]);
+      if (i === 0) Q.firstIn = c;
+    }
     if (pend.length > SLOTS) { var mt = sv('text', { x: slotX(SLOTS - 1) + 4, y: LANE_Y.IN + 32, class: 'cp-more' }, Q.IN); mt.textContent = '+' + (pend.length - showN); }
-    var exp = level.sandbox ? null : currentTest().out, outs = m.out, off = 0;
-    if (outs.length > SLOTS) { off = outs.length - (SLOTS - 1); }
-    for (i = off; i < outs.length; i++) drawChip(Q.OUT, i - off + (off ? 1 : 0), String(outs[i]), exp ? (exp[i] === outs[i] ? 'good' : 'badc') : '');
+    var exp = level.sandbox ? null : currentTest().out, outs = m.out, off = outs.length > SLOTS ? outs.length - (SLOTS - 1) : 0;
+    for (i = off; i < outs.length; i++) {
+      var st = exp ? (exp[i] === outs[i] ? 'ok' : 'bad') : null;
+      drawChip(Q.OUT, LANE_Y.OUT, i - off + (off ? 1 : 0), String(outs[i]), '', st,
+        'Output ' + (i + 1) + ': ' + outs[i] + (st === 'ok' ? ' (matches the target)' : st === 'bad' ? ' (the target has ' + (exp[i] === undefined ? 'nothing here' : exp[i]) + ')' : ''));
+    }
     if (off) { var ot = sv('text', { x: SLOT_X0 + 2, y: LANE_Y.OUT + 32, class: 'cp-more' }, Q.OUT); ot.textContent = '…'; }
     if (!outs.length) { var nt = sv('text', { x: SLOT_X0 + 2, y: LANE_Y.OUT + 32, class: 'cp-more' }, Q.OUT); nt.textContent = 'nothing yet'; }
     if (!pend.length) { var et = sv('text', { x: SLOT_X0 + 2, y: LANE_Y.IN + 32, class: 'cp-more' }, Q.IN); et.textContent = 'empty'; }
   }
   // a value travels between a queue and its device block (the queue is part of the device, so IN/OUT really exchange values with it)
-  function slide(from, to, text, ms) {
+  function slide(from, to, text, ms, id) {
     return new Promise(function (resolve) {
       if (ms <= 0) { resolve(); return; }
       if (reduceMotion) { var tt = setTimeout(function () { slideCancel = null; resolve(); }, Math.min(ms, 350)); slideCancel = function () { clearTimeout(tt); slideCancel = null; resolve(); }; return; }
-      var g = sv('g', { class: 'vn-dp-token cp-slide' }, dp.svg);
+      var g = sv('g', { class: 'vn-dp-token cp-slide vn-dp-c-' + id }, dp.svg);
       var w = Math.max(24, text.length * 7.4 + 14);
       sv('rect', { x: -w / 2, y: -10, width: w, height: 20, rx: 9 }, g);
       var t = sv('text', { 'text-anchor': 'middle', y: 4 }, g); t.textContent = text;
@@ -413,13 +447,13 @@
     if (!m) { UI.counter.textContent = ''; setButtons(); return; }
     UI.counter.textContent = 'cycle ' + m.instrCount + ' · tick ' + m.microCount;
     if (lm) UI.phases[lm.phase].classList.add('on');
-    if (lm && lm.text) UI.say.textContent = '[' + lm.phase + '] ' + lm.label + ' — ' + lm.text;
-    if (m.error) UI.say.textContent = 'Machine error: ' + m.error;
+    if (lm && lm.text) say('[' + lm.phase + '] ' + lm.label + ' — ' + lm.text);
+    if (m.error) say('Machine error: ' + m.error);
     setButtons();
   }
   function renderState() {
     var m = machine, k;
-    UI.cells.forEach(function (c) { c.box.classList.remove('pc', 'mar', 'rd', 'wr'); });
+    UI.cells.forEach(function (c) { c.box.classList.remove('pc', 'mar', 'rd', 'wr'); c.tags.textContent = ''; });
     if (!m) {
       dp.clear();
       Array.prototype.forEach.call(dp.svg.querySelectorAll('.vn-dp-val'), function (t) { t.textContent = '–'; });
@@ -437,10 +471,11 @@
       c.nm.textContent = asm.names[k] || '';
       c.box.setAttribute('title', 'cell ' + k + ' = ' + w + (VN.bits(w, ab) ? ' (' + VN.bits(w, ab) + ')' : ''));
     }
-    if (UI.cells[m.pc] && !m.halted) UI.cells[m.pc].box.classList.add('pc');
-    if (lm && UI.cells[m.mar] && lm.phase !== 'decode') UI.cells[m.mar].box.classList.add('mar');
-    if (m.lastRead != null && UI.cells[m.lastRead]) UI.cells[m.lastRead].box.classList.add('rd');
-    if (m.lastWrite != null && UI.cells[m.lastWrite]) UI.cells[m.lastWrite].box.classList.add('wr');
+    function mark(idx, cls, text) { var c = UI.cells[idx]; if (!c) return; c.box.classList.add(cls); c.tags.appendChild(tagEl(text, cls)); }
+    if (!m.halted) mark(m.pc, 'pc', 'PC');
+    if (lm && lm.phase !== 'decode') mark(m.mar, 'mar', 'MAR');
+    if (m.lastRead != null) mark(m.lastRead, 'rd', 'read');
+    if (m.lastWrite != null) mark(m.lastWrite, 'wr', 'write');
     renderQueues(m);
     paintExpected(level.sandbox ? null : currentTest().out);
   }
@@ -486,14 +521,14 @@
     var fromIn = f.some(function (p) { return p[0] === 'IN'; }), toOut = f.some(function (p) { return p[1] === 'OUT'; });
     if (fromIn && ms > 0 && Q.firstIn) {              // the next number leaves the input queue and enters the IN device
       Q.firstIn.style.opacity = '0';
-      await slide(lanePoint('IN', 0), center('IN'), String(machine.mdr), ms);
+      await slide(lanePoint('IN', 0), center('IN'), String(machine.mdr), ms, 'IN');
       if (my !== gen) return false;
     }
     await dp.animate(f, machine, ms);
     if (my !== gen) return false;
     if (toOut && ms > 0) {                            // the printed number leaves OUT and joins the output queue
       var slot = Math.min(machine.out.length - 1, SLOTS - 1);
-      await slide(center('OUT'), lanePoint('OUT', slot), String(machine.out[machine.out.length - 1]), ms);
+      await slide(center('OUT'), lanePoint('OUT', slot), String(machine.out[machine.out.length - 1]), ms, 'OUT');
       if (my !== gen) return false;
     }
     renderState();

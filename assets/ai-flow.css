@@ -1,4 +1,18 @@
-/* AI pipeline diagram + speed slider (assets/ai-flow.js) — theme tokens only */
+/* AI pipeline diagram + speed slider (assets/ai-flow.js) — theme tokens only.
+   One colour per component, from the shared palette tokens --cmp-N in style.css:
+   Data = blue, Model = violet, Prediction = amber, Loss = rose, Optimizer = teal.
+   (Same convention as the Von Neumann data-path: class sets --c; block fill = 11 % of --c, stroke = --c,
+   name = 62 % --c + ink; arrows and tokens take the colour of what they carry; active block = glow + thicker stroke.) */
+:root {
+  --af-data: var(--cmp-1);
+  --af-model: var(--cmp-5);
+  --af-pred: var(--cmp-3);
+  --af-loss: var(--cmp-4);
+  --af-opt: var(--cmp-2);
+}
+.af-c-data { --c: var(--af-data); } .af-c-model { --c: var(--af-model); } .af-c-pred { --c: var(--af-pred); }
+.af-c-loss { --c: var(--af-loss); } .af-c-opt { --c: var(--af-opt); }
+
 .af-diagram { margin: 0.5rem 0 0.4rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0.5rem 0.6rem 0.6rem; }
 .af-modes { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0 0 0.3rem; }
 .af-modes button { font: 600 0.8rem "Be Vietnam Pro", system-ui, sans-serif; padding: 0.3rem 0.8rem; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); cursor: pointer; }
@@ -7,34 +21,54 @@
 .af-modes .af-modes-note { font-size: 0.78rem; color: var(--ink-soft); }
 .af-pipe { width: 100%; height: auto; display: block; max-width: 44rem; margin: 0 auto; overflow: visible; }
 .af-pipe text { font-family: "IBM Plex Mono", monospace; }
-.af-node rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; transition: fill 0.15s, stroke 0.15s, opacity 0.2s; }
-.af-name { font-size: 13px; fill: var(--ink-soft); font-weight: 700; letter-spacing: 0.07em; font-family: "Be Vietnam Pro", sans-serif !important; }
+
+/* blocks */
+.af-node rect { fill: color-mix(in srgb, var(--c, var(--ink-soft)) 11%, var(--surface)); stroke: var(--c, var(--line)); stroke-width: 1.8; transition: fill 0.15s, stroke-width 0.15s, opacity 0.2s; }
+.af-name { font-size: 13px; fill: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); font-weight: 700; letter-spacing: 0.07em; font-family: "Be Vietnam Pro", sans-serif !important; }
 .af-val { font-size: 14px; fill: var(--ink); font-weight: 500; }
 .af-val.first { font-weight: 600; }
-.af-tag { font-size: 10.5px; fill: var(--ink-soft); font-weight: 600; }
-.af-node.af-src rect { stroke: var(--amber); stroke-width: 2.6; fill: color-mix(in srgb, var(--amber) 16%, var(--surface)); }
-.af-node.af-dst rect { stroke: var(--teal); stroke-width: 2.6; fill: color-mix(in srgb, var(--teal) 18%, var(--surface)); }
-.af-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.6; opacity: 0.45; }
-.af-edge.on { stroke: var(--accent); stroke-width: 3.2; opacity: 1; stroke-dasharray: 9 6; animation: af-dash 0.6s linear infinite; }
+.af-tag { font-size: 10.5px; fill: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); font-weight: 700; }
+/* the block that is working: glow + thicker stroke (source = lighter glow, destination = stronger fill) */
+.af-node.af-src rect { stroke-width: 3.4; fill: color-mix(in srgb, var(--c) 20%, var(--surface)); filter: drop-shadow(0 0 3px var(--c)); }
+.af-node.af-dst rect { stroke-width: 3.4; fill: color-mix(in srgb, var(--c) 34%, var(--surface)); filter: drop-shadow(0 0 6px var(--c)); }
+
+/* arrows, arrowheads, captions, tokens: the colour of what they carry */
+.af-edge { fill: none; stroke: var(--c, var(--ink-soft)); stroke-width: 1.8; }
+.af-edge.on { stroke-width: 3.4; stroke-dasharray: 9 6; animation: af-dash 0.6s linear infinite; }
 @keyframes af-dash { to { stroke-dashoffset: -30; } }
-.af-head { fill: var(--ink-soft); opacity: 0.6; }
-.af-head.on { fill: var(--accent); opacity: 1; }
-.af-cap { font-size: 12.5px; fill: var(--ink-soft); }
-.af-token rect { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
-.af-token text { fill: var(--accent-contrast); font-size: 12px; font-weight: 700; }
-/* inference mode: no loss, no optimizer, no labels */
-.af-infer .af-n-loss rect, .af-infer .af-n-opt rect { stroke-dasharray: 5 4; opacity: 0.45; fill: color-mix(in srgb, var(--ink) 5%, var(--surface)); }
-.af-infer .af-n-loss text, .af-infer .af-n-opt text { opacity: 0.5; }
+.af-head { fill: var(--c, var(--ink-soft)); }
+.af-cap { font-size: 12.5px; fill: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); font-weight: 600; }
+.af-token rect { fill: color-mix(in srgb, var(--c) 18%, var(--surface)); stroke: var(--c); stroke-width: 2.4; filter: drop-shadow(0 0 3px var(--c)); }
+.af-token text { fill: color-mix(in srgb, var(--c) 62%, var(--ink)); font-size: 12px; font-weight: 700; }
+
+/* inference mode: no loss, no optimizer, no labels — greyed out and dashed (not colour alone) */
+.af-infer .af-n-loss, .af-infer .af-n-opt { --c: var(--ink-soft); }
+.af-infer .af-n-loss rect, .af-infer .af-n-opt rect { stroke-dasharray: 5 4; opacity: 0.5; fill: color-mix(in srgb, var(--ink) 5%, var(--surface)); }
+.af-infer .af-n-loss text, .af-infer .af-n-opt text { opacity: 0.55; }
 .af-infer .af-edge[data-edge="pred>loss"], .af-infer .af-edge[data-edge="loss>opt"], .af-infer .af-edge[data-edge="opt>model"], .af-infer .af-edge[data-edge="data>loss"],
-.af-infer .af-cap[data-edge="pred>loss"], .af-infer .af-cap[data-edge="loss>opt"], .af-infer .af-cap[data-edge="opt>model"], .af-infer .af-cap[data-edge="data>loss"] { opacity: 0.2; }
-.af-infer .af-n-model rect { stroke: var(--ink); stroke-width: 2; }
+.af-infer .af-head[data-edge="pred>loss"], .af-infer .af-head[data-edge="loss>opt"], .af-infer .af-head[data-edge="opt>model"], .af-infer .af-head[data-edge="data>loss"],
+.af-infer .af-cap[data-edge="pred>loss"], .af-infer .af-cap[data-edge="loss>opt"], .af-infer .af-cap[data-edge="opt>model"], .af-infer .af-cap[data-edge="data>loss"] { --c: var(--ink-soft); opacity: 0.4; }
+.af-infer .af-edge[data-edge="pred>loss"], .af-infer .af-edge[data-edge="loss>opt"], .af-infer .af-edge[data-edge="opt>model"], .af-infer .af-edge[data-edge="data>loss"] { stroke-dasharray: 5 4; }
+.af-infer .af-n-model rect { stroke-width: 2.6; }
+
+/* legend row under the diagram */
+.af-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; justify-content: center; margin: 0.5rem 0 0; font-size: 0.76rem; color: var(--ink-soft); }
+.af-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.af-legend i { width: 0.85rem; height: 0.85rem; border-radius: 3px; display: inline-block; background: color-mix(in srgb, var(--c) 18%, var(--surface)); border: 2px solid var(--c); }
+.af-legend .af-legend-note { flex-basis: 100%; justify-content: center; font-size: 0.72rem; }
+.af-legend.af-infer .af-lg-loss, .af-legend.af-infer .af-lg-opt { opacity: 0.45; text-decoration: line-through; text-decoration-color: var(--ink-soft); }
+.af-legend.af-infer .af-lg-loss i, .af-legend.af-infer .af-lg-opt i { border-style: dashed; border-color: var(--ink-soft); background: transparent; }
+
+/* component names inside the narration */
+.af-k { font-weight: 700; color: var(--ink); background: color-mix(in srgb, var(--c) 14%, transparent); border-bottom: 3px solid var(--c); border-radius: 3px 3px 0 0; padding: 0 0.28rem; white-space: nowrap; }
+
 .af-flowbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0.3rem 0 0.2rem; }
 .af-flowbar .btn { min-width: 6.4rem; }
-.af-narr { min-height: 3.9rem; margin: 0.3rem 0 0.5rem; padding: 0.5rem 0.8rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--paper); font-size: 0.88rem; line-height: 1.5; color: var(--ink-soft); }
+.af-narr { min-height: 3.9rem; margin: 0.3rem 0 0.5rem; padding: 0.5rem 0.8rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--paper); font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft); }
 .af-narr strong { color: var(--ink); }
 .af-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
 .af-speed .field-label { margin: 0; }
 .af-speed input[type="range"] { width: 10rem; max-width: 100%; accent-color: var(--accent); }
 .af-speed-name { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--ink-soft); min-width: 9.5rem; }
 @media (max-width: 520px) { .af-narr { min-height: 6.2rem; } .af-speed-name { min-width: 0; } }
-@media (prefers-reduced-motion: reduce) { .af-edge.on { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .af-edge.on { animation: none; } .af-node rect { transition: none; } }

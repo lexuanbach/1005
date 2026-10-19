@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="stylesheet" href="../assets/vn-machine.css">
 <link rel="stylesheet" href="../assets/demo-cpu-puzzles.css">
+<link rel="stylesheet" href="../assets/app-fullscreen.css">
 </head>
 <body class="part2">
 
@@ -44,15 +45,15 @@
       <summary>What am I looking at?</summary>
       <div class="cp-explain-body">
         <ul>
-          <li><strong>The diagram.</strong> Blocks are the machine's parts; every arrow is a real register transfer of the current tick. A value travels along it (amber block = source, teal = destination) and the registers update when it lands. Numbers enter from the input queue into the Input device and leave the Output device into the output queue. Use the speed slider (Instant skips the animation), Pause and Step to go at your own pace.</li>
-          <li><strong>Memory grid.</strong> One box per numbered cell. Your instructions and your data sit in the same memory: this is the <em>stored-program</em> idea. The cell under the amber outline is where PC points; blue shows a read, green a write.</li>
-          <li><strong>PC (program counter).</strong> The address of the next instruction. A normal step adds 1; <code>JUMP</code> and a taken conditional jump overwrite it, which is how loops and if-else exist.</li>
-          <li><strong>MAR and MDR.</strong> The memory address register holds <em>which</em> cell is being accessed, the memory data register holds <em>what</em> was read or is about to be written. Every memory access passes through this pair.</li>
-          <li><strong>IR and the decoder.</strong> The fetched word is copied into IR; the decoder splits it into a 4-bit opcode and an address field. Words in <code>.data</code> are only numbers: if the PC ever reaches one, the machine tries to run it as code.</li>
-          <li><strong>R, the ALU and the flags.</strong> <code>ADD</code> and <code>SUBTRACT</code> work on R and a memory cell. <code>COMPARE</code> sets GT, EQ or LT, and the conditional jumps read those flags: that is all an <code>if</code> or <code>while</code> is, at this level.</li>
+          <li><strong>The diagram.</strong> Blocks are the machine's parts; every arrow is a real register transfer of the current tick. A value travels along it (it keeps the colour of the block it left; the receiving block lights up) and the registers update when it lands. Numbers enter from the input queue into the Input device and leave the Output device into the output queue. Use the speed slider (Instant skips the animation), Pause and Step to go at your own pace.</li>
+          <li><strong>Memory grid.</strong> One box per numbered cell, all in the <span class="cp-ref vn-dp-c-MEM">memory</span> block's colour. Your instructions and your data sit in the same memory: this is the <em>stored-program</em> idea. Small tags show what the machine is touching: <span class="cp-ref vn-dp-c-PC">PC</span> marks the cell PC points to (blue outline), <span class="cp-ref vn-dp-c-MAR">MAR</span> the cell the address register holds (purple, dashed), <em>read</em> the cell memory just copied into <span class="cp-ref vn-dp-c-MDR">MDR</span>, <em>write</em> the cell that was just overwritten (thick outline). Each tag is a word as well as a colour.</li>
+          <li><strong><span class="cp-ref vn-dp-c-PC">PC</span> (program counter).</strong> The address of the next instruction. A normal step adds 1; <code>JUMP</code> and a taken conditional jump overwrite it, which is how loops and if-else exist.</li>
+          <li><strong><span class="cp-ref vn-dp-c-MAR">MAR</span> and <span class="cp-ref vn-dp-c-MDR">MDR</span>.</strong> The memory address register holds <em>which</em> cell is being accessed, the memory data register holds <em>what</em> was read or is about to be written. Every memory access passes through this pair.</li>
+          <li><strong><span class="cp-ref vn-dp-c-IR">IR</span> and the <span class="cp-ref vn-dp-c-DEC">decoder</span>.</strong> The fetched word is copied into IR; the decoder splits it into a 4-bit opcode and an address field. Words in <code>.data</code> are only numbers: if the PC ever reaches one, the machine tries to run it as code.</li>
+          <li><strong><span class="cp-ref vn-dp-c-R">R</span>, the <span class="cp-ref vn-dp-c-ALU">ALU</span> and the <span class="cp-ref vn-dp-c-FLAGS">flags</span>.</strong> <code>ADD</code> and <code>SUBTRACT</code> work on R and a memory cell. <code>COMPARE</code> sets GT, EQ or LT, and the conditional jumps read those flags: that is all an <code>if</code> or <code>while</code> is, at this level.</li>
           <li><strong>Cycle vs tick.</strong> A <em>cycle</em> is one whole instruction (fetch, decode, execute). A <em>tick</em> is one register transfer inside it. The <em>fast</em> star counts cycles; size counts instruction cells, and a <code>JUMPGE</code>/<code>JUMPLE</code> pseudo-instruction costs two.</li>
           <li><strong>Size versus speed.</strong> A loop saves instructions but spends cycles on bookkeeping (counter, compare, jump). Straight-line code is longer but quicker. Real compilers and CPUs face the same trade-off.</li>
-          <li><strong>Input and output.</strong> <code>IN</code> takes the next number from the input queue; <code>OUT</code> prints a cell. In this game, if the program asks for input when the queue is empty the run simply ends, so a short loop can replace <code>HALT</code>.</li>
+          <li><strong>Input and output.</strong> <code>IN</code> takes the next number from the <span class="cp-ref vn-dp-c-IN">input queue</span> (green); <code>OUT</code> prints a cell into the <span class="cp-ref vn-dp-c-OUT">output queue</span> (brown). On the output queue a tick means the number matches the target, a cross means it does not. In this game, if the program asks for input when the queue is empty the run simply ends, so a short loop can replace <code>HALT</code>.</li>
         </ul>
       </div>
     </details>
@@ -70,5 +71,6 @@
 <script src="../assets/vn-datapath.js"></script>
 <script src="../assets/demo-cpu-puzzles.js"></script>
 <script src="../assets/course.js"></script>
+<script src="../assets/app-fullscreen.js" data-root="#cp-app"></script>
 </body>
 </html>

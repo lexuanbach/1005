@@ -584,6 +584,19 @@
 
   /* ── animated block diagram (assets/llm-flow.js): one for Play, one for Defender mode ── */
   var LF = window.LLMFlow, flow = null, dflow = null, tp = null, dtp = null, pending = null, runId = 0;
+  /* which diagram block each defence / trace stage belongs to (drives the colour dots, chips and chat labels) */
+  var HOST = { instruction: 'model', hardened: 'model', input: 'gate', output: 'outf', delimit: 'asm', leastpriv: 'tools', confirm: 'tools' };
+  var DEF_HOSTS = { filter: ['gate', 'outf'], delimit: ['asm'], leastpriv: ['tools', 'outf'], confirm: ['tools'] };
+  function stageHost(stage) {
+    stage = String(stage || '');
+    if (/^Input/.test(stage)) return 'gate'; if (/^Output/.test(stage)) return 'outf'; if (/^Delimiter/.test(stage)) return 'asm';
+    if (/^Model/.test(stage)) return 'model'; if (/^(Least privilege|Human confirmation)/.test(stage)) return 'tools';
+    return null;
+  }
+  function blocker(res) { // the trace entry that stopped the turn, if any
+    var t = (res && res.trace || []).filter(function (x) { return x.verdict === 'block' && /^(Input|Output)/.test(x.stage); })[0];
+    return t ? { host: stageHost(t.stage), name: t.stage } : { host: 'gate', name: 'System' };
+  }
   function flush() { var f = pending; pending = null; if (f) f(); }
   function playChips(L) {
     var d = L.defences, has = function (x) { return d.indexOf(x) >= 0; };
@@ -648,7 +661,7 @@
     var d = clear($('lv-defs'));
     if (!L.defences.length) d.appendChild(el('span', 'chip warn', 'no defences'));
     var names = { instruction: 'polite instruction', hardened: 'hardened rules', input: 'input keyword filter', output: 'output filter', delimit: 'delimited untrusted text', leastpriv: 'least privilege', confirm: 'human confirmation' };
-    L.defences.forEach(function (x) { d.appendChild(el('span', 'chip', names[x])); });
+    L.defences.forEach(function (x) { d.appendChild(el('span', 'chip lf-c-' + HOST[x], names[x])); });
     $('lv-system').textContent = maskSystem(L, p);
     clear($('hintbox')); clear($('trace')); clear($('postmortem')); $('postmortem').hidden = true;
     $('explain').hidden = true; $('claim').hidden = true;
@@ -678,9 +691,9 @@
     $('hintcount').textContent = 'Hints used: ' + p.hints + '/3';
     $('giveup').hidden = p.done || p.attempts < 4;
   }
-  function addMsg(who, text) {
-    var log = $('chatlog'), m = el('div', 'msg ' + who);
-    m.appendChild(el('b', null, who === 'me' ? 'You' : who === 'sys' ? 'System' : 'Bot'));
+  function addMsg(who, text, host, label) {
+    var log = $('chatlog'), m = el('div', 'msg ' + who + ' lf-c-' + (who === 'me' ? 'user' : who === 'bot' ? 'model' : (host || 'gate')));
+    m.appendChild(el('b', null, label || (who === 'me' ? 'You' : who === 'sys' ? 'System' : 'Bot')));
     m.appendChild(el('pre', null, text));
     log.appendChild(m); log.scrollTop = log.scrollHeight;
   }
@@ -692,6 +705,7 @@
     res.trace.forEach(function (t) {
       var li = el('li', 'v-' + t.verdict);
       li.appendChild(el('span', 'badge', { pass: 'passed', block: 'stopped it', fail: 'let it through', info: 'note' }[t.verdict]));
+      var hh = stageHost(t.stage); if (hh) li.appendChild(el('i', 'lf-dot lf-c-' + hh));
       li.appendChild(el('b', null, ' ' + t.stage + ': '));
       li.appendChild(document.createTextNode(t.note));
       ul.appendChild(li);
@@ -708,7 +722,8 @@
     var res = L.kind === 'fortress' ? E.level7(msg, $('doc-in').value) : E.chat(cur, msg);
     last[cur] = res; clear($('trace'));
     play(E.trace(cur, res, msg), function () {
-      addMsg(res.blocked ? 'sys' : 'bot', res.reply); renderTrace(res);
+      var bk = res.blocked ? blocker(res) : null;
+      addMsg(res.blocked ? 'sys' : 'bot', res.reply, bk && bk.host, bk && bk.name); renderTrace(res);
       say(res.blocked ? 'Blocked by a defence.' : res.revealed ? 'The bot revealed something. Work out the codeword.' : 'The bot did not reveal the codeword.');
       if (L.kind === 'fortress') afterFortressTry();
     });
@@ -775,7 +790,7 @@
     pm.appendChild(el('h4', null, 'The prompt stack as the model saw it'));
     var st = el('div', 'stack');
     stack.forEach(function (s) {
-      var b = el('div', 'layer ' + s.role); b.appendChild(el('span', 'role', ROLE[s.role])); b.appendChild(el('pre', null, s.text)); st.appendChild(b);
+      var b = el('div', 'layer ' + s.role + ' lf-L-' + s.role); b.appendChild(el('span', 'role', ROLE[s.role])); b.appendChild(el('pre', null, s.text)); st.appendChild(b);
     });
     if (!last[L.id]) st.appendChild(el('p', 'muted', 'Play a turn to see your own user message and document in the stack.'));
     st.appendChild(el('div', 'flat', 'All of this reaches the model as ONE flat stream of tokens. The labels above exist only for us.'));
@@ -847,7 +862,9 @@
     E.DEFENCES.forEach(function (x) {
       var lab = el('label', 'tog'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!enabled[x.id];
       cb.addEventListener('change', function () { enabled[x.id] = cb.checked; renderDefender(); });
-      lab.appendChild(cb); var s = el('span'); s.appendChild(el('b', null, ' ' + x.name)); s.appendChild(el('small', null, x.desc)); lab.appendChild(s); d.appendChild(lab);
+      lab.appendChild(cb); var s = el('span');
+      var sw = el('span', 'tog-sw'); (DEF_HOSTS[x.id] || []).forEach(function (h) { sw.appendChild(el('i', 'lf-dot lf-c-' + h)); }); s.appendChild(sw);
+      s.appendChild(el('b', null, ' ' + x.name)); s.appendChild(el('small', null, x.desc)); lab.appendChild(s); d.appendChild(lab);
     });
     var r = E.evaluate(enabled), best = E.bestConfig();
     if (dflow) { if (dtp.runner.active) dtp.runner.cancel(); dflow.reset(); dflow.setChips(defChips(enabled)); }

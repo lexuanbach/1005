@@ -263,7 +263,7 @@
     el.status = h('p', 'dm-status'); el.status.setAttribute('role', 'status'); el.status.setAttribute('aria-live', 'polite');
     root.appendChild(el.status);
     el.flowBox = h('section', 'dm-flow-box');
-    el.flowBox.innerHTML = '<h3>Watch your program travel through the toolchain</h3><p class="fine">Your code runs the pipeline on the left-to-right, top-to-bottom path (blocks 1 to 9). The faded row at the bottom is the hidden target program going through the same toolchain: if your machine words equal its words, the two pipelines converge on the same memory (green cells).</p>';
+    el.flowBox.innerHTML = '<h3>Watch your program travel through the toolchain</h3><p class="fine">Every block has its own colour, and so does whatever it produces (tokens, tree, assembly, machine words, memory cells). Your code follows blocks 1 to 9. The faded row at the bottom is the hidden target program going through the same toolchain, in the same block colours: if your machine words equal its words, the two pipelines converge on the same memory (green ✓ cells; red ✗ cells differ).</p>';
     root.appendChild(el.flowBox);
     el.flowHost = h('div', 'dm-flow'); el.flowBox.appendChild(el.flowHost);
     flow = global.CompilerFlow ? global.CompilerFlow.create(el.flowHost, { ghost: true, uid: 'dm', speedKey: 'co1005-cf-speed', initialSpeed: 3 }) : null;

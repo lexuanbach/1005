@@ -1,77 +1,107 @@
-/* LLM flow diagrams (assets/llm-flow.js) — theme tokens only; shared by Chapter 12 lab and the Break the Bot demo */
+/* LLM flow diagrams (assets/llm-flow.js) — shared by the Chapter 12 lab and the Break the Bot demo.
+   One colour per component, from the shared palette tokens --cmp-N (style.css, light + dark). A class sets --c; everything else derives from it.
+   Verdicts stay semantic (green = good outcome, red = bad outcome, grey = no defence) and always carry a glyph and words. */
+
+/* ── component colours: blocks of the application ── */
+.lf-c-user { --c: var(--cmp-1); }   /* blue    */
+.lf-c-model { --c: var(--cmp-2); }  /* teal    */
+.lf-c-atk { --c: var(--cmp-3); }    /* amber   */
+.lf-c-gate { --c: var(--cmp-4); }   /* rose    */
+.lf-c-asm { --c: var(--cmp-5); }    /* violet  */
+.lf-c-doc { --c: var(--cmp-7); }    /* orange  */
+.lf-c-outf { --c: var(--cmp-9); }   /* magenta */
+.lf-c-tools { --c: var(--cmp-10); } /* slate   */
+/* the three stacked prompt layers: same colours wherever the prompt stack shows up (post-mortem, sandbox boxes, trace dots) */
+.lf-L-system { --c: var(--cmp-8); }    /* cyan   (written by the developer)      */
+.lf-L-user { --c: var(--cmp-1); }      /* blue   (typed by the user = User block) */
+.lf-L-untrusted { --c: var(--cmp-7); } /* orange (= Untrusted document block)     */
+/* generation-loop diagram */
+.lf-c-ctx { --c: var(--cmp-1); } .lf-c-probs { --c: var(--cmp-5); } .lf-c-sample { --c: var(--cmp-7); } .lf-c-text { --c: var(--cmp-9); }
+/* semantic verdict colours (one place to change them) */
+.lf-wrap, .lf-key, .lf-vkey { --lf-good: var(--green); --lf-bad: var(--red); --lf-neutral: var(--ink-soft); }
+
 .lf-wrap { margin: 0.8rem 0 1rem; }
 .lf-svg { width: 100%; height: auto; display: block; max-width: 56rem; margin: 0 auto; overflow: visible; }
 .lf-svg text { font-family: "IBM Plex Mono", monospace; }
-.lf-box { fill: var(--paper); stroke: var(--line); stroke-width: 1.4; transition: fill 0.15s, stroke 0.15s; }
-.lf-name { font-size: 11px; fill: var(--ink); font-weight: 700; font-family: "Be Vietnam Pro", sans-serif !important; }
+
+/* ── blocks ── */
+.lf-box { fill: color-mix(in srgb, var(--c, var(--ink-soft)) 11%, var(--surface)); stroke: var(--c, var(--line)); stroke-width: 1.8; transition: fill 0.15s; }
+.lf-name { font-size: 11px; fill: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); font-weight: 700; font-family: "Be Vietnam Pro", sans-serif !important; }
 .lf-sub { font-size: 9.5px; fill: var(--ink-soft); }
-.lf-val { font-size: 11px; fill: var(--ink); font-weight: 600; }
-.lf-big { font-size: 15px; fill: var(--ink); font-weight: 700; }
-.lf-n-doc .lf-box, .lf-n-atk .lf-box { stroke: var(--red); stroke-dasharray: 5 4; fill: color-mix(in srgb, var(--red) 5%, var(--surface)); }
-.lf-n-asm .lf-box, .lf-n-tools .lf-box { fill: var(--surface); }
-.lf-n-user .lf-box { fill: color-mix(in srgb, var(--teal) 7%, var(--surface)); }
-.lf-node.lf-src .lf-box { stroke: var(--amber); stroke-width: 2.4; fill: color-mix(in srgb, var(--amber) 16%, var(--surface)); }
-.lf-node.lf-dst .lf-box { stroke: var(--teal); stroke-width: 2.4; fill: color-mix(in srgb, var(--teal) 18%, var(--surface)); }
-.lf-node.lf-v-block .lf-box { stroke: var(--red); stroke-width: 3; fill: color-mix(in srgb, var(--red) 12%, var(--surface)); stroke-dasharray: none; }
-.lf-node.lf-v-slip .lf-box { stroke: var(--amber); stroke-width: 3; fill: color-mix(in srgb, var(--amber) 16%, var(--surface)); stroke-dasharray: none; animation: lf-shake 0.5s 1; }
-.lf-node.lf-v-pass .lf-box { stroke: var(--green); stroke-width: 2; }
-.lf-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.5; opacity: 0.4; }
-.lf-edge-ext { stroke: var(--red); stroke-dasharray: 4 4; opacity: 0.55; }
-.lf-edge.on { stroke: var(--accent); stroke-width: 3.2; opacity: 1; stroke-dasharray: 9 6; animation: lf-dash 0.6s linear infinite; }
-@keyframes lf-dash { to { stroke-dashoffset: -30; } }
+.lf-val { font-size: 11px; fill: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); font-weight: 700; }
+.lf-big { font-size: 15px; fill: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); font-weight: 700; }
+.lf-n-doc .lf-box, .lf-n-atk .lf-box { stroke-dasharray: 5 4; } /* outside the trust boundary: dashed (shape, not only colour) */
+.lf-node.lf-src .lf-box { stroke-width: 3.4; fill: color-mix(in srgb, var(--c) 17%, var(--surface)); filter: drop-shadow(0 0 3px var(--c)); }
+.lf-node.lf-dst .lf-box { stroke-width: 3.4; fill: color-mix(in srgb, var(--c) 25%, var(--surface)); filter: drop-shadow(0 0 6px var(--c)); }
+/* verdict ring around a block (semantic colour, plus a badge with glyph + words) */
+.lf-ring { fill: none; stroke: none; }
+.lf-node.lf-v-pass .lf-ring { stroke: var(--lf-good); stroke-width: 2; }
+.lf-node.lf-v-block .lf-ring { stroke: var(--lf-good); stroke-width: 3.2; }
+.lf-node.lf-v-slip .lf-ring { stroke: var(--lf-bad); stroke-width: 3; stroke-dasharray: 8 5; }
+.lf-node.lf-v-off .lf-ring { stroke: var(--lf-neutral); stroke-width: 1.6; stroke-dasharray: 2 4; }
+.lf-node.lf-v-slip { animation: lf-shake 0.5s 1; }
 @keyframes lf-shake { 0%, 100% { transform: none; } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
-.lf-head { fill: var(--ink-soft); opacity: 0.6; } .lf-head.on { fill: var(--accent); opacity: 1; }
-.lf-token rect { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
-.lf-token text { fill: var(--accent-contrast); font-size: 11.5px; font-weight: 700; }
-.lf-token.lf-tone-red rect { fill: var(--red); }
-/* badges */
+
+/* ── arrows and tokens take the colour of the source block ── */
+.lf-edge { fill: none; stroke: var(--c, var(--ink-soft)); stroke-width: 1.7; }
+.lf-edge-ext { stroke-dasharray: 4 4; }
+.lf-edge.on { stroke-width: 3.4; stroke-dasharray: 9 6; animation: lf-dash 0.6s linear infinite; filter: drop-shadow(0 0 2px var(--c)); }
+@keyframes lf-dash { to { stroke-dashoffset: -30; } }
+.lf-head { fill: var(--c, var(--ink-soft)); }
+.lf-token rect { fill: color-mix(in srgb, var(--c, var(--accent)) 24%, var(--surface)); stroke: var(--c, var(--accent)); stroke-width: 2.2; filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--c, #000) 55%, transparent)); }
+.lf-token text { fill: color-mix(in srgb, var(--c, var(--accent)) 55%, var(--ink)); font-size: 11.5px; font-weight: 700; }
+
+/* ── verdict badges: filled with the semantic colour, glyph + words inside ── */
 .lf-badge rect { stroke: var(--surface); stroke-width: 1.5; }
-.lf-badge text { font-size: 9.5px; font-weight: 700; fill: #fff; letter-spacing: 0.02em; }
-.lf-b-pass rect { fill: var(--green); } .lf-b-block rect { fill: var(--red); } .lf-b-slip rect { fill: var(--amber); }
-.lf-b-off rect { fill: var(--ink-soft); }
-/* assembler layers */
-.lf-layer rect { fill: transparent; stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
+.lf-badge text { font-size: 9.5px; font-weight: 700; fill: var(--accent-contrast); letter-spacing: 0.02em; }
+.lf-b-pass rect, .lf-b-block rect { fill: var(--lf-good); }
+.lf-b-slip rect { fill: var(--lf-bad); }
+.lf-b-off rect { fill: var(--lf-neutral); }
+
+/* ── prompt assembler: the three stacked layers, each in its own colour ── */
+.lf-layer rect { fill: transparent; stroke: var(--c); stroke-width: 1.3; stroke-dasharray: 3 3; }
 .lf-layer-t { font-size: 9.5px; fill: var(--ink-soft); }
-.lf-layer.filled rect { stroke-dasharray: none; }
-.lf-layer.filled .lf-layer-t { fill: var(--ink); font-weight: 600; }
-.lf-layer-system.filled rect { fill: color-mix(in srgb, var(--accent) 20%, var(--surface)); stroke: var(--accent); }
-.lf-layer-user.filled rect { fill: color-mix(in srgb, var(--teal) 20%, var(--surface)); stroke: var(--teal); }
-.lf-layer-untrusted.filled rect { fill: color-mix(in srgb, var(--red) 18%, var(--surface)); stroke: var(--red); }
-.lf-layer-untrusted.merged rect { fill: color-mix(in srgb, var(--accent) 20%, var(--surface)); stroke: var(--red); stroke-width: 2.2; }
+.lf-layer.filled rect { stroke-dasharray: none; stroke-width: 1.8; fill: color-mix(in srgb, var(--c) 18%, var(--surface)); }
+.lf-layer.filled .lf-layer-t { fill: color-mix(in srgb, var(--c) 62%, var(--ink)); font-weight: 700; }
+.lf-layer-untrusted.merged rect { stroke-width: 2.8; fill: color-mix(in srgb, var(--cmp-8) 22%, var(--surface)); stroke-dasharray: 5 3; }
 .lf-layer-untrusted.merged { animation: lf-merge 0.9s ease-in-out 1; }
 @keyframes lf-merge { 0% { transform: translateX(0); } 40% { transform: translateX(-14px) translateY(-18px); } 100% { transform: none; } }
-.lf-seg { fill: var(--line); opacity: 0.5; }
-.lf-seg-system.filled { fill: var(--accent); opacity: 0.85; } .lf-seg-user.filled { fill: var(--teal); opacity: 0.85; }
-.lf-seg-untrusted.filled { fill: var(--red); opacity: 0.85; }
-.lf-seg-untrusted.merged { fill: var(--accent); stroke: var(--red); stroke-width: 2; opacity: 1; transition: fill 0.5s; }
+.lf-seg { fill: var(--c); opacity: 0.22; stroke: var(--c); stroke-width: 1; }
+.lf-seg.filled { opacity: 0.9; }
+.lf-seg-untrusted.merged { opacity: 1; stroke-width: 2.2; stroke-dasharray: 4 2; } /* its fill becomes a hatch of system + untrusted colours */
+.lf-mix-a { fill: var(--cmp-8); } .lf-mix-b { fill: var(--cmp-7); }
 .lf-stream-t { font-size: 8.5px; fill: var(--ink-soft); }
-/* defence chips */
-.lf-chip rect { stroke-width: 1.2; transition: fill 0.15s; }
-.lf-chip text { font-size: 9px; font-weight: 600; }
-.lf-chip.on rect { fill: color-mix(in srgb, var(--green) 18%, var(--surface)); stroke: var(--green); }
-.lf-chip.on text { fill: var(--green); }
-.lf-chip.off rect { fill: transparent; stroke: var(--ink-soft); stroke-dasharray: 3 3; opacity: 0.7; }
-.lf-chip.off text { fill: var(--ink-soft); opacity: 0.8; }
-.lf-chip.hit rect { fill: var(--red); stroke: var(--red); stroke-dasharray: none; opacity: 1; animation: lf-pulse 0.8s 2; }
-.lf-chip.hit text { fill: #fff; opacity: 1; }
-.lf-chip.slipped rect { stroke: var(--amber); stroke-width: 2.2; opacity: 1; }
+
+/* ── defence chips take the colour of the block they live in ── */
+.lf-chip rect { stroke: var(--c); stroke-width: 1.6; }
+.lf-chip text { font-size: 9px; font-weight: 700; }
+.lf-chip.on rect { fill: color-mix(in srgb, var(--c) 30%, var(--surface)); }
+.lf-chip.on text { fill: color-mix(in srgb, var(--c) 62%, var(--ink)); }
+.lf-chip.off rect { fill: transparent; stroke-dasharray: 3 3; }
+.lf-chip.off text { fill: var(--ink-soft); font-weight: 600; }
+.lf-chip.hit rect { stroke: var(--lf-good); stroke-width: 3.2; stroke-dasharray: none; animation: lf-pulse 0.8s 2; }
+.lf-chip.slipped rect { stroke: var(--lf-bad); stroke-width: 3; stroke-dasharray: 3 2; }
 @keyframes lf-pulse { 50% { opacity: 0.55; } }
-/* generation loop */
-.lf-pill { fill: color-mix(in srgb, var(--accent) 14%, var(--surface)); stroke: var(--accent); stroke-width: 1; }
-.lf-pill-t { font-size: 11.5px; fill: var(--ink); font-weight: 600; }
-.lf-plabel { font-size: 11px; fill: var(--ink); }
-.lf-pbg { fill: var(--line); opacity: 0.55; }
-.lf-praw { fill: color-mix(in srgb, var(--accent) 35%, transparent); }
-.lf-padj { fill: var(--accent); }
+
+/* ── generation loop ── */
+.lf-pill { fill: color-mix(in srgb, var(--c) 18%, var(--surface)); stroke: var(--c); stroke-width: 1.6; }
+.lf-pill-t { font-size: 11.5px; fill: color-mix(in srgb, var(--c) 62%, var(--ink)); font-weight: 700; }
+.lf-plabel { font-size: 11px; fill: color-mix(in srgb, var(--c) 62%, var(--ink)); }
+.lf-pbg { fill: transparent; stroke: var(--c); stroke-width: 1; }
+.lf-praw { fill: color-mix(in srgb, var(--c) 32%, transparent); }
+.lf-padj { fill: var(--c); }
 .lf-ppct { font-size: 10.5px; fill: var(--ink-soft); }
-.lf-prow.dropped .lf-plabel, .lf-prow.dropped .lf-ppct { opacity: 0.45; text-decoration: line-through; }
-.lf-prow.chosen .lf-plabel { font-weight: 700; fill: var(--teal-ink); }
-.lf-prow.chosen .lf-padj { fill: var(--teal); }
-.lf-prow.chosen .lf-pbg { stroke: var(--teal); stroke-width: 2; opacity: 1; }
+.lf-prow.dropped .lf-plabel, .lf-prow.dropped .lf-ppct { opacity: 0.55; text-decoration: line-through; }
+.lf-prow.dropped .lf-pbg { stroke-dasharray: 2 3; }
+.lf-prow.chosen { --c: var(--cmp-7); } /* the sampled candidate takes the colour of the Sample block */
+.lf-prow.chosen .lf-plabel { font-weight: 800; }
+.lf-prow.chosen .lf-pbg { stroke-width: 2.4; }
 .lf-textval { font-size: 13px; fill: var(--ink); font-weight: 500; }
+.lf-textlast { fill: color-mix(in srgb, var(--cmp-7) 62%, var(--ink)); font-weight: 800; text-decoration: underline; text-decoration-color: var(--cmp-7); text-decoration-thickness: 2px; }
 .lf-looplbl { font-size: 9.5px; fill: var(--ink-soft); font-style: italic; }
-/* narration, transport, legend: fixed heights so nothing below/above jumps */
-.lf-narr { min-height: 5.2rem; max-width: 56rem; margin: 0.5rem auto 0; padding: 0.5rem 0.8rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface); font-size: 0.9rem; line-height: 1.4; overflow-wrap: anywhere; }
+
+/* ── narration, transport, legend: fixed heights so nothing below/above jumps ── */
+.lf-narr { min-height: 5.2rem; max-width: 56rem; margin: 0.5rem auto 0; padding: 0.5rem 0.8rem; border: 1px solid var(--line); border-left: 5px solid var(--c, var(--accent)); border-radius: 8px; background: var(--surface); font-size: 0.9rem; line-height: 1.4; overflow-wrap: anywhere; transition: border-color 0.15s; }
 .lf-narr-h { display: block; font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; color: var(--ink-soft); min-height: 1.1rem; letter-spacing: 0.02em; }
 .lf-transport { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; max-width: 56rem; margin: 0.6rem auto 0; min-height: 2.4rem; }
 .lf-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
@@ -79,14 +109,20 @@
 .lf-speed input[type="range"] { width: 10rem; max-width: 100%; accent-color: var(--accent); }
 .lf-speed-name { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--ink-soft); min-width: 13rem; }
 .lf-btn { min-width: 6.4rem; }
-.lf-legend { max-width: 56rem; margin: 0.4rem auto 0; font-size: 0.76rem; color: var(--ink-soft); min-height: 2.6rem; }
-.lf-key { display: inline-block; padding: 0 0.45rem; border-radius: 999px; border: 1px solid var(--line); margin-right: 0.15rem; }
-.lf-k-on { border-color: var(--green); color: var(--green); } .lf-k-off { border-style: dashed; }
-.lf-k-stop { border-color: var(--red); color: var(--red); } .lf-k-slip { border-color: var(--amber); color: var(--amber); }
-.lf-k-sys { border-color: var(--accent); color: var(--accent-ink); } .lf-k-user { border-color: var(--teal); color: var(--teal-ink); } .lf-k-unt { border-color: var(--red); color: var(--red); }
+/* legend: swatch + name per component (same idea as the Von Neumann diagram), then the verdict key */
+.lf-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; justify-content: center; max-width: 56rem; margin: 0.6rem auto 0; font-size: 0.76rem; color: var(--ink-soft); }
+.lf-legend > span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.lf-legend i, .lf-dot { width: 0.8rem; height: 0.8rem; border-radius: 3px; background: var(--c); border: 1.5px solid color-mix(in srgb, var(--c) 70%, var(--ink)); display: inline-block; flex: none; }
+.lf-legend-sep { font-style: italic; padding-left: 0.4rem; border-left: 2px solid var(--line); }
+.lf-vkey { display: flex; flex-wrap: wrap; gap: 0.3rem 0.5rem; justify-content: center; max-width: 56rem; margin: 0.4rem auto 0; font-size: 0.74rem; }
+.lf-key { display: inline-block; padding: 0.05rem 0.55rem; border-radius: 999px; border: 1.5px solid var(--line); color: var(--ink-soft); font-weight: 600; }
+.lf-k-good { border-color: var(--lf-good); color: var(--lf-good); } .lf-k-bad { border-color: var(--lf-bad); color: var(--lf-bad); }
+.lf-k-neutral { border-style: dotted; border-color: var(--lf-neutral); }
+.lf-k-chip { border-color: var(--ink-soft); color: var(--ink); } .lf-k-chipoff { border-style: dashed; color: var(--ink-soft); }
+.lf-dot { margin-right: 0.35rem; vertical-align: -0.05em; width: 0.7rem; height: 0.7rem; }
 .lf-run-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; max-width: 56rem; margin: 0.4rem auto 0; min-height: 2.6rem; }
-@media (max-width: 560px) { .lf-speed-name { min-width: 0; } .lf-narr { min-height: 7.4rem; } .lf-legend { min-height: 4.4rem; } }
+@media (max-width: 560px) { .lf-speed-name { min-width: 0; } .lf-narr { min-height: 7.4rem; } }
 @media (prefers-reduced-motion: reduce) {
-  .lf-edge.on, .lf-node.lf-v-slip .lf-box, .lf-layer-untrusted.merged, .lf-chip.hit rect { animation: none; }
-  .lf-praw, .lf-padj, .lf-seg-untrusted.merged { transition: none; }
+  .lf-edge.on, .lf-node.lf-v-slip, .lf-layer-untrusted.merged, .lf-chip.hit rect { animation: none; }
+  .lf-box, .lf-narr { transition: none; }
 }

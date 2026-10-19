@@ -38,6 +38,7 @@ PAGES = [
     'chapters/chapter-13.html',
     'demos/index.html',
     'demos/cpu-puzzles.html',
+    'demos/von-neumann-machine.html',
     'demos/decompile-me.html',
     'demos/network-builder.html',
     'demos/sql-detective.html',

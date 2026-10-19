@@ -38,10 +38,16 @@
     'MDR>MEM': 'M 540 166 L 610 166',
     'ALU>FLAGS': 'M 485 318 L 485 352 L 85 352 L 85 318',
     'IN>MDR': 'M 610 362 L 576 362 L 576 190 L 540 190',
-    'MDR>OUT': 'M 540 196 L 592 196 L 592 422 L 610 422'
+    'MDR>OUT': 'M 540 196 L 592 196 L 592 422 L 610 422',
+    // extended instruction set: the immediate value travels from IR down and across to the ALU without crossing a box
+    'IR>ALU': 'M 320 198 L 320 232 L 462 232 L 462 268'
   };
   var EDGES = ['PC>MAR', 'PC>PC', 'IR>PC', 'IR>MAR', 'IR>DEC', 'MAR>MEM', 'MEM>MDR', 'MDR>MEM', 'MDR>IR', 'MDR>R', 'R>MDR',
-    'MDR>ALU', 'ALU>MDR', 'R>ALU', 'ALU>R', 'ALU>FLAGS', 'IN>MDR', 'MDR>OUT'];
+    'MDR>ALU', 'ALU>MDR', 'R>ALU', 'ALU>R', 'ALU>FLAGS', 'IN>MDR', 'MDR>OUT',
+    'IR>ALU', 'MDR>MAR'];       // the last two are used only by the extended instruction set (LOADI.. / LOADP, STOREP)
+  // These two arrows do not exist on slide 34: they are drawn (display:none otherwise) only for a machine with the extended
+  // instruction set (state.opBits === 5), or when a flow handed to animate() really uses one of them.
+  var EXT_EDGES = ['IR>ALU', 'MDR>MAR'];
 
   function mk(tag, attrs, parent) {
     var n = document.createElementNS(NS, tag);
@@ -78,6 +84,7 @@
     if (dst === 'OUT') return f(st.out.length ? st.out[st.out.length - 1] : '');
     if (src === 'MAR' && dst === 'MEM') return 'addr ' + st.mar;
     if (dst === 'MEM') return f(st.mdr);
+    if (src === 'IR' && dst === 'ALU') return st.cur ? f(st.cur.addr) : '';      // an immediate value (extended set)
     if (dst === 'ALU') return f(src === 'R' ? st.r : st.mdr);
     switch (dst) {
       case 'PC': return f(st.pc); case 'IR': return f(st.ir); case 'MAR': return f(st.mar);
@@ -89,13 +96,13 @@
   function nodeValue(id, st) {
     switch (id) {
       case 'PC': return String(st.pc);
-      case 'IR': return st.ir + '  ' + (global.VNMachine ? global.VNMachine.disasm(st.ir, st.addrBits) : '');
+      case 'IR': return st.ir + '  ' + (global.VNMachine ? global.VNMachine.disasm(st.ir, st.addrBits, st.opBits, st.wrap) : '');
       case 'MAR': return String(st.mar);
       case 'MDR': return String(st.mdr);
       case 'R': return String(st.r);
       case 'DEC': return st.cur ? st.cur.op.name + (st.cur.op.arg ? ' ' + st.cur.addr : '') : '—';
       case 'FLAGS': return 'GT=' + st.gt + ' EQ=' + st.eq + ' LT=' + st.lt;
-      case 'ALU': return '+  −  compare';
+      case 'ALU': return st.opBits === 5 ? '+  −  ×  ÷  mod' : '+  −  compare';
       case 'MEM': return 'mem[' + st.mar + '] = ' + st.mem[st.mar];
       case 'IN': return st.inPos < st.input.length ? 'next: ' + st.input[st.inPos] : 'queue empty';
       case 'OUT': return st.out.length ? 'last: ' + st.out[st.out.length - 1] : '—';
@@ -124,13 +131,15 @@
     EDGES.forEach(function (e) {
       var p = e.split('>');
       var d = CUSTOM[e] || straightPath(p[0], p[1], !!paired[e]);
-      edgeEls[e] = mk('path', { d: d, class: 'vn-dp-edge', 'marker-end': 'url(#vn-arrow)', 'data-edge': e }, gEdges);
+      var isExt = EXT_EDGES.indexOf(e) >= 0;
+      edgeEls[e] = mk('path', { d: d, class: 'vn-dp-edge vn-dp-c-' + p[0] + (isExt ? ' vn-dp-ext' : ''), 'marker-end': 'url(#vn-arrow)', 'data-edge': e }, gEdges);
+      if (isExt) edgeEls[e].style.display = 'none';          // lecture machine: no immediate / pointer path
     });
 
     var nodeEls = {}, valEls = {};
     Object.keys(NODES).forEach(function (id) {
       var b = NODES[id];
-      var g = mk('g', { class: 'vn-dp-node vn-dp-n-' + id, 'data-node': id }, svg);
+      var g = mk('g', { class: 'vn-dp-node vn-dp-n-' + id + ' vn-dp-c-' + id, 'data-node': id }, svg);
       mk('rect', { x: b[0], y: b[1], width: b[2], height: b[3], rx: 9 }, g);
       var t = mk('text', { x: b[0] + b[2] / 2, y: b[1] + 15, class: 'vn-dp-name', 'text-anchor': 'middle' }, g); t.textContent = b[4];
       var vy = id === 'MEM' ? b[1] + 52 : b[1] + b[3] - 12;
@@ -143,10 +152,29 @@
     var tokText = mk('text', { 'text-anchor': 'middle', y: 4 }, token);
 
     container.appendChild(svg);
+    var legend = document.createElement('div'); legend.className = 'vn-dp-legend';
+    Object.keys(NODES).forEach(function (id) {
+      var sp = document.createElement('span'); sp.className = 'vn-dp-c-' + id;
+      var dot = document.createElement('i'); sp.appendChild(dot);
+      sp.appendChild(document.createTextNode(NODES[id][4].split(' · ')[0].replace('Instruction decoder', 'Decoder').replace('Condition codes', 'Flags')));
+      legend.appendChild(sp);
+    });
+    container.appendChild(legend);
 
     var token_raf = 0, token_resolve = null, activeEdges = [], marked = [];
 
+    // show the extended-set arrows only for an extended machine (or when `force` says a flow needs them)
+    var extShown = false;
+    function showExt(on) {
+      on = !!on;
+      if (on === extShown) return;
+      extShown = on;
+      svg.setAttribute('data-ext', on ? '1' : '0');
+      EXT_EDGES.forEach(function (e) { edgeEls[e].style.display = on ? '' : 'none'; });
+    }
+
     function setValues(st) {
+      showExt(st && st.opBits === 5);
       Object.keys(valEls).forEach(function (id) { valEls[id].textContent = nodeValue(id, st); });
     }
     function clear() {
@@ -180,7 +208,8 @@
         // one token per item (clone the single template for extra items)
         var toks = items.map(function (it, i) {
           var g = i === 0 ? token : token.cloneNode(true);
-          if (i > 0) { g.setAttribute('class', 'vn-dp-token extra'); svg.appendChild(g); }
+          if (i > 0) svg.appendChild(g);
+          g.setAttribute('class', 'vn-dp-token vn-dp-c-' + it.key.split('>')[0] + (i > 0 ? ' extra' : ''));
           var r = g.querySelector('rect'), t = g.querySelector('text');
           t.textContent = it.text || '·';
           var w = Math.max(24, (it.text || '·').length * 7.4 + 14);
@@ -212,6 +241,7 @@
     // flow: engine's m.flow, e.g. [['MAR','MEM'],['MEM','MDR']] — consecutive pairs with the same destination move together
     function animate(flow, st, ms) {
       clear();
+      showExt((st && st.opBits === 5) || (flow || []).some(function (p) { return EXT_EDGES.indexOf(p[0] + '>' + p[1]) >= 0; }));
       var stages = [];
       (flow || []).forEach(function (p) {
         var last = stages[stages.length - 1];
@@ -230,14 +260,16 @@
     opts = opts || {};
     var key = opts.key || 'co1005-vn-speed';
     var idx = opts.initial === undefined ? 2 : opts.initial;
-    try { var s = localStorage.getItem(key); if (s !== null && !isNaN(+s) && +s >= 0 && +s < SPEEDS.length) idx = +s; } catch (e) {}
+    if (!(typeof idx === 'number' && idx % 1 === 0 && idx >= 0 && idx < SPEEDS.length)) idx = 2;      // a bad `initial` must not break the lab
+    // the saved value is untrusted (it can be corrupt or edited): accept only a whole index such as "3", never "1.5" or "1e0"
+    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) {}
     var wrap = document.createElement('div'); wrap.className = 'vn-speed';
     var lab = document.createElement('label'); lab.className = 'field-label'; lab.textContent = 'Speed';
     var id = 'vn-speed-' + Math.floor(Math.random() * 1e6); lab.setAttribute('for', id);
     var rng = document.createElement('input'); rng.type = 'range'; rng.id = id; rng.min = 0; rng.max = SPEEDS.length - 1; rng.step = 1; rng.value = idx;
     var nm = document.createElement('span'); nm.className = 'vn-speed-name';
     wrap.appendChild(lab); wrap.appendChild(rng); wrap.appendChild(nm);
-    function paint() { nm.textContent = SPEEDS[idx].name + (SPEEDS[idx].ms ? ' · ' + (SPEEDS[idx].ms / 1000) + ' s per arrow' : ''); rng.setAttribute('aria-valuetext', SPEEDS[idx].name); }
+    function paint() { if (!SPEEDS[idx]) idx = 2; nm.textContent = SPEEDS[idx].name + (SPEEDS[idx].ms ? ' · ' + (SPEEDS[idx].ms / 1000) + ' s per arrow' : ''); rng.setAttribute('aria-valuetext', SPEEDS[idx].name); }
     rng.addEventListener('input', function () {
       idx = +rng.value; paint();
       try { localStorage.setItem(key, String(idx)); } catch (e) {}

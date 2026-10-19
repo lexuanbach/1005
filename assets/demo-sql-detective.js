@@ -709,9 +709,9 @@ CREATE TABLE incident (
     if (key in lastRead && lastRead[key] !== st.rowsRead) note = '<p class="sd-delta">This exact query read <b>' + lastRead[key] + '</b> rows last time and <b>' + st.rowsRead + '</b> now' + (st.rowsRead < lastRead[key] ? ': the index made it ' + Math.round(lastRead[key] / Math.max(1, st.rowsRead)) + ' times cheaper.' : '.') + '</p>';
     lastRead[key] = st.rowsRead;
     box.hidden = false;
-    box.innerHTML = '<h4>Query plan <span class="sd-sub">a simulation of how a real engine works</span></h4><div class="sd-meter-row"><span>Rows read: <b>' + st.rowsRead + '</b></span><span>Index steps: <b>' + (st.indexSteps || 0) + '</b></span><span>Rows returned: <b>' + (st.rowsReturned === null ? 0 : st.rowsReturned) + '</b></span></div>' +
+    box.innerHTML = '<h4>Query plan <span class="sd-sub">a simulation of how a real engine works</span></h4><div class="sd-meter-row"><span class="sf-c-S"><i></i>Rows read: <b>' + st.rowsRead + '</b></span><span class="sf-c-I"><i></i>Index steps: <b>' + (st.indexSteps || 0) + '</b></span><span class="sf-c-R"><i></i>Rows returned: <b>' + (st.rowsReturned === null ? 0 : st.rowsReturned) + '</b></span></div>' +
       '<div class="sd-bar" role="img" aria-label="' + st.rowsRead + ' of ' + full + ' rows read"><div class="sd-bar-fill' + (usedIndex && st.rowsRead < full / 4 ? ' sd-fast' : '') + '" style="width:' + pct + '%"></div></div>' + note +
-      '<ul class="sd-steps-list">' + steps.map((p) => '<li>' + (p.kind === 'search' ? '<b class="sd-good">Index search</b> on <code>' + esc(p.table) + '</code> using <code>' + esc(p.index) + '</code> (' + esc(p.cond) + '): read ' + p.rowsRead + ' of ' + p.tableRows + ' rows'
+      '<ul class="sd-steps-list">' + steps.map((p) => '<li class="' + (p.kind === 'search' ? 'sf-c-I' : 'sf-c-S') + '">' + (p.kind === 'search' ? '<b class="sd-good">Index search</b> on <code>' + esc(p.table) + '</code> using <code>' + esc(p.index) + '</code> (' + esc(p.cond) + '): read ' + p.rowsRead + ' of ' + p.tableRows + ' rows'
         : '<b class="sd-warn">Full scan</b> of <code>' + esc(p.table) + '</code>: read ' + p.rowsRead + ' rows' + (p.loops > 1 ? ' over ' + p.loops + ' passes' : ' (the whole table is ' + p.tableRows + ')')) + '</li>').join('') + '</ul>';
   }
   function runQuery() {

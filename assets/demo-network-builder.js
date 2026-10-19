@@ -683,9 +683,10 @@
     var boardWrap = el('div', 'nb-board'), pop = el('div', 'nb-pop'); pop.hidden = true; pop.setAttribute('aria-hidden', 'true');
     var playRow = el('div', 'nb-play'); playRow.setAttribute('role', 'group'); playRow.setAttribute('aria-label', 'Animation controls');
     var strip = el('div', 'nb-hdr'); strip.setAttribute('role', 'group'); strip.setAttribute('aria-label', 'Live packet header: protocol, source, destination, TTL');
+    var key = el('div', 'nb-key'); key.setAttribute('role', 'list'); key.setAttribute('aria-label', 'Colour key: one colour per device type');
     var mission = el('section', 'nb-card nb-mission'), goalsBox = el('section', 'nb-card'), inspector = el('section', 'nb-card nb-insp'), tester = el('section', 'nb-card');
     boardWrap.appendChild(board); boardWrap.appendChild(pop);
-    stage.appendChild(toolbar); stage.appendChild(boardWrap); stage.appendChild(playRow); stage.appendChild(strip); stage.appendChild(budget); stage.appendChild(cap); stage.appendChild(explain);
+    stage.appendChild(toolbar); stage.appendChild(boardWrap); stage.appendChild(key); stage.appendChild(playRow); stage.appendChild(strip); stage.appendChild(budget); stage.appendChild(cap); stage.appendChild(explain);
     side.appendChild(mission); side.appendChild(goalsBox); side.appendChild(inspector); side.appendChild(tester);
     main.appendChild(stage); main.appendChild(side);
     root.appendChild(levelBar); root.appendChild(main);
@@ -699,7 +700,7 @@
     function setCap(t) { cap.textContent = t || ''; }
     function stopAnim() {
       gen++; if (S.timer) clearTimeout(S.timer); S.timer = null; S.token = null; run = null; gFx.textContent = '';
-      hidePop(); unbusy(); setHdr(null); updatePlay();
+      hidePop(); unbusy(); clearLink(); setHdr(null); updatePlay();
     }
     function clearFx() { stopAnim(); S.trace = null; explain.className = 'nb-explain'; }
     function pos(id) { var d = D(id); return d ? { x: d.x, y: d.y } : { x: 0, y: 0 }; }
@@ -741,7 +742,8 @@
       toolbar.textContent = '';
       var L = level();
       L.inv.forEach(function (t) {
-        var b = el('button', 'nb-btn nb-add', ''); b.type = 'button';
+        var b = el('button', 'nb-btn nb-add nb-t-' + t, ''); b.type = 'button';
+        b.appendChild(el('i', 'nb-sw'));
         b.appendChild(el('span', '', '+ ' + NBt[t].label));
         if (L.budget && NBt[t].cost) b.appendChild(el('small', '', NBt[t].cost + ' cr'));
         b.addEventListener('click', function () {
@@ -803,13 +805,21 @@
         });
         gLinks.appendChild(g);
       });
+      var perType = {}, runIdx = {};
+      S.net.devices.forEach(function (d) { perType[d.type] = (perType[d.type] || 0) + 1; });
       S.net.devices.forEach(function (d) {
         var t = NBt[d.type];
+        runIdx[d.type] = (runIdx[d.type] || 0) + 1;
         var g = svg('g', { 'class': 'nb-dev nb-t-' + d.type + (S.sel === d.id ? ' sel' : '') + (S.cableFrom === d.id ? ' from' : '') + (d.locked ? ' locked' : ''),
           transform: 'translate(' + d.x + ',' + d.y + ')', 'data-id': d.id, tabindex: 0, role: 'button' });
         g.setAttribute('aria-label', d.name + ', ' + t.label + (summary(d).length ? ', ' + summary(d).join(', ') : ''));
         g.appendChild(svg('rect', { x: -BW / 2, y: -BH / 2, width: BW, height: BH, rx: 11, 'class': 'nb-box' }));
         g.appendChild(svg('text', { x: 0, y: 0, 'class': 'nb-glyph', 'text-anchor': 'middle' }, t.glyph));
+        if (perType[d.type] > 1) { // several devices of this type: a small numbered badge tells them apart (the name stays under the glyph)
+          var bd = svg('g', { 'class': 'nb-badge', transform: 'translate(' + (-BW / 2 + 4) + ',' + (-BH / 2 + 4) + ')' });
+          bd.appendChild(svg('circle', { r: 9.5 })); bd.appendChild(svg('text', { y: 3.6, 'text-anchor': 'middle' }, String(runIdx[d.type])));
+          g.appendChild(bd);
+        }
         g.appendChild(svg('text', { x: 0, y: 21, 'class': 'nb-dname', 'text-anchor': 'middle' }, d.name.length > 15 ? d.name.slice(0, 14) + '…' : d.name));
         summary(d).forEach(function (s, i) { g.appendChild(svg('text', { x: 0, y: BH / 2 + 16 + i * 13, 'class': 'nb-dip', 'text-anchor': 'middle' }, s)); });
         g.addEventListener('pointerdown', function (e) { devDown(e, d); });
@@ -1040,7 +1050,7 @@
     var gen = 0, run = null;
     var SPEEDS = [['Very slow', 2200], ['Slow', 1400], ['Normal', 800], ['Fast', 400], ['Very fast', 150], ['Instant', 0]];
     var SPEED_KEY = 'co1005-nb-speed', spIdx = 2;
-    try { var sv = localStorage.getItem(SPEED_KEY); if (sv !== null && +sv >= 0 && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
+    try { var sv = localStorage.getItem(SPEED_KEY); if (typeof sv === 'string' && /^[0-9]{1,2}$/.test(sv) && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
     function curMs() { return SPEEDS[spIdx][1]; }
 
     var spd = el('div', 'nb-speed');
@@ -1054,28 +1064,59 @@
     bPause.setAttribute('aria-live', 'off'); bStep.title = 'Advance one hop (while paused)'; bSkip.title = 'Jump to the end of this run';
     playRow.appendChild(spd);
 
-    var cells = {};
-    [['pk', 'Packet'], ['pr', 'Protocol'], ['src', 'Source'], ['dst', 'Destination'], ['ttl', 'TTL']].forEach(function (c) {
-      var w = el('div', 'nb-hc nb-hc-' + c[0]); w.appendChild(el('span', 'nb-hl', c[1])); var v = el('b', 'nb-hv', '—'); w.appendChild(v); strip.appendChild(w);
-      cells[c[0]] = { box: w, val: v };
+    /* live header strip. Colours follow the layer a field belongs to: IP address + TTL = network layer, protocol + port = transport layer. */
+    var parts = {}, colons = {};
+    function mkPart(host, id, layer, tip) { var sp = el('span', 'nb-part' + (layer ? ' nb-L-' + layer : ''), '—'); if (tip) sp.title = tip; host.appendChild(sp); parts[id] = sp; return sp; }
+    function mkCell(cls, label) { var w = el('div', 'nb-hc nb-hc-' + cls); w.appendChild(el('span', 'nb-hl', label)); var v = el('b', 'nb-hv'); w.appendChild(v); strip.appendChild(w); return v; }
+    mkPart(mkCell('pk', 'Packet'), 'pk', '');
+    mkPart(mkCell('pr', 'Protocol'), 'pr', 'tr', 'Transport-layer protocol (layer 4)');
+    [['src', 'Source IP : port', 'sip', 'spt'], ['dst', 'Destination IP : port', 'dip', 'dpt']].forEach(function (c) {
+      var v = mkCell(c[0], c[1]);
+      mkPart(v, c[2], 'ip', 'IP address (network layer, layer 3)');
+      colons[c[0]] = v.appendChild(el('span', 'nb-colon', ':'));
+      mkPart(v, c[3], 'tr', 'Port number (transport layer, layer 4)');
     });
-    function hdrText(h) {
-      if (!h) return { pk: '', pr: '—', src: '—', dst: '—', ttl: '—' };
-      if (h.arp) return { pk: 'who has ' + h.ask + '?', pr: 'ARP', src: '—', dst: 'broadcast', ttl: '—' };
-      return { pk: '', pr: h.proto, src: h.src + (h.sport ? ':' + h.sport : ''), dst: h.dst + (h.dport ? ':' + h.dport : ''), ttl: String(h.ttl) };
+    mkPart(mkCell('ttl', 'TTL'), 'ttl', 'ip', 'Time to live: hop budget in the IP header (network layer, layer 3)');
+    var hkey = el('div', 'nb-hkey');
+    [['ip', 'IP header (layer 3): addresses, TTL'], ['tr', 'TCP/UDP header (layer 4): protocol, ports']].forEach(function (k) {
+      var sp = el('span', 'nb-L-' + k[0]); sp.appendChild(el('i', 'nb-sw')); sp.appendChild(document.createTextNode(k[1])); hkey.appendChild(sp);
+    });
+    strip.appendChild(hkey);
+    function hdrFields(h) {
+      if (!h) return { pk: '', pr: '—', sip: '—', spt: '', dip: '—', dpt: '', ttl: '—' };
+      if (h.arp) return { pk: 'who has ' + h.ask + '?', pr: 'ARP', sip: '—', spt: '', dip: 'broadcast', dpt: '', ttl: '—', arp: true };
+      return { pk: '', pr: h.proto, sip: h.src, spt: h.sport ? String(h.sport) : '', dip: h.dst, dpt: h.dport ? String(h.dport) : '', ttl: String(h.ttl) };
     }
     function setHdr(h, label) {
-      var t = hdrText(h); t.pk = label || t.pk || '—';
-      Object.keys(cells).forEach(function (k) {
-        var c = cells[k], changed = c.val.textContent !== t[k] && h && c.val.textContent !== '—' && k !== 'pk';
-        c.val.textContent = t[k];
-        c.box.classList.remove('chg'); if (changed) { void c.box.offsetWidth; c.box.classList.add('chg'); }
+      var t = hdrFields(h); t.pk = label || t.pk || '—';
+      Object.keys(parts).forEach(function (k) {
+        var sp = parts[k], changed = h && k !== 'pk' && sp.textContent !== t[k] && sp.textContent !== '—' && sp.textContent !== '';
+        sp.textContent = t[k];
+        sp.classList.remove('chg'); if (changed) { void sp.offsetWidth; sp.classList.add('chg'); }
       });
+      parts.pr.classList.remove('nb-L-ip', 'nb-L-tr');
+      if (h && !t.arp) parts.pr.classList.add(t.pr === 'ICMP' ? 'nb-L-ip' : 'nb-L-tr'); // ICMP rides directly on IP (layer 3); TCP/UDP are layer 4
+      colons.src.hidden = !t.spt; colons.dst.hidden = !t.dpt;
       if (h) S.hdr = h; else S.hdr = null;
     }
     setHdr(null);
+    (function buildKey() { // colour key: one swatch per device type
+      Object.keys(NBt).forEach(function (t) {
+        var sp = el('span', 'nb-t-' + t); sp.setAttribute('role', 'listitem'); sp.appendChild(el('i', 'nb-sw')); sp.appendChild(document.createTextNode(NBt[t].label)); key.appendChild(sp);
+      });
+      var wl = el('span', 'nb-key-note'); wl.setAttribute('role', 'listitem'); wl.appendChild(el('i', 'nb-dash')); wl.appendChild(document.createTextNode('dashed = Wi-Fi')); key.appendChild(wl);
+    })();
 
     function devG(id) { return gDevs.querySelector('[data-id="' + id + '"]'); }
+    function typeOf(id) { var d = D(id); return d ? d.type : ''; }
+    /* the cable a packet is crossing lights up in the colour of the device that sent it; all other cables stay neutral grey */
+    function clearLink() { if (S.lit) { S.lit.g.classList.remove('act', 'nb-t-' + S.lit.type); S.lit = null; } }
+    function lightLink(from, to) {
+      clearLink();
+      var l = S.net.links.filter(function (x) { return (x.a === from && x.b === to) || (x.a === to && x.b === from); })[0];
+      var g = l && gLinks.querySelector('[data-link="' + l.id + '"]'), ty = typeOf(from);
+      if (g && ty) { g.classList.add('act', 'nb-t-' + ty); S.lit = { g: g, type: ty }; }
+    }
     function unbusy() { Array.prototype.forEach.call(gDevs.querySelectorAll('.busy'), function (g) { g.classList.remove('busy'); }); }
     function busy(id) { unbusy(); var g = devG(id); if (g) g.classList.add('busy'); }
     function hidePop() { pop.hidden = true; pop.textContent = ''; }
@@ -1083,8 +1124,10 @@
     function showPop(id, item) {
       var d = D(id); if (!d) return hidePop();
       pop.textContent = '';
-      pop.className = 'nb-pop k-' + item.kind + (item.kind === 'fw' ? (item.allow ? ' ok' : ' bad') : '');
-      pop.appendChild(el('b', 'nb-pop-t', 'Inside ' + d.name + ' · ' + (KIND_TITLE[item.kind] || '')));
+      pop.className = 'nb-pop nb-t-' + d.type + ' k-' + item.kind;
+      var ttl = el('b', 'nb-pop-t', 'Inside ' + d.name + ' · ' + (KIND_TITLE[item.kind] || ''));
+      if (item.kind === 'fw') ttl.appendChild(el('span', 'nb-verdict ' + (item.allow ? 'ok' : 'bad'), item.allow ? 'ALLOW' : 'DROP'));
+      pop.appendChild(ttl);
       pop.appendChild(el('span', 'nb-pop-x', item.text));
       pop.hidden = false;
       var bw = boardWrap.clientWidth, bh = boardWrap.clientHeight, x = d.x / W * bw, half = pop.offsetWidth / 2;
@@ -1119,7 +1162,7 @@
     }
     function putTok(id, phase, label, instant) {
       var p = pos(id), t = tok();
-      t.setAttribute('class', 'nb-token ph-' + phase);
+      t.setAttribute('class', 'nb-token nb-t-' + typeOf(id));
       t.lastChild.textContent = label || '';
       if (instant) t.style.transition = 'none';
       t.style.transform = 'translate(' + p.x + 'px,' + p.y + 'px)';
@@ -1167,26 +1210,27 @@
     function runAct(a, done) {
       var ms = curMs(), m = a.m, fast = reduce;
       if (a.t === 'go') {
-        hidePop(); unbusy();
+        hidePop(); unbusy(); lightLink(m.from, m.to);
         setHdr(NB.headerAt(a, S.hdr), m.label);
         var t = tok(), A = pos(m.from), B = pos(m.to);
-        t.setAttribute('class', 'nb-token ph-' + m.phase); t.lastChild.textContent = m.label || '';
+        t.setAttribute('class', 'nb-token nb-t-' + typeOf(m.from)); t.lastChild.textContent = m.label || '';
         if (S.tokAt !== m.from || !t.style.transform) { t.style.transition = 'none'; t.style.transform = 'translate(' + A.x + 'px,' + A.y + 'px)'; void t.getBoundingClientRect(); }
         if (fast) { t.style.transition = 'none'; t.style.transform = 'translate(' + B.x + 'px,' + B.y + 'px)'; S.tokAt = m.to; wait(Math.min(ms, 350), done); return; }
         t.style.transition = 'transform ' + ms + 'ms ease-in-out';
         t.style.transform = 'translate(' + B.x + 'px,' + B.y + 'px)'; S.tokAt = m.to;
         wait(ms + 30, done);
       } else {
+        if (a.dev === m.from) clearLink();
         busy(a.dev); showPop(a.dev, a.item);
         setCap((D(a.dev) ? D(a.dev).name + ': ' : '') + a.item.text);
         setHdr(NB.headerAt(a, S.hdr), m.label);
-        var tk = tok(); tk.setAttribute('class', 'nb-token ph-' + m.phase);
+        var tk = tok(); tk.setAttribute('class', 'nb-token nb-t-' + typeOf(m.from));
         wait(fast ? Math.min(ms * 1.1, 700) : Math.round(ms * 1.15) + 120, done);
       }
     }
     function finish() {
       var r = run; if (!r) return; var tr = r.tr;
-      r.done = true; r.busy = false; hidePop(); unbusy();
+      r.done = true; r.busy = false; hidePop(); unbusy(); clearLink();
       for (var k = 0; k < r.lis.length; k++) r.lis[k].classList.remove('nb-later');
       r.head.classList.remove('nb-later'); r.why.classList.remove('nb-later');
       explain.className = 'nb-explain ' + (tr.ok ? 'ok' : 'bad'); r.h.textContent = tr.ok ? 'Success' : 'Failed';

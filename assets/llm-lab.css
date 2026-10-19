@@ -40,17 +40,18 @@
   overflow-wrap: anywhere;
 }
 .llm-prompt { color: var(--ink-soft); }
-.llm-gen { color: var(--accent-ink); font-weight: 600; }
+.llm-gen { color: color-mix(in srgb, var(--cmp-7) 62%, var(--ink)); font-weight: 700; } /* sampled tokens: same orange as the diagram */
 .llm-caret { color: var(--accent); animation: llm-blink 1s steps(2, start) infinite; }
 @keyframes llm-blink { to { visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { .llm-caret { animation: none; } }
 .llm-panel .sim-status { margin: 0.6rem 0; }
 .llm-table td, .llm-table th { white-space: nowrap; }
-.llm-table tr.llm-chosen td { background: color-mix(in srgb, var(--accent) 12%, transparent); font-weight: 600; }
+.llm-table tr.llm-chosen td { background: color-mix(in srgb, var(--cmp-7) 16%, transparent); font-weight: 700; }
 .llm-table tr.llm-dropped td { opacity: 0.45; }
 .llm-bar { display: inline-block; width: 4.5rem; height: 0.55rem; vertical-align: middle; background: var(--line); border-radius: 4px; overflow: hidden; }
-.llm-bar span { display: block; height: 100%; background: color-mix(in srgb, var(--ink-soft) 70%, transparent); }
-.llm-bar2 span { background: var(--accent); }
+.llm-bar span { display: block; height: 100%; background: color-mix(in srgb, var(--cmp-5) 45%, transparent); }
+.llm-bar2 span { background: var(--cmp-5); }
+.llm-table tr.llm-chosen .llm-bar2 span { background: var(--cmp-7); }
 /* sandbox */
 .llm-defs { border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.9rem 0.8rem; margin: 0 0 0.6rem; display: grid; gap: 0.5rem; }
 .llm-defs legend { padding: 0 0.3rem; }
@@ -59,9 +60,11 @@
 .llm-chk small { display: block; color: var(--ink-soft); font-size: 0.78rem; }
 .llm-chans { display: grid; gap: 0.6rem; margin: 0.8rem 0; }
 .llm-chan { border: 1px solid var(--line); border-left-width: 5px; border-radius: 10px; padding: 0.55rem 0.8rem 0.7rem; background: var(--surface); }
-.llm-trusted { border-left-color: var(--green); }
-.llm-untrusted { border-left-color: var(--red); }
-.llm-chan-k { display: block; font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 0.3rem; }
+/* the three prompt layers keep the diagram's colours: system (cyan), user message (blue), untrusted text (orange) */
+.llm-chan[class*="lf-L-"] { border-left-color: var(--c); background: color-mix(in srgb, var(--c) 6%, var(--surface)); }
+.llm-chan-k { display: block; font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); margin-bottom: 0.3rem; }
+.llm-chan-k::before { content: ""; display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.4rem; border-radius: 3px; background: var(--c); vertical-align: -0.05em; }
+.llm-flat { border-left: 5px solid var(--cmp-7); } /* what the model receives = the untrusted layer, flattened */
 .llm-chan-k em { text-transform: none; letter-spacing: 0; font-style: normal; font-weight: 500; }
 .llm-pre { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
 .llm-view { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 0.6rem 0.8rem; min-height: 4rem; }

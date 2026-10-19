@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="stylesheet" href="../assets/ai-flow.css">
 <link rel="stylesheet" href="../assets/demo-neural-playground.css">
+<link rel="stylesheet" href="../assets/app-fullscreen.css">
 </head>
 <body class="part2">
 
@@ -91,8 +92,9 @@
         <div class="np-side">
           <div class="np-card">
             <h3>The brain <span class="np-sub" id="np-weights"></span></h3>
-            <svg id="np-net" class="np-net" viewBox="0 0 420 260" role="img" aria-label="Network diagram"></svg>
-            <p class="np-cap">Line colour: <span class="pos">teal = positive weight</span>, <span class="neg">rose = negative</span>; thickness = strength. Move your pointer over the board and the circles light up with what each neuron "thinks" of that spot.</p>
+            <svg id="np-net" class="np-net" viewBox="0 0 420 290" role="img" aria-label="Network diagram"></svg>
+            <div class="np-netleg" id="np-netleg" aria-label="Legend of the network diagram"></div>
+            <p class="np-cap">Each layer has its own colour (legend above). Move your pointer over the board and the circles light up with what each neuron "thinks" of that spot: a darker fill is a stronger signal, a dashed outline a negative one.</p>
           </div>
           <div class="np-card np-insp" id="np-insp">
             <h3>Inspect one sample <span class="np-sub" id="ins-sub">choose “Inspect a dot”, then click a dot</span></h3>
@@ -178,9 +180,9 @@
             <dt>Filled dots versus hollow dots</dt>
             <dd><strong>Training</strong> dots are the only ones the weights are adjusted on. <strong>Test</strong> dots are held back and only used to check. If the brain does well on training dots but badly on hollow ones, it has memorised instead of learned (overfitting).</dd>
             <dt>The network diagram</dt>
-            <dd>Inputs <code>x</code>, <code>y</code> go in on the left; each neuron multiplies its inputs by weights, adds them up, and passes the sum through an activation function (11.9). The lines are the weights, which are what training changes. With no hidden layer the brain can only draw straight lines; hidden layers let it bend them.</dd>
+            <dd>Inputs <code>x</code>, <code>y</code> go in on the left; each neuron multiplies its inputs by weights, adds them up, and passes the sum through an activation function (11.9). The lines are the weights, which are what training changes. Each layer has its own colour (see the legend under the diagram); a thicker line is a bigger weight and a dashed line is a negative one. With no hidden layer the brain can only draw straight lines; hidden layers let it bend them.</dd>
             <dt>Inspect a dot</dt>
-            <dd>Training in slow motion for <em>one</em> dot. <strong>Forward</strong>: the dot’s two numbers flow right; every neuron adds up (input × weight) + bias and squashes the sum. <strong>Loss</strong>: the output is compared with the dot’s true colour (cross-entropy). <strong>Backward</strong>: the error flows left; each weight gets a <em>gradient</em> (its share of the blame; thicker, warmer line = bigger). <strong>Update</strong>: each weight moves a little against its gradient, by the learning rate. Real training averages 32 dots per step before moving.</dd>
+            <dd>Training in slow motion for <em>one</em> dot. <strong>Forward</strong>: the dot’s two numbers flow right; every neuron adds up (input × weight) + bias and squashes the sum. <strong>Loss</strong>: the output is compared with the dot’s true colour (cross-entropy). <strong>Backward</strong>: the error flows left; each weight gets a <em>gradient</em> (its share of the blame; thicker line = bigger, dashed = negative, shown in the gradient colour). <strong>Update</strong>: each weight moves a little against its gradient, by the learning rate. Real training averages 32 dots per step before moving.</dd>
             <dt>The loss curve</dt>
             <dd>The error that training is trying to push down (cross-entropy: a number that is large when the brain is confidently wrong). Each step moves the weights downhill, exactly the loop of 11.7 but with dozens of weights instead of two. If the learning rate is too large, the steps overshoot and the loss climbs instead.</dd>
             <dt>Predict (frozen)</dt>
@@ -206,5 +208,6 @@
 <script src="../assets/demo-neural-playground.js"></script>
 <script src="../assets/demo-neural-playground-ui.js"></script>
 <script src="../assets/course.js"></script>
+<script src="../assets/app-fullscreen.js" data-root=".np-stage"></script>
 </body>
 </html>

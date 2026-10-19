@@ -177,9 +177,12 @@
     return s;
   }
   /* ───────────── pipeline view (Data → Model → Prediction → Loss → Optimizer → Model) ───────────── */
+  var NAMES = { data: 'Data', model: 'Model', pred: 'Prediction', loss: 'Loss', opt: 'Optimizer' };
+  function kc(k, t) { return '<span class="af-k af-c-' + k + '">' + (t || NAMES[k]) + '</span>'; }   // component name chip: colour + text
+  function hop(a, b) { return kc(a) + ' → ' + kc(b); }
   var MODE_NARR = {
-    train: '<strong>Training loop.</strong> Press a step button: the data goes through the model, the prediction is compared with the right answer, and the optimizer sends new parameters back into the model.',
-    infer: '<strong>Inference.</strong> The parameters are <strong>frozen</strong>: a new input goes in, a prediction comes out. There are no right answers, so Loss and Optimizer are greyed out and nothing is learned.'
+    train: '<strong>Training loop.</strong> Press a step button: the ' + kc('data') + ' goes through the ' + kc('model') + ', the ' + kc('pred') + ' is compared with the right answer in the ' + kc('loss') + ', and the ' + kc('opt') + ' sends new parameters back into the model.',
+    infer: '<strong>Inference.</strong> The parameters are <strong>frozen</strong>: a new input goes in, a ' + kc('pred') + ' comes out. There are no right answers, so ' + kc('loss') + ' and ' + kc('opt') + ' are greyed out (dashed) and nothing is learned.'
   };
   var SPEEDERS = [];   // both panels share one speed
   function buildFlow(parent, o) {
@@ -290,6 +293,11 @@
     svg1.setAttribute('class', 'ai-svg');
     chartWrap.appendChild(svg1);
     p1.appendChild(chartWrap);
+    p1.appendChild(el('div', 'ai-legend',
+      '<span><svg viewBox="0 0 14 14" class="ai-lg"><circle class="ai-pt" cx="7" cy="7" r="5"/></svg>' + kc('data', 'Data') + ' the examples (x, y)</span>' +
+      '<span><svg viewBox="0 0 14 14" class="ai-lg"><line class="ai-fit" x1="1" y1="11" x2="13" y2="3"/></svg>' + kc('model', 'Model') + ' the line F(x) = a·x + b</span>' +
+      '<span><svg viewBox="0 0 14 14" class="ai-lg"><line class="ai-resid" x1="7" y1="1" x2="7" y2="13"/></svg>error y − ŷ, the pieces the ' + kc('loss', 'Loss') + ' adds up</span>' +
+      '<span><svg viewBox="0 0 14 14" class="ai-lg"><circle class="ai-probe" cx="7" cy="7" r="5"/></svg>' + kc('pred', 'Prediction') + ' ŷ for a new x</span>'));
 
     var sliders = el('div', 'ai-sliders');
     function sliderField(id, label) {
@@ -594,19 +602,19 @@
       V1.opt = ['η = ' + etaText(), 'no gradient yet', '']; V1.model = modelLines1(pre); V1.pred = predLines1(pre); V1.loss = lossLines1(pre);
       var evs = [
         flow1.mk('Data → Model', [{ key: 'data>model', label: 'x ×' + N }],
-          before + '<strong>① Data → Model.</strong> The ' + N + ' inputs x (' + ds.xlab + ') go into the model <span class="mono">F(x) = a·x + b</span>, which currently has a = ' + fmt(pre.a, 3) + ', b = ' + fmt(pre.b, 2) + '.',
+          before + '<strong>① ' + hop('data', 'model') + '.</strong> The ' + N + ' inputs x (' + ds.xlab + ') go into the model <span class="mono">F(x) = a·x + b</span>, which currently has a = ' + fmt(pre.a, 3) + ', b = ' + fmt(pre.b, 2) + '.',
           function () { V1.model = modelLines1(pre); paintFlow1('train'); }),
         flow1.mk('Model → Prediction', [{ key: 'model>pred', label: 'ŷ ×' + N }],
-          '<strong>② Model → Prediction.</strong> Each x becomes a guess ŷ = a·x + b. For the first example: ' + ds.data[0][0] + ' → ' + fmt(predict(pre, ds.data[0][0]), 1) + '.',
+          '<strong>② ' + hop('model', 'pred') + '.</strong> Each x becomes a guess ŷ = a·x + b. For the first example: ' + ds.data[0][0] + ' → ' + fmt(predict(pre, ds.data[0][0]), 1) + '.',
           function () { V1.pred = predLines1(pre); paintFlow1('train'); }),
         flow1.mk('Prediction and answers → Loss', [{ key: 'pred>loss', label: 'ŷ' }, { key: 'data>loss', label: 'y' }],
-          '<strong>③ Prediction + right answers → Loss.</strong> The guesses ŷ meet the true prices y. Loss = sum of (y − ŷ)² = <strong class="mono">' + fmt(sse(ds.data, pre), 1) + '</strong> (best possible ' + fmt(best.sse, 1) + ').',
+          '<strong>③ ' + kc('pred') + ' + right answers ' + kc('data', 'y') + ' → ' + kc('loss') + '.</strong> The guesses ŷ meet the true prices y. Loss = sum of (y − ŷ)² = <strong class="mono">' + fmt(sse(ds.data, pre), 1) + '</strong> (best possible ' + fmt(best.sse, 1) + ').',
           function () { V1.loss = lossLines1(pre); paintFlow1('train'); }),
         flow1.mk('Loss → Optimizer', [{ key: 'loss>opt', label: 'error' }],
-          '<strong>④ Loss → Optimizer.</strong> The optimizer asks: if I nudge a or b, how does the loss change? That slope is the gradient: ∂L/∂a = ' + fmt(g.da, 2) + ', ∂L/∂b = ' + fmt(g.db, 2) + '.',
+          '<strong>④ ' + hop('loss', 'opt') + '.</strong> The optimizer asks: if I nudge a or b, how does the loss change? That slope is the gradient: ∂L/∂a = ' + fmt(g.da, 2) + ', ∂L/∂b = ' + fmt(g.db, 2) + '.',
           function () { V1.opt = ['η = ' + etaText(), '∂L/∂a = ' + fmt(g.da, 1), '∂L/∂b = ' + fmt(g.db, 1)]; paintFlow1('train'); }),
         flow1.mk('Optimizer → Model', [{ key: 'opt>model', label: 'new a, b' }],
-          '<strong>⑤ Optimizer → Model.</strong> Move against the slope: a ← ' + fmt(pre.a, 4) + ' − η·' + fmt(g.da, 2) + ' = <strong class="mono">' + fmt(post.a, 4) + '</strong>, b → <strong class="mono">' + fmt(post.b, 3) + '</strong>. The next step starts from these new parameters.',
+          '<strong>⑤ ' + hop('opt', 'model') + '.</strong> Move against the slope: a ← ' + fmt(pre.a, 4) + ' − η·' + fmt(g.da, 2) + ' = <strong class="mono">' + fmt(post.a, 4) + '</strong>, b → <strong class="mono">' + fmt(post.b, 3) + '</strong>. The next step starts from these new parameters.',
           function () { V1.model = modelLines1(post); commit(added.length); report(); resetViewKeep(); renderAll(); })
       ];
       flow1.run(evs, 'train');
@@ -645,9 +653,9 @@
       VI1.data = ['x = ' + fmt(x, 0) + ' ' + ds.xs, 'no y known', '(a new house)']; VI1.model = modelLines1(snap); VI1.pred = ['ŷ = F(x)', 'waiting…', ''];
       var evs = [
         flow1.mk('New input → Model', [{ key: 'data>model', label: 'x=' + fmt(x, 0) }],
-          '<strong>Inference ① New input → Model.</strong> A house the model has never seen (x = ' + fmt(x, 0) + ' ' + ds.xs + ') goes into F with the <strong>frozen</strong> parameters a = ' + fmt(snap.a, 3) + ', b = ' + fmt(snap.b, 2) + '. No right answer comes with it.', null),
+          '<strong>Inference ① ' + kc('data', 'New input') + ' → ' + kc('model') + '.</strong> A house the model has never seen (x = ' + fmt(x, 0) + ' ' + ds.xs + ') goes into F with the <strong>frozen</strong> parameters a = ' + fmt(snap.a, 3) + ', b = ' + fmt(snap.b, 2) + '. No right answer comes with it.', null),
         flow1.mk('Model → Prediction', [{ key: 'model>pred', label: 'ŷ' }],
-          '<strong>Inference ② Model → Prediction.</strong> ŷ = ' + fmt(snap.a, 3) + ' × ' + fmt(x, 0) + ' ' + (snap.b < 0 ? '−' : '+') + ' ' + fmt(Math.abs(snap.b), 2) + ' = ' + fmt(yhat, 1) + ' ' + ds.unit + '. Loss and Optimizer stay grey: nothing is compared and nothing is learned.',
+          '<strong>Inference ② ' + hop('model', 'pred') + '.</strong> ŷ = ' + fmt(snap.a, 3) + ' × ' + fmt(x, 0) + ' ' + (snap.b < 0 ? '−' : '+') + ' ' + fmt(Math.abs(snap.b), 2) + ' = ' + fmt(yhat, 1) + ' ' + ds.unit + '. ' + kc('loss') + ' and ' + kc('opt') + ' stay grey: nothing is compared and nothing is learned.',
           function () {
             VI1.pred = ['ŷ = F(x)', fmt(yhat, 1), ds.unit]; paintFlow1('infer');
             shownX = x;
@@ -715,7 +723,9 @@
       '<span><svg viewBox="0 0 14 14" class="ai-lg"><path class="ai-spam" d="M7 1.5 L13 12 L1 12 Z"/></svg> spam</span>' +
       '<span><svg viewBox="0 0 14 14" class="ai-lg"><path class="ai-news" d="M7 1 L13 7 L7 13 L1 7 Z"/></svg> club newsletter (legit), used for training</span>' +
       '<span><svg viewBox="0 0 14 14" class="ai-lg"><path class="ai-news ai-hollow" d="M7 1 L13 7 L7 13 L1 7 Z"/></svg> club newsletter held out for testing</span>' +
-      '<span><svg viewBox="0 0 14 14" class="ai-lg"><path class="ai-spam ai-ring" d="M7 1.5 L13 12 L1 12 Z"/></svg> spam added by the biased collection</span>'));
+      '<span><svg viewBox="0 0 14 14" class="ai-lg"><path class="ai-spam ai-ring" d="M7 1.5 L13 12 L1 12 Z"/></svg> spam added by the biased collection</span>' +
+      '<span><svg viewBox="0 0 14 14" class="ai-lg"><line class="ai-boundary" x1="1" y1="11" x2="13" y2="3"/></svg>' + kc('model', 'Model') + ' decision boundary</span>' +
+      '<span><svg viewBox="0 0 14 14" class="ai-lg"><circle class="ai-probe" cx="7" cy="7" r="5"/></svg>' + kc('pred', 'Prediction') + ' for a new email</span>'));
 
     var stat2 = el('div', 'ai-readout');
     stat2.setAttribute('aria-live', 'polite');
@@ -807,7 +817,7 @@
       }
       data.forEach(function (p) { g += shape(p, p.tag === 'news' ? 'news' : p.y === 1 ? 'spam' : 'ham', true); });
       sets.test.forEach(function (p) { g += shape(p, 'news', false); });
-      if (probe) g += '<circle class="ai-probe" cx="' + X(probe.x1) + '" cy="' + Y(probe.x2) + '" r="8"/><text class="ai-tick" x="' + (X(probe.x1) + 11) + '" y="' + (Y(probe.x2) - 8) + '">new</text>';
+      if (probe) g += '<circle class="ai-probe-halo" cx="' + X(probe.x1) + '" cy="' + Y(probe.x2) + '" r="12.5"/><circle class="ai-probe" cx="' + X(probe.x1) + '" cy="' + Y(probe.x2) + '" r="8"/><text class="ai-tick" x="' + (X(probe.x1) + 14) + '" y="' + (Y(probe.x2) - 10) + '">new</text>';
       svg2.innerHTML = g;
       var accT = clfAccuracy(data, model), accN = clfAccuracy(sets.test, model);
       svg2.setAttribute('aria-label', 'Scatter plot of emails by links and capital words. ' + (trained2 ? 'Decision boundary after ' + model.step + ' steps; training accuracy ' + Math.round(accT * 100) + ' percent.' : 'Not trained yet.'));
@@ -841,19 +851,19 @@
       }
       var evs = [
         flow2.mk('Data → Model', [{ key: 'data>model', label: '(x₁,x₂) ×' + N }],
-          before + '<strong>① Data → Model.</strong> The ' + N + ' emails’ features (links x₁, CAPS words x₂) go into the model, which has weights w₁ = ' + fmt(pre.w1, 2) + ', w₂ = ' + fmt(pre.w2, 2) + ' and bias b = ' + fmt(pre.b, 2) + '.',
+          before + '<strong>① ' + hop('data', 'model') + '.</strong> The ' + N + ' emails’ features (links x₁, CAPS words x₂) go into the model, which has weights w₁ = ' + fmt(pre.w1, 2) + ', w₂ = ' + fmt(pre.w2, 2) + ' and bias b = ' + fmt(pre.b, 2) + '.',
           function () { V2.model = modelLines2(pre); paintFlow2('train'); }),
         flow2.mk('Model → Prediction', [{ key: 'model>pred', label: 'P(spam) ×' + N }],
-          '<strong>② Model → Prediction.</strong> Each email gets a score w₁x₁ + w₂x₂ + b, squashed by σ into a probability of spam.',
+          '<strong>② ' + hop('model', 'pred') + '.</strong> Each email gets a score w₁x₁ + w₂x₂ + b, squashed by σ into a probability of spam.',
           function () { V2.pred = predLines2(pre, data); paintFlow2('train'); }),
         flow2.mk('Prediction and labels → Loss', [{ key: 'pred>loss', label: 'P' }, { key: 'data>loss', label: 'label' }],
-          '<strong>③ Prediction + labels → Loss.</strong> Cross-entropy is large when the model is confidently wrong. Mean loss = <strong class="mono">' + fmt(clfLoss(data, pre), 4) + '</strong>.',
+          '<strong>③ ' + kc('pred') + ' + labels ' + kc('data', 'y') + ' → ' + kc('loss') + '.</strong> Cross-entropy is large when the model is confidently wrong. Mean loss = <strong class="mono">' + fmt(clfLoss(data, pre), 4) + '</strong>.',
           function () { V2.loss = lossLines2(pre, data); paintFlow2('train'); }),
         flow2.mk('Loss → Optimizer', [{ key: 'loss>opt', label: 'error' }],
-          '<strong>④ Loss → Optimizer.</strong> The gradient says how the loss changes with each weight: ∂L/∂w₁ = ' + fmt(g1, 3) + ', ∂L/∂w₂ = ' + fmt(g2, 3) + ', ∂L/∂b = ' + fmt(gb, 3) + '.',
+          '<strong>④ ' + hop('loss', 'opt') + '.</strong> The gradient says how the loss changes with each weight: ∂L/∂w₁ = ' + fmt(g1, 3) + ', ∂L/∂w₂ = ' + fmt(g2, 3) + ', ∂L/∂b = ' + fmt(gb, 3) + '.',
           function () { V2.opt = ['η=' + etaText2() + ' ∂w₁=' + fmt(g1, 2), '∂L/∂w₂ = ' + fmt(g2, 2), '∂L/∂b = ' + fmt(gb, 2)]; paintFlow2('train'); }),
         flow2.mk('Optimizer → Model', [{ key: 'opt>model', label: 'new w, b' }],
-          '<strong>⑤ Optimizer → Model.</strong> Each weight moves against its gradient: w₁ → ' + fmt(post.w1, 3) + ', w₂ → ' + fmt(post.w2, 3) + ', b → ' + fmt(post.b, 3) + '. The decision boundary moves with them.',
+          '<strong>⑤ ' + hop('opt', 'model') + '.</strong> Each weight moves against its gradient: w₁ → ' + fmt(post.w1, 3) + ', w₂ → ' + fmt(post.w2, 3) + ', b → ' + fmt(post.b, 3) + '. The decision boundary moves with them.',
           function () { V2.model = modelLines2(post); VI2.model = modelLines2(post); finish(); paintFlow2('train'); })
       ];
       flow2.run(evs, 'train');
@@ -872,9 +882,9 @@
       VI2.data = ['new email', fmt(probe.x1, 1) + ' links', fmt(probe.x2, 1) + ' CAPS']; VI2.model = modelLines2(m); VI2.pred = ['P(spam)', 'waiting…', ''];
       var evs = [
         flow2.mk('New email → Model', [{ key: 'data>model', label: '(' + fmt(probe.x1, 1) + ', ' + fmt(probe.x2, 1) + ')' }],
-          '<strong>Inference ① New email → Model.</strong> The two features of an email the model has never seen go in. The weights are <strong>frozen</strong>; no label comes with it.', null),
+          '<strong>Inference ① ' + kc('data', 'New email') + ' → ' + kc('model') + '.</strong> The two features of an email the model has never seen go in. The weights are <strong>frozen</strong>; no label comes with it.', null),
         flow2.mk('Model → Prediction', [{ key: 'model>pred', label: fmt(p * 100, 0) + '%' }],
-          '<strong>Inference ② Model → Prediction.</strong> score → σ → P(spam) = ' + Math.round(p * 100) + '%, so the verdict is ' + (p >= 0.5 ? 'SPAM' : 'not spam') + '. Loss and Optimizer stay grey: nothing is compared, nothing is learned.',
+          '<strong>Inference ② ' + hop('model', 'pred') + '.</strong> score → σ → P(spam) = ' + Math.round(p * 100) + '%, so the verdict is ' + (p >= 0.5 ? 'SPAM' : 'not spam') + '. ' + kc('loss') + ' and ' + kc('opt') + ' stay grey: nothing is compared, nothing is learned.',
           function () { VI2.pred = ['P(spam)', Math.round(p * 100) + '%', p >= 0.5 ? 'SPAM' : 'not spam']; paintFlow2('infer'); probeOut.innerHTML = text(); renderClf(); })
       ];
       flow2.run(evs, 'infer');

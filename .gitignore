@@ -4,3 +4,6 @@ Lecture Slides/*.pptx
 261-midterm/
 261-matrix/
 261-exam/
+
+# private instructor material (revision slides with answers): never published
+lecture*-slides/

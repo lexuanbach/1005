@@ -11,6 +11,17 @@
   --accent-ink: #1A41AC;
   --teal: #0E8A7B;
   --teal-ink: #0B6E63;
+  --cmp-1: #2F6FDE;
+  --cmp-2: #0E8A7B;
+  --cmp-3: #C27803;
+  --cmp-4: #D6456B;
+  --cmp-5: #7A4FD6;
+  --cmp-6: #3C9A3F;
+  --cmp-7: #D9622B;
+  --cmp-8: #1291B8;
+  --cmp-9: #B83FA8;
+  --cmp-10: #5B6B86;
+  --cmp-11: #A0522D;
   --amber: #B45309;
   --red: #C23A3A;
   --green: #1B7F3B;
@@ -92,6 +103,17 @@
     --accent-ink: #A3BDFF;
     --teal: #45C4B0;
     --teal-ink: #6ED6C5;
+  --cmp-1: #7DA2FF;
+  --cmp-2: #45C4B0;
+  --cmp-3: #F2B04C;
+  --cmp-4: #FF7C9C;
+  --cmp-5: #B391FF;
+  --cmp-6: #7FD67F;
+  --cmp-7: #FF9A66;
+  --cmp-8: #5CCBEA;
+  --cmp-9: #E27FD2;
+  --cmp-10: #A3B1C9;
+  --cmp-11: #D9A07A;
     --amber: #E0A64B;
     --red: #E57B7B;
     --green: #5BC97E;
@@ -109,6 +131,17 @@
   --accent-ink: #A3BDFF;
   --teal: #45C4B0;
   --teal-ink: #6ED6C5;
+  --cmp-1: #7DA2FF;
+  --cmp-2: #45C4B0;
+  --cmp-3: #F2B04C;
+  --cmp-4: #FF7C9C;
+  --cmp-5: #B391FF;
+  --cmp-6: #7FD67F;
+  --cmp-7: #FF9A66;
+  --cmp-8: #5CCBEA;
+  --cmp-9: #E27FD2;
+  --cmp-10: #A3B1C9;
+  --cmp-11: #D9A07A;
   --amber: #E0A64B;
   --red: #E57B7B;
   --green: #5BC97E;
@@ -355,8 +388,9 @@ table.tbl td.bad { color: var(--red); font-weight: 600; }
   box-shadow: var(--shadow);
 }
 .photo img, .comic img { display: block; width: 100%; height: auto; }
-.photo.banner { max-width: 62rem; }
-.photo.banner img { aspect-ratio: 21 / 8; object-fit: cover; object-position: center 62%; }
+.photo.banner { max-width: 62rem; background: color-mix(in srgb, var(--ink) 5%, var(--surface)); }
+/* the whole picture is always shown (the old 21:8 crop cut off heads and subjects): natural proportions, capped in height, centred */
+.photo.banner img { width: auto; max-width: 100%; height: auto; max-height: min(26rem, 56vh); margin: 0 auto; object-fit: contain; }
 .photo.portrait { max-width: 15rem; }
 /* comics are black ink on white — keep a white sheet in both themes */
 .comic { max-width: var(--comic-w, 22rem); }
@@ -391,7 +425,7 @@ table.tbl td.bad { color: var(--red); font-weight: 600; }
 }
 @media (max-width: 820px) {
   .media-row { grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
-  .photo.banner img { aspect-ratio: 16 / 9; }
+  .photo.banner img { max-height: min(22rem, 50vh); }
 }
 
 /* flowchart SVG shape classes (theme-aware) */
@@ -1338,6 +1372,7 @@ table.ieee-table td strong, table.ieee-table td code { color: var(--ink); }
 
 /* ── Part 2 · Computing topics (chapters 7–13): teal replaces cobalt, as on the syllabus page ── */
 body.part2 {
-  --accent: var(--teal);
+  /* the darker teal: plain --teal is only 4.0:1 as text on the light page, --teal-ink passes 4.5:1 (and works as a button fill) */
+  --accent: var(--teal-ink);
   --accent-ink: var(--teal-ink);
 }

@@ -1,12 +1,15 @@
 /* Citation flow diagrams — shared by the Chapter 13 Citation Workshop and the "Real or Hallucinated?" demo.
-   Same approach as assets/vn-datapath.js: SVG blocks + links, a labelled token that travels along a link, the source block amber
-   and the destination block teal, values updated only when the token lands, speed slider (6 levels incl. Instant), pause / step.
+   Same approach as assets/vn-datapath.js: SVG blocks + links, a labelled token that travels along a link, values updated only when
+   the token lands, speed slider (6 levels incl. Instant), pause / step. One colour per component (palette tokens --cmp-N in style.css):
+   the block / field, its links, the token that leaves it and its legend entry share one colour; the active source and destination
+   blocks get a glow and a thicker outline. Result badges stay semantic (green check, red cross, grey empty set).
 
    CiteFlow.Runner(opts)        -> runs a list of items one by one (play / pause / resume / step / flush / cancel)
    CiteFlow.controls(opts)      -> [Play|Pause|Resume] [Step] [Reset] + speed slider + aria-live narration line (fixed heights)
    CiteFlow.builder(container)  -> form fields -> style rules -> reference slots (driven by CiteLab.trace events)
    CiteFlow.ecosystem(container)-> essay / reference list / AI assistant / doi.org / Crossref / venue / authors blocks
    CiteFlow.scan(host)          -> 4-gram scan: a window slides along the paraphrase, matches link to the source by arcs
+   CiteFlow.fmtSpans(...)       -> renders a reference with its pieces wrapped in coloured-on-demand spans (field colours)
    Theme tokens only (see cite-flow.css). prefers-reduced-motion: no moving tokens, highlights only. */
 (function (global) {
   'use strict';
@@ -32,6 +35,59 @@
     return lines;
   }
   function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  // ───────────── one colour per component ─────────────
+  // key -> palette index (assets/style.css --cmp-1 … --cmp-11). The same table is written as .cf-c-<key> { --c: var(--cmp-N) } in
+  // cite-flow.css (a Node test keeps the two in sync).
+  var CMP = {
+    authors: 1, year: 3, title: 5, container: 2, volume: 4, pages: 8, publisher: 11, link: 6, intext: 9, fmt: 10,   // builder: field = token = slot
+    REF: 1, ESSAY: 3, AI: 5, DOI: 7, REG: 2, AUTH: 9, VEN: 11,                                                       // ecosystem blocks
+    'scan-par': 1, 'scan-src': 7, 'scan-arc': 5                                                                      // paraphrase scan
+  };
+  function cmpVar(key) { return 'var(--cmp-' + (CMP[key] || 10) + ')'; }
+  // items: [{ key, label, shape: 'out' | 'line' | 'dash' | undefined (filled), glyph, kind }] -> <ul class="cf-legend">
+  function legend(items, label) {
+    var ul = el('ul', 'cf-legend'), map = {};
+    ul.setAttribute('aria-label', label || 'Colour legend');
+    items.forEach(function (it) {
+      var li = el('li', 'cf-legend-item' + (it.key ? ' cf-c-' + it.key : '')), sw = el('i', 'cf-sw' + (it.key ? ' cf-c-' + it.key : '') + (it.shape ? ' cf-sw-' + it.shape : '') + (it.kind ? ' cf-sw-glyph cf-k-' + it.kind : ''));
+      sw.setAttribute('aria-hidden', 'true'); if (it.glyph) sw.textContent = it.glyph;
+      li.appendChild(sw); li.appendChild(document.createTextNode(it.label)); ul.appendChild(li);
+      if (it.key) map[it.key] = li;
+    });
+    return { el: ul, items: map };
+  }
+  // Like the labs' fmt() (*italic* markup -> <i>, never innerHTML), but the pieces listed in `spans` ([{field,start,end}] over the plain
+  // text) are wrapped in <span class="cf-fld cf-c-FIELD" data-fld="FIELD"> so they can be coloured while an animation or a hover is active.
+  function fmtSpans(node, marked, spans, expectedPlain) {
+    node.textContent = '';
+    var plain = '', ital = [];
+    String(marked).split(/(\*[^*]+\*)/).forEach(function (p) {
+      if (!p) return;
+      var it = p.length > 2 && p.charAt(0) === '*' && p.charAt(p.length - 1) === '*', t = it ? p.slice(1, -1) : p;
+      for (var k = 0; k < t.length; k++) ital.push(it);
+      plain += t;
+    });
+    if (expectedPlain !== undefined && expectedPlain !== plain) spans = [];     // positions would not line up (stray asterisks): no pieces
+    function emit(parent, a, b) {
+      var i = a;
+      while (i < b) {
+        var j = i; while (j < b && ital[j] === ital[i]) j++;
+        var txt = plain.slice(i, j);
+        if (ital[i]) { var n = document.createElement('i'); n.textContent = txt; parent.appendChild(n); } else parent.appendChild(document.createTextNode(txt));
+        i = j;
+      }
+    }
+    var pos = 0;
+    (spans || []).forEach(function (sp) {
+      if (sp.start < pos || sp.end > plain.length || sp.end <= sp.start) return;
+      emit(node, pos, sp.start);
+      var w = el('span', 'cf-fld cf-c-' + sp.field); w.setAttribute('data-fld', sp.field); emit(w, sp.start, sp.end); node.appendChild(w);
+      pos = sp.end;
+    });
+    emit(node, pos, plain.length);
+    return node;
+  }
 
   // ───────────── Runner ─────────────
   // opts: run(item, index, ms) -> Promise (animate one item), ms() -> ms per item, gap() -> pause between items,
@@ -97,7 +153,7 @@
           rec.end = function () { clearTimeout(tm); remove(); resolve(); };
           live.push(rec); return;
         }
-        var g = mk('g', { class: 'cf-token' }, svg), rect = mk('rect', { rx: 9, height: 20, y: -10 }, g), tx = mk('text', { 'text-anchor': 'middle', y: 4 }, g);
+        var g = mk('g', { class: 'cf-token' + (o.color ? ' cf-c-' + o.color : '') }, svg), rect = mk('rect', { rx: 9, height: 20, y: -10 }, g), tx = mk('text', { 'text-anchor': 'middle', y: 4 }, g);
         function setText(s) {
           s = trunc(s || '·', 30); tx.textContent = s;
           var w = Math.max(26, s.length * 7.2 + 14); rect.setAttribute('width', w); rect.setAttribute('x', -w / 2);
@@ -133,7 +189,7 @@
   function speedControl(opts) {
     opts = opts || {};
     var key = opts.key || 'co1005-vn-speed', idx = opts.initial === undefined ? 2 : opts.initial;
-    try { var s = localStorage.getItem(key); if (s !== null && !isNaN(+s) && +s >= 0 && +s < SPEEDS.length) idx = +s; } catch (e) { /* storage unavailable */ }
+    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* storage unavailable */ }
     var wrapEl = el('div', 'cf-speed'), lab = el('label', 'field-label', 'Speed'), id = 'cf-speed-' + Math.floor(Math.random() * 1e6);
     lab.setAttribute('for', id);
     var rng = el('input'); rng.type = 'range'; rng.id = id; rng.min = 0; rng.max = SPEEDS.length - 1; rng.step = 1; rng.value = idx;
@@ -185,100 +241,133 @@
   }
 
   // ───────────── 1 · Builder: form fields -> style rules -> reference slots ─────────────
+  // Every field has its own colour (CMP); the field box, its wire, the token that flies and the output slot share it.
   var ROW = 28, PITCH = 32, Y0 = 46, LX = 8, RX = 558, BW = 214, FX = 300, FW = 180, LANE = 188;
   var SLOTS = ['authors', 'year', 'title', 'container', 'volume', 'pages', 'publisher', 'link', 'intext'];
   var LEFT = { authors: 'Authors', year: 'Year', title: 'Title', container: 'Container', volume: 'Vol./issue', pages: 'Pages', publisher: 'Publisher', link: 'DOI / URL', intext: 'Author+year' };
   var RIGHT = { authors: 'Author(s)', year: 'Date', title: 'Title', container: 'Container', volume: 'Vol./no.', pages: 'Pages', publisher: 'Publisher', link: 'DOI / link', intext: 'In-text' };
   function rowY(i) { return Y0 + i * PITCH; }
   function wirePath(i) { var y = rowY(i) + ROW / 2; return 'M ' + (LX + BW) + ' ' + y + ' C 262 ' + y + ', 262 ' + LANE + ', ' + FX + ' ' + LANE + ' L ' + (FX + FW) + ' ' + LANE + ' C 520 ' + LANE + ', 520 ' + y + ', ' + RX + ' ' + y; }
+  function wireIn(i) { var y = rowY(i) + ROW / 2; return 'M ' + (LX + BW) + ' ' + y + ' C 262 ' + y + ', 262 ' + LANE + ', ' + FX + ' ' + LANE; }
+  function wireOut(i) { var y = rowY(i) + ROW / 2; return 'M ' + (FX + FW) + ' ' + LANE + ' C 520 ' + LANE + ', 520 ' + y + ', ' + RX + ' ' + y; }
   function toLanePath(i) { var y = rowY(i) + ROW / 2; return 'M ' + (LX + BW) + ' ' + y + ' C 262 ' + y + ', 262 ' + LANE + ', ' + FX + ' ' + LANE + ' L ' + (FX + FW / 2) + ' ' + LANE; }
 
-  function builder(container) {
+  // opts.hooks: { land(e) when an event's output lands in its slot, clear() when the slots are emptied / reset, hot(field|null) when the user
+  // points at a field, slot or legend entry }. api.legend.el is the colour legend (the caller puts it under the diagram).
+  function builder(container, opts) {
+    var hooks = (opts && opts.hooks) || {};
     var svg = mk('svg', { viewBox: '0 16 780 324', class: 'cf-svg cf-b', role: 'img',
-      'aria-label': 'Data flow of the reference builder: form fields on the left pass through the style rules in the middle and fill the slots of the reference list entry and the in-text citation on the right' }, container);
-    mk('rect', { x: FX, y: 40, width: FW, height: 290, rx: 12, class: 'cf-fmt' }, svg);
+      'aria-label': 'Data flow of the reference builder: form fields on the left pass through the style rules in the middle and fill the slots of the reference list entry and the in-text citation on the right. Each field has its own colour.' }, container);
+    var fmtG = mk('g', { class: 'cf-fmtg cf-c-fmt' }, svg);
+    mk('rect', { x: FX, y: 40, width: FW, height: 290, rx: 12, class: 'cf-fmt' }, fmtG);
     var head = {};
     [[LX, 'Form fields'], [FX, ''], [RX, 'Reference list + in-text']].forEach(function (h, k) {
       var t = mk('text', { x: h[0] + (k === 1 ? FW / 2 : 4), y: 30, class: 'cf-colhead', 'text-anchor': k === 1 ? 'middle' : 'start' }, svg); t.textContent = h[1]; head[k] = t;
     });
-    var title = mk('text', { x: FX + FW / 2, y: 58, class: 'cf-fmt-title', 'text-anchor': 'middle' }, svg); title.textContent = 'APA 7 formatter';
-    mk('rect', { x: FX + 10, y: 68, width: FW - 20, height: 86, rx: 8, class: 'cf-rulecard' }, svg);
-    var ruleLab = mk('text', { x: FX + 18, y: 83, class: 'cf-tiny' }, svg); ruleLab.textContent = 'STYLE RULE APPLIED';
-    var ruleLines = [0, 1, 2].map(function (k) { return mk('text', { x: FX + 18, y: 101 + k * 15, class: 'cf-rule' }, svg); });
-    var inLab = mk('text', { x: FX + 14, y: 214, class: 'cf-tiny' }, svg); inLab.textContent = 'IN';
-    var inVal = mk('text', { x: FX + 14, y: 230, class: 'cf-io' }, svg);
-    var outLab = mk('text', { x: FX + 14, y: 256, class: 'cf-tiny' }, svg); outLab.textContent = 'OUT';
-    var outVal = mk('text', { x: FX + 14, y: 272, class: 'cf-io' }, svg);
+    var title = mk('text', { x: FX + FW / 2, y: 58, class: 'cf-fmt-title', 'text-anchor': 'middle' }, fmtG); title.textContent = 'APA 7 formatter';
+    mk('rect', { x: FX + 10, y: 68, width: FW - 20, height: 86, rx: 8, class: 'cf-rulecard' }, fmtG);
+    var ruleLab = mk('text', { x: FX + 18, y: 83, class: 'cf-tiny' }, fmtG); ruleLab.textContent = 'STYLE RULE APPLIED';
+    var ruleLines = [0, 1, 2].map(function (k) { return mk('text', { x: FX + 18, y: 101 + k * 15, class: 'cf-rule' }, fmtG); });
+    var inLab = mk('text', { x: FX + 14, y: 214, class: 'cf-tiny' }, fmtG); inLab.textContent = 'IN';
+    var inVal = mk('text', { x: FX + 14, y: 230, class: 'cf-io' }, fmtG);
+    var outLab = mk('text', { x: FX + 14, y: 256, class: 'cf-tiny' }, fmtG); outLab.textContent = 'OUT';
+    var outVal = mk('text', { x: FX + 14, y: 272, class: 'cf-io' }, fmtG);
+    var lane = mk('path', { d: 'M ' + FX + ' ' + LANE + ' L ' + (FX + FW) + ' ' + LANE, class: 'cf-lane' }, svg);   // lit in the field's colour while its token is inside the formatter
     var gWires = mk('g', {}, svg), wires = [], left = [], right = [], lv = [], rv = [];
     SLOTS.forEach(function (s, i) {
-      wires.push(mk('path', { d: wirePath(i), class: 'cf-wire', 'data-slot': s }, gWires));
+      wires.push([mk('path', { d: wireIn(i), class: 'cf-wire cf-c-' + s, 'data-slot': s }, gWires), mk('path', { d: wireOut(i), class: 'cf-wire cf-c-' + s, 'data-slot': s }, gWires)]);
     });
     SLOTS.forEach(function (s, i) {
       [[LX, left, lv, LEFT], [RX, right, rv, RIGHT]].forEach(function (side, sd) {
-        var g = mk('g', { class: 'cf-node cf-n-' + (sd ? 'out' : 'in'), 'data-slot': s }, svg);
+        var g = mk('g', { class: 'cf-node cf-n-' + (sd ? 'out' : 'in') + ' cf-c-' + s, 'data-slot': s }, svg);
         mk('rect', { x: side[0], y: rowY(i), width: BW, height: ROW, rx: 7 }, g);
         var nm = mk('text', { x: side[0] + 8, y: rowY(i) + 18, class: 'cf-name' }, g); nm.textContent = side[3][s];
         var v = mk('text', { x: side[0] + 78, y: rowY(i) + 18, class: 'cf-val' }, g);
         side[1].push(g); side[2].push(v);
       });
     });
+    var leg = legend(SLOTS.map(function (s) { return { key: s, label: RIGHT[s] }; }).concat([{ key: 'fmt', label: 'Style rules (formatter)' }]), 'Colour legend: one colour per field');
     var fl = Flights(svg), ev = null, idxOf = {}, marked = [], gen = 0;
     SLOTS.forEach(function (s, i) { idxOf[s] = i; });
 
-    function setIn(i, text, italic) { lv[i].textContent = trunc(text, 20); }
-    function setOut(i, text, italic) { rv[i].textContent = trunc(text, 20); rv[i].setAttribute('class', 'cf-val' + (italic ? ' cf-it' : '')); }
+    function setIn(i, text) { lv[i].textContent = trunc(text, 19); }
+    function setOut(i, text, italic) { rv[i].textContent = trunc(text, 19); rv[i].setAttribute('class', 'cf-val' + (italic ? ' cf-it' : '')); }
     function ruleText(lines) { ruleLines.forEach(function (t, k) { t.textContent = lines[k] || ''; }); }
-    function unmark() { marked.forEach(function (n) { n.classList.remove('cf-src', 'cf-dst', 'cf-busy'); }); marked = []; wires.forEach(function (w) { w.classList.remove('on'); }); }
+    function unmark() {
+      marked.forEach(function (n) { n.classList.remove('cf-src', 'cf-dst', 'cf-busy'); }); marked = [];
+      wires.forEach(function (w) { w[0].classList.remove('on'); w[1].classList.remove('on'); });
+      lane.setAttribute('class', 'cf-lane');
+    }
     function mark(n, c) { n.classList.add(c); marked.push(n); }
+    function hover(slot) {          // visual only: the field, its slot, its wire and its legend entry stand out
+      SLOTS.forEach(function (s, i) {
+        var on = s === slot;
+        left[i].classList.toggle('cf-hover', on); right[i].classList.toggle('cf-hover', on);
+        wires[i][0].classList.toggle('cf-hover', on); wires[i][1].classList.toggle('cf-hover', on);
+        if (leg.items[s]) leg.items[s].classList.toggle('cf-hover', on);
+      });
+    }
+    function point(slot) { hover(slot); if (hooks.hot) hooks.hot(slot); }
+    SLOTS.forEach(function (s, i) {
+      [left[i], right[i]].forEach(function (n) { n.addEventListener('mouseenter', function () { point(s); }); n.addEventListener('mouseleave', function () { point(null); }); });
+      var li = leg.items[s];
+      li.tabIndex = 0;      // keyboard focus lights the field's pieces just like hovering does
+      li.addEventListener('mouseenter', function () { point(s); }); li.addEventListener('mouseleave', function () { point(null); });
+      li.addEventListener('focus', function () { point(s); }); li.addEventListener('blur', function () { point(null); });
+    });
+    function cleared() { if (hooks.clear) hooks.clear(); }
 
     var api = {
-      svg: svg,
+      svg: svg, legend: leg, hover: hover,
       // tr = CiteLab.trace(...). Fills the left column with the inputs and dims the unused rows.
       configure: function (tr, label) {
-        ev = tr; gen++; fl.stop(); unmark();
+        ev = tr; gen++; fl.stop(); unmark(); cleared();
         title.textContent = label + ' formatter';
         var used = {};
         tr.events.forEach(function (e) { used[e.slot] = e; });
         SLOTS.forEach(function (s, i) {
-          setIn(i, used[s] ? used[s].input : '', false);
-          left[i].classList.toggle('cf-off', !used[s]); right[i].classList.toggle('cf-off', !used[s]); wires[i].classList.toggle('cf-off', !used[s]);
+          setIn(i, used[s] ? used[s].input : '');
+          left[i].classList.toggle('cf-off', !used[s]); right[i].classList.toggle('cf-off', !used[s]);
+          wires[i][0].classList.toggle('cf-off', !used[s]); wires[i][1].classList.toggle('cf-off', !used[s]);
+          leg.items[s].classList.toggle('cf-off', !used[s]);
         });
         ruleText([]); inVal.textContent = ''; outVal.textContent = '';
         head[1].textContent = tr.noReference ? 'no reference format' : '';
       },
       clear: function () {
-        gen++; fl.stop(); unmark(); ruleText([]); inVal.textContent = ''; outVal.textContent = '';
+        gen++; fl.stop(); unmark(); cleared(); ruleText([]); inVal.textContent = ''; outVal.textContent = '';
         SLOTS.forEach(function (s, i) { setOut(i, '', false); });
       },
       showAll: function () {
-        gen++; fl.stop(); unmark(); ruleText(['Press Play or Step', 'to see which rule', 'shaped each field.']); inVal.textContent = ''; outVal.textContent = '';
+        gen++; fl.stop(); unmark(); cleared(); ruleText(['Press Play or Step', 'to see which rule', 'shaped each field.']); inVal.textContent = ''; outVal.textContent = '';
         SLOTS.forEach(function (s, i) { setOut(i, '', false); });
         if (ev) ev.events.forEach(function (e) { setOut(idxOf[e.slot], e.dropped ? 'left out' : e.out, e.italic); });
       },
-      // one event: input token -> formatter (rule badge) -> slot
+      // one event: input token -> formatter (rule badge) -> slot; the token wears the field's colour all the way
       run: function (e, ms) {
         unmark();
         var i = idxOf[e.slot], g = gen;
-        mark(left[i], 'cf-src'); wires[i].classList.add('on');
-        ruleText(wrap(e.ruleName, 20, 3)); inVal.textContent = trunc(e.input, 26); outVal.textContent = '';
-        if (ms <= 0) {
+        function landed() {
           mark(right[i], 'cf-dst'); mark(el_fmt, 'cf-busy');
-          outVal.textContent = trunc(e.dropped ? '(left out)' : e.out, 26); setOut(i, e.dropped ? 'left out' : e.out, e.italic);
-          return Promise.resolve();
+          outVal.textContent = trunc(e.dropped ? '(left out)' : e.out, 22); setOut(i, e.dropped ? 'left out' : e.out, e.italic);
+          if (hooks.land) hooks.land(e);
         }
+        mark(left[i], 'cf-src'); wires[i][0].classList.add('on'); lane.setAttribute('class', 'cf-lane on cf-c-' + e.slot);
+        if (!e.dropped) wires[i][1].classList.add('on');
+        ruleText(wrap(e.ruleName, 20, 3)); inVal.textContent = trunc(e.input, 22); outVal.textContent = '';
+        if (ms <= 0) { landed(); return Promise.resolve(); }
         var d = e.dropped ? toLanePath(i) : wirePath(i), tmp = mk('path', { d: d, fill: 'none', stroke: 'none' }, svg);
         var swapped = false;
         return fl.fly(tmp, {
-          ms: e.dropped ? ms * 0.6 : ms, text: e.input,
+          ms: e.dropped ? ms * 0.6 : ms, text: e.input, color: e.slot,
           onFrame: function (pt, k, setText) {
             if (pt.x >= FX && pt.x <= FX + FW) mark(el_fmt, 'cf-busy');
-            if (!swapped && pt.x >= FX + FW / 2) { swapped = true; setText(e.dropped ? '✕' : e.out); outVal.textContent = trunc(e.dropped ? '(left out)' : e.out, 26); }
+            if (!swapped && pt.x >= FX + FW / 2) { swapped = true; setText(e.dropped ? '✕' : e.out); outVal.textContent = trunc(e.dropped ? '(left out)' : e.out, 22); }
           }
         }).then(function () {
           if (tmp.parentNode) tmp.parentNode.removeChild(tmp);
           if (g !== gen) return;
-          mark(right[i], 'cf-dst'); mark(el_fmt, 'cf-busy');
-          outVal.textContent = trunc(e.dropped ? '(left out)' : e.out, 26); setOut(i, e.dropped ? 'left out' : e.out, e.italic);
+          landed();
         });
       },
       stop: function () { gen++; fl.stop(); },
@@ -293,6 +382,8 @@
   }
 
   // ───────────── 2 · Ecosystem: essay / reference / AI / doi.org / Crossref / venue / authors ─────────────
+  // Each block has its own colour (CMP). A lookup token wears the colour of the block it leaves; on the way back it wears the colour of the
+  // block that answered. The links are drawn as a gradient between the colours of the two blocks they join.
   var ECO_NODES = {
     AI: [20, 118, 150, 64, 'AI assistant', 'writes references'],
     ESSAY: [215, 20, 150, 64, 'Your essay', 'in-text citation'],
@@ -303,7 +394,7 @@
     VEN: [605, 118, 150, 64, 'Journal / venue', 'vol., issue, year']
   };
   var ECO_EDGES = { 'AI-ESSAY': 1, 'AI-REF': 1, 'ESSAY-REF': 1, 'REF-DOI': 1, 'REF-REG': 1, 'DOI-REG': 1, 'AUTH-REG': 1, 'REG-VEN': 1, 'AI-REG': 1 };
-  var ECO_CUSTOM = { 'AI-REG': 'M 95 182 L 95 216 L 485 216 L 485 182' };
+  var ECO_CUSTOM = { 'AI-REG': { d: 'M 95 182 L 95 216 L 485 216 L 485 182', s: [485, 216], e: [95, 216] } };   // gradient runs REG -> AI along the bottom
   function ecoCenter(id) { var b = ECO_NODES[id]; return [b[0] + b[2] / 2, b[1] + b[3] / 2]; }
   function ecoClip(id, p, dx, dy, margin) {
     var b = ECO_NODES[id], c = ecoCenter(id), hw = b[2] / 2 + margin, hh = b[3] / 2 + margin, t = Infinity, ox = p[0] - c[0], oy = p[1] - c[1];
@@ -314,21 +405,29 @@
   function ecoStraight(a, b) {
     var ca = ecoCenter(a), cb = ecoCenter(b), dx = cb[0] - ca[0], dy = cb[1] - ca[1], len = Math.sqrt(dx * dx + dy * dy); dx /= len; dy /= len;
     var s = ecoClip(a, ca, dx, dy, 2), e = ecoClip(b, cb, -dx, -dy, 3);
-    return 'M ' + s[0].toFixed(1) + ' ' + s[1].toFixed(1) + ' L ' + e[0].toFixed(1) + ' ' + e[1].toFixed(1);
+    return { d: 'M ' + s[0].toFixed(1) + ' ' + s[1].toFixed(1) + ' L ' + e[0].toFixed(1) + ' ' + e[1].toFixed(1), s: s, e: e };
   }
+  var ecoUid = 0;
 
   function ecosystem(container) {
     var svg = mk('svg', { viewBox: '0 6 780 224', class: 'cf-svg cf-e', role: 'img',
-      'aria-label': 'The scholarly-citation ecosystem: the AI assistant writes the in-text citation in your essay and the entry in the reference list; checks go to doi.org and the publisher page, the Crossref registry, the journal record and the author list' }, container);
-    var edgeEls = {}, nodeEls = {}, valEls = {}, glyphEls = {}, marked = [];
+      'aria-label': 'The scholarly-citation ecosystem: the AI assistant writes the in-text citation in your essay and the entry in the reference list; checks go to doi.org and the publisher page, the Crossref registry, the journal record and the author list. Each block has its own colour.' }, container);
+    var uid = 'cf-g' + (++ecoUid) + '-';
+    var defs = mk('defs', {}, svg);
+    var edgeEls = {}, nodeEls = {}, valEls = {}, glyphEls = {}, marked = [], hotEls = {};
     Object.keys(ECO_EDGES).forEach(function (k) {
-      var p = k.split('-');
-      edgeEls[k] = mk('path', { d: ECO_CUSTOM[k] || ecoStraight(p[0], p[1]), class: 'cf-edge' + (k === 'AI-REG' ? ' cf-prov' : ''), 'data-edge': k }, svg);
+      var p = k.split('-'), geo = ECO_CUSTOM[k] || ecoStraight(p[0], p[1]);
+      var gr = mk('linearGradient', { id: uid + k, gradientUnits: 'userSpaceOnUse', x1: geo.s[0].toFixed(1), y1: geo.s[1].toFixed(1), x2: geo.e[0].toFixed(1), y2: geo.e[1].toFixed(1) }, defs);
+      mk('stop', { offset: '0', class: 'cf-gs cf-c-' + p[0] }, gr); mk('stop', { offset: '1', class: 'cf-gs cf-c-' + p[1] }, gr);
+      var edge = mk('path', { d: geo.d, class: 'cf-edge' + (k === 'AI-REG' ? ' cf-prov' : ''), 'data-edge': k }, svg);
+      edge.style.stroke = 'url(#' + uid + k + ')';
+      edgeEls[k] = edge;
     });
     var provT = mk('text', { x: 290, y: 209, class: 'cf-tiny', 'text-anchor': 'middle' }, svg); provT.textContent = 'provenance: where did this reference come from?';
     Object.keys(ECO_NODES).forEach(function (id) {
-      var b = ECO_NODES[id], g = mk('g', { class: 'cf-node cf-n-' + id, 'data-node': id }, svg);
-      mk('rect', { x: b[0], y: b[1], width: b[2], height: b[3], rx: 10 }, g);
+      var b = ECO_NODES[id], g = mk('g', { class: 'cf-node cf-n-' + id + ' cf-c-' + id, 'data-node': id }, svg);
+      hotEls[id] = mk('rect', { x: b[0] - 5, y: b[1] - 5, width: b[2] + 10, height: b[3] + 10, rx: 13, class: 'cf-ring' }, g);   // red dashed ring: "the hallucination starts here"
+      mk('rect', { x: b[0], y: b[1], width: b[2], height: b[3], rx: 10, class: 'cf-rect' }, g);
       var n = mk('text', { x: b[0] + b[2] / 2, y: b[1] + 20, class: 'cf-ename', 'text-anchor': 'middle' }, g); n.textContent = b[4];
       var s = mk('text', { x: b[0] + b[2] / 2, y: b[1] + 35, class: 'cf-esub', 'text-anchor': 'middle' }, g); s.textContent = b[5];
       valEls[id] = mk('text', { x: b[0] + b[2] / 2, y: b[1] + 54, class: 'cf-val', 'text-anchor': 'middle' }, g);
@@ -338,48 +437,63 @@
       glyphEls[id] = { g: gl, t: gt };
       nodeEls[id] = g;
     });
+    var leg = legend(Object.keys(ECO_NODES).map(function (id) { return { key: id, label: ECO_NODES[id][4] }; }).concat([
+      { glyph: '✓', kind: 'ok', label: 'match' }, { glyph: '✗', kind: 'bad', label: 'mismatch' }, { glyph: '∅', kind: 'none', label: 'not found / no record' }]),
+      'Colour legend: one colour per block; result badges are green, red and grey');
+    Object.keys(ECO_NODES).forEach(function (id) {
+      var li = leg.items[id];
+      function on(v) { nodeEls[id].classList.toggle('cf-hover', v); li.classList.toggle('cf-hover', v); }
+      nodeEls[id].addEventListener('mouseenter', function () { on(true); }); nodeEls[id].addEventListener('mouseleave', function () { on(false); });
+      li.tabIndex = 0; li.addEventListener('mouseenter', function () { on(true); }); li.addEventListener('mouseleave', function () { on(false); });
+      li.addEventListener('focus', function () { on(true); }); li.addEventListener('blur', function () { on(false); });
+    });
     var fl = Flights(svg);
     function edgeFor(a, b) { var k = a + '-' + b, r = b + '-' + a; if (edgeEls[k]) return { el: edgeEls[k], rev: false }; if (edgeEls[r]) return { el: edgeEls[r], rev: true }; return null; }
-    function unmark() { marked.forEach(function (n) { n.classList.remove('cf-src', 'cf-dst'); }); marked = []; Object.keys(edgeEls).forEach(function (k) { edgeEls[k].classList.remove('on'); }); }
+    function unmark() {
+      marked.forEach(function (n) { n.classList.remove('cf-src', 'cf-dst'); }); marked = [];
+      Object.keys(edgeEls).forEach(function (k) { edgeEls[k].classList.remove('on'); edgeEls[k].style.removeProperty('--c'); });
+    }
     function mark(id, c) { var n = nodeEls[id]; if (n) { n.classList.add(c); marked.push(n); } }
 
     return {
-      svg: svg,
-      // one hop: a labelled token travels from block `from` to block `to`
-      leg: function (leg, ms) {
-        var e = edgeFor(leg.from, leg.to);
-        mark(leg.from, 'cf-src'); mark(leg.to, 'cf-dst');
+      svg: svg, legend: leg,
+      // one hop: a labelled token travels from block `from` to block `to`; it wears hop.color (default: the colour of `from`)
+      leg: function (hop, ms) {
+        var e = edgeFor(hop.from, hop.to), color = hop.color || hop.from;
+        mark(hop.from, 'cf-src'); mark(hop.to, 'cf-dst');
         if (!e) return Promise.resolve();
-        e.el.classList.add('on');
+        e.el.classList.add('on'); e.el.style.setProperty('--c', cmpVar(color));
         if (ms <= 0) return Promise.resolve();
-        return fl.fly(e.el, { ms: ms, text: leg.text, rev: e.rev });
+        return fl.fly(e.el, { ms: ms, text: hop.text, rev: e.rev, color: color });
       },
       endStage: unmark,
+      // result badge: always semantic (kind ok = green check, bad = red cross, none = grey empty set)
       mark: function (id, kind, glyph) {
         var gl = glyphEls[id]; if (!gl) return;
         gl.g.setAttribute('visibility', kind ? 'visible' : 'hidden');
         gl.g.setAttribute('class', 'cf-glyph' + (kind ? ' cf-g-' + kind : ''));
         gl.t.textContent = glyph || '';
-        nodeEls[id].classList.toggle('cf-' + 'bad', kind === 'bad'); nodeEls[id].classList.toggle('cf-good', kind === 'ok');
       },
       setVal: function (id, text) { if (valEls[id]) valEls[id].textContent = trunc(text, 20); },
       glow: function (id, on) { if (nodeEls[id]) nodeEls[id].classList.toggle('cf-hot', !!on); },
       reset: function () {
         fl.stop(); unmark();
-        Object.keys(ECO_NODES).forEach(function (id) { glyphEls[id].g.setAttribute('visibility', 'hidden'); nodeEls[id].classList.remove('cf-bad', 'cf-good', 'cf-hot'); valEls[id].textContent = ''; });
+        Object.keys(ECO_NODES).forEach(function (id) { glyphEls[id].g.setAttribute('visibility', 'hidden'); nodeEls[id].classList.remove('cf-hot'); valEls[id].textContent = ''; });
       },
       stop: function () { fl.stop(); }
     };
   }
 
   // ───────────── 3 · Paraphrase scan ─────────────
+  // Three colours: your sentence (blue), the source (orange) and the match arcs (violet). The sliding window is an outlined box; words that
+  // already matched are filled and underlined; a window found only inside quotation marks gets a dashed outline.
   function scan(host, onFinish) {
     var CL = global.CiteLab, N = 4;
     var wrapEl = el('div', 'cf-scan');
     var body = el('div', 'cf-scan-body');
-    var arcs = mk('svg', { class: 'cf-arcs', 'aria-hidden': 'true' }), arcG = mk('g', {}, arcs);
-    var srcLab = el('span', 'cl-tag', 'Source — the window looks for each 4-word stretch here'), srcP = el('p', 'cf-words');
-    var parLab = el('span', 'cl-tag', 'Your sentence — a 4-word window slides along it'), parP = el('p', 'cf-words');
+    var arcs = mk('svg', { class: 'cf-arcs', 'aria-hidden': 'true' }), arcG = mk('g', { class: 'cf-c-scan-arc' }, arcs);
+    var srcLab = el('span', 'cl-tag', 'Source — the window looks for each 4-word stretch here'), srcP = el('p', 'cf-words cf-c-scan-src');
+    var parLab = el('span', 'cl-tag', 'Your sentence — a 4-word window slides along it'), parP = el('p', 'cf-words cf-c-scan-par');
     body.appendChild(arcs); body.appendChild(srcLab); body.appendChild(srcP); body.appendChild(el('div', 'cf-scan-gap')); body.appendChild(parP); body.appendChild(parLab);
     var ctl = controls({ unit: 'window', start: function (paused) { startRun(paused); }, reset: function () { showFinal(); } });
     var runner = Runner({
@@ -389,14 +503,17 @@
       begin: function () { prev = null; clearMarksKeepWords(); }   // wipe the finished picture before the scan starts
     });
     ctl.runner = runner;
-    wrapEl.appendChild(ctl.el); wrapEl.appendChild(ctl.narr); wrapEl.appendChild(body); host.appendChild(wrapEl);
+    var leg = legend([
+      { key: 'scan-par', label: 'Your sentence: the sliding window', shape: 'out' }, { key: 'scan-par', label: 'your words that matched' },
+      { key: 'scan-src', label: 'Source: where the window was found', shape: 'out' }, { key: 'scan-src', label: 'source words that matched' },
+      { key: 'scan-arc', label: 'match link (arc)', shape: 'line' }, { label: 'dashed window: found only inside quotation marks, not counted', shape: 'dash' }], 'Colour legend for the scan');
+    wrapEl.appendChild(ctl.el); wrapEl.appendChild(ctl.narr); wrapEl.appendChild(body); wrapEl.appendChild(leg.el); host.appendChild(wrapEl);
 
     var S = [], P = [], sW = [], pW = [], steps = [], links = [], text = { src: '', par: '' }, result = null;
     function words(p, toks) {
       p.textContent = '';
       return toks.map(function (t) { var s = el('span', 'cf-w' + (t.quoted ? ' cf-q' : ''), t.raw); p.appendChild(s); p.appendChild(document.createTextNode(' ')); return s; });
     }
-    function clearMarks() { sW.concat(pW).forEach(function (s) { s.classList.remove('cf-win', 'cf-win-s', 'cf-hit', 'cf-miss'); }); links = []; drawArcs(); }
     function center(s, top) {
       var b = body.getBoundingClientRect(), r = s.getBoundingClientRect();
       return [r.left - b.left + r.width / 2, (top ? r.top : r.bottom) - b.top];
@@ -424,7 +541,7 @@
     }
     function readyMsg() { return steps.length ? 'Ready. Press Play (or Step) to watch a ' + N + '-word window slide along your sentence. Finished picture shown now: ' + summary() : 'Your sentence needs at least ' + N + ' words for a ' + N + '-word window.'; }
     function showFinal() {
-      clearMarks();
+      clearMarksKeepWords();
       steps.forEach(function (st) { if (st.match) { mark(st); links.push({ pi: st.i, si: st.srcIndex }); } });
       drawArcs();
       ctl.say(readyMsg());
@@ -447,27 +564,26 @@
     }
     function lit(st, on) {
       for (var j = 0; j < N; j++) {
-        pW[st.i + j].classList.toggle('cf-win', on);
-        if (st.found) sW[st.srcIndex + j].classList.toggle('cf-win-s', on);
+        pW[st.i + j].classList.toggle('cf-win', on); pW[st.i + j].classList.toggle('cf-win-q', on && st.quoted);
+        if (st.found) { sW[st.srcIndex + j].classList.toggle('cf-win', on); sW[st.srcIndex + j].classList.toggle('cf-win-q', on && st.quoted); }
       }
     }
     var prev = null;
     function doStep(st, ms) {
       if (prev) lit(prev, false);
-      var g = st.gram;
       lit(st, true); prev = st;
       if (st.match) { mark(st); links.push({ pi: st.i, si: st.srcIndex }); drawArcs(true); }
       ctl.say(stepMsg(st));
       var last = st.i === steps.length - 1;
       return wait(ms <= 0 ? 0 : Math.max(60, ms * 0.55)).then(function () { if (last) { lit(st, false); prev = null; } });
     }
-    function clearMarksKeepWords() { sW.concat(pW).forEach(function (s) { s.classList.remove('cf-hit', 'cf-win', 'cf-win-s'); }); links = []; drawArcs(); }
+    function clearMarksKeepWords() { sW.concat(pW).forEach(function (s) { s.classList.remove('cf-hit', 'cf-win', 'cf-win-q'); }); links = []; drawArcs(); }
 
     window.addEventListener('resize', function () { drawArcs(); });
-    return { setTexts: setTexts, relayout: function () { drawArcs(); ctl.fix(); }, runner: runner, el: wrapEl };
+    return { setTexts: setTexts, relayout: function () { drawArcs(); ctl.fix(); }, runner: runner, el: wrapEl, legend: leg };
   }
 
-  var api = { ECO_EDGES: ECO_EDGES, ECO_NODES: ECO_NODES, Runner: Runner, Flights: Flights, controls: controls, speedControl: speedControl, builder: builder, ecosystem: ecosystem, scan: scan, SPEEDS: SPEEDS, SLOTS: SLOTS, trunc: trunc, wrap: wrap };
+  var api = { CMP: CMP, cmpVar: cmpVar, legend: legend, fmtSpans: fmtSpans, ECO_EDGES: ECO_EDGES, ECO_NODES: ECO_NODES, Runner: Runner, Flights: Flights, controls: controls, speedControl: speedControl, builder: builder, ecosystem: ecosystem, scan: scan, SPEEDS: SPEEDS, SLOTS: SLOTS, trunc: trunc, wrap: wrap };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.CiteFlow = api;
 })(typeof window !== 'undefined' ? window : this);

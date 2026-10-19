@@ -66,7 +66,10 @@ textarea.cl-input { resize: vertical; font-family: "IBM Plex Mono", monospace; f
 
 .cl-p3out { display: grid; gap: 0.6rem; }
 .cl-hlp { margin: 0.2rem 0 0; padding: 0.5rem 0.65rem; border-radius: 8px; background: var(--paper); border: 1px solid var(--line); line-height: 1.7; font-size: 0.9rem; overflow-wrap: anywhere; }
-.cl-mark { background: color-mix(in srgb, var(--amber) 35%, transparent); color: var(--ink); border-radius: 3px; padding: 0 0.1rem; }
+.cl-mark { color: var(--ink); border-radius: 3px; padding: 0 0.1rem; }
+/* same two colours as the animated scan: your sentence = blue, the source = orange (underlined too, so colour is not the only cue) */
+.cl-mark-par { background: color-mix(in srgb, var(--cmp-1) 14%, transparent); box-shadow: inset 0 -2px 0 var(--cmp-1); }
+.cl-mark-src { background: color-mix(in srgb, var(--cmp-7) 14%, transparent); box-shadow: inset 0 -2px 0 var(--cmp-7); }
 .cl-quoted { font-style: italic; color: var(--ink-soft); }
 .cl-verdict { margin: 0; padding: 0.55rem 0.8rem; border-radius: 8px; font-size: 0.88rem; border-left: 4px solid var(--line); background: var(--paper); }
 .cl-v-high { border-left-color: var(--red); }
@@ -74,11 +77,10 @@ textarea.cl-input { resize: vertical; font-family: "IBM Plex Mono", monospace; f
 .cl-v-low { border-left-color: var(--teal); }
 
 /* Chapter 13 page helpers */
-.ref-anat span.a-au { background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 3px; padding: 0 0.15rem; }
-.ref-anat span.a-yr { background: color-mix(in srgb, var(--amber) 22%, transparent); border-radius: 3px; padding: 0 0.15rem; }
-.ref-anat span.a-ti { background: color-mix(in srgb, var(--teal) 20%, transparent); border-radius: 3px; padding: 0 0.15rem; }
-.ref-anat span.a-co { background: color-mix(in srgb, var(--green) 18%, transparent); border-radius: 3px; padding: 0 0.15rem; }
-.ref-anat span.a-id { background: color-mix(in srgb, var(--red) 14%, transparent); border-radius: 3px; padding: 0 0.15rem; }
+/* the anatomy figure uses the field colours of the Citation Workshop (authors, year, title, container, DOI) with an underline as a second cue */
+.ref-anat span.a-au { --c: var(--cmp-1); } .ref-anat span.a-yr { --c: var(--cmp-3); } .ref-anat span.a-ti { --c: var(--cmp-5); }
+.ref-anat span.a-co { --c: var(--cmp-2); } .ref-anat span.a-id { --c: var(--cmp-6); }
+.ref-anat span[class^="a-"] { background: color-mix(in srgb, var(--c) 14%, transparent); box-shadow: inset 0 -2px 0 var(--c); border-radius: 3px; padding: 0 0.15rem; }
 .ref-line { font-size: 0.92rem; line-height: 1.6; overflow-wrap: anywhere; margin: 0.2rem 0; }
 .ref-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; font-size: 0.78rem; color: var(--ink-soft); margin: 0.4rem 0 0.8rem; }
 .before-after { display: grid; gap: 0.7rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); margin: 0.8rem 0; }

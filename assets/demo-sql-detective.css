@@ -175,3 +175,18 @@
 .sd-machine .sf-wrap { border: 0; padding: 0; margin: 0; background: transparent; }
 .sd-machine h3 .sd-sub { display: block; margin: 0.1rem 0 0; }
 .sd-machine .sf-speed-name { min-width: 0; }
+
+/* colour = component (palette --cmp-N; same colours as the "Inside the database" diagram):
+   editor = Client, query plan = Query planner, rows read = Storage, index = Index, result table = Result set.
+   Pass / fail wording keeps its own semantic green / red text. */
+.sd-editor { border-left: 4px solid var(--cmp-1); }
+.sd-plan { border-left: 4px solid var(--cmp-9); }
+.sd-plan h4 { color: color-mix(in srgb, var(--cmp-9) 62%, var(--ink)); }
+.sd-tablewrap { border-top: 3px solid var(--cmp-6); }
+.sd-meter-row i { display: inline-block; width: 0.75rem; height: 0.75rem; margin-right: 0.3rem; vertical-align: -0.05rem; border-radius: 3px; box-sizing: border-box;
+  background: var(--c); border: 1.5px solid color-mix(in srgb, var(--c) 55%, var(--ink)); }
+.sd-bar { background: color-mix(in srgb, var(--cmp-3) 18%, var(--paper)); border: 1px solid color-mix(in srgb, var(--cmp-3) 60%, var(--line)); }
+.sd-bar-fill, .sd-bar-fill.sd-fast { background: var(--cmp-3); }
+.sd-steps-list li.sf-c-S, .sd-steps-list li.sf-c-I { border-left: 4px solid var(--c); padding-left: 0.5rem; }
+.sd-idx { color: color-mix(in srgb, var(--cmp-2) 62%, var(--ink)); border-color: var(--cmp-2); }
+.sd-idxl { color: color-mix(in srgb, var(--cmp-2) 62%, var(--ink)); }

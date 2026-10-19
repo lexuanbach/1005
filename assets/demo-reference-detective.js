@@ -203,7 +203,10 @@
   // ───────────── lookup traces: which blocks of the citation ecosystem a check (or the card's origin) touches ─────────────
   // Blocks (assets/cite-flow.js): AI assistant, Your essay, Reference list (the card), doi.org + publisher page, Crossref registry,
   // Author list and Journal/venue record inside the record. Every stage is one hop (or two parallel hops) along a real link.
-  function L(from, to, text, say) { return { from: from, to: to, text: text, say: say }; }
+  // one hop of a lookup. `color` = the block whose colour the token wears: the sender by default; hops that carry an answer back wear the answering block's colour
+  function L(from, to, text, say, color) { return { from: from, to: to, text: text, say: say, color: color || from }; }
+  // which pieces of the reference card each check looks at (field names of the cite-lab trace)
+  var CHECK_FIELDS = { doi: ['link'], authors: ['authors'], venue: ['container', 'volume'], details: ['year', 'pages'] };
   function surname(a) { return String(a).split(',')[0]; }
   function inTextOf(claim) {
     var f = claim.authors && claim.authors.length ? surname(claim.authors[0]) + (claim.authors.length > 2 ? ' et al.' : claim.authors.length === 2 ? ' & ' + surname(claim.authors[1]) : '') : 'Anon.';
@@ -254,7 +257,12 @@
       else route = [['REF', 'DOI', 'year/pages?', 'The publisher page behind the DOI shows the year and the pages.'],
         ['DOI', 'REF', back, 'Comparing year and pages with the reference: ' + word + '.']], ans = 'DOI';
     }
-    route.forEach(function (x) { st.push({ legs: [L(x[0], x[1], x[2], '')], say: x[3], val: {} }); });
+    var reached = false;
+    route.forEach(function (x) {
+      var back = reached;                 // after the answering block was reached, the hops carry its answer home: they wear its colour
+      if (x[1] === ans) reached = true;
+      st.push({ legs: [L(x[0], x[1], x[2], '', back ? ans : x[0])], say: x[3], val: {} });
+    });
     var valReg = (which === 'doi' || !w || ans === 'REG') ? (r.notFound || !w ? 'no record' : res === 'ok' ? 'record found' : 'other record') : '';
     var mark = [{ id: ans, kind: res, glyph: glyph }];
     var val = {}; if (valReg && ans === 'REG') val.REG = valReg;
@@ -406,7 +414,7 @@
     derive: derive, runCheck: runCheck, verdictFromEvidence: verdictFromEvidence, neededChecks: neededChecks, subsets: subsets, scoreCard: scoreCard,
     playDeck: playDeck, perfectPlays: perfectPlays, maxScore: maxScore, grade: grade, buildDeck: buildDeck, styleFor: styleFor, renderRef: renderRef,
     report: report, buildFix: buildFix, fixScore: fixScore, fixMax: fixMax, MUTATORS: MUTATORS, FIX_STYLES: FIX_STYLES, fixOptions: fixOptions,
-    checkTrace: checkTrace, emitTrace: emitTrace, revealTrace: revealTrace, inTextOf: inTextOf,
+    CHECK_FIELDS: CHECK_FIELDS, checkTrace: checkTrace, emitTrace: emitTrace, revealTrace: revealTrace, inTextOf: inTextOf,
     workById: workById, doiLink: doiLink, searchLink: searchLink, seededRng: seededRng, norm: norm, pagesOf: pagesOf
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
@@ -496,7 +504,7 @@
       frun = CF.Runner({ run: function (stg, i, ms) { return runStage(stg, ms); }, ms: fctl.speed.ms, gap: fctl.speed.gap, onChange: fctl.paint,
         stop: function () { flowGen++; eco.stop(); eco.endStage(); } });
       fctl.runner = frun;
-      fbox.appendChild(fctl.el); fbox.appendChild(fctl.narr); fbox.appendChild(fscroll);
+      fbox.appendChild(fctl.el); fbox.appendChild(fctl.narr); fbox.appendChild(fscroll); fbox.appendChild(eco.legend.el);
       flow = { root: fbox };
       fctl.say(IDLE);
       (function () {   // every sentence the narration line can show, so its height is reserved up front (nothing below moves)
@@ -527,14 +535,35 @@
       });
     }
     function stagesOf(tr) { var last = tr.stages[tr.stages.length - 1]; last.mark = tr.mark; if (tr.glow) last.glow = tr.glow; return tr.stages; }
+    // Colour the pieces of the reference card that checks have looked at, in the colour of the block that answered
+    // (while a lookup is under way: in the colour of the reference list block, the sender). `running` = list of check keys.
+    function paintRef(running) {
+      var root = stage.querySelector('.rd-ref-text'); if (!root || !fv.card || !CF) return;
+      Array.prototype.forEach.call(root.querySelectorAll('.cf-fld'), function (n) { n.classList.remove('cf-lit'); n.style.removeProperty('--c'); });
+      function light(fields, key) {
+        fields.forEach(function (f) {
+          Array.prototype.forEach.call(root.querySelectorAll('.cf-fld[data-fld="' + f + '"]'), function (n) { n.classList.add('cf-lit'); n.style.setProperty('--c', CF.cmpVar(key)); });
+        });
+      }
+      fv.opened.forEach(function (k) { light(CHECK_FIELDS[k] || [], checkTrace(fv.card, k).answerer); });
+      (running || []).forEach(function (k) { light(CHECK_FIELDS[k] || [], 'REF'); });
+    }
+    // The origin trace must not overwrite a result badge that a check has already put on a block (the player's evidence stays visible).
+    function revealFor(card) {
+      var rv = revealTrace(card), badged = fv.opened.map(function (k) { return checkTrace(card, k).answerer; });
+      rv.mark = rv.mark.filter(function (m) { return badged.indexOf(m.id) < 0; });
+      var v = rv.stages[0].val, keep = {}; Object.keys(v).forEach(function (id) { if (badged.indexOf(id) < 0) keep[id] = v[id]; }); rv.stages[0].val = keep;
+      return rv;
+    }
     // static picture of the current state (no animation): used at rest, after Reset and when switching tabs
     function paintDiagram() {
       if (!flow) return;
+      paintRef();
       eco.reset();
       var c = fv.card; if (!c) return;
       if (fv.emitted) applyVals(emitTrace(c, 0, 1).stages[0].val);
       fv.opened.forEach(function (k) { var tr = checkTrace(c, k); tr.mark.forEach(applyMark); applyVals(tr.stages[tr.stages.length - 1].val); });
-      if (fv.revealed) { var rv = revealTrace(c); rv.mark.forEach(applyMark); applyVals(rv.stages[0].val); if (rv.glow) eco.glow(rv.glow, true); }
+      if (fv.revealed) { var rv = revealFor(c); rv.mark.forEach(applyMark); applyVals(rv.stages[0].val); if (rv.glow) eco.glow(rv.glow, true); }
     }
     function flowFlush() { if (flow && frun.state().active) frun.flush(); }
     function flowCancel() { if (flow) frun.cancel(); }
@@ -573,7 +602,9 @@
       var wrap = $('div', 'rd-ref ' + (cls || ''));
       var st = styleFor(idx);
       wrap.appendChild($('span', 'rd-ref-style', st + ' style'));
-      var t = $('p', 'rd-ref-text'); fmt(t, renderRef(card, st)); wrap.appendChild(t);
+      var t = $('p', 'rd-ref-text'), d = renderData(card.claim), r = CL.render(d)[st];
+      if (CF) CF.fmtSpans(t, r.ref, CL.fieldSpans(CL.trace(d, st)), r.plain); else fmt(t, r.ref);   // pieces become field-coloured spans while a check looks at them
+      wrap.appendChild(t);
       return wrap;
     }
     function checkResult(card, k) {
@@ -679,6 +710,7 @@
       ref.setAttribute('aria-label', 'Reference card. Swipe left for fake, right for real, down for real with wrong details.');
       area.appendChild(ref); stage.appendChild(area);
       attachSwipe(ref);
+      if (flow && !frun.state().active) paintRef();
       stage.appendChild(checkButtons(card, state.opened, function (k) { openCheck(k); }, state.answered));
       var act = $('div', 'rd-actions');   // fixed-height row: verdict buttons, then the result + Next button in the same place
       stage.appendChild(act);
@@ -718,6 +750,7 @@
         if (flow) fctl.say(IDLE);
         var btn = stage.querySelectorAll('.rd-check')[Math.min(CHECKS.indexOf(k) + 1, 3)]; if (btn && !btn.disabled) btn.focus();
       }
+      paintRef([k]);
       playStages(stagesOf(checkTrace(card, k)), commit);
     }
     function answer(v) {
@@ -729,7 +762,7 @@
       state.plays.push({ card: card, verdict: v, checks: state.opened.slice(), result: r });
       state.answered = { verdict: v, result: r };
       drawJudge(); say((r.correct ? 'Correct. ' : 'Wrong. ') + 'The truth: ' + VLABEL[card.truth] + '. Score ' + state.score + '. Essay credibility ' + state.cred + '.');
-      if (flow) { var f = fv; playStages(stagesOf(revealTrace(card)), function () { f.revealed = true; if (fv === f) { paintDiagram(); fctl.say('Origin traced. Next reference when you are ready.'); } }); }
+      if (flow) { var f = fv; playStages(stagesOf(revealFor(card)), function () { f.revealed = true; if (fv === f) { paintDiagram(); fctl.say('Origin traced. Next reference when you are ready.'); } }); }
     }
     function next() {
       flowFlush();
@@ -833,6 +866,7 @@
       stage.appendChild(head);
       if (flow) { stage.appendChild(flow.root); fctl.fix(); if (!frun.state().active) paintDiagram(); }
       stage.appendChild(refBlock(card, T.i, 'rd-t-ref'));
+      if (flow && !frun.state().active) paintRef();
       var opened = CHECKS.slice(0, T.opened);
       var cb = checkButtons(card, opened, function (k) { tOpen(CHECKS.indexOf(k) + 1); }, T.revealed);
       stage.appendChild(cb);
@@ -871,7 +905,9 @@
       flowFlush();
       var T = state.t; if (T.revealed || n <= T.opened || n > 4) return;
       var card = state.deck[T.i], f = fv, ti = T.i, stages = [];
-      CHECKS.slice(T.opened, n).forEach(function (k) { stages = stages.concat(stagesOf(checkTrace(card, k))); });
+      var keys = CHECKS.slice(T.opened, n);
+      keys.forEach(function (k) { stages = stages.concat(stagesOf(checkTrace(card, k))); });
+      paintRef(keys);
       playStages(stages, function () {
         if (state.mode !== 'teacher' || state.t.i !== ti || state.t.revealed) return;
         state.t.opened = Math.max(state.t.opened, n); if (f === fv) fv.opened = CHECKS.slice(0, state.t.opened);
@@ -887,7 +923,7 @@
       var maj = ['fake', 'wrong', 'real'].reduce(function (a, k) { return T.votes[k] > T.votes[a] ? k : a; }, 'real');
       if (tot) T.hist.push({ i: T.i, ok: maj === card.truth });
       drawTeacher(); say('The truth: ' + VLABEL[card.truth]);
-      if (flow) { var f = fv; playStages(stagesOf(revealTrace(card)), function () { f.revealed = true; if (fv === f) { paintDiagram(); fctl.say('Origin traced.'); } }); }
+      if (flow) { var f = fv; playStages(stagesOf(revealFor(card)), function () { f.revealed = true; if (fv === f) { paintDiagram(); fctl.say('Origin traced.'); } }); }
     }
     function tGo(d) {
       var T = state.t, n = T.i + d; if (n < 0 || n >= state.deck.length) return;

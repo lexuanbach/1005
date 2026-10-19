@@ -82,3 +82,18 @@
 .sq-flowcard { margin-top: 0.8rem; }
 .sq-flowh { margin: 0; font-size: 0.95rem; }
 .sq-flowcard .sf-wrap { margin-top: 0.4rem; }
+
+/* colour = component (palette --cmp-N; same colours as the "Inside the database" diagram):
+   editor = Client, query plan = Query planner, rows read = Storage, index = Index, result table = Result set */
+.sq-editor { border-left: 4px solid var(--cmp-1); }
+.sq-plan { border-left: 4px solid var(--cmp-9); }
+.sq-tablewrap { border-top: 3px solid var(--cmp-6); }
+.sq-plan h4 { color: color-mix(in srgb, var(--cmp-9) 62%, var(--ink)); }
+.sq-meter-row i, .sq-plain i { display: inline-block; width: 0.75rem; height: 0.75rem; margin-right: 0.3rem; vertical-align: -0.05rem; border-radius: 3px; box-sizing: border-box;
+  background: var(--c); border: 1.5px solid color-mix(in srgb, var(--c) 55%, var(--ink)); }
+.sq-bar-track { background: color-mix(in srgb, var(--cmp-3) 18%, var(--paper)); border: 1px solid color-mix(in srgb, var(--cmp-3) 60%, var(--line)); }
+.sq-bar-fill, .sq-bar-fill.sq-fast { background: var(--cmp-3); }
+.sq-plain li.sf-c-S, .sq-plain li.sf-c-I { border-left: 4px solid var(--c); padding-left: 0.5rem; }
+.sq-op { display: inline-block; padding: 0 0.4rem; margin-right: 0.15rem; font-weight: 700; border-radius: 4px; color: var(--ink);
+  background: color-mix(in srgb, var(--c) 18%, var(--surface)); border: 1.5px solid var(--c); }
+.sq-ix { color: color-mix(in srgb, var(--cmp-2) 62%, var(--ink)); border-color: var(--cmp-2); background: color-mix(in srgb, var(--cmp-2) 10%, var(--paper)); }

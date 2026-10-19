@@ -6,6 +6,9 @@
    - LLMFlow.genloop(el): context -> model -> probability bars -> sampled token -> text so far -> (loop) context.
        Stages come from NGram.trace() (lab panel A).
    Also: transport() = speed slider (6 levels incl. Instant, persisted) + Pause/Resume + Step, and the runner behind it.
+   One colour per component (palette tokens --cmp-N from style.css, mapped in llm-flow.css): blocks, their defence chips, the arrows
+   leaving them and the tokens travelling along those arrows share the colour of the SOURCE block; the three stacked prompt layers
+   (system / user / untrusted) keep their own colours everywhere. Verdicts stay semantic (green good, red bad) via badge + glyph + text.
    Theme tokens only (llm-flow.css). prefers-reduced-motion: no moving tokens, highlight only. */
 (function (global) {
   'use strict';
@@ -86,7 +89,7 @@
   function transport(opts) {
     opts = opts || {};
     var key = opts.key || 'co1005-llm-speed', idx = opts.initial === undefined ? 3 : opts.initial;
-    try { var s = localStorage.getItem(key); if (s !== null && !isNaN(+s) && +s >= 0 && +s < SPEEDS.length) idx = +s; } catch (e) {}
+    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) {}
     var wrap = html('div', 'lf-transport'); wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', 'Animation controls');
     var sp = html('div', 'lf-speed');
     var lab = html('label', 'field-label', 'Speed'), id = 'lf-speed-' + (++uidN); lab.setAttribute('for', id);
@@ -119,7 +122,7 @@
     function hide() { tok.setAttribute('visibility', 'hidden'); }
     function settle() { var r = pending; pending = null; hide(); if (r) r(); }
     return {
-      fly: function (path, text, ms, tone) {
+      fly: function (path, text, ms, cls) {
         return new Promise(function (resolve) {
           pending = resolve;
           if (!path || ms <= 0) { settle(); return; }
@@ -128,7 +131,7 @@
           txt.textContent = text;
           var w = Math.max(26, text.length * 7 + 14);
           rect.setAttribute('width', w); rect.setAttribute('x', -w / 2);
-          tok.setAttribute('class', 'lf-token' + (tone ? ' lf-tone-' + tone : ''));
+          tok.setAttribute('class', 'lf-token' + (cls ? ' ' + cls : ''));
           svg.appendChild(tok);
           tok.setAttribute('visibility', 'visible');
           var len = path.getTotalLength(), t0 = null;
@@ -146,12 +149,20 @@
     };
   }
 
-  function defsFor(svg, id) {
+  /* one arrowhead per source block (so it carries that block's colour) + a hatch for "untrusted text merged into the instructions" */
+  function defsFor(svg, id, ids) {
     var defs = mk('defs', {}, svg);
-    [['', 'lf-head'], ['-on', 'lf-head on']].forEach(function (m) {
-      var mr = mk('marker', { id: id + m[0], viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' }, defs);
-      mk('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: m[1] }, mr);
+    ids.forEach(function (k) {
+      var mr = mk('marker', { id: id + '-' + k, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse', class: 'lf-c-' + k }, defs);
+      mk('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'lf-head' }, mr);
     });
+    var pat = mk('pattern', { id: id + '-mix', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs);
+    mk('rect', { width: 6, height: 6, class: 'lf-mix-a' }, pat); mk('rect', { width: 3, height: 6, class: 'lf-mix-b' }, pat);
+  }
+  var GLYPH = { pass: '✓', block: '⊘', slip: '▲', off: '–', info: '' };
+  var WORD = { pass: 'passed', block: 'stopped', slip: 'slipped through', off: 'no defence here', info: 'ok' };
+  function legendItem(cls, label) {
+    var sp = html('span', cls), dot = html('i'); sp.appendChild(dot); sp.appendChild(document.createTextNode(label)); return sp;
   }
 
   /* ═══════════════════════════ pipeline diagram ═══════════════════════════ */
@@ -185,21 +196,27 @@
   };
   var LAYERS = [['system', 'system prompt', 56], ['user', 'user message', 34], ['untrusted', 'untrusted document', 64]];
   var VERDICT_TXT = { pass: 'PASSED', block: 'STOPPED', slip: 'SLIPPED THROUGH', off: 'NO DEFENCE' };
+  var ORDER = ['user', 'gate', 'asm', 'model', 'tools', 'outf', 'doc', 'atk'];
 
   function pipeline(container, opts) {
     opts = opts || {};
     var uid = 'lf-arr-' + (++uidN);
     var svg = mk('svg', { viewBox: '0 -14 780 322', class: 'lf-svg', role: 'img',
       'aria-label': 'Diagram of an LLM application: user, app gateway with input filter, prompt assembler stacking system prompt, user message and untrusted document, model, tool layer with allow-list and human confirmation, output filter, and an attacker outside the system.' });
-    defsFor(svg, uid);
+    defsFor(svg, uid, ORDER);
 
     var edgeEls = {}, gE = mk('g', {}, svg);
-    Object.keys(EDGES).forEach(function (k) { edgeEls[k] = mk('path', { d: EDGES[k], class: 'lf-edge' + (k === 'outf>atk' || k === 'tools>atk' ? ' lf-edge-ext' : ''), 'marker-end': 'url(#' + uid + ')', 'data-edge': k }, gE); });
+    Object.keys(EDGES).forEach(function (k) {
+      var from = k.split('>')[0];
+      edgeEls[k] = mk('path', { d: EDGES[k], class: 'lf-edge lf-c-' + from + (k === 'outf>atk' || k === 'tools>atk' ? ' lf-edge-ext' : ''), 'marker-end': 'url(#' + uid + '-' + from + ')', 'data-edge': k }, gE);
+    });
 
     var nodeEls = {}, badgeEls = {};
+    function baseClass(id) { return 'lf-node lf-n-' + id + ' lf-c-' + id; }
     Object.keys(NODES).forEach(function (id) {
       var b = NODES[id];
-      var g = mk('g', { class: 'lf-node lf-n-' + id, 'data-node': id }, svg);
+      var g = mk('g', { class: baseClass(id), 'data-node': id }, svg);
+      mk('rect', { x: b[0] - 4, y: b[1] - 4, width: b[2] + 8, height: b[3] + 8, rx: 12, class: 'lf-ring' }, g);
       mk('rect', { x: b[0], y: b[1], width: b[2], height: b[3], rx: 9, class: 'lf-box' }, g);
       var t = mk('text', { x: b[0] + b[2] / 2, y: b[1] + (id === 'doc' ? 15 : 16), class: 'lf-name', 'text-anchor': 'middle' }, g); t.textContent = b[4];
       if (b[5]) { var s = mk('text', { x: b[0] + b[2] / 2, y: b[1] + (id === 'doc' ? 28 : 30), class: 'lf-sub', 'text-anchor': 'middle' }, g); s.textContent = b[5]; }
@@ -210,22 +227,22 @@
     // assembler layers + flat stream
     var A = NODES.asm, layerEls = {}, layerTxt = {}, segEls = {}, gA = nodeEls.asm;
     LAYERS.forEach(function (L, i) {
-      var g = mk('g', { class: 'lf-layer lf-layer-' + L[0] }, gA);
-      mk('rect', { x: A[0] + 8, y: A[1] + 22 + i * 20, width: A[2] - 16, height: 17, rx: 4 }, g);
-      layerTxt[L[0]] = mk('text', { x: A[0] + 14, y: A[1] + 34 + i * 20, class: 'lf-layer-t' }, g); layerTxt[L[0]].textContent = L[1];
+      var g = mk('g', { class: 'lf-layer lf-layer-' + L[0] + ' lf-L-' + L[0] }, gA);
+      mk('rect', { x: A[0] + 8, y: A[1] + 21 + i * 19, width: A[2] - 16, height: 16, rx: 4 }, g);
+      layerTxt[L[0]] = mk('text', { x: A[0] + 14, y: A[1] + 33 + i * 19, class: 'lf-layer-t' }, g); layerTxt[L[0]].textContent = L[1];
       layerEls[L[0]] = g;
     });
     var sx = A[0] + 8;
     LAYERS.forEach(function (L) {
-      segEls[L[0]] = mk('rect', { x: sx, y: A[1] + 86, width: L[2], height: 12, class: 'lf-seg lf-seg-' + L[0] }, gA);
+      segEls[L[0]] = mk('rect', { x: sx, y: A[1] + 86, width: L[2], height: 12, class: 'lf-seg lf-seg-' + L[0] + ' lf-L-' + L[0] }, gA);
       sx += L[2];
     });
-    var streamLbl = mk('text', { x: A[0] + A[2] - 8, y: A[1] + 84.5, class: 'lf-stream-t', 'text-anchor': 'end' }, gA); streamLbl.textContent = '';
+    var streamLbl = mk('text', { x: A[0] + A[2] - 8, y: A[1] + 83.5, class: 'lf-stream-t', 'text-anchor': 'end' }, gA); streamLbl.textContent = '';
 
     // defence chips
     var chipEls = {};
     Object.keys(CHIPS).forEach(function (id) {
-      var c = CHIPS[id], g = mk('g', { class: 'lf-chip off', 'data-chip': id }, nodeEls[c[0]]);
+      var c = CHIPS[id], g = mk('g', { class: 'lf-chip off lf-c-' + c[0], 'data-chip': id }, nodeEls[c[0]]);
       var ti = mk('title', {}, g); ti.textContent = c[5] + ' (off)';
       mk('rect', { x: c[1], y: c[2], width: c[3], height: 17, rx: 8.5 }, g);
       var tx = mk('text', { x: c[1] + c[3] / 2, y: c[2] + 12, 'text-anchor': 'middle' }, g); tx.textContent = '✗ ' + c[4];
@@ -245,18 +262,25 @@
     var narrH = html('b', 'lf-narr-h'), narrB = html('span', 'lf-narr-b');
     narr.appendChild(narrH); narr.appendChild(narrB);
     container.appendChild(narr);
-    var legend = html('p', 'lf-legend');
-    legend.innerHTML = '<span class="lf-key lf-k-on">defence on</span> <span class="lf-key lf-k-off">defence off</span> <span class="lf-key lf-k-stop">stopped</span> <span class="lf-key lf-k-slip">slipped through</span> · <span class="lf-key lf-k-sys">system</span> <span class="lf-key lf-k-user">user</span> <span class="lf-key lf-k-unt">untrusted</span>';
+    // legend: one swatch per block, the three prompt layers, then the verdict key (glyph + word, never colour alone)
+    var legend = html('div', 'lf-legend');
+    ORDER.forEach(function (id) { legend.appendChild(legendItem('lf-c-' + id, NAMES[id] + (id === 'model' ? ' (simulation)' : ''))); });
+    var lsep = html('span', 'lf-legend-sep', 'prompt text:'); legend.appendChild(lsep);
+    LAYERS.forEach(function (L) { legend.appendChild(legendItem('lf-L-' + L[0], L[1] === 'untrusted document' ? 'untrusted text' : L[1])); });
     container.appendChild(legend);
+    var vkey = html('div', 'lf-vkey'); vkey.setAttribute('aria-label', 'Meaning of the verdict badges and chips');
+    [['lf-k-good', '✓ passed'], ['lf-k-good', '⊘ stopped by a defence'], ['lf-k-bad', '▲ slipped through / leaked'], ['lf-k-neutral', '– no defence here'], ['lf-k-chip', '✓ defence on'], ['lf-k-chip lf-k-chipoff', '✗ defence off']]
+      .forEach(function (k) { vkey.appendChild(html('span', 'lf-key ' + k[0], k[1])); });
+    container.appendChild(vkey);
 
     var marked = [], activeEdge = null, pendingResolve = null;
-    function idle(text) { narrH.textContent = ''; narrB.textContent = text || opts.idleText || 'Press the button to send a request through the system and watch it travel block by block.'; }
+    function idle(text) { narr.className = 'lf-narr'; narrH.textContent = ''; narrB.textContent = text || opts.idleText || 'Press the button to send a request through the system and watch it travel block by block.'; }
     idle();
 
     function setChips(map) {
       Object.keys(chipEls).forEach(function (id) {
         var on = !!(map && map[id]), c = chipEls[id];
-        c.g.setAttribute('class', 'lf-chip ' + (on ? 'on' : 'off'));
+        c.g.setAttribute('class', 'lf-chip lf-c-' + CHIPS[id][0] + ' ' + (on ? 'on' : 'off'));
         c.tx.textContent = (on ? '✓ ' : '✗ ') + CHIPS[id][4];
         c.ti.textContent = CHIPS[id][5] + (on ? ' (on)' : ' (off)');
       });
@@ -264,14 +288,17 @@
     function clearMarks() {
       marked.forEach(function (n) { n.classList.remove('lf-src', 'lf-dst'); });
       marked = [];
-      if (activeEdge) { activeEdge.classList.remove('on'); activeEdge.setAttribute('marker-end', 'url(#' + uid + ')'); activeEdge = null; }
+      if (activeEdge) { activeEdge.classList.remove('on'); activeEdge = null; }
     }
     function reset() {
       cancelHook();
       clearMarks();
-      Object.keys(nodeEls).forEach(function (id) { nodeEls[id].setAttribute('class', 'lf-node lf-n-' + id); badgeEls[id].g.setAttribute('visibility', 'hidden'); });
+      Object.keys(nodeEls).forEach(function (id) { nodeEls[id].setAttribute('class', baseClass(id)); badgeEls[id].g.setAttribute('visibility', 'hidden'); });
       Object.keys(chipEls).forEach(function (id) { chipEls[id].g.classList.remove('hit', 'slipped'); });
-      LAYERS.forEach(function (L) { layerEls[L[0]].setAttribute('class', 'lf-layer lf-layer-' + L[0]); segEls[L[0]].setAttribute('class', 'lf-seg lf-seg-' + L[0]); layerTxt[L[0]].textContent = L[1]; });
+      LAYERS.forEach(function (L) {
+        layerEls[L[0]].setAttribute('class', 'lf-layer lf-layer-' + L[0] + ' lf-L-' + L[0]); segEls[L[0]].setAttribute('class', 'lf-seg lf-seg-' + L[0] + ' lf-L-' + L[0]);
+        segEls[L[0]].removeAttribute('style'); layerTxt[L[0]].textContent = L[1];
+      });
       streamLbl.textContent = '';
       idle();
     }
@@ -298,7 +325,7 @@
         if (to === 'user' && v === 'slip') label = 'TRICKED / LEAKED';
         if (to === 'user' && v === 'pass') label = 'SAFE ANSWER';
         if (to === 'asm' && v === 'off') label = 'NO FENCE';
-        badge(to, v, label);
+        badge(to, v, label ? GLYPH[v] + ' ' + label : '');
       }
       (step.layers || []).forEach(function (l) {
         if (!layerEls[l]) return;
@@ -307,6 +334,7 @@
       });
       if (step.merge) {
         layerEls.untrusted.classList.add('merged'); segEls.untrusted.classList.add('merged'); nodeEls.asm.classList.add('lf-merging');
+        segEls.untrusted.setAttribute('style', 'fill:url(#' + uid + '-mix)');
         layerTxt.untrusted.textContent = 'untrusted → instructions';
         streamLbl.textContent = 'one flat stream';
       } else if (step.layers && step.layers.indexOf('untrusted') >= 0 && v === 'pass') {
@@ -324,7 +352,8 @@
           function finish() {
             pendingResolve = null;
             land(step);
-            narrH.textContent = head + ' · ' + (step.verdict && step.verdict !== 'info' ? (VERDICT_TXT[step.verdict] || '').toLowerCase() : 'ok');
+            narr.className = 'lf-narr lf-c-' + step.to;
+            narrH.textContent = head + ' · ' + (GLYPH[step.verdict] ? GLYPH[step.verdict] + ' ' : '') + (WORD[step.verdict || 'info']);
             narrB.textContent = step.note || '';
             if (opts.onLand) opts.onLand(step, idx);
             resolve();
@@ -332,12 +361,13 @@
           if (nodeEls[step.from]) { nodeEls[step.from].classList.add('lf-src'); marked.push(nodeEls[step.from]); }
           if (nodeEls[step.to]) { nodeEls[step.to].classList.add('lf-dst'); marked.push(nodeEls[step.to]); }
           if (ms <= 0) { finish(); return; }
+          narr.className = 'lf-narr lf-c-' + step.from;
           narrH.textContent = head;
           narrB.textContent = 'Sending “' + clip(step.text, 40) + '” …';
-          if (path) { path.classList.add('on'); path.setAttribute('marker-end', 'url(#' + uid + '-on)'); activeEdge = path; }
-          flyer.fly(path, step.text, ms, step.from === 'doc' || step.to === 'atk' ? 'red' : '').then(function () {
+          if (path) { path.classList.add('on'); activeEdge = path; }
+          flyer.fly(path, step.text, ms, 'lf-c-' + step.from).then(function () {
             if (pendingResolve !== resolve) return; // cancelled meanwhile
-            if (activeEdge) { activeEdge.classList.remove('on'); activeEdge.setAttribute('marker-end', 'url(#' + uid + ')'); activeEdge = null; }
+            if (activeEdge) { activeEdge.classList.remove('on'); activeEdge = null; }
             finish();
           });
         });
@@ -347,7 +377,7 @@
     function unitsFor(steps) { return steps.map(function (s, i) { return stepUnit(s, i, steps.length); }); }
     function cancelHook() { var r = pendingResolve; pendingResolve = null; flyer.cancel(); clearMarks(); if (r) r(); }
     /* show the end state of a whole run at once (used when a run is interrupted, or in instant mode) */
-    function showAll(steps) { reset(); steps.forEach(function (s) { clearMarks(); land(s); }); var last = steps[steps.length - 1]; if (last) { narrH.textContent = 'Result'; narrB.textContent = last.note || ''; } }
+    function showAll(steps) { reset(); steps.forEach(function (s) { clearMarks(); land(s); }); var last = steps[steps.length - 1]; if (last) { narr.className = 'lf-narr lf-c-' + last.to; narrH.textContent = 'Result'; narrB.textContent = last.note || ''; } }
 
     return { svg: svg, narr: narr, setChips: setChips, reset: reset, cancel: cancelHook, unitsFor: unitsFor, showAll: showAll, idle: idle, NAMES: NAMES };
   }
@@ -365,19 +395,23 @@
     'sample>text': 'M 709 130 L 709 204', 'text>ctx': 'M 58 204 L 58 138'
   };
   var GNAMES = { ctx: 'Context', model: 'Model', probs: 'Probabilities', sample: 'Sample', text: 'Text so far' };
+  var GORDER = ['ctx', 'model', 'probs', 'sample', 'text'];
 
   function genloop(container, opts) {
     opts = opts || {};
     var uid = 'lf-arr-' + (++uidN);
     var svg = mk('svg', { viewBox: '0 0 780 268', class: 'lf-svg lf-gen', role: 'img',
       'aria-label': 'The generation loop: context goes into the model, which produces a probability for each next token; one token is sampled, appended to the text, and the longer text becomes the new context.' });
-    defsFor(svg, uid);
+    defsFor(svg, uid, GORDER);
     var edgeEls = {}, gE = mk('g', {}, svg);
-    Object.keys(GEDGES).forEach(function (k) { edgeEls[k] = mk('path', { d: GEDGES[k], class: 'lf-edge', 'marker-end': 'url(#' + uid + ')' }, gE); });
+    Object.keys(GEDGES).forEach(function (k) {
+      var from = k.split('>')[0];
+      edgeEls[k] = mk('path', { d: GEDGES[k], class: 'lf-edge lf-c-' + from, 'marker-end': 'url(#' + uid + '-' + from + ')' }, gE);
+    });
     var loopLbl = mk('text', { x: 66, y: 178, class: 'lf-looplbl' }, svg); loopLbl.textContent = 'append & repeat';
     var nodeEls = {};
     Object.keys(GN).forEach(function (id) {
-      var b = GN[id], g = mk('g', { class: 'lf-node lf-n-' + id }, svg);
+      var b = GN[id], g = mk('g', { class: 'lf-node lf-n-' + id + ' lf-c-' + id }, svg);
       mk('rect', { x: b[0], y: b[1], width: b[2], height: b[3], rx: 9, class: 'lf-box' }, g);
       var t = mk('text', { x: b[0] + (id === 'text' ? 12 : b[2] / 2), y: b[1] + 16, class: 'lf-name', 'text-anchor': id === 'text' ? 'start' : 'middle' }, g); t.textContent = b[4];
       if (b[5]) { var s = mk('text', { x: b[0] + b[2] / 2, y: b[1] + 29, class: 'lf-sub', 'text-anchor': 'middle' }, g); s.textContent = b[5]; }
@@ -401,6 +435,7 @@
     var sampTok = mk('text', { x: GN.sample[0] + GN.sample[2] / 2, y: GN.sample[1] + 54, class: 'lf-big', 'text-anchor': 'middle' }, nodeEls.sample);
     var sampU = mk('text', { x: GN.sample[0] + GN.sample[2] / 2, y: GN.sample[1] + 70, class: 'lf-sub', 'text-anchor': 'middle' }, nodeEls.sample);
     var textVal = mk('text', { x: GN.text[0] + 12, y: GN.text[1] + 40, class: 'lf-textval' }, nodeEls.text);
+    var tsBase = mk('tspan', {}, textVal), tsLast = mk('tspan', { class: 'lf-textlast' }, textVal); // the token that was just appended is highlighted
 
     var flyer = makeFlyer(svg);
     container.appendChild(svg);
@@ -408,11 +443,15 @@
     var narrH = html('b', 'lf-narr-h'), narrB = html('span', 'lf-narr-b');
     narr.appendChild(narrH); narr.appendChild(narrB);
     container.appendChild(narr);
+    var legend = html('div', 'lf-legend');
+    GORDER.forEach(function (id) { legend.appendChild(legendItem('lf-c-' + id, id === 'sample' ? 'Sampled token' : GNAMES[id])); });
+    legend.appendChild(html('span', 'lf-legend-sep', 'bars: wide = share of counts, narrow = after temperature & top-k'));
+    container.appendChild(legend);
 
     var marked = [], activeEdge = null, pendingResolve = null, cur = null;
     function clearMarks() {
       marked.forEach(function (n) { n.classList.remove('lf-src', 'lf-dst'); }); marked = [];
-      if (activeEdge) { activeEdge.classList.remove('on'); activeEdge.setAttribute('marker-end', 'url(#' + uid + ')'); activeEdge = null; }
+      if (activeEdge) { activeEdge.classList.remove('on'); activeEdge = null; }
     }
     function setContext(tokens, note) {
       while (gCtx.firstChild) gCtx.removeChild(gCtx.firstChild);
@@ -450,17 +489,20 @@
       sampTok.textContent = tr ? clip(tr.ended ? '[end]' : tr.chosen, 11) : '';
       sampU.textContent = tr ? 'u = ' + tr.u.toFixed(3) : '';
     }
-    function setText(str) {
-      var s = String(str || '');
-      textVal.textContent = s.length > 86 ? '…' + s.slice(-85) : s;
+    function setText(str, last) {
+      var s = String(str || ''), pre = '';
+      if (s.length > 86) { s = s.slice(-85); pre = '…'; }
+      var l = last && s.length >= last.length && s.slice(-last.length) === last ? last : '';
+      tsBase.textContent = pre + s.slice(0, s.length - l.length);
+      tsLast.textContent = l;
     }
     function reset(ctxTokens, text, order) {
       cancelHook(); clearMarks(); cur = null;
-      Object.keys(nodeEls).forEach(function (id) { nodeEls[id].setAttribute('class', 'lf-node lf-n-' + id); });
+      Object.keys(nodeEls).forEach(function (id) { nodeEls[id].setAttribute('class', 'lf-node lf-n-' + id + ' lf-c-' + id); });
       setContext(ctxTokens || [], (ctxTokens || []).length ? '' : '(no context: unigram)');
       setBars(null); pickRow(null); setSample(null); setText(text);
       modelVal.textContent = order ? (order === 1 ? 'unigram' : order === 2 ? 'bigram' : 'trigram') : '';
-      narrH.textContent = ''; narrB.textContent = 'Press “Next token” to run the loop once, or “Generate to the end”.';
+      narr.className = 'lf-narr'; narrH.textContent = ''; narrB.textContent = 'Press “Next token” to run the loop once, or “Generate to the end”.';
     }
     function cancel() { flyer.cancel(); clearMarks(); }
     function cancelHook() { var r = pendingResolve; pendingResolve = null; flyer.cancel(); clearMarks(); if (r) r(); }
@@ -473,16 +515,18 @@
         var head = 'Token ' + (cur ? cur.index : 1) + ' · stage ' + (n + 1) + ' of ' + (total || 5) + ' · ' + GNAMES[st.from] + ' → ' + GNAMES[st.to];
         function finish() {
           pendingResolve = null; apply();
+          narr.className = 'lf-narr lf-c-' + st.to;
           narrH.textContent = head; narrB.textContent = st.note;
           resolve();
         }
         nodeEls[st.from].classList.add('lf-src'); nodeEls[st.to].classList.add('lf-dst'); marked.push(nodeEls[st.from], nodeEls[st.to]);
         if (ms <= 0) { finish(); return; }
+        narr.className = 'lf-narr lf-c-' + st.from;
         narrH.textContent = head; narrB.textContent = '…';
-        if (path) { path.classList.add('on'); path.setAttribute('marker-end', 'url(#' + uid + '-on)'); activeEdge = path; }
-        flyer.fly(path, st.text, ms, '').then(function () {
+        if (path) { path.classList.add('on'); activeEdge = path; }
+        flyer.fly(path, st.text, ms, 'lf-c-' + st.from).then(function () {
           if (pendingResolve !== resolve) return;
-          if (activeEdge) { activeEdge.classList.remove('on'); activeEdge.setAttribute('marker-end', 'url(#' + uid + ')'); activeEdge = null; }
+          if (activeEdge) { activeEdge.classList.remove('on'); activeEdge = null; }
           finish();
         });
       });
@@ -503,10 +547,10 @@
         },
         function (ms) { return stage(1, tr.stages[1], ms, function () { setBars(tr); if (h.onDistribution) h.onDistribution(tr); }); },
         function (ms) { return stage(2, tr.stages[2], ms, function () { pickRow(tr); setSample(tr); }); },
-        function (ms) { return stage(3, tr.stages[3], ms, function () { setText(h.text(tr)); if (h.onAppend) h.onAppend(tr); }); },
+        function (ms) { return stage(3, tr.stages[3], ms, function () { setText(h.text(tr), tr.ended ? '' : tr.chosen); if (h.onAppend) h.onAppend(tr); }); },
         function (ms) {
           if (tr.done || tr.ended) {
-            clearMarks(); narrH.textContent = 'Token ' + idx + ' · finished'; narrB.textContent = tr.stages[4].note;
+            clearMarks(); narr.className = 'lf-narr lf-c-text'; narrH.textContent = 'Token ' + idx + ' · finished'; narrB.textContent = tr.stages[4].note;
             if (h.onLoop) h.onLoop(tr);
             return 'end';
           }

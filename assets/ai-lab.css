@@ -10,13 +10,19 @@
 .ai-grid { stroke: var(--line); stroke-width: 1; }
 .ai-tick { fill: var(--ink-soft); font: 11px "IBM Plex Mono", monospace; }
 .ai-axis { fill: var(--ink-soft); font: 12px "Be Vietnam Pro", sans-serif; }
-.ai-pt { fill: var(--ink); stroke: var(--paper); stroke-width: 1.5; }
-.ai-fit { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
-.ai-curve { fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-dasharray: 7 5; }
-.ai-resid { stroke: var(--red); stroke-width: 2.5; }
-.ai-probe { fill: none; stroke: var(--amber); stroke-width: 3; }
-.ai-probe-l { stroke: var(--amber); stroke-width: 1.5; stroke-dasharray: 4 4; }
-.ai-loss { fill: none; stroke: var(--accent); stroke-width: 2.2; }
+/* the plot uses the same component colours as the pipeline diagram (ai-flow.css):
+   Data = blue points, Model = violet line / boundary, error = Loss rose, Prediction = amber probe */
+.ai-pt { fill: var(--af-data); stroke: var(--paper); stroke-width: 1.5; }
+.ai-fit { stroke: var(--af-model); stroke-width: 3; stroke-linecap: round; }
+.ai-curve { fill: none; stroke: var(--af-model); stroke-width: 2.5; stroke-dasharray: 7 5; }
+.ai-resid { stroke: var(--af-loss); stroke-width: 2.5; }
+.ai-probe { fill: color-mix(in srgb, var(--af-pred) 22%, transparent); stroke: var(--af-pred); stroke-width: 3; }
+.ai-probe-halo { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 3 2; }
+.ai-probe-l { stroke: var(--af-pred); stroke-width: 1.8; stroke-dasharray: 4 4; }
+.ai-loss { fill: none; stroke: var(--af-loss); stroke-width: 2.2; }
+#ai-a, #ai-b { accent-color: var(--af-model); }
+#ai-eta { accent-color: var(--af-opt); }
+.ai-legend .af-k { font-size: 0.78rem; }
 .ai-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.6rem 1.4rem; margin: 0.6rem 0; }
 .ai-field { display: grid; gap: 0.2rem; }
 .ai-field input[type=range] { width: 100%; accent-color: var(--accent); }
@@ -34,7 +40,7 @@
 .ai-log { white-space: pre; overflow-x: auto; min-height: 7rem; font-size: 0.78rem; }
 .ai-num { width: 6rem; font: inherit; padding: 0.35rem 0.5rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
 .ai-region { fill: color-mix(in srgb, var(--red) 11%, transparent); }
-.ai-boundary { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.ai-boundary { stroke: var(--af-model); stroke-width: 3.2; stroke-linecap: round; }
 .ai-ham { fill: var(--green); stroke: var(--paper); stroke-width: 1.2; }
 .ai-spam { fill: var(--red); stroke: var(--paper); stroke-width: 1.2; }
 .ai-news { fill: var(--amber); stroke: var(--paper); stroke-width: 1.2; }

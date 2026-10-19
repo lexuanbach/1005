@@ -79,7 +79,7 @@ tr.tc-grp td { border-top: 2px solid var(--line); }
 .vn-dp-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.5; opacity: 0.38; }
 .vn-dp-edge.on { stroke: var(--accent); stroke-width: 3.2; opacity: 1; stroke-dasharray: 9 6; animation: vn-dash 0.6s linear infinite; }
 @keyframes vn-dash { to { stroke-dashoffset: -30; } }
-.vn-dp-head { fill: var(--ink-soft); opacity: 0.6; }
+.vn-dp-head { fill: var(--ink-soft); opacity: 1; }
 .vn-dp-head.on { fill: var(--accent); opacity: 1; }
 .vn-dp-token rect { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
 .vn-dp-token text { fill: var(--accent-contrast); font-size: 12px; font-weight: 700; }
@@ -91,3 +91,19 @@ tr.tc-grp td { border-top: 2px solid var(--line); }
 @media (prefers-reduced-motion: reduce) { .vn-dp-edge.on { animation: none; } }
 
 .vn-main.vn-main-mem { grid-template-columns: 1fr; }
+
+/* one colour per component (palette tokens --cmp-N from style.css) */
+.vn-dp-c-PC { --c: var(--cmp-1); } .vn-dp-c-MAR { --c: var(--cmp-5); } .vn-dp-c-IR { --c: var(--cmp-4); } .vn-dp-c-DEC { --c: var(--cmp-9); }
+.vn-dp-c-MDR { --c: var(--cmp-7); } .vn-dp-c-R { --c: var(--cmp-8); } .vn-dp-c-ALU { --c: var(--cmp-2); } .vn-dp-c-FLAGS { --c: var(--cmp-10); }
+.vn-dp-c-MEM { --c: var(--cmp-3); } .vn-dp-c-IN { --c: var(--cmp-6); } .vn-dp-c-OUT { --c: var(--cmp-11); }
+.vn-dp-node rect { fill: color-mix(in srgb, var(--c, var(--ink-soft)) 11%, var(--surface)); stroke: var(--c, var(--line)); stroke-width: 1.8; }
+.vn-dp-n-MEM rect, .vn-dp-n-IN rect, .vn-dp-n-OUT rect { fill: color-mix(in srgb, var(--c) 11%, var(--surface)); stroke: var(--c); }
+.vn-dp-name { fill: color-mix(in srgb, var(--c, var(--ink-soft)) 62%, var(--ink)); }
+.vn-dp-node.vn-src rect { stroke-width: 3.4; fill: color-mix(in srgb, var(--c) 20%, var(--surface)); filter: drop-shadow(0 0 3px var(--c)); }
+.vn-dp-node.vn-dst rect { stroke-width: 3.4; fill: color-mix(in srgb, var(--c) 34%, var(--surface)); filter: drop-shadow(0 0 6px var(--c)); }
+.vn-dp-edge { stroke: var(--c, var(--ink-soft)); opacity: 1; }   /* full opacity: 0.5 gave 1.8-2.1:1, the arrows need 3:1 (WCAG 1.4.11) */
+.vn-dp-edge.on { stroke: var(--c); opacity: 1; }
+.vn-dp-token rect { fill: var(--c, var(--accent)); }
+.vn-dp-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; justify-content: center; margin: 0.5rem 0 0; font-size: 0.74rem; color: var(--ink-soft); }
+.vn-dp-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.vn-dp-legend i { width: 0.8rem; height: 0.8rem; border-radius: 3px; background: var(--c); display: inline-block; }

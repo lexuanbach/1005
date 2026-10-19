@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="stylesheet" href="../assets/vn-machine.css">
 <link rel="stylesheet" href="../assets/compiler-flow.css">
+<link rel="stylesheet" href="../assets/tc-lab.css">
+<link rel="stylesheet" href="../assets/app-fullscreen.css">
 </head>
 <body class="part2">
 
@@ -103,9 +105,9 @@
       <div class="meta-chips">
         <a class="chip" href="../demos/decompile-me.html">Demo app: Decompile Me</a>
         <a class="chip" href="#concepts">8 concepts</a>
-        <a class="chip" href="#lab">Tiny compiler lab</a>
+        <a class="chip" href="#lab">Tiny compiler lab: 26 examples, write your own</a>
         <a class="chip" href="#quiz">26-question quiz</a>
-        <a class="chip" href="#exercises">6 exercises</a>
+        <a class="chip" href="#exercises">8 exercises</a>
         <a class="chip" href="#teamwork">Team activity</a>
         <a class="chip local-only" href="../Lecture%20Slides/1%20-%20JVN.pptx">Slides (PPTX)</a>
       </div>
@@ -491,18 +493,28 @@ done:   <span class="fn">HALT</span></pre>
         <span class="eyebrow">02 · Lab</span>
         <h2>Tiny compiler</h2>
         <p>
-          Write (or pick) a few lines of C++ using <code>int</code>, <code>+</code> and <code>−</code>, <code>cin</code>,
-          <code>cout</code>, <code>if / else</code> and <code>while</code>, and watch it travel through the compiler's stages to
-          the toy machine of Chapter 7. This is a <strong>teaching compiler for a teaching machine</strong>: the target is the slide-34
-          instruction set, not x86 or ARM, and it only understands the small subset above. A real compiler's output looks like 8.5.
+          Pick one of the <strong>26 example programs</strong> (basics, decisions, loops, classic algorithms, input processing, puzzles; each has a
+          story, things to look for in the stages and challenges) or <strong>write your own C++</strong>: <code>int</code>,
+          <code>+ − * / %</code>, <code>cin</code>, <code>cout</code>, <code>if / else if / else</code>, <code>while</code>, <code>for</code>,
+          <code>do-while</code>, <code>break</code> / <code>continue</code> and conditions joined with <code>&amp;&amp;</code>, <code>||</code> and <code>!</code>.
+          Watch the program travel through the compiler's stages to the toy machine of Chapter 7, then open the assembly in last week's workbench with one button.
+          This is a <strong>teaching compiler for a teaching machine</strong>: the target is the slide-34
+          instruction set, not x86 or ARM, and it only understands the subset listed under the editor. A real compiler's output looks like 8.5.
         </p>
+        <ul class="tc-intro" style="max-width:46rem; margin-top:0.4rem">
+          <li><strong>Your own code:</strong> the editor has line numbers and checks the program while you type. Every error names the line and column and gives a hint; unsupported C++ (text, <code>double</code>, arrays, functions) is rejected with a friendly message. <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd> compiles.</li>
+          <li><strong>Keep it:</strong> your draft is saved automatically in this browser; <em>My programs</em> keeps named copies; you can download a <code>.cpp</code> file, open one, or copy a link that loads your program.</li>
+          <li><strong>See the cost:</strong> the toy ISA has no multiply or divide, so <code>*</code>, <code>/</code> and <code>%</code> become loops of additions and subtractions that you can read on tab 3. The line being executed is highlighted in the editor while the CPU runs.</li>
+        </ul>
       </div>
       <div id="tc-root"></div>
       <div class="note tip" style="max-width:46rem; margin-top:1rem">
         <span class="note-tag">What this teaching compiler leaves out</span>
         Real compilers keep variables in registers or on a stack, use <em>immediate</em> constants inside instructions
         (this ISA has none, so the constants 0 and 1 get memory cells of their own), reuse results and optimise. The toy machine's numbers are also
-        unbounded, whereas a C++ <code>int</code> wraps around at 32 bits. And <code>int x;</code> starts at 0 here, but in real C++ it holds garbage until you assign it.
+        unbounded, whereas a C++ <code>int</code> wraps around at 32 bits. And <code>int x;</code> starts at 0 here, but in real C++ it holds garbage until you assign it
+        (the lab warns when you read such a variable). A real CPU has multiply and divide instructions; this one does not, so the lab writes loops for <code>*</code>, <code>/</code>
+        and <code>%</code> (inline, or one shared routine when the program would not fit in the 256 cells). There is no stack either, hence no functions and no recursion here.
       </div>
     </div>
   </section>
@@ -523,7 +535,7 @@ done:   <span class="fn">HALT</span></pre>
       <div class="sec-head">
         <span class="eyebrow">04 · Practice</span>
         <h2>Exercises</h2>
-        <p>Translate control structures by hand (the textbook's problem 1.11.5), read real compiler output, and use the Tiny compiler. Numbers in the model answers were checked by running the lab's engine.</p>
+        <p>Translate control structures by hand (the textbook's problem 1.11.5), read real compiler output, and use the Tiny compiler (exercises 5-8 are lab tasks). Numbers in the model answers were checked by running the lab's engine.</p>
       </div>
       <div id="exercises-root"></div>
     </div>
@@ -651,10 +663,15 @@ done:   <span class="fn">HALT</span></pre>
 
 <script src="../assets/vn-machine.js"></script>
 <script src="../assets/tiny-compiler.js"></script>
+<script src="../assets/tc-examples.js"></script>
+<script src="../assets/tc-share.js"></script>
+<script src="../assets/tc-store.js"></script>
+<script src="../assets/tc-editor.js"></script>
 <script src="../assets/vn-datapath.js"></script>
 <script src="../assets/compiler-flow.js"></script>
 <script src="../assets/tiny-compiler-ui.js"></script>
 <script src="../assets/ch8-data.js"></script>
 <script src="../assets/course.js"></script>
+<script src="../assets/app-fullscreen.js" data-root="#tc-root"></script>
 </body>
 </html>

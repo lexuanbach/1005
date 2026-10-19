@@ -1,0 +1,226 @@
+/* VNEditor - styles for assets/vn-editor.js (prefix vne-). Colours come from the site's code-theme tokens
+   (--code-bg --code-gutter --code-text --code-caret --code-cm --code-hl-*) so the editor follows the
+   Midnight / Paper / Contrast code themes and the A- / A+ size buttons (--code-scale).
+   Where a token needs its own value per code theme (invalid text, diagnostics, bands) it is defined below
+   as --vne-* with an override for each theme; the contrast of all of them is checked by a script (>= 4.5:1 text, >= 3:1 marks). */
+
+.vne {
+  position: relative; display: block; min-width: 0; max-width: 100%;
+  --vne-fs: calc(0.84rem * var(--code-scale, 1));
+  --vne-lh: calc(var(--vne-fs) * 1.6);   /* an integer number of px (see @supports below) keeps every row of both layers on the same pixel grid */
+  --vne-padx: 0.9em;
+  --vne-pady: 0.7em;
+  --vne-digits: 3;
+  --vne-gw: calc(var(--vne-digits) * 1ch + 3.4em);
+
+  /* token colours (Midnight, the default code theme) */
+  --vne-c-op-data: var(--code-hl-kw);
+  --vne-c-op-arith: var(--code-hl-type);
+  --vne-c-op-flow: var(--code-hl-fn);
+  --vne-c-directive: var(--code-hl-stream);
+  --vne-c-label-def: var(--code-hl-str);
+  --vne-c-label-ref: var(--code-hl-str);
+  --vne-c-number: var(--code-hl-num);
+  --vne-c-comment: #96A1B3;
+  --vne-c-punct: var(--code-hl-op);
+  --vne-c-invalid: #FF8A80;
+  --vne-dim: #93A0B8;
+  /* marks and bands */
+  --vne-err: #FF8A80;
+  --vne-warn: #FFC857;
+  --vne-info: #7FC8FF;
+  --vne-bp: #FF6B6B;
+  --vne-active: #F2B04C;
+  --vne-sel: rgba(125, 162, 255, 0.24);
+  --vne-band-active: color-mix(in srgb, var(--vne-active) 13%, transparent);
+  --vne-band-bp: color-mix(in srgb, var(--vne-bp) 11%, transparent);
+  --vne-pop-bg: #16233A;
+  --vne-pop-sel: color-mix(in srgb, var(--code-hl-type) 30%, var(--vne-pop-bg));
+  --vne-pop-line: color-mix(in srgb, var(--code-cm) 60%, transparent);
+
+  --vne-svg-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 3' preserveAspectRatio='none'%3E%3Cpath d='M0 2.4Q1.5 -0.4 3 1.6T6 2.4' fill='none' stroke='black' stroke-width='0.9'/%3E%3C/svg%3E");
+  --vne-svg-dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2' preserveAspectRatio='none'%3E%3Ccircle cx='1.5' cy='1' r='0.8'/%3E%3C/svg%3E");
+  /* icon shapes (masks), so the colour can follow the theme: bullet, error, warning, info */
+  --vne-svg-bp: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5.5'/%3E%3C/svg%3E");
+  --vne-svg-error: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM5.3 4.2L8 6.9l2.7-2.7 1.1 1.1L9.1 8l2.7 2.7-1.1 1.1L8 9.1l-2.7 2.7-1.1-1.1L6.9 8 4.2 5.3z'/%3E%3C/svg%3E");
+  --vne-svg-warning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 1.2l7.2 13H.8zM7.2 6h1.6v4.2H7.2zM7.2 11.2h1.6v1.6H7.2z'/%3E%3C/svg%3E");
+  --vne-svg-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM7.2 3.8h1.6v1.6H7.2zM7.2 6.6h1.6v5.6H7.2z'/%3E%3C/svg%3E");
+}
+
+:root[data-code-theme="paper"] .vne {
+  --vne-c-op-arith: #0A5686;
+  --vne-c-directive: #095B6A;
+  --vne-c-label-def: #1C5F20;
+  --vne-c-label-ref: #1C5F20;
+  --vne-c-number: #814300;
+  --vne-c-comment: #4C545C;
+  --vne-c-invalid: #9F221B;
+  --vne-dim: #4C545C;
+  --vne-err: #B3261E;
+  --vne-warn: #7A4F00;
+  --vne-info: #0B5C8F;
+  --vne-bp: #C4281C;
+  --vne-active: #9A5B00;
+  --vne-sel: rgba(10, 63, 143, 0.16);
+  --vne-band-active: color-mix(in srgb, var(--vne-active) 13%, transparent);
+  --vne-band-bp: color-mix(in srgb, var(--vne-bp) 9%, transparent);
+  --vne-pop-bg: #F4F6F9;
+  --vne-pop-sel: color-mix(in srgb, var(--code-hl-type) 22%, var(--vne-pop-bg));
+}
+:root[data-code-theme="contrast"] .vne {
+  --vne-c-comment: var(--code-hl-cm);
+  --vne-c-invalid: #FF7A7A;
+  --vne-dim: #B0BAC9;
+  --vne-err: #FF7A7A;
+  --vne-warn: #FFE066;
+  --vne-info: #66D9FF;
+  --vne-bp: #FF5C5C;
+  --vne-active: #FFD866;
+  --vne-sel: rgba(255, 255, 255, 0.2);
+  --vne-band-active: color-mix(in srgb, var(--vne-active) 15%, transparent);
+  --vne-band-bp: color-mix(in srgb, var(--vne-bp) 14%, transparent);
+  --vne-pop-bg: #101010;
+  --vne-pop-sel: color-mix(in srgb, var(--code-hl-type) 34%, var(--vne-pop-bg));
+}
+
+@supports (width: round(1.5px, 1px)) {
+  .vne { --vne-lh: round(calc(var(--vne-fs) * 1.6), 1px); }
+}
+
+/* -- the frame -- */
+.vne-shell {
+  position: relative; overflow: hidden; box-sizing: border-box;
+  min-height: 3rem;
+  background: var(--code-bg); color: var(--code-text);
+  border: 1px solid color-mix(in srgb, var(--code-bg) 55%, var(--line, #888));
+  border-radius: 10px;
+  font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: var(--vne-fs); line-height: var(--vne-lh); font-weight: 500;
+  font-variant-ligatures: none; font-kerning: none; letter-spacing: 0; word-spacing: 0;
+}
+.vne-shell:focus-within { outline: 2px solid var(--accent, #7DA2FF); outline-offset: 1px; }
+.vne.is-readonly .vne-shell { border-style: dashed; }
+.vne.is-fill, .vne.is-fill .vne-shell { height: 100%; }
+
+/* the two text layers: identical metrics, so glyphs sit exactly under each other */
+.vne-layer, .vne-input {
+  position: absolute; inset: 0; margin: 0; width: 100%; height: 100%; box-sizing: border-box;
+  font: inherit; letter-spacing: 0; word-spacing: 0; text-indent: 0; text-align: left; text-transform: none;
+  font-variant-ligatures: none; font-kerning: none; font-feature-settings: "liga" 0, "calt" 0;
+  tab-size: 4; white-space: pre; overflow-wrap: normal; word-break: normal;
+  border: 0; border-radius: 0;
+  -webkit-text-size-adjust: 100%;
+}
+.vne-layer { overflow: hidden; padding: 0; background: transparent; color: var(--code-text); pointer-events: none; }
+.vne .vne-code {            /* beats the site's global `code {}` rule */
+  display: block; width: max-content; min-width: 100%; box-sizing: border-box;
+  margin: 0; padding: var(--vne-pady) 0 0 0;
+  font: inherit; letter-spacing: inherit; background: none; color: inherit; border: 0; border-radius: 0;
+}
+.vne-line { box-sizing: border-box; height: var(--vne-lh); padding: 0 0 0 calc(var(--vne-gw) + var(--vne-padx)); }   /* no right padding: a textarea does not scroll over its own right padding */
+.vne-spacer { height: var(--vne-pady); }
+.vne-input {
+  z-index: 1; overflow: auto; resize: none; outline: none;
+  padding: var(--vne-pady) var(--vne-padx) var(--vne-pady) calc(var(--vne-gw) + var(--vne-padx));
+  background: transparent; color: transparent; caret-color: var(--code-caret);
+  scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--code-cm) 75%, transparent) transparent;
+}
+.vne-input::selection { background: var(--vne-sel); color: transparent; }
+.vne-input::placeholder { color: var(--code-cm); }
+.vne-probe { position: absolute; left: 0; top: 0; visibility: hidden; white-space: pre; pointer-events: none; }
+
+/* -- token colours -- */
+.vne-t-op-data   { color: var(--vne-c-op-data);  font-weight: 600; }
+.vne-t-op-arith  { color: var(--vne-c-op-arith); font-weight: 600; }
+.vne-t-op-flow   { color: var(--vne-c-op-flow);  font-weight: 600; }
+.vne-t-directive { color: var(--vne-c-directive); }
+.vne-t-label-def { color: var(--vne-c-label-def); font-weight: 600; }
+.vne-t-label-ref { color: var(--vne-c-label-ref); }
+.vne-t-number    { color: var(--vne-c-number); }
+.vne-t-comment   { color: var(--vne-c-comment); font-style: italic; }
+.vne-t-punct     { color: var(--vne-c-punct); }
+.vne-t-invalid   { color: var(--vne-c-invalid); text-decoration: underline dotted; text-underline-offset: 0.2em; }
+
+/* -- diagnostics: wavy underline under the offending characters --
+   Drawn with a masked ::after (not text-decoration): browsers skip decoration under leading / trailing spaces,
+   which would leave gaps; this also never changes the text metrics. */
+.vne-dg { position: relative; }
+.vne-dg::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -0.14em; height: 0.3em; pointer-events: none;
+  background: var(--vne-err);
+  -webkit-mask: var(--vne-svg-wave) repeat-x left bottom / 0.5em 100%; mask: var(--vne-svg-wave) repeat-x left bottom / 0.5em 100%;
+}
+.vne-dg-warning::after { background: var(--vne-warn); }
+.vne-dg-info::after { background: var(--vne-info); height: 0.18em; -webkit-mask: var(--vne-svg-dots) repeat-x left bottom / 0.3em 100%; mask: var(--vne-svg-dots) repeat-x left bottom / 0.3em 100%; }
+.vne-pad { white-space: pre; }
+
+/* -- bands (active line, breakpoint lines) -- */
+.vne-line.is-bp { background: var(--vne-band-bp); }
+.vne-line.is-active { background: var(--vne-band-active); }
+.vne-line.is-active.is-next { background: transparent; box-shadow: inset 0 0 0 1px var(--vne-active); }
+
+/* -- gutter -- */
+.vne-gutter {
+  position: absolute; z-index: 2; top: 0; bottom: 0; left: 0; width: var(--vne-gw);
+  overflow: hidden; user-select: none; -webkit-user-select: none; cursor: default;
+  background: var(--code-gutter);
+  border-right: 1px solid color-mix(in srgb, var(--code-cm) 40%, transparent);
+}
+.vne-gutter-list { counter-reset: vne-ln; padding-top: var(--vne-pady); will-change: transform; }
+.vne-gl-spacer { height: 100vh; }
+.vne-gl {
+  counter-increment: vne-ln; box-sizing: border-box; height: var(--vne-lh);
+  display: grid; grid-template-columns: 1.25em 1.25em minmax(0, 1fr); align-items: center;
+  padding-right: 0.6em; padding-left: 0.2em; color: var(--vne-dim);
+  font-variant-numeric: tabular-nums;
+}
+.vne-gl::after { content: counter(vne-ln); grid-column: 3; text-align: right; }
+.vne-gl > i { display: block; width: 1em; height: 1em; background: transparent; -webkit-mask: no-repeat center / contain; mask: no-repeat center / contain; }
+.vne-gl > .vne-bp { -webkit-mask-image: var(--vne-svg-bp); mask-image: var(--vne-svg-bp); }
+.vne-gl:hover > .vne-bp { background: color-mix(in srgb, var(--vne-bp) 38%, transparent); }
+.vne-gl.is-bp > .vne-bp { background: var(--vne-bp); }
+.vne-gl.has-error > .vne-ic { background: var(--vne-err); -webkit-mask-image: var(--vne-svg-error); mask-image: var(--vne-svg-error); }
+.vne-gl.has-warning > .vne-ic { background: var(--vne-warn); -webkit-mask-image: var(--vne-svg-warning); mask-image: var(--vne-svg-warning); }
+.vne-gl.has-info > .vne-ic { background: var(--vne-info); -webkit-mask-image: var(--vne-svg-info); mask-image: var(--vne-svg-info); }
+.vne-gl.is-active { background: var(--vne-band-active); box-shadow: inset 3px 0 0 var(--vne-active); color: var(--code-text); font-weight: 700; }
+.vne-gl.is-active.is-next { background: transparent; font-weight: 600; box-shadow: inset 3px 0 0 var(--vne-active), inset 0 0 0 1px var(--vne-active); }
+
+/* -- popup and tooltip -- */
+.vne-pop, .vne-tip {
+  position: fixed; z-index: 3000; box-sizing: border-box;
+  background: var(--vne-pop-bg); color: var(--code-text);
+  border: 1px solid var(--vne-pop-line); border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+  font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: calc(0.8rem * var(--code-scale, 1)); line-height: 1.45;
+}
+.vne-pop[hidden], .vne-tip[hidden] { display: none; }
+.vne-pop { min-width: 14em; max-width: min(34em, calc(100vw - 8px)); max-height: 15.5em; overflow-y: auto; padding: 0.25em; }
+.vne-opt { display: flex; gap: 0.9em; align-items: baseline; justify-content: space-between; padding: 0.22em 0.6em; border-radius: 5px; cursor: pointer; }
+.vne-opt[aria-selected="true"] { background: var(--vne-pop-sel); box-shadow: inset 3px 0 0 var(--code-hl-type); }
+.vne-opt-l { font-weight: 600; white-space: pre; }
+.vne-opt-d { color: var(--vne-dim); font-size: 0.92em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.vne-opt[aria-selected="true"] .vne-opt-d { color: var(--code-text); }
+.vne-tip { max-width: min(30em, calc(100vw - 8px)); padding: 0.45em 0.7em; pointer-events: none; white-space: normal; overflow-wrap: anywhere; }
+.vne-tip-row + .vne-tip-row { margin-top: 0.4em; padding-top: 0.4em; border-top: 1px solid var(--vne-pop-line); }
+.vne-tip-sev { margin-right: 0.5em; text-transform: uppercase; font-size: 0.82em; letter-spacing: 0.04em; }
+.vne-tip-error .vne-tip-sev { color: var(--vne-err); }
+.vne-tip-warning .vne-tip-sev { color: var(--vne-warn); }
+.vne-tip-info .vne-tip-sev { color: var(--vne-info); }
+.vne-tip-hint { margin-top: 0.15em; color: var(--vne-dim); }
+
+.vne-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+@media (forced-colors: active) {
+  .vne-input { forced-color-adjust: none; }                       /* its text stays transparent: the layer below shows the text */
+  .vne-dg::after { background: Highlight !important; }
+  .vne-line.is-active, .vne-gl.is-active { outline: 2px solid Highlight; outline-offset: -2px; }
+  .vne-line.is-bp { outline: 1px dotted CanvasText; outline-offset: -1px; }
+  .vne-gl.has-error > .vne-ic, .vne-gl.has-warning > .vne-ic, .vne-gl.has-info > .vne-ic { background: CanvasText !important; }
+  .vne-gl > .vne-bp { background: transparent !important; }
+  .vne-gl.is-bp > .vne-bp { background: CanvasText !important; }
+  .vne-opt[aria-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+@media (max-width: 480px) {
+  .vne { --vne-padx: 0.6em; }
+}

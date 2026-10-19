@@ -23,7 +23,7 @@
   function speedControl(opts) {
     opts = opts || {};
     var key = opts.key || 'co1005-flow-speed', idx = opts.initial === undefined ? 2 : opts.initial;
-    try { var s = localStorage.getItem(key); if (s !== null && !isNaN(+s) && +s >= 0 && +s < SPEEDS.length) idx = +s; } catch (e) { /* no storage */ }
+    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* no storage */ }
     var wrap = document.createElement('div'); wrap.className = 'af-speed';
     var lab = document.createElement('label'); lab.className = 'field-label'; lab.textContent = opts.label || 'Speed';
     var id = 'af-speed-' + Math.floor(Math.random() * 1e6); lab.setAttribute('for', id);
@@ -49,7 +49,11 @@
   };
   var CAPS = [['data>model', 192, 66, 'middle', 'x'], ['model>pred', 407, 66, 'middle', 'ŷ'], ['pred>loss', 523, 196, 'start', 'ŷ'],
     ['loss>opt', 408, 298, 'middle', 'error'], ['opt>model', 308, 196, 'start', 'new weights'], ['data>loss', 270, 384, 'middle', 'y (the right answers)']];
-  var TRAIN_ONLY = ['loss', 'opt'], TRAIN_EDGES = ['pred>loss', 'loss>opt', 'opt>model', 'data>loss'];
+  /* one colour per component (CSS: .af-c-<key> sets --c from the shared --cmp-N tokens, see ai-flow.css).
+     An arrow carries a quantity, so it takes the colour of that quantity: x and y = Data, ŷ = Prediction,
+     error = Loss, new weights = Optimizer. */
+  var EDGE_COLOUR = { 'data>model': 'data', 'data>loss': 'data', 'model>pred': 'pred', 'pred>loss': 'pred', 'loss>opt': 'loss', 'opt>model': 'opt' };
+  var LEGEND = [['data', 'Data (x, y)'], ['model', 'Model F(x; weights)'], ['pred', 'Prediction ŷ'], ['loss', 'Loss'], ['opt', 'Optimizer']];
 
   /* cfg: { titles:{data,model,pred,loss,opt}, aria } -> { svg, setBlock(id, lines), setTitle, setMode, play(flows, ms), clear, cancel, mode() } */
   function createPipeline(container, cfg) {
@@ -59,16 +63,16 @@
     var uid = 'afp' + Math.floor(Math.random() * 1e6);
     var svg = mk('svg', { viewBox: '0 0 600 410', class: 'af-pipe', role: 'img', 'aria-label': cfg.aria || 'Pipeline: data into a model, a prediction, a loss, an optimizer that updates the model' });
     var defs = mk('defs', {}, svg);
-    ['', '-on'].forEach(function (sfx) {
-      var m = mk('marker', { id: uid + sfx, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' }, defs);
-      mk('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'af-head' + (sfx ? ' on' : '') }, m);
+    Object.keys(EDGES).forEach(function (key) {   // one arrowhead per arrow, so it can take the arrow's colour (and grey out)
+      var m = mk('marker', { id: uid + key.replace('>', '-'), viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' }, defs);
+      mk('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'af-head af-c-' + EDGE_COLOUR[key], 'data-edge': key }, m);
     });
     var edgeEls = {};
-    Object.keys(EDGES).forEach(function (key) { edgeEls[key] = mk('path', { d: EDGES[key], class: 'af-edge', 'marker-end': 'url(#' + uid + ')', 'data-edge': key }, svg); });
-    CAPS.forEach(function (c) { var t = mk('text', { x: c[1], y: c[2], 'text-anchor': c[3], class: 'af-cap', 'data-edge': c[0] }, svg); t.textContent = c[4]; });
+    Object.keys(EDGES).forEach(function (key) { edgeEls[key] = mk('path', { d: EDGES[key], class: 'af-edge af-c-' + EDGE_COLOUR[key], 'marker-end': 'url(#' + uid + key.replace('>', '-') + ')', 'data-edge': key }, svg); });
+    CAPS.forEach(function (c) { var t = mk('text', { x: c[1], y: c[2], 'text-anchor': c[3], class: 'af-cap af-c-' + EDGE_COLOUR[c[0]], 'data-edge': c[0] }, svg); t.textContent = c[4]; });
     var nodeEls = {}, titleEls = {}, lineEls = {}, tagEls = {};
     Object.keys(BLOCKS).forEach(function (id) {
-      var b = BLOCKS[id], g = mk('g', { class: 'af-node af-n-' + id, 'data-node': id }, svg);
+      var b = BLOCKS[id], g = mk('g', { class: 'af-node af-n-' + id + ' af-c-' + id, 'data-node': id }, svg);
       mk('rect', { x: b[0], y: b[1], width: b[2], height: b[3], rx: 10 }, g);
       titleEls[id] = mk('text', { x: b[0] + b[2] / 2, y: b[1] + 20, 'text-anchor': 'middle', class: 'af-name' }, g);
       lineEls[id] = [0, 1, 2].map(function (n) { return mk('text', { x: b[0] + b[2] / 2, y: b[1] + 47 + n * 21, 'text-anchor': 'middle', class: 'af-val' + (n === 0 ? ' first' : '') }, g); });
@@ -77,6 +81,14 @@
     });
     var tokens = mk('g', { class: 'af-tokens' }, svg);
     container.appendChild(svg);
+    var legend = document.createElement('div'); legend.className = 'af-legend';
+    LEGEND.forEach(function (it) {
+      var sp = document.createElement('span'); sp.className = 'af-c-' + it[0] + ' af-lg-' + it[0];
+      var sw = document.createElement('i'); sp.appendChild(sw); sp.appendChild(document.createTextNode(it[1])); legend.appendChild(sp);
+    });
+    var note = document.createElement('span'); note.className = 'af-legend-note';
+    note.textContent = 'Arrows and tokens take the colour of what they carry.'; legend.appendChild(note);
+    container.appendChild(legend);
 
     var raf = 0, pending = null, marked = [], activeEdges = [], mode = 'train', mc = reduced();
     function setBlock(id, lines) { for (var n = 0; n < 3; n++) lineEls[id][n].textContent = lines && lines[n] !== undefined ? lines[n] : ''; }
@@ -84,7 +96,7 @@
     function setTag(id, t) { tagEls[id].textContent = t || ''; }
     function setMode(m) {
       mode = m; svg.setAttribute('class', 'af-pipe' + (m === 'infer' ? ' af-infer' : ''));
-      Object.keys(edgeEls).forEach(function (key) { edgeEls[key].setAttribute('marker-end', 'url(#' + uid + ')'); });
+      legend.classList.toggle('af-infer', m === 'infer');
     }
     function clear() {
       stopTokens();
@@ -93,7 +105,7 @@
     function stopTokens() {
       if (raf) cancelAnimationFrame(raf); raf = 0;
       while (tokens.firstChild) tokens.removeChild(tokens.firstChild);
-      activeEdges.forEach(function (e) { e.classList.remove('on'); e.setAttribute('marker-end', 'url(#' + uid + ')'); }); activeEdges = [];
+      activeEdges.forEach(function (e) { e.classList.remove('on'); }); activeEdges = [];
       if (pending) { var r = pending; pending = null; r(); }
     }
     function mark(id, cls) { var n = nodeEls[id]; if (n) { n.classList.add(cls); marked.push(n); } }
@@ -104,13 +116,13 @@
         var items = [];
         flows.forEach(function (f) {
           var p = f.key.split('>'); mark(p[0], 'af-src'); mark(p[1], 'af-dst');
-          if (edgeEls[f.key]) items.push({ path: edgeEls[f.key], label: f.label || '' });
+          if (edgeEls[f.key]) items.push({ path: edgeEls[f.key], label: f.label || '', col: EDGE_COLOUR[f.key] });
         });
         if (!items.length || ms <= 0) { resolve(); return; }
-        items.forEach(function (it) { it.path.classList.add('on'); it.path.setAttribute('marker-end', 'url(#' + uid + '-on)'); activeEdges.push(it.path); it.len = it.path.getTotalLength(); });
+        items.forEach(function (it) { it.path.classList.add('on'); activeEdges.push(it.path); it.len = it.path.getTotalLength(); });
         if (mc || reduced()) { pending = resolve; setTimeout(function () { if (pending === resolve) stopTokens(); }, Math.min(ms, 450)); return; }
         var toks = items.map(function (it) {
-          var g = mk('g', { class: 'af-token' }, tokens), w = Math.max(24, it.label.length * 7.4 + 14);
+          var g = mk('g', { class: 'af-token af-c-' + it.col }, tokens), w = Math.max(24, it.label.length * 7.4 + 14);
           mk('rect', { x: -w / 2, y: -10, width: w, height: 20, rx: 9 }, g);
           var t = mk('text', { 'text-anchor': 'middle', y: 4 }, g); t.textContent = it.label || '·';
           return g;
@@ -127,7 +139,7 @@
       });
     }
     setMode('train');
-    return { svg: svg, setBlock: setBlock, setTitle: setTitle, setTag: setTag, setMode: setMode, mode: function () { return mode; },
+    return { svg: svg, legend: legend, setBlock: setBlock, setTitle: setTitle, setTag: setTag, setMode: setMode, mode: function () { return mode; },
       play: play, clear: clear, cancel: stopTokens };
   }
 

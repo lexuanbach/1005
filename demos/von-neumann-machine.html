@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Von Neumann Machine · CO1005 Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/vn-machine.css">
+<link rel="stylesheet" href="../assets/vn-editor.css">
+<link rel="stylesheet" href="../assets/vn-workbench.css">
+<link rel="stylesheet" href="../assets/app-fullscreen.css">
+</head>
+<body class="part2">
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="../index.html"><b>CO1005</b> · Introduction to Computing</a>
+    <nav class="topnav" aria-label="Site navigation">
+      <a href="../index.html">Syllabus</a>
+      <a href="index.html">Demos</a>
+      <a href="../chapters/chapter-7.html">Chapter 7</a>
+      <button class="icon-btn" id="theme-toggle" type="button">☾ Dark</button>
+    </nav>
+  </div>
+</header>
+
+<main class="vnp-page">
+  <div class="vnp-wrap">
+    <span class="eyebrow">Demo · Chapter 7 · Von Neumann Architecture</span>
+    <h1>Von Neumann Machine</h1>
+    <p class="lede">
+      The toy computer of <a href="../chapters/chapter-7.html">Chapter 7</a> as a small workbench: write assembly in a real editor,
+      pick from more than 60 examples, and watch <strong>fetch, decode, execute</strong> move values from register to register.
+      Then change the machine itself: its memory, its instruction set, how slow its memory is.
+    </p>
+    <p class="vnp-how"><strong>How to use it.</strong> Press <em>Examples</em> to load a program with a story, tests and challenges, or write your own in the editor
+      (mistakes are marked as you type). <em>Micro-step</em> shows one arrow at a time; <em>Play</em> runs on with a breakpoint stop (click the gutter or press F9);
+      <em>Run to end</em> skips the animation. Use the tabs below the diagram for the memory, the assembled <em>Listing</em>, the <em>Trace</em>, the cycle <em>Stats</em>,
+      your own <em>Tests</em> and the <em>Reference</em>. <em>Settings</em> changes the machine. <em>Save</em>, <em>Download</em> and <em>Share</em> keep your programs.
+      This is a <strong>simulation</strong> of the course's teaching machine, not a real x86 or ARM CPU.</p>
+
+    <div id="vn-root"><noscript>This demo needs JavaScript.</noscript></div>
+
+    <details class="vnp-explain">
+      <summary>What am I looking at?</summary>
+      <div class="vnp-explain-body">
+        <ul>
+          <li><strong>The diagram.</strong> Blocks are the machine's parts; every arrow is one register transfer. A value travels along it (it keeps the colour of the block it left; the receiving block lights up) and the registers update when it lands. Numbers enter from the input queue and leave through the output device. The speed slider sets the pace; <em>Instant</em> skips the animation.</li>
+          <li><strong><span class="vnw-ref vn-dp-c-PC">PC</span> (program counter).</strong> The address of the next instruction. A normal step adds 1; <code>JUMP</code> and a taken conditional jump overwrite it, which is how loops and if-else exist.</li>
+          <li><strong><span class="vnw-ref vn-dp-c-MAR">MAR</span> and <span class="vnw-ref vn-dp-c-MDR">MDR</span>.</strong> The memory address register holds <em>which</em> cell is being accessed, the memory data register holds <em>what</em> was read or is about to be written. Every memory access passes through this pair.</li>
+          <li><strong><span class="vnw-ref vn-dp-c-IR">IR</span> and the <span class="vnw-ref vn-dp-c-DEC">decoder</span>.</strong> The fetched word is copied into IR; the decoder splits it into an opcode and an address field. Words in <code>.data</code> are only numbers: if the PC ever reaches one, the machine tries to run it as code.</li>
+          <li><strong><span class="vnw-ref vn-dp-c-R">R</span>, the <span class="vnw-ref vn-dp-c-ALU">ALU</span> and the <span class="vnw-ref vn-dp-c-FLAGS">flags</span>.</strong> <code>ADD</code> and <code>SUBTRACT</code> work on R and a memory cell. <code>COMPARE</code> sets GT, EQ or LT, and the conditional jumps read those flags: that is all an <code>if</code> or <code>while</code> is, at this level.</li>
+          <li><strong>Memory.</strong> One row per numbered cell, in the <span class="vnw-ref vn-dp-c-MEM">memory</span> block's colour. Instructions and data sit in the same memory: the <em>stored-program</em> idea. Small tags show what the machine touches: <span class="vnw-ref vn-dp-c-PC">PC</span> the next instruction, <span class="vnw-ref vn-dp-c-MAR">MAR</span> the cell the address register holds, <em>read</em> the cell just copied into MDR, <em>write</em> the cell just overwritten.</li>
+          <li><strong>Extended instruction set.</strong> In <em>Settings</em> you can switch on 12 supplementary instructions: immediate values (<code>LOADI</code>), pointers (<code>LOADP</code>, <code>STOREP</code>), <code>MUL</code>, <code>DIV</code>, <code>MOD</code>. They are <em>not</em> on slide 34; they show why real CPUs grew more instructions. Words become one bit wider.</li>
+          <li><strong>Memory latency and the bottleneck.</strong> Raise the latency and every instruction fetch, data read and data write costs more cycles while register transfers stay at 1. The <em>Stats</em> tab shows which share of the cycles is spent waiting for memory: the Von Neumann bottleneck of slide 35.</li>
+          <li><strong>Wrap-around cells.</strong> Real hardware has fixed-width cells: with 8 bits, 127 + 1 becomes −128. Switch it on in <em>Settings</em> and watch a counter overflow.</li>
+          <li><strong>Input and output.</strong> <code>IN</code> takes the next number from the input queue (type numbers separated by spaces); <code>OUT</code> prints a cell into the output log. If the queue is empty the machine waits for you.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span class="brand"><b>CO1005</b> · Introduction to Computing</span>
+    <p>Demo · Von Neumann Machine · Chapter 7</p>
+  </div>
+</footer>
+
+<script src="../assets/vn-machine.js"></script>
+<script src="../assets/vn-datapath.js"></script>
+<script src="../assets/vn-editor.js"></script>
+<script src="../assets/vn-store.js"></script>
+<script src="../assets/vn-examples.js"></script>
+<script src="../assets/vn-examples-a.js"></script>
+<script src="../assets/vn-examples-b.js"></script>
+<script src="../assets/vn-examples-ext.js"></script>
+<script src="../assets/vn-workbench-lib.js"></script>
+<script src="../assets/vn-workbench-parts.js"></script>
+<script src="../assets/vn-workbench-tabs.js"></script>
+<script src="../assets/vn-machine-ui.js"></script>
+<script src="../assets/course.js"></script>
+<script src="../assets/app-fullscreen.js" data-root="#vn-root"></script>
+</body>
+</html>

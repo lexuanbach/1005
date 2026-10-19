@@ -486,6 +486,9 @@
     }
     return { bars: bars, more: count - shown, single: single };
   }
+  /* one colour per component: the layer ids used for CSS classes (pj-L-<id>) and which layer each header segment belongs to */
+  var LAYER_IDS = ['app', 'tr', 'ip', 'eth', 'phy'];
+  var SEG_LAYER = { app: 'app', tr: 'tr', ip: 'ip', eth: 'eth', fcs: 'eth' };
   var ST = { sx: 4, cx: 384, w: 212, lab: 70, y0: 30, pitch: 44, rh: 38 };
   function rungY(k) { return ST.y0 + k * ST.pitch; }
   function anchorOf(state) { // top-left corner of the packet area
@@ -494,7 +497,7 @@
   }
 
   var engine = {
-    packetCard: packetCard, stackState: stackState, barLayout: barLayout, anchorOf: anchorOf, SPEEDS: SPEEDS, ST: ST, BARW: BARW,
+    packetCard: packetCard, stackState: stackState, LAYER_IDS: LAYER_IDS, SEG_LAYER: SEG_LAYER, NODE_IDS: ['client', 'resolver', 'root', 'tld', 'auth', 'server'], barLayout: barLayout, anchorOf: anchorOf, SPEEDS: SPEEDS, ST: ST, BARW: BARW,
     parseURL: parseURL, resolve: resolve, buildJourney: buildJourney, buildStack: buildStack, splitTCP: splitTCP, fragmentIP: fragmentIP,
     httpServer: httpServer, formatRequest: formatRequest, formatResponse: formatResponse, overheadTotal: overheadTotal,
     parseIPv4: parseIPv4, intToIp: intToIp, toBin: toBin, maskOf: maskOf, subnetInfo: subnetInfo, subnetFromText: subnetFromText,
@@ -621,7 +624,7 @@
     f.play = el('button', 'btn', '\u25b6 Auto-play story'); f.play.type = 'button';
     f.pause = el('button', 'btn', '\u23f8 Pause'); f.pause.type = 'button'; f.pause.disabled = true;
     var spIdx = 2, SPEED_KEY = 'co1005-pj-speed';
-    try { var sv = localStorage.getItem(SPEED_KEY); if (sv !== null && +sv >= 0 && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
+    try { var sv = localStorage.getItem(SPEED_KEY); if (typeof sv === 'string' && /^[0-9]{1,2}$/.test(sv) && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
     var spWrap = el('div', 'pj-speed'), spLab = el('label', 'pj-lab', 'Speed'), spRng = el('input'), spNm = el('span', 'pj-speed-name');
     spRng.type = 'range'; spRng.min = 0; spRng.max = SPEEDS.length - 1; spRng.step = 1; spRng.value = spIdx; spRng.id = 'pj-speed'; spLab.setAttribute('for', 'pj-speed');
     function paintSpeed() { spNm.textContent = SPEEDS[spIdx][0] + (SPEEDS[spIdx][1] ? ' \u00b7 ' + (SPEEDS[spIdx][1] / 1000) + ' s' : ' \u00b7 no animation'); spRng.setAttribute('aria-valuetext', SPEEDS[spIdx][0]); }
@@ -677,23 +680,33 @@
     function ms_() { return SPEEDS[spIdx][1]; }
     function reduced() { try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; } }
 
+    /* swatch row under the diagram: [[id, label], ...] with the CSS class prefix that sets --c */
+    function legend(items, prefix) {
+      var d = el('div', 'pj-key'); d.setAttribute('role', 'list');
+      items.forEach(function (it) { var sp = el('span', prefix + it[0]); sp.setAttribute('role', 'listitem'); sp.appendChild(el('i')); sp.appendChild(document.createTextNode(it[1])); d.appendChild(sp); });
+      return d;
+    }
     function drawMap(step) {
       f.map.innerHTML = ''; ctx = null;
       if (step.phase === 'layers') return drawStack(step);
       var s = svg('svg', { viewBox: '0 0 600 232', role: 'img', 'aria-label': 'Map of the simulated network: your browser, the DNS resolver, root, TLD and authoritative servers, and the web server. The highlighted arrow and the packet card show who talks to whom in this step.' });
-      var defs = svg('defs', {}), mk = svg('marker', { id: 'pj-arrow', viewBox: '0 0 10 10', refX: '9', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' });
-      mk.appendChild(svg('path', { d: 'M0 0 L10 5 L0 10 z', class: 'pj-arrowhead' })); defs.appendChild(mk); s.appendChild(defs);
+      var defs = svg('defs', {});
+      Object.keys(NODES).forEach(function (k) { // one arrowhead per sender colour
+        var mk = svg('marker', { id: 'pj-arrow-' + k, class: 'pj-c-' + k, viewBox: '0 0 10 10', refX: '9', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' });
+        mk.appendChild(svg('path', { d: 'M0 0 L10 5 L0 10 z', class: 'pj-arrowhead' })); defs.appendChild(mk);
+      });
+      s.appendChild(defs);
       var EDGES = [['client', 'resolver'], ['resolver', 'root'], ['resolver', 'tld'], ['resolver', 'auth'], ['client', 'server']];
       EDGES.forEach(function (e) { s.appendChild(svg('path', { d: edgePath(e[0], e[1]), class: 'pj-edge' })); });
       var ep = null;
       if (step.from !== step.to) {
-        ep = svg('path', { d: edgePath(step.from, step.to), class: 'pj-edge on', 'marker-end': 'url(#pj-arrow)' });
+        ep = svg('path', { d: edgePath(step.from, step.to), class: 'pj-edge on pj-c-' + step.from, 'marker-end': 'url(#pj-arrow-' + step.from + ')' });
         s.appendChild(ep);
       }
       var nodeEls = {};
       Object.keys(NODES).forEach(function (k) {
         var n = NODES[k], active = (k === step.from || k === step.to);
-        var g = svg('g', { class: 'pj-node' + (active ? ' on' : '') + (k === step.from && step.from !== step.to ? ' src' : '') + (k === step.to ? ' dst' : '') });
+        var g = svg('g', { class: 'pj-node pj-c-' + k + (active ? ' on' : '') + (k === step.from && step.from !== step.to ? ' src' : '') + (k === step.to ? ' dst' : '') });
         nodeEls[k] = svg('rect', { x: n.x - 52, y: n.y - 19, width: 104, height: 38, rx: 8 });
         g.appendChild(nodeEls[k]);
         g.appendChild(svg('text', { x: n.x, y: n.y - 3, 'text-anchor': 'middle', class: 'pj-nname' }, n.name));
@@ -701,13 +714,15 @@
         s.appendChild(g);
       });
       f.map.appendChild(s);
+      f.map.appendChild(legend([['client', 'Your browser'], ['resolver', 'Resolver'], ['root', 'Root server'], ['tld', 'TLD server'], ['auth', 'Authoritative'], ['server', 'Web server']], 'pj-c-'));
       var card = ep ? packetCard(step) : null, cg = null, pt = null;
       if (card) {
         pt = ep.getPointAtLength(ep.getTotalLength() * 0.5);
-        cg = svg('g', { class: 'pj-card ' + card.kind, transform: 'translate(' + pt.x.toFixed(1) + ' ' + pt.y.toFixed(1) + ')' });
-        cg.appendChild(svg('rect', { x: -card.w / 2, y: -card.h / 2, width: card.w, height: card.h, rx: 5 }));
-        cg.appendChild(svg('text', { x: 0, y: -card.h / 2 + 12, 'text-anchor': 'middle', class: 'pj-ctitle' }, card.title));
-        card.lines.forEach(function (ln, k) { cg.appendChild(svg('text', { x: 0, y: -card.h / 2 + 24 + k * 12, 'text-anchor': 'middle', class: 'pj-cline' }, ln)); });
+        cg = svg('g', { class: 'pj-card pj-c-' + step.from, transform: 'translate(' + pt.x.toFixed(1) + ' ' + pt.y.toFixed(1) + ')' });
+        cg.appendChild(svg('rect', { x: -card.w / 2, y: -card.h / 2, width: card.w, height: card.h, rx: 5, class: 'pj-cbody' }));
+        cg.appendChild(svg('rect', { x: -card.w / 2 + 1.5, y: -card.h / 2 + 1.5, width: 4.5, height: card.h - 3, rx: 2, class: 'pj-ctab' }));
+        cg.appendChild(svg('text', { x: 2, y: -card.h / 2 + 12, 'text-anchor': 'middle', class: 'pj-ctitle' }, card.title));
+        card.lines.forEach(function (ln, k) { cg.appendChild(svg('text', { x: 2, y: -card.h / 2 + 24 + k * 12, 'text-anchor': 'middle', class: 'pj-cline' }, ln)); });
         s.appendChild(cg);
       }
       ctx = { kind: 'map', svg: s, edge: ep, card: cg, nodes: nodeEls, step: step };
@@ -724,14 +739,15 @@
       var st = stackState(step), U = st.udp;
       var rsub = ['HTTP', U ? 'UDP +8' : 'TCP +20', 'IP +20', 'Eth +14 +4', 'bits'];
       var s = svg('svg', { viewBox: '0 0 600 262', role: 'img', 'aria-label': 'The layers: the message is wrapped on the way down the server stack, crosses the wire and a router, and is unwrapped on the way up the client stack.' });
-      var wy = rungY(4) + 19, rungs = {};
-      s.appendChild(svg('path', { d: 'M' + (ST.sx + ST.w) + ' ' + wy + ' L250 ' + wy + ' M350 ' + wy + ' L' + ST.cx + ' ' + wy, class: 'pj-wire' }));
+      var wy = rungY(4) + 19, rungs = {}, wd = 'M' + (ST.sx + ST.w) + ' ' + wy + ' L250 ' + wy + ' M350 ' + wy + ' L' + ST.cx + ' ' + wy;
+      s.appendChild(svg('path', { d: wd, class: 'pj-wire' }));
+      var wireHot = svg('path', { d: wd, class: 'pj-wire hot pj-L-phy' }); s.appendChild(wireHot);
       s.appendChild(svg('text', { x: ST.sx + ST.w / 2, y: 17, 'text-anchor': 'middle', class: 'pj-stitle' }, 'Server (sender)'));
       s.appendChild(svg('text', { x: ST.cx + ST.w / 2, y: 17, 'text-anchor': 'middle', class: 'pj-stitle' }, 'Client (receiver)'));
       ['server', 'client'].forEach(function (side) {
         for (var k = 0; k < 5; k++) {
           var x = side === 'server' ? ST.sx : ST.cx, on = st.where === side && st.level === k;
-          var g = svg('g', { class: 'pj-rung' + (on ? ' on' : '') });
+          var g = svg('g', { class: 'pj-rung pj-L-' + LAYER_IDS[k] + (on ? ' on' : '') });
           rungs[side + k] = svg('rect', { x: x, y: rungY(k), width: ST.w, height: ST.rh, rx: 7 });
           g.appendChild(rungs[side + k]);
           g.appendChild(svg('text', { x: x + 6, y: rungY(k) + 16, class: 'pj-rname' }, RUNG_NAMES[k]));
@@ -739,7 +755,7 @@
           s.appendChild(g);
         }
       });
-      var rg = svg('g', { class: 'pj-rung pj-router' + (st.where === 'router' ? ' on' : '') });
+      var rg = svg('g', { class: 'pj-rung pj-router pj-L-rt' + (st.where === 'router' ? ' on' : '') });
       rungs.router = svg('rect', { x: 250, y: rungY(4), width: 100, height: ST.rh, rx: 7 });
       rg.appendChild(rungs.router);
       rg.appendChild(svg('text', { x: 300, y: rungY(4) + 16, 'text-anchor': 'middle', class: 'pj-rname' }, 'Router'));
@@ -749,16 +765,22 @@
       layout.bars.forEach(function (b) {
         var g = svg('g', { class: 'pj-bar' }), els = {};
         b.segs.forEach(function (sg) {
-          els[sg.k] = svg('rect', { x: A.x + sg.x, y: A.y + b.y, width: sg.w, height: b.h, rx: 2, class: 'pj-sg ' + (sg.k === 'fcs' ? 'eth' : sg.k) });
+          els[sg.k] = svg('rect', { x: A.x + sg.x, y: A.y + b.y, width: sg.w, height: b.h, rx: 2, class: 'pj-sg pj-L-' + SEG_LAYER[sg.k] });
           g.appendChild(els[sg.k]);
           if (layout.single && sg.w >= 17 && sg.k !== 'fcs') g.appendChild(svg('text', { x: A.x + sg.x + sg.w / 2, y: A.y + b.y + 14.5, 'text-anchor': 'middle', class: 'pj-sgt' }, sg.k === 'app' ? 'data' : sg.k === 'tr' ? (U ? 'UDP' : 'TCP') : sg.k === 'ip' ? 'IP' : 'Eth'));
         });
+        if (st.where === 'server' && st.level === 4) { // physical layer: the frame is now just bits
+          var bx = svg('rect', { x: A.x + b.x - 2.5, y: A.y + b.y - 2.5, width: b.w + 5, height: b.h + 5, rx: 4, class: 'pj-bitsbox pj-L-phy' });
+          g.appendChild(bx); els.bits = bx;
+        }
         s.appendChild(g); barEls.push(g); segEls.push(els);
       });
       if (layout.more > 0) s.appendChild(svg('text', { x: A.x + BARW, y: A.y + 36, 'text-anchor': 'end', class: 'pj-more' }, '+' + layout.more + ' more'));
       var ghosts = svg('g', { 'pointer-events': 'none' }); s.appendChild(ghosts);
       f.map.appendChild(s);
-      ctx = { kind: 'stack', svg: s, state: st, layout: layout, anchor: A, bars: barEls, segEls: segEls, ghosts: ghosts, rungs: rungs, step: step };
+      f.map.appendChild(legend([['L-app', 'Application · data'], ['L-tr', 'Transport · ' + (U ? 'UDP' : 'TCP') + ' header'], ['L-ip', 'Network · IP header'],
+        ['L-eth', 'Link · Ethernet header + trailer'], ['L-phy', 'Physical · bits'], ['L-rt', 'Router']], 'pj-'));
+      ctx = { kind: 'stack', svg: s, state: st, layout: layout, anchor: A, bars: barEls, segEls: segEls, ghosts: ghosts, rungs: rungs, step: step, wireHot: wireHot };
     }
 
     /* ---- animation (decoration only: the final state is already on screen; cancelling any animation is harmless) ---- */
@@ -770,7 +792,7 @@
       anims = []; if (ctx && ctx.ghosts) ctx.ghosts.textContent = '';
     }
     function ease(k) { return k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; }
-    function pulse(rect, delay, ms) { A_(rect, [{ strokeWidth: '7px' }, { strokeWidth: '2.5px' }], { duration: Math.max(200, ms * 0.7), delay: delay, easing: 'ease-out' }); }
+    function pulse(rect, delay, ms) { A_(rect, [{ strokeWidth: '7px' }, { strokeWidth: '3.4px' }], { duration: Math.max(200, ms * 0.7), delay: delay, easing: 'ease-out' }); }
 
     function animMap(c, step, ms) {
       if (c.card && c.edge) {
@@ -787,10 +809,10 @@
       if (c.nodes[step.from]) { pulse(c.nodes[step.from], 0, ms); pulse(c.nodes[step.from], ms * 0.7, ms); }
       return Math.round(ms * 1.3);
     }
-    function bubble(c, x, y, text, delay, dur) {
+    function bubble(c, x, y, text, delay, dur, layer) {
       var w = Math.round(text.length * 5.1 + 12);
       x = Math.max(4, Math.min(596 - w, x - w / 2));
-      var g = svg('g', { class: 'pj-bubble', opacity: 0 });
+      var g = svg('g', { class: 'pj-bubble pj-L-' + (layer || 'app'), opacity: 0 });
       g.appendChild(svg('rect', { x: x, y: y - 12, width: w, height: 15, rx: 7 }));
       g.appendChild(svg('text', { x: x + w / 2, y: y - 1.5, 'text-anchor': 'middle' }, text));
       c.ghosts.appendChild(g);
@@ -813,21 +835,21 @@
         }
         A_(g, kf, { duration: moveMs, easing: 'ease-in-out' });
       });
-      var names = { tr: cur.udp ? 'UDP header' : 'TCP header', ip: 'IP header', eth: 'Ethernet header + trailer' }, said = [];
+      var names = { tr: cur.udp ? 'UDP header' : 'TCP header', ip: 'IP header', eth: 'Ethernet header + trailer' }, said = [], bubbleLayer = null;
       ['tr', 'ip', 'eth'].forEach(function (k) {
         var was = pst ? !!pst.segs[k] : false, now = !!cur.segs[k];
         if (now && !was && pst && pst.where !== 'router' && cur.where !== 'client') {
-          said.push('+ ' + names[k]);
+          said.push('+ ' + names[k]); bubbleLayer = bubbleLayer || k;
           c.segEls.forEach(function (els) {
             [els[k], k === 'eth' ? els.fcs : null].forEach(function (r) { if (r) A_(r, [{ opacity: 0, transform: 'scale(0.1,1)' }, { opacity: 1, transform: 'scale(1,1)' }], { duration: addMs, delay: moveMs, easing: 'ease-out', fill: 'backwards' }); });
           });
         } else if (!now && was && cur.where === 'client') {
-          said.push('− ' + names[k]);
+          said.push('− ' + names[k]); bubbleLayer = bubbleLayer || k;
           var pl = barLayout(pst.count, pst.segs);
           pl.bars.forEach(function (b) {
             b.segs.forEach(function (sg) {
               if (sg.k !== k && !(k === 'eth' && sg.k === 'fcs')) return;
-              var r = svg('rect', { x: newA.x + sg.x, y: newA.y + b.y, width: sg.w, height: b.h, rx: 2, class: 'pj-sg ' + (sg.k === 'fcs' ? 'eth' : sg.k), opacity: 0 });
+              var r = svg('rect', { x: newA.x + sg.x, y: newA.y + b.y, width: sg.w, height: b.h, rx: 2, class: 'pj-sg pj-L-' + SEG_LAYER[sg.k], opacity: 0 });
               c.ghosts.appendChild(r);
               var a = A_(r, [{ opacity: 0, transform: 'translate(0px,0px)' }, { opacity: 1, transform: 'translate(0px,0px)', offset: 0.2 }, { opacity: 0, transform: 'translate(0px,-30px)' }], { duration: Math.round(addMs * 1.3), delay: moveMs, fill: 'both', easing: 'ease-in' });
               if (a) a.onfinish = function () { if (r.parentNode) r.parentNode.removeChild(r); }; else r.parentNode.removeChild(r);
@@ -835,15 +857,20 @@
           });
         }
       });
-      if (pst && cur.count !== pst.count) said.push(cur.count > pst.count ? 'cut into ' + cur.count + (cur.udp ? ' fragments' : ' segments') : 'put back together');
+      if (pst && cur.count !== pst.count) { said.push(cur.count > pst.count ? 'cut into ' + cur.count + (cur.udp ? ' fragments' : ' segments') : 'put back together'); bubbleLayer = bubbleLayer || (cur.udp ? 'ip' : 'tr'); }
       if (cur.where === 'router') {
-        said.push('TTL − 1 · new MAC addresses');
+        said.push('TTL − 1 · new MAC addresses'); bubbleLayer = 'rt';
         c.segEls.forEach(function (els) { if (els.eth) A_(els.eth, [{ opacity: 1 }, { opacity: 0.2 }, { opacity: 1 }, { opacity: 0.2 }, { opacity: 1 }], { duration: addMs * 1.5, delay: moveMs }); });
         pulse(c.rungs.router, moveMs * 0.6, ms);
       } else pulse(c.rungs[cur.where + cur.level], moveMs * 0.6, ms);
-      if (!pst) said.push('the HTTP message, nothing added yet');
-      else if (!said.length && cur.where === 'server' && cur.level === 4) said.push('frame becomes bits on the wire');
-      if (said.length) bubble(c, newA.x + (c.layout.single ? BARW / 2 : BARW / 2), newA.y - 2, said.join(' · '), moveMs, Math.round(addMs * 2));
+      if (!pst) { said.push('the HTTP message, nothing added yet'); bubbleLayer = 'app'; }
+      else if (!said.length && cur.where === 'server' && cur.level === 4) {
+        said.push('frame becomes bits on the wire'); bubbleLayer = 'phy';
+        c.segEls.forEach(function (els) { if (els.bits) A_(els.bits, [{ opacity: 0 }, { opacity: 1 }], { duration: addMs, delay: moveMs, fill: 'backwards' }); });
+      }
+      /* the wire lights up in the physical layer's colour whenever the packets cross it */
+      if (pst && pst.where !== cur.where && c.wireHot) A_(c.wireHot, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: moveMs + addMs, easing: 'linear' });
+      if (said.length) bubble(c, newA.x + BARW / 2, newA.y - 2, said.join(' · '), moveMs, Math.round(addMs * 2), bubbleLayer);
       return moveMs + Math.round(addMs * 1.6);
     }
     function playIn(prev, step) {
@@ -953,7 +980,7 @@
     function detailLayers(step, d) {
       var box = el('div'), st = d.stack, lv = d.level;
       var ladder = el('ol', 'pj-ladder');
-      LAYER_NAMES.forEach(function (n, k) { var li = el('li', k === lv ? 'on' : ''); li.textContent = n; ladder.appendChild(li); });
+      LAYER_NAMES.forEach(function (n, k) { var li = el('li', 'pj-L-' + LAYER_IDS[k] + (k === lv ? ' on' : '')); li.textContent = n; ladder.appendChild(li); });
       var head = el('div', 'pj-lhead');
       head.appendChild(ladder);
       var right = el('div', 'pj-lright');

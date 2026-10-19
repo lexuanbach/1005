@@ -14,6 +14,9 @@
   ];
 
   /* ------------------------------------------------------------------ layouts */
+  /* one colour per component: palette tokens --cmp-N from style.css (see the matching .sf-c-* rules in sql-flow.css) */
+  var CMP = { C: 1, P: 5, L: 9, E: 7, I: 2, R: 6, K: 10, S: 3 };
+  var LEGEND = [['C', 'Client / app'], ['P', 'SQL parser'], ['L', 'Query planner'], ['E', 'Executor'], ['I', 'Index (B-tree)'], ['S', 'Storage (table heap)'], ['R', 'Result set'], ['K', 'Constraints & log']];
   var TITLES = { C: 'Client / app', P: 'SQL parser', L: 'Query planner', E: 'Executor', I: 'Index (B-tree)', R: 'Result set', K: 'Constraints & log', S: 'Storage · table heap' };
   var LAYOUTS = {
     wide: {
@@ -248,7 +251,7 @@
             var fxr = { examined: 1 }, toks = [{ edge: 'S>E', text: short(rowText(e.v) || 'row ' + e.pos, 14), cls: 'row' }], view = { lit: { slot: sl, pos: [e.pos] } }, why;
             if (matchEv) {
               fxr.passed = 1; view.hit = { slot: sl, pos: [e.pos] };
-              if (matchEv.last && ctx.direct) { fxr.emitted = 1; toks.push({ edge: 'E>R', text: short(rowText(e.v) || 'row', 14), cls: 'out' }); view.res = [rowText(e.v)]; }
+              if (matchEv.last && ctx.direct) { fxr.emitted = 1; toks.push({ edge: 'E>R', text: short(rowText(e.v) || 'row', 14), cls: 'out', col: 'R' }); view.res = [rowText(e.v)]; }
               why = matchEv.last && ctx.direct ? 'passes every condition, so it goes straight into the result set' : (ctx.cur && ctx.cur.ti < 0 ? '' : 'passes the conditions, so the executor keeps it');
               i++;
             } else why = 'fails the conditions, so it is dropped';
@@ -283,7 +286,7 @@
             if (ctx.direct) break;            // already shown when the rows were read
             if (ctx.emitShown < IND_EMIT) {
               ctx.emitShown++;
-              B({ kind: 'emit', src: ['E'], dst: ['R'], tokens: [{ edge: 'E>R', text: short(rowText(e.v) || 'row', 14), cls: 'out' }], small: true, fx: { emitted: 1 }, view: { res: e.v ? [rowText(e.v)] : [] },
+              B({ kind: 'emit', src: ['E'], dst: ['R'], tokens: [{ edge: 'E>R', text: short(rowText(e.v) || 'row', 14), cls: 'out', col: 'R' }], small: true, fx: { emitted: 1 }, view: { res: e.v ? [rowText(e.v)] : [] },
                 narr: 'Result row ' + num(e.i + 1) + (e.v ? ' (' + short(rowText(e.v), 40) + ')' : '') + ' leaves the executor for the result set.' });
             } else { var pe = agg('emit'); pe.fx.emitted = (pe.fx.emitted || 0) + 1; pe.out++; }
             break;
@@ -364,7 +367,7 @@
   function speedControl(opts) {
     opts = opts || {};
     var key = opts.key || 'co1005-sql-speed', idx = opts.initial === undefined ? 3 : opts.initial;
-    try { var s = localStorage.getItem(key); if (s !== null && !isNaN(+s) && +s >= 0 && +s < SPEEDS.length) idx = +s; } catch (e) { /* none */ }
+    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* none */ }
     var wrap = document.createElement('div'); wrap.className = 'vn-speed sf-speed';
     var lab = document.createElement('label'); lab.className = 'field-label'; lab.textContent = 'Speed';
     var id = 'sf-speed-' + Math.floor(Math.random() * 1e6); lab.setAttribute('for', id);
@@ -394,18 +397,20 @@
     svg = mk('svg', { viewBox: '0 0 ' + LY.w + ' ' + LY.h, class: 'sf-svg', role: 'img',
       'aria-label': 'Block diagram of a database system: client, SQL parser, query planner, executor, table storage, index, constraints and log, and the result set' });
     var defs = mk('defs', {}, svg);
-    [['', 'sf-hd'], ['-on', 'sf-hd on']].forEach(function (m) {
-      var mr = mk('marker', { id: uid + 'a' + m[0], viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '6', markerHeight: '6', orient: 'auto-start-reverse' }, defs);
-      mk('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: m[1] }, mr);
+    Object.keys(CMP).forEach(function (id) {
+      [['', 'sf-hd'], ['-on', 'sf-hd on']].forEach(function (m) {
+        var mr = mk('marker', { id: uid + 'a' + id + m[0], viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '6', markerHeight: '6', orient: 'auto-start-reverse' }, defs);
+        mk('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: m[1] + ' sf-c-' + id }, mr);
+      });
     });
     edgeEls = {};
     var gE = mk('g', {}, svg);
-    Object.keys(LY.edges).forEach(function (k) { edgeEls[k] = mk('path', { d: LY.edges[k], class: 'sf-edge', 'marker-end': 'url(#' + uid + 'a)', 'data-edge': k }, gE); });
+    Object.keys(LY.edges).forEach(function (k) { edgeEls[k] = mk('path', { d: LY.edges[k], class: 'sf-edge sf-c-' + k.charAt(0), 'marker-end': 'url(#' + uid + 'a' + k.charAt(0) + ')', 'data-edge': k }, gE); });
 
     nodes = {}; lines = {};
     Object.keys(LY.blocks).forEach(function (id) {
       var b = LY.blocks[id];
-      var g = mk('g', { class: 'sf-node sf-n-' + id, 'data-node': id }, svg);
+      var g = mk('g', { class: 'sf-node sf-n-' + id + ' sf-c-' + id, 'data-node': id }, svg);
       mk('rect', { x: b[0], y: b[1], width: b[2], height: b[3], rx: 9, class: 'sf-box' }, g);
       mk('text', { x: b[0] + 8, y: b[1] + 15, class: 'sf-name' }, g, (LY.titles && LY.titles[id]) || TITLES[id]);
       lines[id] = [];
@@ -476,7 +481,9 @@
     ctl.appendChild(btnPause); ctl.appendChild(btnStep); ctl.appendChild(btnSkip); ctl.appendChild(speed.el);
     var narr = document.createElement('p'); narr.className = 'sf-narr'; narr.setAttribute('role', 'status'); narr.setAttribute('aria-live', 'polite');
     var prog = document.createElement('p'); prog.className = 'sf-prog';
-    container.appendChild(narr); container.appendChild(ctl); container.appendChild(prog);
+    var legend = document.createElement('ul'); legend.className = 'sf-legend'; legend.setAttribute('aria-label', 'Colour key: one colour per component');
+    LEGEND.forEach(function (l) { var li = document.createElement('li'); li.className = 'sf-c-' + l[0]; var sw = document.createElement('i'); sw.setAttribute('aria-hidden', 'true'); li.appendChild(sw); li.appendChild(document.createTextNode(l[1])); legend.appendChild(li); });
+    container.appendChild(legend); container.appendChild(narr); container.appendChild(ctl); container.appendChild(prog);
 
     /* ---- rendering the view model */
     var vm = newVM();
@@ -524,7 +531,10 @@
       stripTitle.textContent = first ? ((first.table || '') + ' · ' + num(first.n) + ' rows' + (first.n > LY.maxCells ? ' (1 cell ≈ ' + Math.ceil(first.n / LY.maxCells) + ' rows)' : '')) : 'no table opened yet';
       Object.keys(nodes).forEach(function (id) { nodes[id].classList.toggle('sf-bad', vm.bad === id); });
       var tips = vm.examined + vm.steps;
-      prog.textContent = tips || vm.emitted ? 'Counters: ' + num(vm.examined) + ' row' + (vm.examined === 1 ? '' : 's') + ' read from the table · ' + num(vm.steps) + ' index step' + (vm.steps === 1 ? '' : 's') + ' · ' + num(vm.emitted) + ' row' + (vm.emitted === 1 ? '' : 's') + ' in the result' : 'Counters: run a query to see the work it causes.';
+      if (tips || vm.emitted) {
+        prog.innerHTML = 'Counters: <span class="sf-c-S"><i></i>' + num(vm.examined) + ' row' + (vm.examined === 1 ? '' : 's') + ' read from the table</span> <span class="sf-c-I"><i></i>' + num(vm.steps) + ' index step' + (vm.steps === 1 ? '' : 's') +
+          '</span> <span class="sf-c-R"><i></i>' + num(vm.emitted) + ' row' + (vm.emitted === 1 ? '' : 's') + ' in the result</span>';
+      } else prog.textContent = 'Counters: run a query to see the work it causes.';
     }
     render.treeKey = '';
 
@@ -542,22 +552,24 @@
     function clearMarks() {
       player.marked.forEach(function (n) { n.classList.remove('sf-src', 'sf-dst'); });
       player.marked = [];
-      player.activeEdges.forEach(function (e) { e.classList.remove('on'); e.setAttribute('marker-end', 'url(#' + uid + 'a)'); });
+      player.activeEdges.forEach(function (e) { e.classList.remove('on'); e.style.removeProperty('--c'); e.setAttribute('marker-end', 'url(#' + uid + 'a' + e.getAttribute('data-edge').charAt(0) + ')'); });
       player.activeEdges = [];
       token.setAttribute('visibility', 'hidden');
     }
     function mark(id, cls) { if (nodes[id]) { nodes[id].classList.add(cls); player.marked.push(nodes[id]); } }
     function stopTimers() { if (player.raf) cancelAnimationFrame(player.raf); player.raf = 0; if (player.timer) clearTimeout(player.timer); player.timer = 0; if (player.resolveBeat) { var r = player.resolveBeat; player.resolveBeat = null; r(); } }
 
-    function moveToken(edgeKey, text, cls, ms) {
+    /* the arrow and the chip take the colour of the block that holds what is travelling (col; default = the source block) */
+    function moveToken(edgeKey, text, col, ms) {
       return new Promise(function (resolve) {
         var path = edgeEls[edgeKey];
         if (!path) { resolve(); return; }
-        path.classList.add('on'); path.setAttribute('marker-end', 'url(#' + uid + 'a-on)'); player.activeEdges.push(path);
+        col = col || edgeKey.charAt(0);
+        path.classList.add('on'); path.style.setProperty('--c', 'var(--cmp-' + CMP[col] + ')'); path.setAttribute('marker-end', 'url(#' + uid + 'a' + col + '-on)'); player.activeEdges.push(path);
         if (reduced()) { player.timer = setTimeout(function () { player.timer = 0; resolve(); }, Math.min(ms, 350)); player.resolveBeat = resolve; return; }
         var len = path.getTotalLength(), r = token.querySelector('rect'), t = token.querySelector('text'), w = Math.max(24, text.length * 6.6 + 14);
         t.textContent = text; r.setAttribute('width', w); r.setAttribute('x', -w / 2);
-        token.setAttribute('class', 'sf-token ' + (cls || '')); token.setAttribute('visibility', 'visible');
+        token.setAttribute('class', 'sf-token sf-c-' + col); token.setAttribute('visibility', 'visible');
         var t0 = null;
         player.resolveBeat = resolve;
         function frame(ts) {
@@ -580,7 +592,7 @@
     function playSweep(b, dur, runId) {
       return new Promise(function (resolve) {
         var K = 24, i = 0, multi = (b.view && b.view.multi) || [], fx = b.fx || {}, tk = b.tokens[0];
-        var tokP = tk ? moveToken(tk.edge, tk.text, tk.cls, dur) : null;
+        var tokP = tk ? moveToken(tk.edge, tk.text, tk.col, dur) : null;
         player.resolveBeat = resolve;
         function chunk(j) {
           var o = { fx: {}, view: { multi: [] } };
@@ -614,7 +626,7 @@
           return;
         }
         var chain = Promise.resolve();
-        b.tokens.forEach(function (tk) { chain = chain.then(function () { if (runId !== player.runId) return; return moveToken(tk.edge, tk.text, tk.cls, unit * Math.max(1, b.weight * 0.6)); }); });
+        b.tokens.forEach(function (tk) { chain = chain.then(function () { if (runId !== player.runId) return; return moveToken(tk.edge, tk.text, tk.col, unit * Math.max(1, b.weight * 0.6)); }); });
         chain.then(function () { if (runId !== player.runId) { resolve(); return; } apply(b); resolve(); });
       });
     }
@@ -689,6 +701,6 @@
     return api;
   }
 
-  var exp = { create: create, compile: compile, applyBeat: applyBeat, newVM: newVM, speedControl: speedControl, SPEEDS: SPEEDS, LAYOUTS: LAYOUTS, leafOf: leafOf, cellOf: cellOf };
+  var exp = { CMP: CMP, create: create, compile: compile, applyBeat: applyBeat, newVM: newVM, speedControl: speedControl, SPEEDS: SPEEDS, LAYOUTS: LAYOUTS, leafOf: leafOf, cellOf: cellOf };
   if (typeof module !== 'undefined' && module.exports) module.exports = exp; else global.SqlFlow = exp;
 })(typeof window !== 'undefined' ? window : this);

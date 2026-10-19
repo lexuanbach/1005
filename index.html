@@ -827,14 +827,14 @@
         <a class="mat-card computing" href="chapters/chapter-7.html">
           <span class="mat-num mono">Ch 7</span>
           <h3 data-i18n="mat-ch7-title">Von Neumann Architecture</h3>
-          <p data-i18n="mat-ch7-desc">Memory, CPU, I/O and the fetch–decode–execute cycle, with the stored-program idea that makes compilers possible. Step the lecturer's toy computer one register transfer at a time.</p>
-          <span class="mat-meta mono" data-i18n="mat-ch7-meta">9 concepts · Von Neumann Machine lab · 28 MCQs · 6 exercises</span>
+          <p data-i18n="mat-ch7-desc">Memory, CPU, I/O and the fetch–decode–execute cycle, with the stored-program idea that makes compilers possible. A workbench with 70+ examples, your own code and a customizable toy computer.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch7-meta">9 concepts · Von Neumann Machine workbench · 28 MCQs · 8 exercises</span>
         </a>
         <a class="mat-card computing" href="chapters/chapter-8.html">
           <span class="mat-num mono">Ch 8</span>
           <h3 data-i18n="mat-ch8-title">Assembly &amp; Compilers</h3>
-          <p data-i18n="mat-ch8-desc">From machine language and assembly to what compiler, assembler, linker and loader each do, with real clang output for x86-64 and ARM64. Compile a tiny C++ subset to the toy machine and run it.</p>
-          <span class="mat-meta mono" data-i18n="mat-ch8-meta">8 concepts · Tiny Compiler lab · 26 MCQs · 6 exercises</span>
+          <p data-i18n="mat-ch8-desc">From machine language and assembly to what compiler, assembler, linker and loader each do, with real clang output for x86-64 and ARM64. Write your own C++ (26 examples), compile it to the toy machine and open the result in the Von Neumann Machine.</p>
+          <span class="mat-meta mono" data-i18n="mat-ch8-meta">8 concepts · Tiny Compiler lab · 26 examples · 26 MCQs · 8 exercises</span>
         </a>
         <a class="mat-card computing" href="chapters/chapter-9.html">
           <span class="mat-num mono">Ch 9</span>
@@ -871,6 +871,12 @@
           <h3 data-i18n="demo-7-title">Program the CPU</h3>
           <p data-i18n="demo-7-desc">Solve puzzles on the toy Von Neumann computer by writing assembly, then watch every fetch, decode and execute step. Earn stars for correct, small and fast programs.</p>
           <span class="mat-meta mono">puzzle · assembly · simulation</span>
+        </a>
+        <a class="mat-card computing" href="demos/von-neumann-machine.html">
+          <span class="mat-num mono" data-i18n="demo-7b-num">Demo · Ch 7</span>
+          <h3 data-i18n="demo-7b-title">Von Neumann Workbench</h3>
+          <p data-i18n="demo-7b-desc">Write your own assembly in a real editor, pick from 70+ examples, and customize the toy computer: memory size, extended instructions, memory speed and cell width. Watch every fetch–decode–execute step travel along the arrows.</p>
+          <span class="mat-meta mono">workbench · assembly · sandbox</span>
         </a>
         <a class="mat-card computing" href="demos/decompile-me.html">
           <span class="mat-num mono" data-i18n="demo-8-num">Demo · Ch 8</span>
@@ -1136,11 +1142,11 @@
       "mat-ch6-desc": "Định nghĩa, prototype, pass by value vs pass by reference, phạm vi biến, biến static ghi nhớ giữa các lần gọi, và truyền cả mảng vào hàm.",
       "mat-ch6-meta": "7 khái niệm · 26 câu hỏi · 6 bài tập",
       "mat-ch7-title": "Kiến trúc Von Neumann",
-      "mat-ch7-desc": "Bộ nhớ, CPU, I/O và chu kỳ fetch–decode–execute, cùng ý tưởng chương trình lưu trữ làm nên trình biên dịch. Chạy từng bước chuyển thanh ghi trên máy tính đồ chơi của bài giảng.",
-      "mat-ch7-meta": "9 khái niệm · lab Máy Von Neumann · 28 câu hỏi · 6 bài tập",
+      "mat-ch7-desc": "Bộ nhớ, CPU, I/O và chu kỳ fetch–decode–execute, cùng ý tưởng chương trình lưu trữ làm nên trình biên dịch. Workbench với hơn 70 ví dụ, tự viết code và máy tính đồ chơi tùy biến được.",
+      "mat-ch7-meta": "9 khái niệm · workbench Máy Von Neumann · 28 câu hỏi · 8 bài tập",
       "mat-ch8-title": "Assembly và trình biên dịch",
-      "mat-ch8-desc": "Từ ngôn ngữ máy và assembly đến vai trò của compiler, assembler, linker và loader, kèm output clang thật cho x86-64 và ARM64. Biên dịch một tập con C++ nhỏ sang máy đồ chơi rồi chạy.",
-      "mat-ch8-meta": "8 khái niệm · lab Trình biên dịch mini · 26 câu hỏi · 6 bài tập",
+      "mat-ch8-desc": "Từ ngôn ngữ máy và assembly đến vai trò của compiler, assembler, linker và loader, kèm output clang thật cho x86-64 và ARM64. Tự viết C++ (26 ví dụ), biên dịch sang máy đồ chơi rồi mở kết quả trong Máy Von Neumann.",
+      "mat-ch8-meta": "8 khái niệm · lab Trình biên dịch mini · 26 ví dụ · 26 câu hỏi · 8 bài tập",
       "mat-ch9-title": "Mạng máy tính",
       "mat-ch9-desc": "Từ địa chỉ gõ vào đến trang web: IP, DNS, client–server và HTTP, các tầng TCP/IP, và Internet vạn vật với edge AI. Có mô phỏng gói tin từng bước.",
       "mat-ch9-meta": "9 khái niệm · lab Hành trình gói tin · 28 câu hỏi · 6 bài tập",
@@ -1159,6 +1165,9 @@
       "demo-7-num": "Demo · Chương 7",
       "demo-7-title": "Program the CPU",
       "demo-7-desc": "Giải các câu đố trên máy tính đồ chơi Von Neumann bằng cách viết hợp ngữ, rồi xem từng bước nạp, giải mã và thực thi. Nhận sao cho chương trình đúng, ngắn gọn và nhanh.",
+      "demo-7b-num": "Demo · Chương 7",
+      "demo-7b-title": "Von Neumann Workbench",
+      "demo-7b-desc": "Tự viết hợp ngữ trong trình soạn thảo thật, chọn trong hơn 70 ví dụ, và tùy biến máy tính đồ chơi: dung lượng bộ nhớ, bộ lệnh mở rộng, tốc độ bộ nhớ, độ rộng ô. Xem từng bước nạp, giải mã, thực thi chạy dọc các mũi tên.",
       "demo-8-num": "Demo · Chương 8",
       "demo-8-title": "Decompile Me",
       "demo-8-desc": "Phá án bằng mã máy: đọc hợp ngữ của một chương trình C++ ẩn, viết lại C++ cho cùng hành vi, rồi xem các giai đoạn của trình biên dịch và bản so sánh hợp ngữ chấm điểm.",

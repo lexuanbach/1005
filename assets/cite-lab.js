@@ -761,9 +761,26 @@
     return { style: style, events: E, ref: ref.plain, intext: cite, noReference: ai && style === 'IEEE' };
   }
 
+  // Where each traced piece sits inside the plain reference string: [{field, start, end}] sorted by position, never overlapping
+  // (pieces that cannot be located are skipped). Longest pieces claim their place first, so a short piece never steals a stretch of a longer one.
+  function fieldSpans(tr) {
+    var ref = tr.ref, used = [], spans = [];
+    function free(a, b) { return used.every(function (u) { return b <= u[0] || a >= u[1]; }); }
+    tr.events.filter(function (e) { return e.field !== 'intext' && !e.dropped && e.out; })
+      .sort(function (a, b) { return b.out.length - a.out.length; })
+      .forEach(function (e) {
+        var from = 0, at;
+        while ((at = ref.indexOf(e.out, from)) >= 0) {
+          if (free(at, at + e.out.length)) { used.push([at, at + e.out.length]); spans.push({ field: e.field, start: at, end: at + e.out.length }); return; }
+          from = at + 1;
+        }
+      });
+    return spans.sort(function (a, b) { return a.start - b.start; });
+  }
+
   var CiteLab = {
     render: render, PRESETS: PRESETS, SPOT: SPOT, overlap: overlap, tokenize: tokenize,
-    trace: trace, scanSteps: scanSteps, SLOTS: SLOTS, RULE_NAMES: RULE_NAMES,
+    trace: trace, scanSteps: scanSteps, fieldSpans: fieldSpans, SLOTS: SLOTS, RULE_NAMES: RULE_NAMES,
     _t: { sentenceCase: sentenceCase, titleCase: titleCase, initials: initials, parseName: parseName, detectCase: detectCase, normDoi: normDoi, ordinal: ordinal }
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = CiteLab;
@@ -868,6 +885,17 @@
       form.appendChild(wrap); inputs[f.k] = inp; labels[f.k] = lab; wraps[f.k] = wrap;
     });
 
+    // ---- the pieces of each rendered reference (<span class="cf-fld">) are coloured with their field colour while an animation or a hover is active
+    function litSpans(field, cls, on, style) {
+      (style ? [style] : ['APA', 'MLA', 'IEEE']).forEach(function (n) {
+        [cards[n].ref, cards[n].cite].forEach(function (host) {
+          var list = host.querySelectorAll('.cf-fld[data-fld="' + field + '"]');
+          for (var i = 0; i < list.length; i++) list[i].classList.toggle(cls, on);
+        });
+      });
+    }
+    function clearLit(cls) { var list = results.querySelectorAll('.cf-fld.' + cls); for (var i = 0; i < list.length; i++) list[i].classList.remove(cls); }
+
     // ---- animated data flow: form fields -> style rules -> reference slots (driven by trace())
     var flowUI = global.CiteFlow ? buildFlow() : null;
     function buildFlow() {
@@ -875,7 +903,11 @@
       box.appendChild(el('span', 'cl-tag', 'How the form becomes the reference \u2014 watch each field travel through the style rules'));
       var fs = el('select', 'preset-select'); fs.setAttribute('aria-label', 'Style to trace');
       [['APA', 'APA 7'], ['MLA', 'MLA 9'], ['IEEE', 'IEEE']].forEach(function (o) { var op = el('option', '', o[1]); op.value = o[0]; fs.appendChild(op); });
-      var bld = CF.builder(scroll), tr = null;
+      var bld = CF.builder(scroll, { hooks: {
+        land: function (e) { litSpans(e.field, 'cf-lit', true, fs.value); },    // the piece appears in the reference as its token lands
+        clear: function () { clearLit('cf-lit'); },
+        hot: function (f) { clearLit('cf-hover'); if (f) litSpans(f, 'cf-hover', true); }   // pointing at a field, slot or legend entry lights its pieces in all three cards
+      } }), tr = null;
       function label() { return fs.value === 'APA' ? 'APA 7' : fs.value === 'MLA' ? 'MLA 9' : 'IEEE'; }
       var ctl = CF.controls({
         unit: 'field', extra: [fs],
@@ -883,13 +915,13 @@
         reset: function () { bld.showAll(); ctl.say(idle()); }
       });
       function idle() { return tr && tr.noReference ? 'IEEE has no reference format for chatbot output \u2014 only the disclosure rule (see the card below).' : 'Press Play (or Step) to send each filled-in field through the ' + label() + ' rules. The finished slots are shown now.'; }
-      function finished() { ctl.say('All fields placed. Each style arranges these pieces in its own order (see the cards below); the in-text form is built from the author and year.'); }
+      function finished() { bld.unmark(); ctl.say('All fields placed. Each style arranges these pieces in its own order (see the cards below); the in-text form is built from the author and year.'); }
       var runner = CF.Runner({
         run: function (e) { ctl.say(bld.narration(e, label())); return bld.run(e, ctl.speed.ms()); },
         ms: ctl.speed.ms, gap: ctl.speed.gap, onChange: ctl.paint, stop: bld.stop, begin: function () { bld.clear(); }
       });
       ctl.runner = runner;
-      box.appendChild(ctl.el); box.appendChild(ctl.narr); box.appendChild(scroll);
+      box.appendChild(ctl.el); box.appendChild(ctl.narr); box.appendChild(scroll); box.appendChild(bld.legend.el);
       fs.addEventListener('change', function () { api.setData(api.last); });
       var api = {
         el: box, last: null,
@@ -902,7 +934,8 @@
           });
           ctl.fix(list);
         },
-        relayout: function () { ctl.fix(); }
+        relayout: function () { ctl.fix(); },
+        hover: bld.hover
       };
       return api;
     }
@@ -928,6 +961,13 @@
         else status.textContent = 'Copy is not available here: select the text and copy it by hand.';
       });
     });
+    results.addEventListener('mouseover', function (e) {      // pointing at a piece of a reference lights its field in the diagram and in the other cards
+      var f = e.target.closest ? e.target.closest('.cf-fld') : null;
+      clearLit('cf-hover');
+      if (f) litSpans(f.getAttribute('data-fld'), 'cf-hover', true);
+      if (flowUI) flowUI.hover(f ? f.getAttribute('data-fld') : null);
+    });
+    results.addEventListener('mouseleave', function () { clearLit('cf-hover'); if (flowUI) flowUI.hover(null); });
     var generalHints = el('ul', 'cl-hints cl-general'); p1.appendChild(generalHints);
     p1.appendChild(el('p', 'cl-fine', 'Titles are converted automatically (sentence case for APA and IEEE article titles, Title Case for MLA); proper nouns the tool cannot know must be listed in the “keep capitalised” box. Journal and proceedings names are used exactly as you type them.'));
 
@@ -954,9 +994,12 @@
       layout();
       var data = readForm(), r = render(data);
       ['APA', 'MLA', 'IEEE'].forEach(function (name) {
-        var c = cards[name]; fmt(c.ref, r[name].ref); c.plain = r[name].plain;
-        var cite = r[name].cite;
-        fmt(c.cite, cite.nar ? cite.par + '   •   ' + cite.nar : cite.par);
+        var c = cards[name]; c.plain = r[name].plain;
+        var cite = r[name].cite, citeText = cite.nar ? cite.par + '   •   ' + cite.nar : cite.par;
+        if (global.CiteFlow) {      // pieces of the reference / in-text form wrapped in field-coloured spans (coloured only while animating or hovering)
+          global.CiteFlow.fmtSpans(c.ref, r[name].ref, fieldSpans(trace(data, name)), r[name].plain);
+          global.CiteFlow.fmtSpans(c.cite, citeText, [{ field: 'intext', start: 0, end: strip(cite.par).length }], strip(citeText));
+        } else { fmt(c.ref, r[name].ref); fmt(c.cite, citeText); }
         c.hints.textContent = '';
         r.hints.filter(function (h) { return h.style === name; }).forEach(function (h) { var li = el('li', 'cl-hint cl-' + h.level, h.msg); c.hints.appendChild(li); });
       });
@@ -1027,12 +1070,12 @@
     p3.appendChild(l1); p3.appendChild(src); p3.appendChild(l2); p3.appendChild(par);
     var scanUI = global.CiteFlow ? global.CiteFlow.scan(p3.appendChild(el('div', 'cf-scan-host'))) : null;
     var out3 = el('div', 'cl-p3out'); p3.appendChild(out3);
-    function paint(node, toks, mask, text) {
+    function paint(node, toks, mask, text, cls) {
       node.textContent = ''; var pos = 0;
       toks.forEach(function (t, i) {
         if (t.start > pos) node.appendChild(document.createTextNode(text.slice(pos, t.start)));
         var w = text.slice(t.start, t.end);
-        if (mask[i]) node.appendChild(el('mark', 'cl-mark', w));
+        if (mask[i]) node.appendChild(el('mark', 'cl-mark ' + cls, w));
         else if (t.quoted) node.appendChild(el('span', 'cl-quoted', w));
         else node.appendChild(document.createTextNode(w));
         pos = t.end;
@@ -1043,8 +1086,8 @@
       var r = overlap(src.value, par.value, 4);
       if (scanUI) scanUI.setTexts(src.value, par.value);
       out3.textContent = '';
-      var a = el('div', 'cl-hl'); a.appendChild(el('span', 'cl-tag', 'Your sentence — highlighted = 4+ words in a row identical to the source')); var pa = el('p', 'cl-hlp'); paint(pa, r.para, r.pMask, par.value); a.appendChild(pa);
-      var b = el('div', 'cl-hl'); b.appendChild(el('span', 'cl-tag', 'Source — the matching stretches')); var pb = el('p', 'cl-hlp'); paint(pb, r.source, r.sMask, src.value); b.appendChild(pb);
+      var a = el('div', 'cl-hl'); a.appendChild(el('span', 'cl-tag', 'Your sentence — highlighted = 4+ words in a row identical to the source')); var pa = el('p', 'cl-hlp'); paint(pa, r.para, r.pMask, par.value, 'cl-mark-par'); a.appendChild(pa);
+      var b = el('div', 'cl-hl'); b.appendChild(el('span', 'cl-tag', 'Source — the matching stretches')); var pb = el('p', 'cl-hlp'); paint(pb, r.source, r.sMask, src.value, 'cl-mark-src'); b.appendChild(pb);
       out3.appendChild(a); out3.appendChild(b);
       var msg = {
         empty: 'Type your own sentence to see the result.',
