@@ -107,3 +107,27 @@ tr.tc-grp td { border-top: 2px solid var(--line); }
 .vn-dp-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; justify-content: center; margin: 0.5rem 0 0; font-size: 0.74rem; color: var(--ink-soft); }
 .vn-dp-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
 .vn-dp-legend i { width: 0.8rem; height: 0.8rem; border-radius: 3px; background: var(--c); display: inline-block; }
+
+/* explanations on hover / tap / focus (vn-datapath.js): one tooltip on <body>, coloured like the part it explains */
+.vn-dp-explain { cursor: help; }
+.vn-dp-frame { pointer-events: all; }
+.vn-dp-node:focus { outline: none; }
+.vn-dp-node:focus-visible rect { stroke-width: 3.4; filter: drop-shadow(0 0 4px var(--c)); }
+.vn-dp-node.vn-dp-explain:hover rect { stroke-width: 2.8; }
+.vn-dp-legend span.vn-dp-explain:hover { color: var(--ink); }
+.vn-dp-tip {
+  position: fixed; top: 0; left: 0; z-index: 1000;
+  max-width: min(22rem, calc(100vw - 16px));
+  padding: 0.6rem 0.8rem; border-radius: 10px;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-top: 3px solid var(--c, var(--accent));
+  box-shadow: 0 12px 32px rgba(19, 28, 46, 0.22);
+  font-size: 0.84rem; line-height: 1.5; pointer-events: auto;
+}
+.vn-dp-tip.above { border-top-width: 1px; border-bottom: 3px solid var(--c, var(--accent)); }
+.vn-dp-tip[hidden] { display: none; }
+.vn-dp-tip-h { display: block; margin-bottom: 0.25rem; color: color-mix(in srgb, var(--c, var(--accent)) 62%, var(--ink)); }
+.vn-dp-tip p { margin: 0.3rem 0 0; }
+.vn-dp-tip-k { display: block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+.vn-dp-tip-now code { font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; font-weight: 600; }
+@media print { .vn-dp-tip { display: none !important; } }

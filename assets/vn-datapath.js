@@ -49,6 +49,49 @@
   // instruction set (state.opBits === 5), or when a flow handed to animate() really uses one of them.
   var EXT_EDGES = ['IR>ALU', 'MDR>MAR'];
 
+  // hover / tap / focus explanations: one analogy (a kitchen that cooks from a recipe book) + the intuition behind each part
+  var EXPLAIN = {
+    CPU: { title: 'CPU · central processing unit',
+      like: 'The <b>kitchen</b>. Everything inside the dashed line works together to cook, one recipe step after another.',
+      why: 'Every program runs as the same loop, repeated billions of times a second: <b>fetch</b> the next instruction from memory, <b>decode</b> it, <b>execute</b> it.' },
+    CTRL: { title: 'Control unit',
+      like: 'The <b>head chef</b>. It does not chop anything; it reads the recipe and tells everyone else what to do and when.',
+      why: 'The PC, IR and decoder together decide <i>which</i> instruction runs next and <i>which</i> arrows fire to carry it out.' },
+    PC: { title: 'PC · program counter',
+      like: 'Your <b>finger on the recipe</b>, pointing at the step you will do next.',
+      why: 'It holds the <b>address</b> of the next instruction, not the instruction itself. After each fetch it moves on by one (the loop arrow). A jump simply moves the finger somewhere else: that is how if/else and loops work.' },
+    MAR: { title: 'MAR · memory address register',
+      like: 'The <b>shelf number</b> written on the order slip you hand to the pantry.',
+      why: 'Memory only understands “give me cell n” or “store this in cell n”. The MAR is where the CPU writes that <i>n</i>; it always holds an address, never data.' },
+    MDR: { title: 'MDR · memory data register',
+      like: 'The <b>delivery tray</b> at the pantry door. Whatever comes in or goes out is placed on it first.',
+      why: 'Every value read from or written to memory, and every value from the input or to the output device, passes through the MDR. It is the CPU’s single doorway to the outside world.' },
+    IR: { title: 'IR · instruction register',
+      like: 'The <b>recipe card</b> pinned above the counter for the step being done right now.',
+      why: 'A fetched instruction is copied here so it stays put while it is being carried out, even though the PC has already moved on to the next step.' },
+    DEC: { title: 'Instruction decoder',
+      like: 'The head chef <b>reading the card aloud</b>: “Add the sugar from shelf 7!”',
+      why: 'It splits the instruction’s number into an opcode (<i>what</i> to do: LOAD, ADD, JUMP…) and an address (<i>where</i>), then switches on the right arrows.' },
+    FLAGS: { title: 'Condition codes (flags)',
+      like: 'A <b>scoreboard</b> with three lights: greater, equal, less. It shows the result of the last comparison (GT = the memory cell is greater than R).',
+      why: 'COMPARE only turns one light on; it does not jump. A later conditional jump (JUMPGT, JUMPEQ…) looks at the lights and decides whether to move the PC. That is an <code>if</code> in hardware.' },
+    R: { title: 'R · accumulator',
+      like: 'The <b>mixing bowl</b> in the cook’s hands: the one value being worked on.',
+      why: 'This machine has only one working register, so LOAD fills it, ADD/SUBTRACT change it, and STORE copies it back to memory. Every calculation goes through this bowl.' },
+    ALU: { title: 'ALU · arithmetic logic unit',
+      like: 'The <b>chopping board and scales</b>: the only place where values are actually combined or compared.',
+      why: 'It takes the value in R and the value on the MDR tray, then adds, subtracts or compares them (the extended machine also multiplies and divides). The result goes back into R; INCREMENT/DECREMENT put theirs back on the MDR tray for memory, and a comparison only sets the flags.' },
+    MEM: { title: 'Memory',
+      like: 'The <b>pantry</b>: a long row of numbered shelves. Some shelves hold recipe cards, others hold ingredients.',
+      why: 'This is Von Neumann’s big idea: <b>instructions and data share the same memory</b>, and a cell is only “code” because the PC points at it. Each cell is just a number; only the address tells cells apart.' },
+    IN: { title: 'Input device',
+      like: 'The <b>order window</b> where tickets wait in a queue (keyboard, sensor, file…).',
+      why: 'IN takes the next value from the queue, puts it on the MDR tray and then stores it in a memory cell. When the queue is empty, there is nothing to read.' },
+    OUT: { title: 'Output device',
+      like: 'The <b>serving hatch</b>. A finished value is passed out to the customer (screen, printer…).',
+      why: 'OUT reads a memory cell into the MDR and sends that value out. Everything you see in the output log came through this hatch.' }
+  };
+
   function mk(tag, attrs, parent) {
     var n = document.createElementNS(NS, tag);
     for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) n.setAttribute(k, attrs[k]);
@@ -161,6 +204,67 @@
     });
     container.appendChild(legend);
 
+    /* explanations: one tooltip on <body> (position: fixed, so no scrolling box can clip it).
+       Hover or focus shows it; a tap pins it (touch screens), Esc or a tap elsewhere closes it. */
+    var lastSt = null, tip = null, tipFor = null, tipId = null, pinned = false;
+    function tipEl() {
+      if (tip) return tip;
+      tip = document.createElement('div'); tip.className = 'vn-dp-tip'; tip.hidden = true;
+      tip.setAttribute('role', 'tooltip'); tip.id = 'vn-dp-tip-' + Math.floor(Math.random() * 1e6);
+      document.body.appendChild(tip);
+      return tip;
+    }
+    function showTip(id, anchor) {
+      var ex = EXPLAIN[id]; if (!ex) return;
+      var t = tipEl(), now = NODES[id] && lastSt ? nodeValue(id, lastSt) : '';
+      t.className = 'vn-dp-tip vn-dp-c-' + id;
+      t.innerHTML = '<strong class="vn-dp-tip-h"></strong>' +
+        '<p><span class="vn-dp-tip-k">Think of it as</span> ' + ex.like + '</p>' +
+        '<p><span class="vn-dp-tip-k">What it does</span> ' + ex.why + '</p>' +
+        (now ? '<p class="vn-dp-tip-now"><span class="vn-dp-tip-k">Right now</span> <code></code></p>' : '');
+      t.querySelector('.vn-dp-tip-h').textContent = ex.title;
+      if (now) t.querySelector('code').textContent = now;
+      t.hidden = false; tipFor = anchor; tipId = id;
+      anchor.setAttribute('aria-describedby', t.id);
+      var r = anchor.getBoundingClientRect(), tw = t.offsetWidth, th = t.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+      var x = Math.max(8, Math.min(r.left + r.width / 2 - tw / 2, vw - tw - 8));
+      var y = r.bottom + 8, above = y + th > vh - 8 && r.top - th - 8 >= 8;
+      if (above) y = r.top - th - 8; else y = Math.min(y, Math.max(8, vh - th - 8));
+      t.classList.toggle('above', above);
+      t.style.left = Math.round(x) + 'px'; t.style.top = Math.round(y) + 'px';
+    }
+    function hideTip() {
+      if (tip) tip.hidden = true;
+      if (tipFor) tipFor.removeAttribute('aria-describedby');
+      tipFor = null; tipId = null; pinned = false;
+    }
+    function explainable(el, id) {
+      if (!EXPLAIN[id]) return;
+      el.classList.add('vn-dp-explain');
+      el.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch' && !pinned) showTip(id, el); });
+      el.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch' && !pinned && tipFor === el) hideTip(); });
+      el.addEventListener('focus', function () { if (!pinned) showTip(id, el); });
+      el.addEventListener('blur', function () { if (!pinned && tipFor === el) hideTip(); });
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (pinned && tipFor === el) { hideTip(); return; }
+        showTip(id, el); pinned = true;
+      });
+    }
+    Object.keys(nodeEls).forEach(function (id) {
+      var g = nodeEls[id];
+      g.setAttribute('tabindex', '0');
+      g.setAttribute('aria-label', EXPLAIN[id].title + '. ' + EXPLAIN[id].like.replace(/<[^>]+>/g, ''));
+      explainable(g, id);
+    });
+    legend.querySelectorAll('span').forEach(function (sp, i) { explainable(sp, Object.keys(NODES)[i]); });
+    explainable(frame, 'CPU'); explainable(frameT, 'CPU');
+    explainable(ctrl, 'CTRL'); explainable(ctrlT, 'CTRL');
+    document.addEventListener('click', function (e) { if (pinned && tip && !tip.contains(e.target)) hideTip(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && tip && !tip.hidden) hideTip(); });
+    window.addEventListener('scroll', function () { if (tip && !tip.hidden) hideTip(); }, { passive: true, capture: true });
+    svg.setAttribute('role', 'group');
+
     var token_raf = 0, token_resolve = null, activeEdges = [], marked = [];
 
     // show the extended-set arrows only for an extended machine (or when `force` says a flow needs them)
@@ -175,6 +279,8 @@
 
     function setValues(st) {
       showExt(st && st.opBits === 5);
+      lastSt = st;
+      if (tip && !tip.hidden && tipFor && tipId) showTip(tipId, tipFor);     // keep “Right now” current while a tip is open
       Object.keys(valEls).forEach(function (id) { valEls[id].textContent = nodeValue(id, st); });
     }
     function clear() {
