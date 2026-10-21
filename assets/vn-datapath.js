@@ -226,7 +226,12 @@
       if (now) t.querySelector('code').textContent = now;
       t.hidden = false; tipFor = anchor; tipId = id;
       anchor.setAttribute('aria-describedby', t.id);
+      placeTip();
+    }
+    function placeTip() {
+      var t = tip, anchor = tipFor; if (!t || !anchor) return;
       var r = anchor.getBoundingClientRect(), tw = t.offsetWidth, th = t.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+      if (r.bottom < 0 || r.top > vh) { hideTip(); return; }          // the part scrolled out of sight
       var x = Math.max(8, Math.min(r.left + r.width / 2 - tw / 2, vw - tw - 8));
       var y = r.bottom + 8, above = y + th > vh - 8 && r.top - th - 8 >= 8;
       if (above) y = r.top - th - 8; else y = Math.min(y, Math.max(8, vh - th - 8));
@@ -242,6 +247,8 @@
       if (!EXPLAIN[id]) return;
       el.classList.add('vn-dp-explain');
       el.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch' && !pinned) showTip(id, el); });
+      // also on move: the tip comes back after a scroll or a click elsewhere while the pointer stays on the part
+      el.addEventListener('pointermove', function (e) { if (e.pointerType !== 'touch' && !pinned && tipFor !== el) showTip(id, el); });
       el.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch' && !pinned && tipFor === el) hideTip(); });
       el.addEventListener('focus', function () { if (!pinned) showTip(id, el); });
       el.addEventListener('blur', function () { if (!pinned && tipFor === el) hideTip(); });
@@ -262,7 +269,11 @@
     explainable(ctrl, 'CTRL'); explainable(ctrlT, 'CTRL');
     document.addEventListener('click', function (e) { if (pinned && tip && !tip.contains(e.target)) hideTip(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && tip && !tip.hidden) hideTip(); });
-    window.addEventListener('scroll', function () { if (tip && !tip.hidden) hideTip(); }, { passive: true, capture: true });
+    // scrolling or resizing moves the part on screen: the tip follows it (once per frame)
+    var placeRaf = 0;
+    function follow() { if (tip && !tip.hidden && !placeRaf) placeRaf = requestAnimationFrame(function () { placeRaf = 0; placeTip(); }); }
+    window.addEventListener('scroll', follow, { passive: true, capture: true });
+    window.addEventListener('resize', follow);
     svg.setAttribute('role', 'group');
 
     var token_raf = 0, token_resolve = null, activeEdges = [], marked = [];
