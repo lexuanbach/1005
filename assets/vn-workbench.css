@@ -317,3 +317,6 @@
 .vnw-fontgrp { display: inline-flex; align-items: center; gap: 0.3rem; }
 .vnw-fontgrp .btn { min-width: 2.2rem; }
 .vnw-fpct { font: 500 0.74rem "IBM Plex Mono", monospace; color: var(--ink-soft); min-width: 2.6rem; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* column splitters: shown only in the full-screen 3-column layout (fs-vnm.css) */
+.vnw-split { display: none; }

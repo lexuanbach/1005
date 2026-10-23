@@ -25,7 +25,8 @@
   html.fs-on #vn-root > .vnw {
     height: 100%; box-sizing: border-box;
     display: grid; gap: 0 0.8rem; align-content: stretch;
-    grid-template-columns: clamp(18rem, 24vw, 30rem) minmax(0, 1fr) clamp(24rem, 31vw, 42rem);
+    /* --vnfs-c1 / --vnfs-c3: widths set by dragging the column splitters (vn-machine-ui.js) */
+    grid-template-columns: var(--vnfs-c1, clamp(18rem, 24vw, 30rem)) minmax(0, 1fr) var(--vnfs-c3, clamp(24rem, 31vw, 42rem));
     grid-template-rows: auto auto auto auto auto minmax(10rem, 1fr) auto auto;
     padding-top: 0.5rem !important; padding-bottom: 0.5rem !important;
     border-radius: 0 0 12px 12px;
@@ -42,6 +43,28 @@
   html.fs-on #vn-root > .vnw > .vnw-outrow { grid-column: 2; grid-row: 7; }
   html.fs-on #vn-root > .vnw > .vnw-tabs { grid-column: 3; grid-row: 3 / 9; }
   html.fs-on #vn-root > .vnw > .vnw-fine { display: none; }
+
+  /* column splitters: each sits in the 0.8rem gap left of its column (negative margin), over rows 3-8 */
+  html.fs-on #vn-root > .vnw > .vnw-split-l, html.fs-on #vn-root > .vnw > .vnw-split-r {
+    display: block; position: relative; z-index: 3; grid-row: 3 / 9; justify-self: start;
+    width: 0.8rem; margin-left: -0.8rem; cursor: col-resize; touch-action: none; outline: none;
+  }
+  html.fs-on #vn-root > .vnw > .vnw-split-l { grid-column: 2; }
+  html.fs-on #vn-root > .vnw > .vnw-split-r { grid-column: 3; }
+  html.fs-on #vn-root > .vnw > .vnw-split::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%);
+    border-radius: 2px; background: var(--line); transition: background 0.15s, width 0.15s;
+  }
+  html.fs-on #vn-root > .vnw > .vnw-split::after {     /* the grip */
+    content: ''; position: absolute; top: 50%; left: 50%; width: 0.55rem; height: 2.6rem; transform: translate(-50%, -50%);
+    border-radius: 999px; border: 1px solid color-mix(in srgb, var(--ink-soft) 55%, var(--line)); background: var(--surface);
+    background-image: radial-gradient(circle, var(--ink-soft) 1px, transparent 1.3px); background-size: 100% 0.5rem; background-position: center;
+  }
+  html.fs-on #vn-root > .vnw > .vnw-split:hover::before, html.fs-on #vn-root > .vnw > .vnw-split.drag::before,
+  html.fs-on #vn-root > .vnw > .vnw-split:focus-visible::before { width: 3px; background: var(--teal); }
+  html.fs-on #vn-root > .vnw > .vnw-split:focus-visible::after { box-shadow: 0 0 0 2px var(--teal); }
+  html.fs-on #vn-root > .vnw.vnw-resizing { cursor: col-resize; user-select: none; }
+  html.fs-on #vn-root > .vnw.vnw-resizing-v { cursor: row-resize; user-select: none; }
 
   /* toolbar: one tight row */
   html.fs-on #vn-root > .vnw .vnw-toolbar { gap: 0.35rem 0.8rem; }
@@ -60,7 +83,7 @@
   html.fs-on #vn-root > .vnw .vnw-stale { font-size: 0.78rem; }
   html.fs-on #vn-root > .vnw .vnw-stale:empty { display: none; }
   html.fs-on #vn-root > .vnw .vnw-msgs { max-height: clamp(5.4rem, calc((100vh - 560px) * 0.5), 14rem); flex: 0 0 auto; }
-  html.fs-on #vn-root > .vnw .vnw-notes { grid-column: 2; grid-row: 8; margin-top: 0.1rem; max-height: clamp(4.2rem, calc((100vh - 650px) * 0.6), 13rem); padding: 0.4rem 0.8rem; font-size: 0.82rem; }
+  html.fs-on #vn-root > .vnw .vnw-notes { grid-column: 2; grid-row: 8; margin-top: 0.1rem; max-height: var(--vnfs-notes, clamp(4.2rem, calc((100vh - 650px) * 0.6), 13rem)); padding: 0.4rem 0.8rem; font-size: 0.82rem; }
   html.fs-on #vn-root > .vnw .vnw-notes-h { font-size: 0.98rem; margin: 0; }
   html.fs-on #vn-root > .vnw .vnw-notes p { margin: 0.2rem 0; }
   html.fs-on #vn-root > .vnw .vnw-story { line-height: 1.4; }
@@ -111,4 +134,25 @@
   html.fs-on #vn-root > .vnw .vnw-editrow { display: flex; flex-direction: column; gap: 0.4rem; grid-column: 1; grid-row: 3 / 9; min-height: 0; }
   html.fs-on #vn-root > .vnw .vnw-editcol { flex: 1 1 0; grid-column: auto; grid-row: auto; }
   html.fs-on #vn-root > .vnw .vnw-notes { flex: 0 0 auto; grid-column: auto; grid-row: auto; margin: 0; max-height: 8.5rem; }
+}
+
+/* the horizontal handle under the diagram: only while the notes sit under the diagram (screens at least 900px high) */
+@media (min-width: 880px) and (min-height: 900px) {
+  html.fs-on #vn-root > .vnw > .vnw-split-n {
+    display: block; position: relative; z-index: 3; grid-column: 2; grid-row: 7; align-self: start;
+    height: 0.8rem; margin-top: -0.65rem; cursor: row-resize; touch-action: none; outline: none;
+  }
+  html.fs-on #vn-root > .vnw > .vnw-split-n::before {
+    content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%);
+    border-radius: 2px; background: transparent; transition: background 0.15s, height 0.15s;
+  }
+  html.fs-on #vn-root > .vnw > .vnw-split-n::after {
+    content: ''; position: absolute; top: 50%; left: 50%; width: 2.6rem; height: 0.55rem; transform: translate(-50%, -50%);
+    border-radius: 999px; border: 1px solid color-mix(in srgb, var(--ink-soft) 55%, var(--line)); background: var(--surface);
+    background-image: radial-gradient(circle, var(--ink-soft) 1px, transparent 1.3px); background-size: 0.5rem 100%; background-position: center;
+  }
+  html.fs-on #vn-root > .vnw > .vnw-split-n:hover::before, html.fs-on #vn-root > .vnw > .vnw-split-n.drag::before,
+  html.fs-on #vn-root > .vnw > .vnw-split-n:focus-visible::before { height: 3px; background: var(--teal); }
+  html.fs-on #vn-root > .vnw > .vnw-split-n:focus-visible::after { box-shadow: 0 0 0 2px var(--teal); }
+  html.fs-on #vn-root > .vnw.vnw-notes-off .vnw-notes { display: none; }
 }

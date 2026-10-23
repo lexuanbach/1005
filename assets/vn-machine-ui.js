@@ -161,6 +161,120 @@
     [toolbar, banner, editRow, runBar, phases, status, diagram, outRow, tabsBox, fine, toasts].forEach(function (n) { root.appendChild(n); });
     host.appendChild(root);
 
+    /* ───────────── full-screen column splitters ─────────────
+       Two drag handles sit in the gaps of the 3-column full-screen grid (fs-vnm.css; hidden otherwise). Making the editor or the tabs
+       narrower gives the data-path diagram in the middle more room, e.g. on a classroom projector. The widths are the CSS variables
+       --vnfs-c1 / --vnfs-c3 on the root, remembered per browser (key co1005-vnfs-cols); arrows move a focused handle, double-click resets.
+       A third, horizontal handle under the diagram (tall screens only) shrinks or hides the program notes (--vnfs-notes), so the diagram,
+       which keeps its proportions, can also grow in height. */
+    (function splitters() {
+      var KEY = 'co1005-vnfs-cols', cols = { l: null, r: null, n: null };
+      try {
+        var sv = JSON.parse(localStorage.getItem(KEY) || 'null');            // untrusted: accept only sane pixel numbers
+        if (sv && typeof sv === 'object') ['l', 'r', 'n'].forEach(function (k) { if (typeof sv[k] === 'number' && isFinite(sv[k]) && sv[k] >= (k === 'n' ? 0 : 80) && sv[k] <= 4000) cols[k] = Math.round(sv[k]); });
+      } catch (e) {}
+      function mkSplit(side) {
+        return h('div', { cls: 'vnw-split vnw-split-' + side, attrs: { role: 'separator', 'aria-orientation': 'vertical', tabindex: '0',
+          'aria-label': side === 'l' ? 'Resize the assembly panel' : 'Resize the memory panel',
+          title: 'Drag to make this panel wider or narrower, so the diagram in the middle grows. Double-click: default widths.' } });
+      }
+      var sp = { l: mkSplit('l'), r: mkSplit('r') };
+      sp.n = h('div', { cls: 'vnw-split vnw-split-n', attrs: { role: 'separator', 'aria-orientation': 'horizontal', tabindex: '0',
+        'aria-label': 'Resize the program notes under the diagram',
+        title: 'Drag down to shrink or hide the notes, so the diagram grows taller. Double-click: default height.' } });
+      root.appendChild(sp.l); root.appendChild(sp.r); root.appendChild(sp.n);
+      function shown() { return getComputedStyle(sp.l).display !== 'none'; }
+      function rem() { return parseFloat(getComputedStyle(document.documentElement).fontSize) || 16; }
+      function grid() {                                                     // the resolved column widths in px, e.g. "300px 700px 500px"
+        var g = getComputedStyle(root).gridTemplateColumns.split(' ').map(parseFloat);
+        return g.length === 3 && g.every(isFinite) ? g : null;
+      }
+      function varName(side) { return side === 'l' ? '--vnfs-c1' : '--vnfs-c3'; }
+      function setCol(side, px) {
+        var g = grid(); if (!g) return;
+        var r = rem(), cs = getComputedStyle(root);
+        var inner = root.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        var min = (side === 'l' ? 11 : 14) * r, max = inner - 1.6 * r - 22 * r - (side === 'l' ? g[2] : g[0]);   // the middle keeps >= 22rem
+        px = Math.round(Math.max(min, Math.min(px, Math.max(min, max))));
+        cols[side] = px;
+        root.style.setProperty(varName(side), px + 'px');
+        sp[side].setAttribute('aria-valuenow', String(px));
+      }
+      function save() { try { localStorage.setItem(KEY, JSON.stringify(cols)); } catch (e) {} }
+      function settle() { save(); try { window.dispatchEvent(new Event('resize')); } catch (e) {} }   // the full-screen fit re-measures
+      function reset() {
+        ['l', 'r'].forEach(function (s) { cols[s] = null; root.style.removeProperty(varName(s)); sp[s].removeAttribute('aria-valuenow'); });
+        settle();
+      }
+      // notes height: 0 .. 24rem; under 1.5rem the notes are hidden altogether
+      function setNotes(px) {
+        px = Math.round(Math.max(0, Math.min(px, 24 * rem())));
+        if (px < 1.5 * rem()) px = 0;
+        cols.n = px;
+        root.style.setProperty('--vnfs-notes', px + 'px');
+        root.classList.toggle('vnw-notes-off', px === 0);
+        sp.n.setAttribute('aria-valuenow', String(px));
+      }
+      function resetNotes() { cols.n = null; root.style.removeProperty('--vnfs-notes'); root.classList.remove('vnw-notes-off'); sp.n.removeAttribute('aria-valuenow'); settle(); }
+      if (cols.n !== null) setNotes(cols.n);
+      sp.n.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0 || getComputedStyle(sp.n).display === 'none') return;
+        e.preventDefault();
+        var scale = root.getBoundingClientRect().width / (root.offsetWidth || 1) || 1;
+        var y0 = e.clientY, h0 = root.classList.contains('vnw-notes-off') ? 0 : notes.getBoundingClientRect().height / scale;
+        try { sp.n.setPointerCapture(e.pointerId); } catch (err) {}
+        sp.n.classList.add('drag'); root.classList.add('vnw-resizing-v');
+        function move(ev) { setNotes(h0 - (ev.clientY - y0) / scale); }
+        function up() {
+          sp.n.removeEventListener('pointermove', move); sp.n.removeEventListener('pointerup', up); sp.n.removeEventListener('pointercancel', up);
+          sp.n.classList.remove('drag'); root.classList.remove('vnw-resizing-v');
+          settle();
+        }
+        sp.n.addEventListener('pointermove', move); sp.n.addEventListener('pointerup', up); sp.n.addEventListener('pointercancel', up);
+      });
+      sp.n.addEventListener('dblclick', resetNotes);
+      sp.n.addEventListener('keydown', function (e) {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        var cur = root.classList.contains('vnw-notes-off') ? 0 : notes.getBoundingClientRect().height / (root.getBoundingClientRect().width / (root.offsetWidth || 1) || 1);
+        setNotes(cur + (e.shiftKey ? 64 : 16) * (e.key === 'ArrowUp' ? 1 : -1));
+        settle();
+      });
+      ['l', 'r'].forEach(function (side) {
+        if (cols[side] !== null) root.style.setProperty(varName(side), cols[side] + 'px');
+        var el = sp[side];
+        el.addEventListener('pointerdown', function (e) {
+          if (e.button !== 0 || !shown()) return;
+          var g = grid(); if (!g) return;
+          e.preventDefault();
+          var scale = root.getBoundingClientRect().width / (root.offsetWidth || 1) || 1;   // the full-screen fit may scale the app
+          var x0 = e.clientX, w0 = side === 'l' ? g[0] : g[2];
+          try { el.setPointerCapture(e.pointerId); } catch (err) {}
+          el.classList.add('drag'); root.classList.add('vnw-resizing');
+          function move(ev) { var dx = (ev.clientX - x0) / scale; setCol(side, side === 'l' ? w0 + dx : w0 - dx); }
+          function up() {
+            el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+            el.classList.remove('drag'); root.classList.remove('vnw-resizing');
+            settle();
+          }
+          el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+        });
+        el.addEventListener('dblclick', reset);
+        el.addEventListener('keydown', function (e) {
+          var g = grid(); if (!g || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+          e.preventDefault();
+          var step = (e.shiftKey ? 64 : 16) * (e.key === 'ArrowRight' ? 1 : -1);
+          setCol(side, side === 'l' ? g[0] + step : g[2] - step);
+          settle();
+        });
+      });
+      // a smaller window (or leaving and re-entering full screen) must not squeeze the middle below its minimum
+      window.addEventListener('resize', function () {
+        if (!shown()) return;
+        ['l', 'r'].forEach(function (s) { if (cols[s] !== null) setCol(s, cols[s]); });
+      });
+    })();
+
     /* ───────────── editor ───────────── */
     var editor = Editor.create(editHost, {
       value: '', label: 'Assembly source code', minRows: 18, maxRows: 28,
