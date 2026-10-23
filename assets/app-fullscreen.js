@@ -96,6 +96,184 @@
     clearTimeout(resizeTimer);
   }
 
+  /* ---- column splitters ----
+     data-split on the script tag lists the app's main multi-column grids (e.g. data-split="#cp-app .cp-grid"). While full screen, every
+     visible one gets a drag handle in each column gap, so a teacher can widen the pane that matters (a diagram on a projector) at the
+     expense of its neighbours. The handles live in one overlay on <body> (position: fixed, placed from the grids' screen rectangles), so
+     nothing is inserted into the apps and no app selector can match them. A drag turns the grid's columns into minmax(0, <px>fr) tracks
+     with the dragged widths as weights: exact now, and still right after a resize or a re-fit at another scale. Those inline columns exist
+     only while full screen (the normal page lays the same element out differently); they are remembered per grid and column count
+     (localStorage co1005-fs-cols:…). Arrow keys move a focused handle; double-click puts the app's own columns back. */
+  var splitSel = ((script && script.getAttribute('data-split')) || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  var SP = null;   // { layer, handles: [], timer, onAny, ro }
+  var SPLIT_KEY = 'co1005-fs-cols:';
+  function px(v) { var n = parseFloat(v); return isFinite(n) ? n : 0; }
+  function remPx() { return px(getComputedStyle(html).fontSize) || 16; }
+  function tracks(el) {
+    var cs = getComputedStyle(el);
+    if (cs.display !== 'grid' && cs.display !== 'inline-grid') return null;
+    var t = cs.gridTemplateColumns.replace(/\[[^\]]*\]/g, ' ').trim().split(/\s+/).map(parseFloat);
+    return t.length >= 2 && t.every(isFinite) ? t : null;
+  }
+  function loadCols(sel, n) {
+    try {
+      var v = JSON.parse(localStorage.getItem(SPLIT_KEY + sel + ':' + n) || 'null');     // untrusted: n positive finite numbers
+      if (Array.isArray(v) && v.length === n && v.every(function (x) { return typeof x === 'number' && isFinite(x) && x >= 0 && x < 1e5; }) && v.some(function (x) { return x > 0; })) return v;
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+  function saveCols(sel, n, w) { try { if (w) localStorage.setItem(SPLIT_KEY + sel + ':' + n, JSON.stringify(w)); else localStorage.removeItem(SPLIT_KEY + sel + ':' + n); } catch (e) { /* ignore */ } }
+  function setCols(el, w) { el.style.gridTemplateColumns = w.map(function (x) { return 'minmax(0, ' + (Math.round(x * 10) / 10) + 'fr)'; }).join(' '); el.__fsCols = true; }
+  function clearCols(el) { if (el.__fsCols) { el.style.removeProperty('grid-template-columns'); el.__fsCols = false; } }
+  // the app's own column count at this size (the inline columns taken away for a moment), and the remembered widths applied for it
+  function syncCols(el, sel) {
+    var had = el.__fsCols; clearCols(el);
+    var t = tracks(el);
+    el.__fsN = t ? t.length : 0;
+    var w = t && loadCols(sel, t.length);
+    if (w) setCols(el, w);
+    return had !== !!w;
+  }
+  function gridItems(el) {           // the boxes that occupy cells (looking through display: contents wrappers)
+    var out = [];
+    (function walk(p) {
+      Array.prototype.forEach.call(p.children, function (c) {
+        var cs = getComputedStyle(c);
+        if (cs.display === 'contents') { walk(c); return; }
+        if (cs.display === 'none' || cs.position === 'absolute' || cs.position === 'fixed') return;
+        var r = c.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) out.push(r);
+      });
+    })(el);
+    return out;
+  }
+  function splitGrids() {
+    var out = [];
+    if (!state) return out;
+    splitSel.forEach(function (sel) {
+      var list; try { list = document.querySelectorAll(sel); } catch (e) { return; }
+      Array.prototype.forEach.call(list, function (el) { if (state.root === el || state.root.contains(el)) out.push({ el: el, sel: sel }); });
+    });
+    return out;
+  }
+  function placeSplits() {
+    if (!SP) return;
+    var used = 0;
+    splitGrids().forEach(function (g) {
+      var el = g.el;
+      if (el.__fsN === undefined) syncCols(el, g.sel);
+      var t = tracks(el); if (!t) return;
+      if (t.length !== el.__fsN && !el.__fsCols) syncCols(el, g.sel);
+      var r = el.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
+      var cs = getComputedStyle(el), k = r.width / (el.offsetWidth || 1) || 1;
+      var gap = cs.columnGap === 'normal' ? 0 : px(cs.columnGap);
+      var x = px(cs.borderLeftWidth) + px(cs.paddingLeft), items = gridItems(el);
+      for (var i = 0; i < t.length - 1; i++) {
+        x += t[i];
+        var cx = r.left + (x + gap / 2) * k;
+        x += gap;
+        if (t[i] < 1 || t[i + 1] < 1) continue;                       // an empty (0-width) column has nothing to resize
+        // the handle runs as high as the two columns it separates: items inside them set its extent,
+        // items that span across the gap (a header row, a full-width strip) cut it short
+        var aL = cx - (gap / 2 + t[i]) * k, bR = cx + (gap / 2 + t[i + 1]) * k;
+        var top = Infinity, bot = -Infinity, across = [];
+        items.forEach(function (ir) {
+          if (ir.left < cx - 1 && ir.right > cx + 1) { across.push(ir); return; }
+          if (ir.right > aL + 1 && ir.left < bR - 1) { top = Math.min(top, ir.top); bot = Math.max(bot, ir.bottom); }
+        });
+        if (!(bot > top)) { top = r.top; bot = r.bottom; }
+        across.forEach(function (ir) {
+          if (ir.bottom <= top || ir.top >= bot) return;
+          if ((ir.top + ir.bottom) / 2 < (top + bot) / 2) top = Math.max(top, ir.bottom); else bot = Math.min(bot, ir.top);
+        });
+        top = Math.max(top, r.top, TOP); bot = Math.min(bot, r.bottom, window.innerHeight);
+        if (bot - top < 24) continue;
+        var hdl = SP.handles[used] || makeHandle();
+        hdl.__grid = g; hdl.__i = i; hdl.__n = t.length;
+        hdl.setAttribute('aria-label', 'Resize columns ' + (i + 1) + ' and ' + (i + 2) + ' of this app');
+        var hw = Math.max(12, gap * k);
+        hdl.style.left = Math.round(cx - hw / 2) + 'px'; hdl.style.width = Math.round(hw) + 'px';
+        hdl.style.top = Math.round(top) + 'px'; hdl.style.height = Math.round(bot - top) + 'px';
+        hdl.hidden = false;
+        used++;
+      }
+    });
+    for (var j = used; j < SP.handles.length; j++) SP.handles[j].hidden = true;
+  }
+  var placeRaf = 0;
+  function placeSoon() { if (SP && !placeRaf) placeRaf = (window.requestAnimationFrame || setTimeout)(function () { placeRaf = 0; placeSplits(); }); }
+  function dragTo(hdl, w, i, d) {
+    var r = remPx(), pair = w[i] + w[i + 1];
+    var minA = Math.min(8 * r, w[i]), minB = Math.min(8 * r, w[i + 1]);
+    var a = Math.max(minA, Math.min(w[i] + d, pair - minB));
+    var nw = w.slice(); nw[i] = a; nw[i + 1] = pair - a;
+    setCols(hdl.__grid.el, nw);
+    return nw;
+  }
+  function settleSplit(hdl, nw) { saveCols(hdl.__grid.sel, hdl.__n, nw); fit(); placeSoon(); }
+  function makeHandle() {
+    var hdl = document.createElement('div');
+    hdl.className = 'fs-split'; hdl.hidden = true;
+    hdl.setAttribute('role', 'separator'); hdl.setAttribute('aria-orientation', 'vertical'); hdl.tabIndex = 0;
+    hdl.title = 'Drag to make these columns wider or narrower (double-click: the app’s own widths)';
+    hdl.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 || !hdl.__grid) return;
+      var el = hdl.__grid.el, t = tracks(el); if (!t) return;
+      e.preventDefault();
+      var k = el.getBoundingClientRect().width / (el.offsetWidth || 1) || 1, x0 = e.clientX, i = hdl.__i, nw = t;
+      try { hdl.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      hdl.classList.add('drag'); html.classList.add('fs-splitting');
+      function move(ev) { nw = dragTo(hdl, t, i, (ev.clientX - x0) / k); placeSplits(); }
+      function up() {
+        hdl.removeEventListener('pointermove', move); hdl.removeEventListener('pointerup', up); hdl.removeEventListener('pointercancel', up);
+        hdl.classList.remove('drag'); html.classList.remove('fs-splitting');
+        settleSplit(hdl, nw);
+      }
+      hdl.addEventListener('pointermove', move); hdl.addEventListener('pointerup', up); hdl.addEventListener('pointercancel', up);
+    });
+    hdl.addEventListener('keydown', function (e) {
+      if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || !hdl.__grid) return;
+      var t = tracks(hdl.__grid.el); if (!t) return;
+      e.preventDefault(); e.stopPropagation();
+      var k = hdl.__grid.el.getBoundingClientRect().width / (hdl.__grid.el.offsetWidth || 1) || 1;
+      settleSplit(hdl, dragTo(hdl, t, hdl.__i, (e.shiftKey ? 64 : 16) / k * (e.key === 'ArrowRight' ? 1 : -1)));
+    });
+    hdl.addEventListener('dblclick', function () {
+      if (!hdl.__grid) return;
+      clearCols(hdl.__grid.el); saveCols(hdl.__grid.sel, hdl.__n, null); fit(); placeSoon();
+    });
+    SP.layer.appendChild(hdl); SP.handles.push(hdl);
+    return hdl;
+  }
+  function startSplits() {
+    if (!splitSel.length || SP) return;
+    SP = { layer: document.createElement('div'), handles: [] };
+    SP.layer.className = 'fs-split-layer';
+    document.body.appendChild(SP.layer);
+    splitGrids().forEach(function (g) { syncCols(g.el, g.sel); });
+    fit();
+    // the layout changes without any resize when an app switches tabs, levels or modes: re-place on any interaction, and twice a second
+    SP.onAny = function () { placeSoon(); };
+    SP.onResize = function () { splitGrids().forEach(function (g) { syncCols(g.el, g.sel); }); placeSoon(); };
+    window.addEventListener('resize', SP.onResize);
+    window.addEventListener('scroll', SP.onAny, true);
+    ['pointerup', 'keyup', 'change'].forEach(function (ev) { document.addEventListener(ev, SP.onAny, true); });
+    SP.timer = setInterval(placeSplits, 500);
+    placeSoon();
+  }
+  function stopSplits() {
+    if (!SP) return;
+    clearInterval(SP.timer);
+    window.removeEventListener('resize', SP.onResize);
+    window.removeEventListener('scroll', SP.onAny, true);
+    ['pointerup', 'keyup', 'change'].forEach(function (ev) { document.removeEventListener(ev, SP.onAny, true); });
+    if (SP.layer.parentNode) SP.layer.parentNode.removeChild(SP.layer);
+    SP = null;
+    splitSel.forEach(function (sel) {
+      try { Array.prototype.forEach.call(document.querySelectorAll(sel), function (el) { clearCols(el); el.__fsN = undefined; }); } catch (e) { /* ignore */ }
+    });
+  }
+
   function enter(root, bar, btn) {
     if (state) exit();
     state = { root: root, bar: bar, btn: btn, viaApi: false };
@@ -114,10 +292,12 @@
     }
     announce('Full screen on. Press Escape to leave.');
     fit();
+    startSplits();
     nudge();
   }
   function cleanup() {
     if (!state) return;
+    stopSplits();
     var s = state; state = null;
     detachFit(s);
     s.root.classList.remove('fs-active');

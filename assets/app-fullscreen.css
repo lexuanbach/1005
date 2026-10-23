@@ -32,3 +32,23 @@ html:fullscreen, html:-webkit-full-screen { background: var(--paper); }
 
 @media (max-width: 560px) { .fs-bar { padding: 0 1rem; } }
 @media print { .fs-bar { display: none; } }
+
+/* column splitters (app-fullscreen.js, data-split): one fixed overlay above the app, below the exit strip */
+.fs-split-layer { position: fixed; inset: 0; z-index: 65; pointer-events: none; }
+.fs-split { position: fixed; pointer-events: auto; cursor: col-resize; touch-action: none; outline: none; }
+.fs-split[hidden] { display: none; }
+.fs-split::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%);
+  border-radius: 2px; background: transparent; transition: background 0.15s, width 0.15s;
+}
+.fs-split::after {     /* the grip */
+  content: ""; position: absolute; top: 50%; left: 50%; width: 0.55rem; height: 2.6rem; transform: translate(-50%, -50%);
+  border-radius: 999px; border: 1px solid color-mix(in srgb, var(--ink-soft) 55%, var(--line)); background-color: var(--surface);
+  background-image: radial-gradient(circle, var(--ink-soft) 1px, transparent 1.3px); background-size: 100% 0.5rem; background-position: center;
+  opacity: 0.85;
+}
+.fs-split:hover::before, .fs-split.drag::before, .fs-split:focus-visible::before { width: 3px; background: var(--teal, var(--accent)); }
+.fs-split:hover::after, .fs-split.drag::after { opacity: 1; }
+.fs-split:focus-visible::after { box-shadow: 0 0 0 2px var(--teal, var(--accent)); }
+html.fs-splitting, html.fs-splitting * { cursor: col-resize !important; user-select: none !important; }
+@media print { .fs-split-layer { display: none; } }
