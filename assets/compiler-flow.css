@@ -54,6 +54,13 @@
 .cf-block.cf-skip { opacity: 0.4; }
 .cf-block.cf-skip .cf-frame { stroke-dasharray: 5 4; }
 
+/* scrollbar inside a block whose content is longer than the box (wheel or drag); wears the block colour */
+.cf-sbar { cursor: pointer; touch-action: none; }
+.cf-strack { fill: color-mix(in srgb, var(--c, var(--ink-soft)) 10%, transparent); }
+.cf-sthumb { fill: var(--c, var(--ink-soft)); opacity: 0.5; transition: opacity 0.15s; }
+.cf-block:hover .cf-sthumb { opacity: 0.75; }
+.cf-sbar:hover .cf-sthumb, .cf-sbar.drag .cf-sthumb { opacity: 1; }
+
 /* arrows: colour of the source block */
 .cf-edge { fill: none; stroke: var(--c, var(--ink-soft)); stroke-width: 1.8; opacity: 0.55; }
 .cf-edge.on { stroke-width: 3.2; opacity: 1; stroke-dasharray: 8 5; animation: cf-dash 0.6s linear infinite; }

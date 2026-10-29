@@ -106,6 +106,59 @@
       contentEls[id] = mk('g', { class: 'cf-content' }, g);
       blockEls[id] = g;
     });
+    /* scrollable block bodies: the whole list is drawn in a clipped viewport under the title; the wheel or the thin bar scrolls it.
+       It follows the newest item (the active line for the source) until the reader scrolls away, and again once they scroll back to the end. */
+    var SCROLL = ['source', 'lexer', 'parser', 'codegen', 'assembler', 'memory', 'io'], VT = 36, VH = BH - VT - 3, S = {};
+    function svgCTM() { var m = svg.getScreenCTM(); return m && m.a ? m : null; }
+    function applyScroll(id) {
+      var s = S[id]; s.top = Math.max(0, Math.min(s.max, s.top));
+      if (s.top) s.inner.setAttribute('transform', 'translate(0 ' + (-s.top).toFixed(1) + ')'); else s.inner.removeAttribute('transform');
+      if (!s.max) { s.bar.setAttribute('visibility', 'hidden'); return; }
+      var th = Math.max(14, s.vh * s.vh / (s.vh + s.max));
+      s.track.setAttribute('y', s.vy); s.track.setAttribute('height', s.vh);
+      s.thumb.setAttribute('y', (s.vy + (s.vh - th) * s.top / s.max).toFixed(1)); s.thumb.setAttribute('height', th.toFixed(1));
+      s.bar.setAttribute('visibility', 'visible');
+    }
+    /* bottom: where the content ends (unscrolled y). focus: undefined = stick to the end, null = stay put, [a, b] = keep that band visible. */
+    function sizeTo(id, bottom, focus, vh) {
+      var s = S[id]; s.vh = vh || VH; s.clipRect.setAttribute('height', s.vh);
+      s.max = Math.max(0, Math.ceil(bottom + 3 - (s.vy + s.vh)));
+      if (s.follow && focus !== null) {
+        if (focus === undefined) s.top = s.max;
+        else { if (focus[1] - s.top > s.vy + s.vh) s.top = focus[1] - s.vy - s.vh + 2; if (focus[0] - s.top < s.vy) s.top = focus[0] - s.vy - 2; }
+      }
+      applyScroll(id);
+    }
+    function userScrolled(id) { var s = S[id]; s.follow = s.top >= s.max - 1; applyScroll(id); if (id === 'source' || id === 'codegen') hideLink(); }
+    function resetScroll() { SCROLL.forEach(function (id) { S[id].top = 0; S[id].follow = true; }); }
+    SCROLL.forEach(function (id) {
+      var x = bx(id), y = by(id), g = blockEls[id], cid = 'cf-clip-' + id + '-' + uid;
+      var cr = mk('rect', { x: x + 2, y: y + VT, width: BW - 4, height: VH }, mk('clipPath', { id: cid }, defs));
+      var inner = mk('g', {}, mk('g', { 'clip-path': 'url(#' + cid + ')' }, g));
+      var bar = mk('g', { class: 'cf-sbar', visibility: 'hidden' }, g);
+      var track = mk('rect', { x: x + BW - 10, y: y + VT, width: 9, height: VH, class: 'cf-strack' }, bar);
+      var thumb = mk('rect', { x: x + BW - 7, y: y + VT, width: 4, height: 14, rx: 2, class: 'cf-sthumb' }, bar);
+      var s = S[id] = { top: 0, max: 0, follow: true, vy: y + VT, vh: VH, clipRect: cr, inner: inner, bar: bar, track: track, thumb: thumb };
+      g.addEventListener('wheel', function (ev) {
+        var m = svgCTM(); if (!s.max || !m) return;
+        var d = ev.deltaY * (ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? s.vh * m.a : 1) / m.a;
+        var t = Math.max(0, Math.min(s.max, s.top + d));
+        if (t === s.top) return;                     // already at that end: let the page scroll
+        ev.preventDefault(); s.top = t; userScrolled(id);
+      }, { passive: false });
+      bar.addEventListener('pointerdown', function (ev) {
+        var m = svgCTM(); if (!s.max || !m) return;
+        ev.preventDefault(); ev.stopPropagation();
+        var th = +thumb.getAttribute('height');
+        if (ev.target === track) { s.top = ((ev.clientY - m.f) / m.d - s.vy - th / 2) / (s.vh - th) * s.max; userScrolled(id); }
+        var y0 = ev.clientY, t0 = s.top;
+        try { bar.setPointerCapture(ev.pointerId); } catch (e) { /* old browsers */ }
+        bar.classList.add('drag');
+        function mv(e2) { s.top = t0 + (e2.clientY - y0) / m.d * s.max / (s.vh - th); userScrolled(id); }
+        function up() { bar.classList.remove('drag'); bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', up); bar.removeEventListener('pointercancel', up); }
+        bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up);
+      });
+    });
     var gGhost = null, ghostBlocks = [], ghostEdges = [];
     if (ghostOn) {
       gGhost = mk('g', { class: 'cf-ghost', 'aria-hidden': 'true' }, svg);
@@ -182,19 +235,18 @@
     function busy(id) { clearStates(); setState(id, 'cf-busy'); }
 
     /* chips in rows */
-    function chipRows(parent, x0, y0, maxW, rowPitch, maxRows, items, cw) {
+    function chipRows(parent, x0, y0, maxW, rowPitch, items, cw) {
       var rows = [[]], w = 0;
       items.forEach(function (it) {
         var cwid = cw(it);
         if (w + cwid > maxW && rows[rows.length - 1].length) { rows.push([]); w = 0; }
         rows[rows.length - 1].push({ it: it, w: cwid }); w += cwid + 3;
       });
-      var vis = rows.slice(-maxRows), hidden = rows.length - vis.length;
-      vis.forEach(function (row, ri) {
+      rows.forEach(function (row, ri) {
         var x = x0;
         row.forEach(function (c) { c.it.draw(parent, x, y0 + ri * rowPitch, c.w); x += c.w + 3; });
       });
-      return hidden;
+      return items.length ? rows.length : 0;
     }
     function chip(parent, x, y, w, str, cls) {
       var g = mk('g', { class: 'cf-chip ' + (cls || '') }, parent);
@@ -206,70 +258,68 @@
 
     function render() { renderSource(); renderLexer(); renderParser(); renderCodegen(); renderAssembler(); renderLoader(); renderMemory(); renderCpu(); renderIo(); renderGhost(); }
 
-    function srcWindow() {
-      var total = M.srcLines.length, start = 1;
-      if (M.srcActive > 3) start = Math.min(M.srcActive - 3, Math.max(1, total - 5));
-      return start;
-    }
-    function srcY(line) { var s = srcWindow(); return by('source') + 40 + (line - s) * 14; }
+    function srcY(line) { return by('source') + 40 + (line - 1) * 14 - S.source.top; }
     function renderSource() {
-      var g = contentEls.source; clear(g); var x = bx('source'), y = by('source'), s = srcWindow();
-      if (!M.srcLines.length) { tx(g, x + 12, y + 56, 'waiting for your program…', 'cf-faint'); return; }
-      for (var i = 0; i < 6 && s + i <= M.srcLines.length; i++) {
-        var ln = s + i, yy = y + 40 + i * 14, on = ln === M.srcActive;
-        if (on) mk('rect', { x: x + 4, y: yy, width: BW - 8, height: 14, rx: 3, class: M.srcErr ? 'cf-line-err' : 'cf-line-on' }, g);
-        tx(g, x + 10, yy + 10.5, ln, 'cf-ln');
-        tx(g, x + 28, yy + 10.5, clip(M.srcLines[ln - 1].replace(/\t/g, '  '), 30), 'cf-code');
+      var g = contentEls.source, sc = S.source.inner; clear(g); clear(sc); var x = bx('source'), y = by('source');
+      if (!M.srcLines.length) { tx(g, x + 12, y + 56, 'waiting for your program…', 'cf-faint'); sizeTo('source', 0); return; }
+      for (var ln = 1; ln <= M.srcLines.length; ln++) {
+        var yy = y + 40 + (ln - 1) * 14;
+        if (ln === M.srcActive) mk('rect', { x: x + 4, y: yy, width: BW - 14, height: 14, rx: 3, class: M.srcErr ? 'cf-line-err' : 'cf-line-on' }, sc);
+        tx(sc, x + 10, yy + 10.5, ln, 'cf-ln');
+        tx(sc, x + 28, yy + 10.5, clip(M.srcLines[ln - 1].replace(/\t/g, '  '), 28), 'cf-code');
       }
+      var fa = M.srcActive ? y + 40 + (M.srcActive - 1) * 14 : 0;
+      sizeTo('source', y + 40 + M.srcLines.length * 14, fa ? [fa, fa + 14] : null);
       countEls.source.textContent = M.srcLines.length + ' lines';
     }
     function tokItem(t) {
       return { v: t.v, draw: function (p, x, y, w) { chip(p, x, y, w, clip(t.v, 12), 'cf-t-' + t.type + (t.bad ? ' bad' : '')); } };
     }
     function renderLexer() {
-      var g = contentEls.lexer; clear(g); var x = bx('lexer') + 6, y = by('lexer') + 40;
-      chipRows(g, x, y, BW - 12, 17, 5, M.tokens.map(tokItem), function (it) { return chipW(clip(it.v, 12)); });
+      var g = contentEls.lexer, sc = S.lexer.inner; clear(g); clear(sc); var x = bx('lexer') + 6, y = by('lexer') + 40;
+      var rows = chipRows(sc, x, y, BW - 20, 17, M.tokens.map(tokItem), function (it) { return chipW(clip(it.v, 12)); });
       if (M.errText.lexer) tx(g, x, by('lexer') + 124, '✗ ' + clip(M.errText.lexer, 30), 'cf-err-t');
+      sizeTo('lexer', y + rows * 17, undefined, M.errText.lexer ? VH - 15 : VH);
       countEls.lexer.textContent = M.tokens.length ? M.tokens.length + ' tokens' : '';
     }
     function renderParser() {
-      var g = contentEls.parser; clear(g); var x = bx('parser'), y = by('parser');
-      var vis = M.nodes.slice(-6);
-      vis.forEach(function (n, i) {
-        var yy = y + 50 + i * 14, last = i === vis.length - 1 && M.nodes.length && n.fresh;
-        if (last) mk('rect', { x: x + 4, y: yy - 10, width: BW - 8, height: 14, rx: 3, class: 'cf-line-on' }, g);
-        tx(g, x + 10 + n.depth * 9, yy, (n.depth ? '└ ' : '▸ ') + clip(n.label, 28 - n.depth * 2), 'cf-code');
+      var g = contentEls.parser, sc = S.parser.inner; clear(g); clear(sc); var x = bx('parser'), y = by('parser');
+      M.nodes.forEach(function (n, i) {
+        var yy = y + 50 + i * 14, last = i === M.nodes.length - 1 && n.fresh;
+        if (last) mk('rect', { x: x + 4, y: yy - 10, width: BW - 14, height: 14, rx: 3, class: 'cf-line-on' }, sc);
+        tx(sc, x + 10 + n.depth * 9, yy, (n.depth ? '└ ' : '▸ ') + clip(n.label, 28 - n.depth * 2), 'cf-code');
       });
-      if (!vis.length && M.srcLines.length) tx(g, x + 12, y + 56, '(no tree yet)', 'cf-faint');
+      if (!M.nodes.length && M.srcLines.length) tx(g, x + 12, y + 56, '(no tree yet)', 'cf-faint');
       if (M.errText.parser) tx(g, x + 10, y + 124, '✗ ' + clip(M.errText.parser, 30), 'cf-err-t');
+      sizeTo('parser', y + 40 + M.nodes.length * 14, undefined, M.errText.parser ? VH - 15 : VH);
       countEls.parser.textContent = M.nodes.length ? M.nodes.length + ' nodes' : '';
     }
     function renderCodegen() {
-      var g = contentEls.codegen; clear(g); var x = bx('codegen'), y = by('codegen');
-      var vis = M.asm.slice(-6);
-      vis.forEach(function (a, i) {
+      var g = contentEls.codegen, sc = S.codegen.inner; clear(g); clear(sc); var x = bx('codegen'), y = by('codegen');
+      M.asm.forEach(function (a, i) {
         var yy = y + 50 + i * 14;
-        if (i === vis.length - 1 && a.fresh) mk('rect', { x: x + 4, y: yy - 10, width: BW - 8, height: 14, rx: 3, class: 'cf-line-on' }, g);
+        if (i === M.asm.length - 1 && a.fresh) mk('rect', { x: x + 4, y: yy - 10, width: BW - 14, height: 14, rx: 3, class: 'cf-line-on' }, sc);
         if (a.cline) {
-          var tg = mk('g', { class: 'cf-ltag cf-c-source' }, g);
+          var tg = mk('g', { class: 'cf-ltag cf-c-source' }, sc);
           mk('rect', { x: x + 6, y: yy - 9, width: 22, height: 12, rx: 3 }, tg);
           tx(tg, x + 17, yy, 'L' + a.cline, 'cf-ltag-t', 'middle');
         }
-        tx(g, x + 34, yy, clip(a.text, 26), 'cf-code' + (a.lineKind === 'label' ? ' cf-lbl' : ''));
+        tx(sc, x + 34, yy, clip(a.text, 26), 'cf-code' + (a.lineKind === 'label' ? ' cf-lbl' : ''));
       });
+      sizeTo('codegen', y + 40 + M.asm.length * 14);
       countEls.codegen.textContent = M.asm.length ? M.asm.length + ' lines' : '';
     }
     function renderAssembler() {
-      var g = contentEls.assembler; clear(g); var x = bx('assembler'), y = by('assembler');
-      var vis = M.words.slice(-6);
-      vis.forEach(function (w, i) {
+      var g = contentEls.assembler, sc = S.assembler.inner; clear(g); clear(sc); var x = bx('assembler'), y = by('assembler');
+      M.words.forEach(function (w, i) {
         var yy = y + 50 + i * 14;
-        if (i === vis.length - 1 && w.fresh) mk('rect', { x: x + 4, y: yy - 10, width: BW - 8, height: 14, rx: 3, class: 'cf-line-on' }, g);
-        tx(g, x + 8, yy, ('0' + w.addr).slice(-2), 'cf-ln');
-        tx(g, x + 26, yy, clip(w.text, 13), 'cf-code');
-        tx(g, x + BW - 8, yy, w.bits, 'cf-bits', 'end');
+        if (i === M.words.length - 1 && w.fresh) mk('rect', { x: x + 4, y: yy - 10, width: BW - 14, height: 14, rx: 3, class: 'cf-line-on' }, sc);
+        tx(sc, x + 8, yy, w.addr < 10 ? '0' + w.addr : String(w.addr), 'cf-ln');
+        tx(sc, x + 26, yy, clip(w.text, 13), 'cf-code');
+        tx(sc, x + BW - 13, yy, w.bits, 'cf-bits', 'end');
       });
       if (M.errText.assembler) tx(g, x + 10, y + 124, '✗ ' + clip(M.errText.assembler, 30), 'cf-err-t');
+      sizeTo('assembler', y + 40 + M.words.length * 14, undefined, M.errText.assembler ? VH - 15 : VH);
       countEls.assembler.textContent = M.words.length ? M.words.length + ' words' : '';
     }
     function renderLoader() {
@@ -280,32 +330,39 @@
       tx(g, x + 12, y + 92, 'loaded ' + M.loaded + ' of ' + M.total + ' words', 'cf-code');
       if (M.ghostShown && ghostAsm) tx(g, x + 12, y + 112, 'same as target: ' + M.same + ' of ' + M.loaded, 'cf-code cf-twin-t');
     }
+    /* memory: 8 cells per row; a big memory shows only the cells in use, and scrolls when they need more than 4 rows */
     function grid() {
       var cells = [], n = M.size, i;
       if (n <= 32) { for (i = 0; i < n; i++) cells.push(i); }
       else { cells = Object.keys(M.kinds).map(Number).sort(function (a, b) { return a - b; }); }
-      var cols = cells.length <= 32 ? 8 : Math.ceil(cells.length / 4), rows = Math.max(1, Math.ceil(cells.length / cols));
-      var cw = Math.floor(208 / cols) - 1, ch = Math.min(20, Math.floor(84 / rows) - 2);
-      return { cells: cells, cols: cols, cw: cw, ch: ch, pitchX: cw + 1, pitchY: ch + 2 };
+      var cols = 8, rows = Math.max(1, Math.ceil(cells.length / cols));
+      return { cells: cells, rows: rows, cols: cols, cw: 24, ch: 19, pitchX: 25, pitchY: 21 };
     }
-    function cellPos(addr) {
+    // raw = position inside the scrolled content; otherwise where the cell is on screen right now
+    function cellPos(addr, raw) {
       var G = grid(), i = G.cells.indexOf(addr); if (i < 0) i = 0;
-      return { x: bx('memory') + 6 + (i % G.cols) * G.pitchX, y: by('memory') + 40 + Math.floor(i / G.cols) * G.pitchY, w: G.cw, h: G.ch };
+      return { x: bx('memory') + 6 + (i % G.cols) * G.pitchX, y: by('memory') + 40 + Math.floor(i / G.cols) * G.pitchY - (raw ? 0 : S.memory.top), w: G.cw, h: G.ch };
+    }
+    function memFocus() {
+      var a = M.hitCell >= 0 ? M.hitCell : (M.words.length && !M.loaded ? M.words[M.words.length - 1].addr : -1);
+      if (a < 0) return null;
+      var p = cellPos(a, true); return [p.y, p.y + p.h];
     }
     function renderMemory() {
-      var g = contentEls.memory; clear(g); var G = grid(), asm = tr && tr.res && tr.res.asm;
-      G.cells.forEach(function (a, i) {
-        var p = cellPos(a), w = M.memWord[a], gw = ghostAsm && M.ghostShown ? ghostAsm.mem[a] : undefined, gk = ghostAsm && ghostAsm.cells[a] ? ghostAsm.cells[a].kind : 'free';
+      var g = contentEls.memory, sc = S.memory.inner; clear(g); clear(sc); var G = grid();
+      G.cells.forEach(function (a) {
+        var p = cellPos(a, true), w = M.memWord[a], gw = ghostAsm && M.ghostShown ? ghostAsm.mem[a] : undefined, gk = ghostAsm && ghostAsm.cells[a] ? ghostAsm.cells[a].kind : 'free';
         var cls = 'cf-cell ' + (M.kinds[a] ? 'k-' + M.kinds[a] : '') + (M.cellCls[a] ? ' ' + M.cellCls[a] : '') + (M.hitCell === a ? ' hit' : '');
         var showGhost = w === undefined && gw !== undefined && gk !== 'free';
         if (showGhost) cls += ' ghosted';
-        var cg = mk('g', { class: cls, 'data-addr': a }, g);
+        var cg = mk('g', { class: cls, 'data-addr': a }, sc);
         mk('rect', { x: p.x, y: p.y, width: p.w, height: p.h, rx: 3 }, cg);
         tx(cg, p.x + 2, p.y + 6.5, a, 'cf-cell-a');
         if (M.kinds[a] === 'data') tx(cg, p.x + p.w - 2, p.y + 6.5, 'd', 'cf-cell-d', 'end');
         var val = w !== undefined ? hex(w) : (showGhost ? hex(gw) : '');
         if (val) tx(cg, p.x + p.w - 2, p.y + p.h - 3, val, 'cf-cell-v', 'end');
       });
+      sizeTo('memory', by('memory') + 40 + G.rows * G.pitchY - 2, memFocus());
       countEls.memory.textContent = M.size + ' cells';
     }
     function hex(w) { var VN = global.VNMachine, ab = tr && tr.res && tr.res.asm ? tr.res.asm.addrBits : (ghostAsm ? ghostAsm.addrBits : 5); return (VN && VN.hex(w, ab)) || String(w); }
@@ -324,16 +381,19 @@
       });
       countEls.cpu.textContent = c.n ? c.n + ' instr' : '';
     }
+    /* input queue then output, in one scrolling column that follows the newest output */
     function renderIo() {
-      var g = contentEls.io; clear(g); var x = bx('io') + 8, y = by('io');
-      tx(g, x, y + 48, 'input queue (cin)', 'cf-sub');
+      var sc = S.io.inner; clear(contentEls.io); clear(sc); var x = bx('io') + 8, y = by('io'), cy = y + 48, rows;
+      tx(sc, x, cy, 'input queue (cin)', 'cf-sub');
       var items = M.io.inp.map(function (v) { return { v: v, draw: function (p, xx, yy, w) { chip(p, xx, yy, w, String(v), 'cf-t-num'); } }; });
-      if (!items.length) tx(g, x, y + 66, M.srcLines.length ? '(empty)' : '', 'cf-faint');
-      else chipRows(g, x, y + 54, BW - 16, 17, 2, items, function (it) { return chipW(it.v); });
-      tx(g, x, y + 92, 'output (cout)', 'cf-sub');
+      if (!items.length) { tx(sc, x, cy + 18, M.srcLines.length ? '(empty)' : '', 'cf-faint'); rows = 0; }
+      else rows = chipRows(sc, x, cy + 6, BW - 24, 17, items, function (it) { return chipW(it.v); });
+      cy += 6 + Math.max(2, rows) * 17 + 4;
+      tx(sc, x, cy, 'output (cout)', 'cf-sub');
       var outs = M.io.out.map(function (v) { return { v: v, draw: function (p, xx, yy, w) { chip(p, xx, yy, w, String(v), 'cf-t-out cf-c-out'); } }; });
-      if (!outs.length) tx(g, x, y + 110, '(nothing printed yet)', 'cf-faint');
-      else chipRows(g, x, y + 98, BW - 16, 17, 2, outs, function (it) { return chipW(it.v); });
+      if (!outs.length) { tx(sc, x, cy + 18, '(nothing printed yet)', 'cf-faint'); cy += 22; }
+      else cy += 6 + chipRows(sc, x, cy + 6, BW - 24, 17, outs, function (it) { return chipW(it.v); }) * 17;
+      sizeTo('io', cy, M.io.out.length ? undefined : null);
     }
     function renderGhost() {
       if (!ghostOn) return;
@@ -370,7 +430,8 @@
 
     function showLink(fromBlock, row, line) {
       if (!line || line < 1 || line > M.srcLines.length || instant() || reduced()) { link.setAttribute('visibility', 'hidden'); return; }
-      var ya = by(fromBlock) + 46 + row * 14, ys = srcY(line) + 7, xa = bx(fromBlock) + 2, xs = bx('source') + BW;
+      var sf = S[fromBlock], ss = S.source, edge = function (v, sv) { return Math.max(sv.vy + 2, Math.min(sv.vy + sv.vh - 2, v)); };
+      var ya = edge(by(fromBlock) + 46 + row * 14 - (sf ? sf.top : 0), sf || { vy: -1e9, vh: 2e9 }), ys = edge(srcY(line) + 7, ss), xa = bx(fromBlock) + 2, xs = bx('source') + BW;
       link.setAttribute('d', 'M ' + xa + ' ' + ya + ' C ' + (xa - 120) + ' ' + (ya - 40) + ', ' + (xs + 140) + ' ' + (ys + 90) + ', ' + xs + ' ' + ys);
       link.setAttribute('visibility', 'visible');
     }
@@ -478,7 +539,7 @@
             M.asm.forEach(function (a) { a.fresh = false; });
             M.asm.push({ text: e.text, cline: e.cline, lineKind: e.lineKind, fresh: true });
             active(e.cline || 0, 'codegen'); M.srcErr = false;
-            renderSource(); renderCodegen(); showLink('codegen', Math.min(M.asm.length, 6) - 1, e.cline);
+            renderSource(); renderCodegen(); showLink('codegen', M.asm.length - 1, e.cline);
             if (e.explain) say(e.explain, undefined);
             say(undefined, e.text + (e.cline ? '  ← came from C++ line ' + e.cline : '  (added by the compiler)') + (e.comment ? '  — ' + e.comment : ''));
             await sleep(ua);
@@ -523,6 +584,7 @@
     }
 
     function land(e, g) {
+      var q = cellPos(e.addr, true); sizeTo('memory', by('memory') + 40 + grid().rows * 21 - 2, [q.y, q.y + q.h]);
       var p = cellPos(e.addr), d = 'M ' + (bx('assembler') + BW / 2) + ' ' + (by('assembler') + BH / 2) + ' L ' + (p.x + p.w / 2) + ' ' + (by('assembler') + BH / 2) + ' L ' + (p.x + p.w / 2) + ' ' + (p.y + p.h / 2);
       var dur = Math.max(160, spd() * 0.7);
       return travel(d, e.hex || String(e.word), dur, 'cf-c-assembler').then(function () {
@@ -653,7 +715,7 @@
     }
 
     function resetView() {
-      gen++; flush(); clearTokens(); hideLink();
+      gen++; flush(); clearTokens(); hideLink(); resetScroll();
       if (lastOpts.onLine && tr) { try { lastOpts.onLine(0, ''); } catch (e) { /* ignore */ } }
       ORDER.forEach(function (id) { blockEls[id].classList.remove('cf-fail', 'cf-skip'); });
       EDGES.forEach(function (k) { edgeEls[k].classList.remove('cf-cut'); });
