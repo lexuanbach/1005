@@ -165,7 +165,7 @@
     UI.run = btn('Run', 'btn primary small'); UI.reset = btn('Reset', 'btn ghost small');
     [UI.step, UI.stepI, UI.run, UI.reset].forEach(function (b) { row1.appendChild(b); });
     var row2 = el('div', 'cp-row cp-speedrow');
-    speed = global.VNDatapath.speedControl({ key: 'co1005-cpu-puzzles-speed', initial: 2 });
+    speed = global.VNDatapath.speedControl({ key: 'co1005-cpu-puzzles-speed', initial: 3 });
     row2.appendChild(speed.el);
     UI.testSel = el('select', 'cp-testsel'); UI.testSel.setAttribute('aria-label', 'Which test to watch');
     var tl = el('label', 'cp-lab', 'Watch'); tl.setAttribute('for', 'cp-testsel'); UI.testSel.id = 'cp-testsel';

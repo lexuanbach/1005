@@ -414,7 +414,7 @@
        packetCard(step)  -> the small card (title + header lines) that travels along the map edge for a step
        stackState(step)  -> where the message is in the layered view and which headers it carries
        barLayout(...)    -> the geometry of the packet bars (segments) in that view                        */
-  var SPEEDS = [['Very slow', 2200], ['Slow', 1400], ['Normal', 800], ['Fast', 400], ['Very fast', 150], ['Instant', 0]];
+  var SPEEDS = [['Ultra slow', 5000], ['Very slow', 2200], ['Slow', 1400], ['Normal', 800], ['Fast', 400], ['Very fast', 150], ['Instant', 0]];
   function cut(s, n) { s = String(s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
   function dnsIpOf(node, question) {
     var host = String(question || '').replace(/^A\? /, '').replace(/\.$/, ''), labels = host.split('.');
@@ -623,12 +623,12 @@
     var autoRow = el('div', 'pj-auto'); autoRow.setAttribute('role', 'group'); autoRow.setAttribute('aria-label', 'Animation controls');
     f.play = el('button', 'btn', '\u25b6 Auto-play story'); f.play.type = 'button';
     f.pause = el('button', 'btn', '\u23f8 Pause'); f.pause.type = 'button'; f.pause.disabled = true;
-    var spIdx = 2, SPEED_KEY = 'co1005-pj-speed';
-    try { var sv = localStorage.getItem(SPEED_KEY); if (typeof sv === 'string' && /^[0-9]{1,2}$/.test(sv) && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
+    var spIdx = 3, SPEED_KEY = 'co1005-pj-speed';
+    try { var sv = localStorage.getItem(SPEED_KEY + '-v2'); if (sv === null) { sv = localStorage.getItem(SPEED_KEY); if (typeof sv === 'string' && /^[0-9]{1,2}$/.test(sv)) sv = String(+sv + 1); }  /* old saves predate Ultra slow */ if (typeof sv === 'string' && /^[0-9]{1,2}$/.test(sv) && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
     var spWrap = el('div', 'pj-speed'), spLab = el('label', 'pj-lab', 'Speed'), spRng = el('input'), spNm = el('span', 'pj-speed-name');
     spRng.type = 'range'; spRng.min = 0; spRng.max = SPEEDS.length - 1; spRng.step = 1; spRng.value = spIdx; spRng.id = 'pj-speed'; spLab.setAttribute('for', 'pj-speed');
     function paintSpeed() { spNm.textContent = SPEEDS[spIdx][0] + (SPEEDS[spIdx][1] ? ' \u00b7 ' + (SPEEDS[spIdx][1] / 1000) + ' s' : ' \u00b7 no animation'); spRng.setAttribute('aria-valuetext', SPEEDS[spIdx][0]); }
-    spRng.addEventListener('input', function () { spIdx = +spRng.value; paintSpeed(); try { localStorage.setItem(SPEED_KEY, String(spIdx)); } catch (e) {} });
+    spRng.addEventListener('input', function () { spIdx = +spRng.value; paintSpeed(); try { localStorage.setItem(SPEED_KEY + '-v2', String(spIdx)); } catch (e) {} });
     paintSpeed(); spWrap.appendChild(spLab); spWrap.appendChild(spRng); spWrap.appendChild(spNm);
     autoRow.appendChild(f.play); autoRow.appendChild(f.pause); autoRow.appendChild(spWrap);
     root.appendChild(autoRow);

@@ -1048,16 +1048,16 @@
        The device that is "working" glows, a small pop-over names what it does inside, and the header strip
        shows the packet's live src/dst/ports/TTL (changed fields flash when a router or NAT rewrites them). */
     var gen = 0, run = null;
-    var SPEEDS = [['Very slow', 2200], ['Slow', 1400], ['Normal', 800], ['Fast', 400], ['Very fast', 150], ['Instant', 0]];
-    var SPEED_KEY = 'co1005-nb-speed', spIdx = 2;
-    try { var sv = localStorage.getItem(SPEED_KEY); if (typeof sv === 'string' && /^[0-9]{1,2}$/.test(sv) && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
+    var SPEEDS = [['Ultra slow', 5000], ['Very slow', 2200], ['Slow', 1400], ['Normal', 800], ['Fast', 400], ['Very fast', 150], ['Instant', 0]];
+    var SPEED_KEY = 'co1005-nb-speed', spIdx = 3;
+    try { var sv = localStorage.getItem(SPEED_KEY + '-v2'); if (sv === null) { sv = localStorage.getItem(SPEED_KEY); if (typeof sv === 'string' && /^[0-9]{1,2}$/.test(sv)) sv = String(+sv + 1); }  /* old saves predate Ultra slow */ if (typeof sv === 'string' && /^[0-9]{1,2}$/.test(sv) && +sv < SPEEDS.length) spIdx = +sv; } catch (e) {}
     function curMs() { return SPEEDS[spIdx][1]; }
 
     var spd = el('div', 'nb-speed');
     var spLab = el('label', 'nb-sel', 'Speed'), spRng = el('input'), spNm = el('span', 'nb-speed-name');
     spRng.type = 'range'; spRng.min = 0; spRng.max = SPEEDS.length - 1; spRng.step = 1; spRng.value = spIdx; spRng.id = 'nb-speed'; spLab.setAttribute('for', 'nb-speed');
     function paintSpeed() { spNm.textContent = SPEEDS[spIdx][0] + (SPEEDS[spIdx][1] ? ' · ' + (SPEEDS[spIdx][1] / 1000) + ' s per hop' : ''); spRng.setAttribute('aria-valuetext', SPEEDS[spIdx][0]); }
-    spRng.addEventListener('input', function () { spIdx = +spRng.value; paintSpeed(); try { localStorage.setItem(SPEED_KEY, String(spIdx)); } catch (e) {} });
+    spRng.addEventListener('input', function () { spIdx = +spRng.value; paintSpeed(); try { localStorage.setItem(SPEED_KEY + '-v2', String(spIdx)); } catch (e) {} });
     paintSpeed(); spd.appendChild(spLab); spd.appendChild(spRng); spd.appendChild(spNm);
     var bPause = el('button', 'nb-btn', '⏸ Pause'), bStep = el('button', 'nb-btn', 'Step ▸'), bSkip = el('button', 'nb-btn', 'Skip ⏭');
     [bPause, bStep, bSkip].forEach(function (b) { b.type = 'button'; b.disabled = true; playRow.appendChild(b); });

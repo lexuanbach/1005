@@ -9,7 +9,7 @@
   var NS = 'http://www.w3.org/2000/svg';
 
   var SPEEDS = [
-    { name: 'Very slow', ms: 2200 }, { name: 'Slow', ms: 1400 }, { name: 'Normal', ms: 800 },
+    { name: 'Ultra slow', ms: 5000 }, { name: 'Very slow', ms: 2200 }, { name: 'Slow', ms: 1400 }, { name: 'Normal', ms: 800 },
     { name: 'Fast', ms: 400 }, { name: 'Very fast', ms: 150 }, { name: 'Instant', ms: 0 }
   ];
 
@@ -366,8 +366,8 @@
 
   function speedControl(opts) {
     opts = opts || {};
-    var key = opts.key || 'co1005-sql-speed', idx = opts.initial === undefined ? 3 : opts.initial;
-    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* none */ }
+    var key = opts.key || 'co1005-sql-speed', idx = opts.initial === undefined ? 4 : opts.initial;
+    try { var s = localStorage.getItem(key + '-v2'); if (s === null) { s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s)) s = String(+s + 1); }  /* old saves predate Ultra slow: one level up */ if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* none */ }
     var wrap = document.createElement('div'); wrap.className = 'vn-speed sf-speed';
     var lab = document.createElement('label'); lab.className = 'field-label'; lab.textContent = 'Speed';
     var id = 'sf-speed-' + Math.floor(Math.random() * 1e6); lab.setAttribute('for', id);
@@ -375,7 +375,7 @@
     var nm = document.createElement('span'); nm.className = 'vn-speed-name sf-speed-name';
     wrap.appendChild(lab); wrap.appendChild(rng); wrap.appendChild(nm);
     function paint() { nm.textContent = SPEEDS[idx].name + (SPEEDS[idx].ms ? ' · ' + (SPEEDS[idx].ms / 1000) + ' s per arrow' : ''); rng.setAttribute('aria-valuetext', SPEEDS[idx].name); }
-    rng.addEventListener('input', function () { idx = +rng.value; paint(); try { localStorage.setItem(key, String(idx)); } catch (e) { /* none */ } if (opts.onChange) opts.onChange(idx); });
+    rng.addEventListener('input', function () { idx = +rng.value; paint(); try { localStorage.setItem(key + '-v2', String(idx)); } catch (e) { /* none */ } if (opts.onChange) opts.onChange(idx); });
     paint();
     return { el: wrap, ms: function () { return SPEEDS[idx].ms; }, index: function () { return idx; } };
   }
@@ -478,7 +478,7 @@
     var btnStep = document.createElement('button'); btnStep.type = 'button'; btnStep.className = 'btn ghost sf-btn'; btnStep.textContent = 'Step'; btnStep.disabled = true;
     btnStep.title = 'Pause and advance one arrow at a time';
     var btnSkip = document.createElement('button'); btnSkip.type = 'button'; btnSkip.className = 'btn ghost sf-btn'; btnSkip.textContent = 'Skip to end'; btnSkip.disabled = true;
-    var speed = speedControl({ key: opts.speedKey || 'co1005-sql-speed', initial: 3 });
+    var speed = speedControl({ key: opts.speedKey || 'co1005-sql-speed', initial: 4 });
     ctl.appendChild(btnPause); ctl.appendChild(btnStep); ctl.appendChild(btnSkip); ctl.appendChild(speed.el);
     var narr = document.createElement('p'); narr.className = 'sf-narr'; narr.setAttribute('role', 'status'); narr.setAttribute('aria-live', 'polite');
     var prog = document.createElement('p'); prog.className = 'sf-prog';

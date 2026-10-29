@@ -96,7 +96,7 @@
 
     var srcLab = el('div', 'field-label', 'Your C++ (a small subset — the list below says what is supported)'); srcLab.id = 'tc-src-label';
     // program text size: the site-wide code-size preference (same steps and storage key as assets/course.js); the editor re-measures on 'co1005-view'
-    var SCALES = [0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
+    var SCALES = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
     function scaleIdx() {
       var v = NaN;
       try { v = parseFloat(localStorage.getItem('co1005-code-scale')); } catch (e) { /* storage blocked */ }

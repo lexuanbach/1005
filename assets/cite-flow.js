@@ -15,7 +15,7 @@
   'use strict';
   var NS = 'http://www.w3.org/2000/svg';
   var SPEEDS = [
-    { name: 'Very slow', ms: 2200 }, { name: 'Slow', ms: 1400 }, { name: 'Normal', ms: 800 },
+    { name: 'Ultra slow', ms: 5000 }, { name: 'Very slow', ms: 2200 }, { name: 'Slow', ms: 1400 }, { name: 'Normal', ms: 800 },
     { name: 'Fast', ms: 400 }, { name: 'Very fast', ms: 150 }, { name: 'Instant', ms: 0 }
   ];
   function mk(tag, attrs, parent) {
@@ -188,15 +188,15 @@
   // ───────────── speed slider + control row + narration ─────────────
   function speedControl(opts) {
     opts = opts || {};
-    var key = opts.key || 'co1005-vn-speed', idx = opts.initial === undefined ? 2 : opts.initial;
-    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* storage unavailable */ }
+    var key = opts.key || 'co1005-vn-speed', idx = opts.initial === undefined ? 3 : opts.initial;
+    try { var s = localStorage.getItem(key + '-v2'); if (s === null) { s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s)) s = String(+s + 1); }  /* old saves predate Ultra slow: one level up */ if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* storage unavailable */ }
     var wrapEl = el('div', 'cf-speed'), lab = el('label', 'field-label', 'Speed'), id = 'cf-speed-' + Math.floor(Math.random() * 1e6);
     lab.setAttribute('for', id);
     var rng = el('input'); rng.type = 'range'; rng.id = id; rng.min = 0; rng.max = SPEEDS.length - 1; rng.step = 1; rng.value = idx;
     var nm = el('span', 'cf-speed-name');
     wrapEl.appendChild(lab); wrapEl.appendChild(rng); wrapEl.appendChild(nm);
     function paint() { nm.textContent = SPEEDS[idx].name + (SPEEDS[idx].ms ? ' · ' + (SPEEDS[idx].ms / 1000) + ' s per ' + (opts.unit || 'hop') : ''); rng.setAttribute('aria-valuetext', SPEEDS[idx].name); }
-    rng.addEventListener('input', function () { idx = +rng.value; paint(); try { localStorage.setItem(key, String(idx)); } catch (e) { /* ignore */ } });
+    rng.addEventListener('input', function () { idx = +rng.value; paint(); try { localStorage.setItem(key + '-v2', String(idx)); } catch (e) { /* ignore */ } });
     paint();
     return { el: wrapEl, ms: function () { return SPEEDS[idx].ms; }, gap: function () { var m = SPEEDS[idx].ms; return m ? Math.round(m * 0.35) : 0; }, index: function () { return idx; } };
   }

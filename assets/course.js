@@ -62,7 +62,7 @@
   } catch (e) {}
 
   // Program font size: a scale factor every code surface multiplies its font-size by.
-  var CODE_SCALES = [0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
+  var CODE_SCALES = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
   function applyCodeScale(v) { root.style.setProperty('--code-scale', String(v)); }
   function storedCodeScale() {
     try { var v = parseFloat(localStorage.getItem('co1005-code-scale')); if (CODE_SCALES.indexOf(v) >= 0) return v; } catch (e) {}

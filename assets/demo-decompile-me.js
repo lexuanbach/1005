@@ -270,7 +270,7 @@
     el.flowBox.innerHTML = '<h3>Watch your program travel through the toolchain</h3><p class="fine">Every block has its own colour, and so does whatever it produces (tokens, tree, assembly, machine words, memory cells). Your code follows blocks 1 to 9. The faded row at the bottom is the hidden target program going through the same toolchain, in the same block colours: if your machine words equal its words, the two pipelines converge on the same memory (green ✓ cells; red ✗ cells differ).</p>';
     colM.appendChild(el.flowBox);
     el.flowHost = h('div', 'dm-flow'); el.flowBox.appendChild(el.flowHost);
-    flow = global.CompilerFlow ? global.CompilerFlow.create(el.flowHost, { ghost: true, uid: 'dm', speedKey: 'co1005-cf-speed', initialSpeed: 3 }) : null;
+    flow = global.CompilerFlow ? global.CompilerFlow.create(el.flowHost, { ghost: true, uid: 'dm', speedKey: 'co1005-cf-speed', initialSpeed: 4 }) : null;
     el.stagesBox = h('section', 'dm-stages-box'); colR.appendChild(el.stagesBox);
     el.results = h('section', 'dm-results'); colR.appendChild(el.results);
 

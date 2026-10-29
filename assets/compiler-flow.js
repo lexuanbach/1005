@@ -187,9 +187,78 @@
     var bPlay = btn('Play', 'primary cf-play'), bStep = btn('Step', 'ghost'), bRestart = btn('Restart', 'ghost'), bSkip = btn('Skip to end', 'ghost');
     bPlay.setAttribute('aria-label', 'Play or pause the animation');
     bStep.title = 'Advance one stage of the toolchain (one instruction while the CPU runs)';
-    var speed = VD && VD.speedControl ? VD.speedControl({ key: opts.speedKey || 'co1005-cf-speed', initial: opts.initialSpeed === undefined ? 2 : opts.initialSpeed })
+    var speed = VD && VD.speedControl ? VD.speedControl({ key: opts.speedKey || 'co1005-cf-speed', initial: opts.initialSpeed === undefined ? 3 : opts.initialSpeed })
       : { el: document.createElement('span'), ms: function () { return 800; } };
     ctr.appendChild(speed.el);
+
+    /* ── zoom: one block fills the diagram, for projecting it to a class. Click a block or "⤢ Zoom"; ◀ ▶ move between blocks;
+       "follow" moves the zoom to each stage as the animation reaches it; "✕ Show all", a double-click or Esc goes back.
+       It only changes the SVG viewBox (same aspect ratio), so the page layout never moves and the block keeps animating. */
+    var FULL = [0, 0, 780, H], vb = FULL.slice(), zoomId = null, zoomFollow = false, vbAnim = 0;
+    var STAGE_BLOCK = { lexer: 'lexer', parser: 'parser', codegen: 'codegen', assembler: 'assembler', loader: 'memory', cpu: 'cpu' };
+    var zg = document.createElement('div'); zg.className = 'cf-zoom'; zg.setAttribute('role', 'group'); zg.setAttribute('aria-label', 'Zoom into one block');
+    function zbtn(label, title) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost'; b.textContent = label; b.title = title; zg.appendChild(b); return b; }
+    var bZoom = zbtn('⤢ Zoom', 'Enlarge one block to fill the diagram (you can also click a block)');
+    var bPrev = zbtn('◀', 'Zoom to the previous block'), zName = document.createElement('span'); zName.className = 'cf-zoom-name'; zg.appendChild(zName);
+    var bNext = zbtn('▶', 'Zoom to the next block');
+    var fLab = document.createElement('label'); fLab.className = 'cf-zoom-follow'; fLab.title = 'Move the zoom to each block as the animation reaches it';
+    var fChk = document.createElement('input'); fChk.type = 'checkbox'; fLab.appendChild(fChk); fLab.appendChild(document.createTextNode('follow'));
+    zg.appendChild(fLab);
+    ctr.insertBefore(zg, speed.el);
+    function targetVB(id) {
+      var pad = 8, w = BW + 2 * pad, h = BH + 2 * pad, ar = FULL[2] / FULL[3];
+      if (w / h > ar) h = w / ar; else w = h * ar;
+      return [bx(id) + BW / 2 - w / 2, by(id) + BH / 2 - h / 2, w, h];
+    }
+    function setVB(v) { vb = v; svg.setAttribute('viewBox', v.map(function (n) { return +n.toFixed(2); }).join(' ')); }
+    function tweenVB(to) {
+      var from = vb.slice(), my = ++vbAnim, t0 = null;
+      if (reduced()) { setVB(to); return; }
+      function f(ts) {
+        if (my !== vbAnim) return;
+        if (t0 === null) t0 = ts;
+        var k = Math.min(1, (ts - t0) / 320), e = 1 - Math.pow(1 - k, 3);
+        setVB(from.map(function (a, i) { return a + (to[i] - a) * e; }));
+        if (k < 1) global.requestAnimationFrame(f);
+      }
+      global.requestAnimationFrame(f);
+    }
+    function paintZoom() {
+      bZoom.textContent = zoomId ? '✕ Show all' : '⤢ Zoom'; bZoom.setAttribute('aria-pressed', String(!!zoomId));
+      [bPrev, zName, bNext, fLab].forEach(function (n) { n.hidden = !zoomId; });
+      zName.textContent = zoomId ? BLOCKS[zoomId].n + ' ' + BLOCKS[zoomId].title : '';
+    }
+    function zoomTo(id) {
+      id = id || null;
+      if (id === zoomId) return;
+      if (zoomId) blockEls[zoomId].classList.remove('cf-zoom-on');
+      zoomId = id;
+      root.classList.toggle('cf-zoomed', !!zoomId);
+      if (zoomId) blockEls[zoomId].classList.add('cf-zoom-on');
+      tweenVB(zoomId ? targetVB(zoomId) : FULL);
+      paintZoom();
+    }
+    function activeBlock() {
+      for (var i = 0; i < ORDER.length; i++) { var c = blockEls[ORDER[i]].classList; if (c.contains('cf-busy') || c.contains('cf-dst')) return ORDER[i]; }
+      return 'source';
+    }
+    function zoomStep(d) { zoomTo(ORDER[(ORDER.indexOf(zoomId) + d + ORDER.length) % ORDER.length]); }
+    bZoom.addEventListener('click', function () { zoomTo(zoomId ? null : activeBlock()); });
+    bPrev.addEventListener('click', function () { zoomStep(-1); });
+    bNext.addEventListener('click', function () { zoomStep(1); });
+    fChk.addEventListener('change', function () { zoomFollow = fChk.checked; });
+    ORDER.forEach(function (id) {
+      var g = blockEls[id];
+      g.addEventListener('click', function (ev) { if (ev.target.closest && ev.target.closest('.cf-sbar')) return; if (id !== zoomId) zoomTo(id); });
+      g.addEventListener('dblclick', function (ev) { if (ev.target.closest && ev.target.closest('.cf-sbar')) return; if (id === zoomId) zoomTo(null); });
+    });
+    root.addEventListener('keydown', function (ev) {
+      if (!zoomId) return;
+      var tag = ev.target && ev.target.tagName;
+      if (ev.key === 'Escape') { zoomTo(null); ev.stopPropagation(); ev.preventDefault(); }   // stays out of the full-screen Esc
+      else if ((ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && tag !== 'INPUT' && tag !== 'TEXTAREA') { zoomStep(ev.key === 'ArrowLeft' ? -1 : 1); ev.preventDefault(); }
+    });
+    paintZoom();
     container.appendChild(root);
 
     /* ── model + rendering ── */
@@ -499,6 +568,7 @@
       var st = ch.stage, evs = ch.events, i, e;
       function chk() { if (g !== gen) throw CANCEL; }
       onStageCb(st, ch);
+      if (zoomId && zoomFollow && STAGE_BLOCK[st]) zoomTo(STAGE_BLOCK[st]);
       if (st === 'lexer') {
         say(stageNote('lexer'), ''); flowOn('source', 'lexer');
         await hop('source', 'lexer', M.srcLines.length + ' lines', 'doc'); chk();

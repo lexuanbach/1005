@@ -8,6 +8,7 @@
   var NS = 'http://www.w3.org/2000/svg';
 
   var SPEEDS = [
+    { name: 'Ultra slow', ms: 5000 },
     { name: 'Very slow', ms: 2200 },
     { name: 'Slow', ms: 1400 },
     { name: 'Normal', ms: 800 },
@@ -376,20 +377,20 @@
   function speedControl(opts) {
     opts = opts || {};
     var key = opts.key || 'co1005-vn-speed';
-    var idx = opts.initial === undefined ? 2 : opts.initial;
-    if (!(typeof idx === 'number' && idx % 1 === 0 && idx >= 0 && idx < SPEEDS.length)) idx = 2;      // a bad `initial` must not break the lab
+    var idx = opts.initial === undefined ? 3 : opts.initial;
+    if (!(typeof idx === 'number' && idx % 1 === 0 && idx >= 0 && idx < SPEEDS.length)) idx = 3;      // a bad `initial` must not break the lab
     // the saved value is untrusted (it can be corrupt or edited): accept only a whole index such as "3", never "1.5" or "1e0"
-    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) {}
+    try { var s = localStorage.getItem(key + '-v2'); if (s === null) { s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s)) s = String(+s + 1); }  /* old saves predate Ultra slow: one level up */ if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) {}
     var wrap = document.createElement('div'); wrap.className = 'vn-speed';
     var lab = document.createElement('label'); lab.className = 'field-label'; lab.textContent = 'Speed';
     var id = 'vn-speed-' + Math.floor(Math.random() * 1e6); lab.setAttribute('for', id);
     var rng = document.createElement('input'); rng.type = 'range'; rng.id = id; rng.min = 0; rng.max = SPEEDS.length - 1; rng.step = 1; rng.value = idx;
     var nm = document.createElement('span'); nm.className = 'vn-speed-name';
     wrap.appendChild(lab); wrap.appendChild(rng); wrap.appendChild(nm);
-    function paint() { if (!SPEEDS[idx]) idx = 2; nm.textContent = SPEEDS[idx].name + (SPEEDS[idx].ms ? ' · ' + (SPEEDS[idx].ms / 1000) + ' s per arrow' : ''); rng.setAttribute('aria-valuetext', SPEEDS[idx].name); }
+    function paint() { if (!SPEEDS[idx]) idx = 3; nm.textContent = SPEEDS[idx].name + (SPEEDS[idx].ms ? ' · ' + (SPEEDS[idx].ms / 1000) + ' s per arrow' : ''); rng.setAttribute('aria-valuetext', SPEEDS[idx].name); }
     rng.addEventListener('input', function () {
       idx = +rng.value; paint();
-      try { localStorage.setItem(key, String(idx)); } catch (e) {}
+      try { localStorage.setItem(key + '-v2', String(idx)); } catch (e) {}
       if (opts.onChange) opts.onChange(idx);
     });
     paint();

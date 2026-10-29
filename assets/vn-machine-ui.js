@@ -77,7 +77,7 @@
     var msgList = h('ul', { cls: 'vnw-msgs', attrs: { 'aria-label': 'Assembler messages' } });
     // program text size: the same site-wide preference, scale steps and storage key as every other code window (assets/course.js);
     // changing it fires 'co1005-view', which the editor listens to in order to re-measure
-    var CODE_SCALES = [0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
+    var CODE_SCALES = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
     function currentScale() {
       var v = NaN;
       try { v = parseFloat(localStorage.getItem('co1005-code-scale')); } catch (e) { /* storage blocked */ }
@@ -119,7 +119,7 @@
     var bPause = btn('⏸ Pause', 'ghost', function () { pause(); }); bPause.disabled = true;
     var bRun = btn('Run to end', 'ghost', function () { runToEnd(); }, { title: 'Run without animation, in short slices so the page stays responsive' });
     var bReset = btn('Reset', 'ghost', function () { resetMachine(); }, { title: 'Back to the start: registers cleared, memory as assembled' });
-    var speed = DP.speedControl({ key: 'co1005-vn-speed', initial: 2 });
+    var speed = DP.speedControl({ key: 'co1005-vn-speed', initial: 3 });
     var inBox = h('input', { cls: 'vn-input', attrs: { type: 'text', id: 'vn-input', autocomplete: 'off', spellcheck: 'false', 'aria-describedby': 'vnw-inhint' } });
     var inHint = h('span', { cls: 'vnw-inhint', attrs: { id: 'vnw-inhint', role: 'status', 'aria-live': 'polite' } });
     var runBar = h('div', { cls: 'vnw-runbar', attrs: { role: 'group', 'aria-label': 'Run controls' } }, [

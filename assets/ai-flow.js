@@ -1,5 +1,5 @@
 /* AI pipeline flow helpers — shared by the Chapter 11 lab (ai-lab.js) and the neural playground demo.
-   - speedControl(): the same 6-level speed slider as the Von Neumann lab (Very slow … Instant), persisted.
+   - speedControl(): the same 7-level speed slider as the Von Neumann lab (Ultra slow … Instant), persisted.
    - createPipeline(): the block diagram  Data → Model → Prediction → Loss → Optimizer → (updated weights) Model,
      with a separate greyed-out "Inference" mode, live numbers inside each block and travelling tokens.
    - createRunner(): plays a list of events (arrows) with Pause / Next-arrow / finish, deferring value updates until
@@ -8,7 +8,7 @@
   'use strict';
   var NS = 'http://www.w3.org/2000/svg';
   var SPEEDS = [
-    { name: 'Very slow', ms: 2200 }, { name: 'Slow', ms: 1400 }, { name: 'Normal', ms: 800 },
+    { name: 'Ultra slow', ms: 5000 }, { name: 'Very slow', ms: 2200 }, { name: 'Slow', ms: 1400 }, { name: 'Normal', ms: 800 },
     { name: 'Fast', ms: 400 }, { name: 'Very fast', ms: 150 }, { name: 'Instant', ms: 0 }
   ];
   function mk(tag, attrs, parent) {
@@ -22,8 +22,8 @@
   /* speed slider: { el, ms(), gap(), index(), name() } */
   function speedControl(opts) {
     opts = opts || {};
-    var key = opts.key || 'co1005-flow-speed', idx = opts.initial === undefined ? 2 : opts.initial;
-    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* no storage */ }
+    var key = opts.key || 'co1005-flow-speed', idx = opts.initial === undefined ? 3 : opts.initial;
+    try { var s = localStorage.getItem(key + '-v2'); if (s === null) { s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s)) s = String(+s + 1); }  /* old saves predate Ultra slow: one level up */ if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) { /* no storage */ }
     var wrap = document.createElement('div'); wrap.className = 'af-speed';
     var lab = document.createElement('label'); lab.className = 'field-label'; lab.textContent = opts.label || 'Speed';
     var id = 'af-speed-' + Math.floor(Math.random() * 1e6); lab.setAttribute('for', id);
@@ -33,7 +33,7 @@
     function paint() { nm.textContent = SPEEDS[idx].name + (SPEEDS[idx].ms ? ' · ' + (SPEEDS[idx].ms / 1000) + ' s' + (opts.unit ? ' per ' + opts.unit : '') : ''); rng.setAttribute('aria-valuetext', SPEEDS[idx].name); }
     rng.addEventListener('input', function () {
       idx = +rng.value; paint();
-      try { localStorage.setItem(key, String(idx)); } catch (e) { /* no storage */ }
+      try { localStorage.setItem(key + '-v2', String(idx)); } catch (e) { /* no storage */ }
       if (opts.onChange) opts.onChange(idx);
     });
     paint();

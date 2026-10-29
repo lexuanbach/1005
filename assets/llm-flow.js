@@ -5,7 +5,7 @@
        Steps come from Injection.trace() (lab) or InjectionEngine.trace()/defenderTrace() (demo).
    - LLMFlow.genloop(el): context -> model -> probability bars -> sampled token -> text so far -> (loop) context.
        Stages come from NGram.trace() (lab panel A).
-   Also: transport() = speed slider (6 levels incl. Instant, persisted) + Pause/Resume + Step, and the runner behind it.
+   Also: transport() = speed slider (7 levels incl. Instant, persisted) + Pause/Resume + Step, and the runner behind it.
    One colour per component (palette tokens --cmp-N from style.css, mapped in llm-flow.css): blocks, their defence chips, the arrows
    leaving them and the tokens travelling along those arrows share the colour of the SOURCE block; the three stacked prompt layers
    (system / user / untrusted) keep their own colours everywhere. Verdicts stay semantic (green good, red bad) via badge + glyph + text.
@@ -14,7 +14,7 @@
   'use strict';
   var NS = 'http://www.w3.org/2000/svg';
   var SPEEDS = [
-    { name: 'Very slow', ms: 2200 }, { name: 'Slow', ms: 1400 }, { name: 'Normal', ms: 800 },
+    { name: 'Ultra slow', ms: 5000 }, { name: 'Very slow', ms: 2200 }, { name: 'Slow', ms: 1400 }, { name: 'Normal', ms: 800 },
     { name: 'Fast', ms: 400 }, { name: 'Very fast', ms: 150 }, { name: 'Instant', ms: 0 }
   ];
   var uidN = 0;
@@ -88,8 +88,8 @@
   /* ───────────── transport: speed + pause + step ───────────── */
   function transport(opts) {
     opts = opts || {};
-    var key = opts.key || 'co1005-llm-speed', idx = opts.initial === undefined ? 3 : opts.initial;
-    try { var s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) {}
+    var key = opts.key || 'co1005-llm-speed', idx = opts.initial === undefined ? 4 : opts.initial;
+    try { var s = localStorage.getItem(key + '-v2'); if (s === null) { s = localStorage.getItem(key); if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s)) s = String(+s + 1); }  /* old saves predate Ultra slow: one level up */ if (typeof s === 'string' && /^[0-9]{1,2}$/.test(s) && +s < SPEEDS.length) idx = +s; } catch (e) {}
     var wrap = html('div', 'lf-transport'); wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', 'Animation controls');
     var sp = html('div', 'lf-speed');
     var lab = html('label', 'field-label', 'Speed'), id = 'lf-speed-' + (++uidN); lab.setAttribute('for', id);
@@ -97,7 +97,7 @@
     var nm = html('span', 'lf-speed-name');
     sp.appendChild(lab); sp.appendChild(rng); sp.appendChild(nm);
     function paint() { nm.textContent = SPEEDS[idx].name + (SPEEDS[idx].ms ? ' · ' + (SPEEDS[idx].ms / 1000) + ' s per arrow' : ' · no animation'); rng.setAttribute('aria-valuetext', SPEEDS[idx].name); }
-    rng.addEventListener('input', function () { idx = +rng.value; paint(); try { localStorage.setItem(key, String(idx)); } catch (e) {} });
+    rng.addEventListener('input', function () { idx = +rng.value; paint(); try { localStorage.setItem(key + '-v2', String(idx)); } catch (e) {} });
     paint();
     var runner = makeRunner(function () { return SPEEDS[idx].ms; });
     var pb = html('button', 'btn ghost small lf-btn', '⏸ Pause'); pb.type = 'button';

@@ -152,3 +152,16 @@
   .cf-edge.on, .cf-link { animation: none; }
   .cf-frame { transition: none; }
 }
+
+/* zoom: one block fills the diagram (compiler-flow.js zoomTo); the others fade, nothing spills out of the frame */
+.cf-block { cursor: zoom-in; }
+.cf-root.cf-zoomed .cf-svg { overflow: hidden; }
+.cf-root.cf-zoomed .cf-block.cf-zoom-on { cursor: default; }
+.cf-root.cf-zoomed .cf-block:not(.cf-zoom-on) { opacity: 0.3; }
+.cf-zoom { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.cf-zoom [hidden] { display: none !important; }
+.cf-controls .cf-zoom .btn { min-width: 2.4rem; }
+.cf-controls .cf-zoom .btn:first-child { min-width: 6.4rem; }
+.cf-zoom-name { font-size: 0.85rem; font-weight: 600; min-width: 8.5em; text-align: center; }
+.cf-zoom-follow { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: var(--ink-soft); cursor: pointer; }
+.cf-zoom-follow input { accent-color: var(--accent); margin: 0; }
