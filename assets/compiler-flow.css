@@ -164,4 +164,22 @@
 .cf-controls .cf-zoom .btn:first-child { min-width: 6.4rem; }
 .cf-zoom-name { font-size: 0.85rem; font-weight: 600; min-width: 8.5em; text-align: center; }
 .cf-zoom-follow { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: var(--ink-soft); cursor: pointer; }
+/* parser view switch + tree view */
+.cf-vt-b { cursor: pointer; }
+.cf-vt-b rect { fill: var(--surface); stroke: color-mix(in srgb, var(--c) 45%, var(--line)); stroke-width: 1; }
+.cf-svg .cf-vt-t { font-family: "Be Vietnam Pro", sans-serif; font-size: 8px; font-weight: 600; fill: var(--ink-soft); }
+.cf-vt-b:hover rect { stroke: var(--c); }
+.cf-vt-b.on rect { fill: color-mix(in srgb, var(--c) 30%, var(--surface)); stroke: var(--c); }
+.cf-svg .cf-vt-b.on .cf-vt-t { fill: color-mix(in srgb, var(--c) 62%, var(--ink)); }
+.cf-vt-b:focus { outline: none; }
+.cf-vt-b:focus-visible rect { stroke-width: 2; stroke: var(--accent); }
+.cf-tedge { fill: none; stroke: color-mix(in srgb, var(--c) 55%, var(--ink-soft)); stroke-width: 1.2; }
+.cf-tedge.virt { stroke-dasharray: 3 2; }
+.cf-tnode rect { fill: var(--surface); stroke: var(--c); stroke-width: 1.1; }
+.cf-tnode.root rect { fill: color-mix(in srgb, var(--c) 22%, var(--surface)); stroke-width: 1.6; }
+.cf-tnode.virt rect { fill: color-mix(in srgb, var(--c) 8%, var(--surface)); stroke-dasharray: 3 2; }
+.cf-tnode.on rect { fill: color-mix(in srgb, var(--c) 34%, var(--surface)); stroke-width: 2; }
+.cf-svg .cf-thead { font-family: "Be Vietnam Pro", sans-serif; font-size: 8.5px; font-weight: 700; fill: color-mix(in srgb, var(--c) 62%, var(--ink)); }
+.cf-svg .cf-tnode.virt .cf-thead { font-style: italic; font-weight: 600; }
+.cf-svg .cf-tcode { font-size: 9px; fill: var(--ink); }
 .cf-zoom-follow input { accent-color: var(--accent); margin: 0; }

@@ -159,6 +159,32 @@
         bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up);
       });
     });
+    /* parser view switch (list | tree), drawn in the parser header; remembered per browser */
+    var PV_KEY = 'co1005-cf-parser-view', parserTree = false;
+    try { parserTree = global.localStorage.getItem(PV_KEY) === 'tree'; } catch (e) { /* storage blocked */ }
+    var vt = mk('g', { class: 'cf-vt', role: 'group', 'aria-label': 'Parser view' }, blockEls.parser), vtBtns = {};
+    [['list', 'list'], ['tree', 'tree']].forEach(function (o, i) {
+      var bxp = bx('parser') + BW - 70 + i * 31, byp = by('parser') + 21;
+      var b = mk('g', { class: 'cf-vt-b', role: 'button', tabindex: '0', 'aria-label': o[0] === 'tree' ? 'Show the syntax tree as a tree' : 'Show the syntax tree as an indented list' }, vt);
+      mk('rect', { x: bxp, y: byp, width: 30, height: 12, rx: 6 }, b);
+      tx(b, bxp + 15, byp + 9, o[1], 'cf-vt-t', 'middle');
+      function pick(ev) { ev.stopPropagation(); setParserView(o[0] === 'tree'); }
+      b.addEventListener('click', pick);
+      b.addEventListener('dblclick', function (ev) { ev.stopPropagation(); });
+      b.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(ev); } });
+      vtBtns[o[0]] = b;
+    });
+    function paintVT() {
+      vtBtns.tree.classList.toggle('on', parserTree); vtBtns.list.classList.toggle('on', !parserTree);
+      vtBtns.tree.setAttribute('aria-pressed', String(parserTree)); vtBtns.list.setAttribute('aria-pressed', String(!parserTree));
+    }
+    function setParserView(tree) {
+      if (tree === parserTree) return;
+      parserTree = tree; paintVT();
+      try { global.localStorage.setItem(PV_KEY, tree ? 'tree' : 'list'); } catch (e) { /* storage blocked */ }
+      S.parser.top = 0; S.parser.follow = true; renderParser();
+    }
+    paintVT();
     var gGhost = null, ghostBlocks = [], ghostEdges = [];
     if (ghostOn) {
       gGhost = mk('g', { class: 'cf-ghost', 'aria-hidden': 'true' }, svg);
@@ -249,8 +275,8 @@
     fChk.addEventListener('change', function () { zoomFollow = fChk.checked; });
     ORDER.forEach(function (id) {
       var g = blockEls[id];
-      g.addEventListener('click', function (ev) { if (ev.target.closest && ev.target.closest('.cf-sbar')) return; if (id !== zoomId) zoomTo(id); });
-      g.addEventListener('dblclick', function (ev) { if (ev.target.closest && ev.target.closest('.cf-sbar')) return; if (id === zoomId) zoomTo(null); });
+      g.addEventListener('click', function (ev) { if (ev.target.closest && ev.target.closest('.cf-sbar, .cf-vt')) return; if (id !== zoomId) zoomTo(id); });
+      g.addEventListener('dblclick', function (ev) { if (ev.target.closest && ev.target.closest('.cf-sbar, .cf-vt')) return; if (id === zoomId) zoomTo(null); });
     });
     root.addEventListener('keydown', function (ev) {
       if (!zoomId) return;
@@ -353,6 +379,7 @@
     }
     function renderParser() {
       var g = contentEls.parser, sc = S.parser.inner; clear(g); clear(sc); var x = bx('parser'), y = by('parser');
+      if (parserTree) { renderParserTree(g, sc, x, y); return; }
       M.nodes.forEach(function (n, i) {
         var yy = y + 50 + i * 14, last = i === M.nodes.length - 1 && n.fresh;
         if (last) mk('rect', { x: x + 4, y: yy - 10, width: BW - 14, height: 14, rx: 3, class: 'cf-line-on' }, sc);
@@ -361,6 +388,66 @@
       if (!M.nodes.length && M.srcLines.length) tx(g, x + 12, y + 56, '(no tree yet)', 'cf-faint');
       if (M.errText.parser) tx(g, x + 10, y + 124, '✗ ' + clip(M.errText.parser, 30), 'cf-err-t');
       sizeTo('parser', y + 40 + M.nodes.length * 14, undefined, M.errText.parser ? VH - 15 : VH);
+      countEls.parser.textContent = M.nodes.length ? M.nodes.length + ' nodes' : '';
+    }
+    /* tree view: Program at the top, one box per statement, branches down to the statements inside a loop / if.
+       The direct children of an else branch hang under a small "else" node. The tree is laid out at its natural size, then shrunk
+       to the box width if needed (zoom in to read a big one); it scrolls vertically when deep. */
+    function nodeParts(label) {
+      var m = /^(\S+)\s*(.*)$/.exec(label) || [label, label, ''], head = m[1], rest = m[2];
+      if (head === 'Input') rest = rest.replace(/^->\s*/, '');
+      if (/^\(/.test(rest)) rest = '';                 // "Break (leave the loop)" -> Break
+      if (head === 'Do') { head = 'Do-while'; rest = ''; }
+      return { head: head, rest: rest };
+    }
+    function renderParserTree(g, sc, x, y) {
+      if (!M.nodes.length) {
+        if (M.srcLines.length) tx(g, x + 12, y + 56, '(no tree yet)', 'cf-faint');
+        if (M.errText.parser) tx(g, x + 10, y + 124, '✗ ' + clip(M.errText.parser, 30), 'cf-err-t');
+        sizeTo('parser', 0, null); countEls.parser.textContent = ''; return;
+      }
+      var CW = 5.45, NH1 = 15, NH2 = 25, GAPX = 7, GAPY = 15, root = { head: 'Program', rest: '', kids: [], root: true }, stack = [root];
+      M.nodes.forEach(function (n) {
+        var parent = stack[Math.min(n.depth, stack.length - 1)], pp = nodeParts(n.label);
+        if (n.els) {
+          if (!parent.elseNode) { parent.elseNode = { head: 'else', rest: '', kids: [], virt: true }; parent.kids.push(parent.elseNode); }
+          parent = parent.elseNode;
+        }
+        var t = { head: pp.head, rest: clip(pp.rest, 26), kids: [], src: n, fresh: n.fresh };
+        parent.kids.push(t); stack.length = n.depth + 1; stack.push(t);
+      });
+      var depthMax = 0;
+      function measure(t, d) {
+        depthMax = Math.max(depthMax, d); t.d = d;
+        t.w = Math.max(t.head.length, t.rest.length) * CW + 10; t.h = t.rest ? NH2 : NH1;
+        if (t.virt) t.w = t.head.length * CW + 8;
+        var kw = 0; t.kids.forEach(function (k, i) { measure(k, d + 1); kw += k.sw + (i ? GAPX : 0); });
+        t.kw = kw; t.sw = Math.max(t.w, kw);
+      }
+      function place(t, left) {
+        t.cx = left + t.sw / 2; t.y = t.d * (NH2 + GAPY) + (NH2 - t.h) / 2;
+        var cl = left + (t.sw - t.kw) / 2;
+        t.kids.forEach(function (k) { place(k, cl); cl += k.sw + GAPX; });
+      }
+      measure(root, 0); place(root, 0);
+      var W = root.sw, Hn = (depthMax + 1) * (NH2 + GAPY) - GAPY, avail = BW - 18, sc0 = Math.min(1, avail / W);
+      var ox = x + 4 + (avail - W * sc0) / 2, oy = y + VT + 4;
+      var tg = mk('g', { class: 'cf-tree', transform: 'translate(' + ox.toFixed(2) + ' ' + oy + ') scale(' + sc0.toFixed(4) + ')' }, sc), focus;
+      var ge = mk('g', {}, tg), gn = mk('g', {}, tg);
+      (function draw(t) {
+        t.kids.forEach(function (k) {
+          mk('path', { d: 'M ' + t.cx.toFixed(1) + ' ' + (t.y + t.h) + ' L ' + k.cx.toFixed(1) + ' ' + k.y, class: 'cf-tedge' + (k.virt ? ' virt' : '') }, ge);
+        });
+        var ng = mk('g', { class: 'cf-tnode' + (t.root ? ' root' : '') + (t.virt ? ' virt' : '') + (t.fresh ? ' on' : '') }, gn);
+        if (t.src) mk('title', {}, ng).textContent = t.src.label + ' (line ' + t.src.line + ')';
+        mk('rect', { x: (t.cx - t.w / 2).toFixed(1), y: t.y, width: t.w.toFixed(1), height: t.h, rx: t.virt ? 7 : 4 }, ng);
+        tx(ng, t.cx, t.y + 10.5, t.head, 'cf-thead', 'middle');
+        if (t.rest) tx(ng, t.cx, t.y + 21, t.rest, 'cf-tcode', 'middle');
+        if (t.fresh) focus = [oy + t.y * sc0, oy + (t.y + t.h) * sc0];
+        t.kids.forEach(draw);
+      })(root);
+      if (M.errText.parser) tx(g, x + 10, y + 124, '✗ ' + clip(M.errText.parser, 30), 'cf-err-t');
+      sizeTo('parser', oy + Hn * sc0, focus || null, M.errText.parser ? VH - 15 : VH);
       countEls.parser.textContent = M.nodes.length ? M.nodes.length + ' nodes' : '';
     }
     function renderCodegen() {
@@ -592,7 +679,7 @@
           await gate(g); e = evs[i];
           if (e.kind === 'node') {
             M.nodes.forEach(function (n) { n.fresh = false; });
-            M.nodes.push({ label: e.label, depth: e.depth, line: e.line, fresh: true }); active(e.line, 'parser'); M.srcErr = false;
+            M.nodes.push({ label: e.label, depth: e.depth, line: e.line, els: !!e.els, fresh: true }); active(e.line, 'parser'); M.srcErr = false;
             renderSource(); renderParser(); say(undefined, 'node: ' + e.label + ' (line ' + e.line + ')');
             await sleep(up);
           } else if (e.kind === 'error') { await failAt('parser', e, g); return; }

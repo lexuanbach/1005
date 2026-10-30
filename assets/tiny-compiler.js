@@ -181,6 +181,8 @@
 
   function parse(toks, hook) {                   // hook (optional): called with {node,label,line,depth} as the tree grows (pre-order for compound statements)
     var p = 0, depth = 0, sdepth = 0, edepth = 0, loopDepth = 0, inMain = false;
+    var elseAt = [];                             // depths of the else branches being parsed: their direct children are tagged els:true (for the tree view)
+    if (hook) { var hook0 = hook; hook = function (o) { if (elseAt.length && elseAt[elseAt.length - 1] === o.depth) o.els = true; hook0(o); }; }
     var scopes = [{ vars: {}, kind: 'main' }], retired = {}, strictRetired = {}, cellsUsed = {}, infos = [], warnings = [], warned = {};
     var names = {};
     toks.forEach(function (t) { if (t.t === 'id' || t.t === 'kw') names[t.v] = 1; });
@@ -532,7 +534,7 @@
             if (hook) hook({ node: 'if', label: 'If ' + condText(c, 0), line: line, depth: depth });
             depth++;
             var th = body(), el = null;
-            if (isTok('else')) { p++; el = body(); }
+            if (isTok('else')) { p++; elseAt.push(depth); el = body(); elseAt.pop(); }
             depth--;
             return [{ k: 'if', cond: c, then: [].concat(th), else: el ? [].concat(el) : null, line: line }];
           }
@@ -1308,7 +1310,7 @@
      events are the ordered artefacts that move through the toolchain; the animated views (assets/compiler-flow.js) are driven from them.
        {stage:'source',  kind:'source',  lines, text}
        {stage:'lexer',   kind:'token',   index, type, v, line, col}      then  'done' {count}   or  'error' {line,col,msg,hint}
-       {stage:'parser',  kind:'node',    node, label, depth, line}  then  'done' {count}   or  'error' {line,col,msg,hint}
+       {stage:'parser',  kind:'node',    node, label, depth, line, els?}  (els: first-level statement of an else branch)  then  'done' {count}   or  'error' {line,col,msg,hint}
        {stage:'codegen', kind:'asm',     index, text, cline, comment, lineKind, group?, explain?}  then 'done' {count}
        {stage:'assembler', kind:'word',  addr, word, cell:'code'|'data', text, cline, bits, hex}  then 'done' {words} or 'error' {msg}
        {stage:'loader',  kind:'load',    cells, size}
