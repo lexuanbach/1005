@@ -1,0 +1,184 @@
+/* Attack simulations (concept 9.10): atk-mitm, atk-dns, atk-scan. Every rule is prefixed with the app's own class; theme tokens only. */
+
+/* ---------- na-atk-mitm ---------- */
+.na-atk-mitm-chk { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--ink); align-self: center; }
+.na-atk-mitm-chk input { accent-color: var(--teal); }
+.na-atk-mitm-stage { overflow-x: auto; }
+.na-atk-mitm-svg { display: block; width: 100%; height: auto; }
+@media (max-width: 640px) { .na-atk-mitm-svg { min-width: 460px; } }
+.na-atk-mitm-cols { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+@media (max-width: 820px) { .na-atk-mitm-cols { grid-template-columns: minmax(0, 1fr); } }
+.na-atk-mitm-side > div { margin-bottom: 0.7rem; }
+.na-atk-mitm-wire { stroke: color-mix(in srgb, var(--ink-soft) 75%, var(--paper)); stroke-width: 2.4; }
+.na-atk-mitm-wire.inet { stroke-dasharray: 6 5; }
+.na-atk-mitm-wire.atk { stroke: var(--cmp-4); stroke-dasharray: 5 4; }
+.na-atk-mitm-lan { fill: color-mix(in srgb, var(--cmp-8) 5%, transparent); stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.na-atk-mitm-lt { font: 600 11px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-mitm-node rect { fill: color-mix(in srgb, var(--c, var(--cmp-1)) 12%, var(--surface)); stroke: var(--c, var(--cmp-1)); stroke-width: 2; }
+.na-atk-mitm-node.victim { --c: var(--cmp-1); } .na-atk-mitm-node.attacker { --c: var(--cmp-4); } .na-atk-mitm-node.switch { --c: var(--cmp-8); }
+.na-atk-mitm-node.router { --c: var(--cmp-5); } .na-atk-mitm-node.server { --c: var(--cmp-2); } .na-atk-mitm-node.resolver { --c: var(--cmp-10); } .na-atk-mitm-node.firewall { --c: var(--cmp-3); }
+.na-atk-mitm-node .nm { font: 700 12.5px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-atk-mitm-node .sb { font: 500 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-mitm-badge { font: 700 10.5px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-atk-mitm-node.ok rect { stroke: var(--green); stroke-width: 3.5; fill: color-mix(in srgb, var(--green) 16%, var(--surface)); }
+.na-atk-mitm-node.ok .na-atk-mitm-badge { fill: var(--green); }
+.na-atk-mitm-node.bad rect { stroke: var(--red); stroke-width: 3.5; fill: color-mix(in srgb, var(--red) 14%, var(--surface)); }
+.na-atk-mitm-node.bad .na-atk-mitm-badge { fill: var(--red); }
+.na-atk-mitm-node.warn rect { stroke: var(--amber); stroke-width: 3; stroke-dasharray: 5 3; fill: color-mix(in srgb, var(--amber) 13%, var(--surface)); }
+.na-atk-mitm-node.warn .na-atk-mitm-badge { fill: var(--amber); }
+.na-atk-mitm-node.idle rect { stroke-dasharray: 4 3; opacity: 0.8; }
+.na-atk-mitm-tok rect { fill: var(--surface); stroke: var(--cmp-1); stroke-width: 2; }
+.na-atk-mitm-tok text { font: 700 9.5px "IBM Plex Mono", monospace; fill: var(--ink); }
+.na-atk-mitm-tok.forged rect { stroke: var(--cmp-4); stroke-dasharray: 3 2; }
+.na-atk-mitm-tok.dead { opacity: 0.55; }
+.na-atk-mitm-cap { display: block; text-align: left; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); padding: 0.1rem 0 0.25rem; }
+caption.na-atk-mitm-cap { caption-side: top; }
+.na-atk-mitm-pre { margin: 0; padding: 0.45rem 0.6rem; max-height: 9.5rem; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font: 500 0.74rem/1.45 "IBM Plex Mono", monospace; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.na-atk-mitm-pre .hot { color: var(--red); font-weight: 700; }
+.na-atk-mitm-pre .warnl { color: var(--amber); font-weight: 600; }
+.na-atk-mitm-pre .empty, .na-atk-mitm-pre.empty { color: var(--ink-soft); font-style: italic; }
+.na-atk-mitm-pre.cipher { color: var(--ink-soft); }
+.na-atk-mitm-browser { border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.na-atk-mitm-url { font: 600 0.78rem "IBM Plex Mono", monospace; padding: 0.35rem 0.6rem; background: var(--paper); border-bottom: 1px solid var(--line); color: var(--ink); overflow-wrap: anywhere; }
+.na-atk-mitm-bbody { padding: 0.55rem 0.7rem; font-size: 0.86rem; color: var(--ink); min-height: 2.6rem; }
+.na-atk-mitm-browser.ok { border-color: var(--green); } .na-atk-mitm-browser.bad { border-color: var(--red); } .na-atk-mitm-browser.bad .na-atk-mitm-bbody { background: color-mix(in srgb, var(--red) 9%, var(--surface)); font-weight: 600; }
+.na-atk-mitm-browser.warn { border-color: var(--amber); } .na-atk-mitm-browser.warn .na-atk-mitm-bbody { background: color-mix(in srgb, var(--amber) 11%, var(--surface)); }
+.na-atk-mitm-browser.idle { border-style: dashed; color: var(--ink-soft); } .na-atk-mitm-browser.idle .na-atk-mitm-bbody { color: var(--ink-soft); font-style: italic; }
+.na-atk-mitm-empty, .na-atk-mitm-off { color: var(--ink-soft); font-style: italic; font-family: inherit !important; }
+
+/* ---------- na-atk-dns ---------- */
+.na-atk-dns-chk { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--ink); align-self: center; }
+.na-atk-dns-chk input { accent-color: var(--teal); }
+.na-atk-dns-stage { overflow-x: auto; }
+.na-atk-dns-svg { display: block; width: 100%; height: auto; }
+@media (max-width: 640px) { .na-atk-dns-svg { min-width: 460px; } }
+.na-atk-dns-cols { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+@media (max-width: 820px) { .na-atk-dns-cols { grid-template-columns: minmax(0, 1fr); } }
+.na-atk-dns-side > div { margin-bottom: 0.7rem; }
+.na-atk-dns-wire { stroke: color-mix(in srgb, var(--ink-soft) 75%, var(--paper)); stroke-width: 2.4; }
+.na-atk-dns-wire.inet { stroke-dasharray: 6 5; }
+.na-atk-dns-wire.atk { stroke: var(--cmp-4); stroke-dasharray: 5 4; }
+.na-atk-dns-lan { fill: color-mix(in srgb, var(--cmp-8) 5%, transparent); stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.na-atk-dns-lt { font: 600 11px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-dns-node rect { fill: color-mix(in srgb, var(--c, var(--cmp-1)) 12%, var(--surface)); stroke: var(--c, var(--cmp-1)); stroke-width: 2; }
+.na-atk-dns-node.victim { --c: var(--cmp-1); } .na-atk-dns-node.attacker { --c: var(--cmp-4); } .na-atk-dns-node.switch { --c: var(--cmp-8); }
+.na-atk-dns-node.router { --c: var(--cmp-5); } .na-atk-dns-node.server { --c: var(--cmp-2); } .na-atk-dns-node.resolver { --c: var(--cmp-10); } .na-atk-dns-node.firewall { --c: var(--cmp-3); }
+.na-atk-dns-node .nm { font: 700 12.5px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-atk-dns-node .sb { font: 500 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-dns-badge { font: 700 10.5px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-atk-dns-node.ok rect { stroke: var(--green); stroke-width: 3.5; fill: color-mix(in srgb, var(--green) 16%, var(--surface)); }
+.na-atk-dns-node.ok .na-atk-dns-badge { fill: var(--green); }
+.na-atk-dns-node.bad rect { stroke: var(--red); stroke-width: 3.5; fill: color-mix(in srgb, var(--red) 14%, var(--surface)); }
+.na-atk-dns-node.bad .na-atk-dns-badge { fill: var(--red); }
+.na-atk-dns-node.warn rect { stroke: var(--amber); stroke-width: 3; stroke-dasharray: 5 3; fill: color-mix(in srgb, var(--amber) 13%, var(--surface)); }
+.na-atk-dns-node.warn .na-atk-dns-badge { fill: var(--amber); }
+.na-atk-dns-node.idle rect { stroke-dasharray: 4 3; opacity: 0.8; }
+.na-atk-dns-tok rect { fill: var(--surface); stroke: var(--cmp-1); stroke-width: 2; }
+.na-atk-dns-tok text { font: 700 9.5px "IBM Plex Mono", monospace; fill: var(--ink); }
+.na-atk-dns-tok.forged rect { stroke: var(--cmp-4); stroke-dasharray: 3 2; }
+.na-atk-dns-tok.dead { opacity: 0.55; }
+.na-atk-dns-cap { display: block; text-align: left; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); padding: 0.1rem 0 0.25rem; }
+caption.na-atk-dns-cap { caption-side: top; }
+.na-atk-dns-pre { margin: 0; padding: 0.45rem 0.6rem; max-height: 9.5rem; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font: 500 0.74rem/1.45 "IBM Plex Mono", monospace; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.na-atk-dns-pre .hot { color: var(--red); font-weight: 700; }
+.na-atk-dns-pre .warnl { color: var(--amber); font-weight: 600; }
+.na-atk-dns-pre .empty, .na-atk-dns-pre.empty { color: var(--ink-soft); font-style: italic; }
+.na-atk-dns-pre.cipher { color: var(--ink-soft); }
+.na-atk-dns-browser { border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.na-atk-dns-url { font: 600 0.78rem "IBM Plex Mono", monospace; padding: 0.35rem 0.6rem; background: var(--paper); border-bottom: 1px solid var(--line); color: var(--ink); overflow-wrap: anywhere; }
+.na-atk-dns-bbody { padding: 0.55rem 0.7rem; font-size: 0.86rem; color: var(--ink); min-height: 2.6rem; }
+.na-atk-dns-browser.ok { border-color: var(--green); } .na-atk-dns-browser.bad { border-color: var(--red); } .na-atk-dns-browser.bad .na-atk-dns-bbody { background: color-mix(in srgb, var(--red) 9%, var(--surface)); font-weight: 600; }
+.na-atk-dns-browser.warn { border-color: var(--amber); } .na-atk-dns-browser.warn .na-atk-dns-bbody { background: color-mix(in srgb, var(--amber) 11%, var(--surface)); }
+.na-atk-dns-browser.idle { border-style: dashed; color: var(--ink-soft); } .na-atk-dns-browser.idle .na-atk-dns-bbody { color: var(--ink-soft); font-style: italic; }
+.na-atk-dns-empty, .na-atk-dns-off { color: var(--ink-soft); font-style: italic; font-family: inherit !important; }
+
+/* ---------- na-atk-scan ---------- */
+.na-atk-scan-chk { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--ink); align-self: center; }
+.na-atk-scan-chk input { accent-color: var(--teal); }
+.na-atk-scan-stage { overflow-x: auto; }
+.na-atk-scan-svg { display: block; width: 100%; height: auto; }
+@media (max-width: 640px) { .na-atk-scan-svg { min-width: 460px; } }
+.na-atk-scan-cols { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+@media (max-width: 820px) { .na-atk-scan-cols { grid-template-columns: minmax(0, 1fr); } }
+.na-atk-scan-side > div { margin-bottom: 0.7rem; }
+.na-atk-scan-wire { stroke: color-mix(in srgb, var(--ink-soft) 75%, var(--paper)); stroke-width: 2.4; }
+.na-atk-scan-wire.inet { stroke-dasharray: 6 5; }
+.na-atk-scan-wire.atk { stroke: var(--cmp-4); stroke-dasharray: 5 4; }
+.na-atk-scan-lan { fill: color-mix(in srgb, var(--cmp-8) 5%, transparent); stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.na-atk-scan-lt { font: 600 11px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-scan-node rect { fill: color-mix(in srgb, var(--c, var(--cmp-1)) 12%, var(--surface)); stroke: var(--c, var(--cmp-1)); stroke-width: 2; }
+.na-atk-scan-node.victim { --c: var(--cmp-1); } .na-atk-scan-node.attacker { --c: var(--cmp-4); } .na-atk-scan-node.switch { --c: var(--cmp-8); }
+.na-atk-scan-node.router { --c: var(--cmp-5); } .na-atk-scan-node.server { --c: var(--cmp-2); } .na-atk-scan-node.resolver { --c: var(--cmp-10); } .na-atk-scan-node.firewall { --c: var(--cmp-3); }
+.na-atk-scan-node .nm { font: 700 12.5px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-atk-scan-node .sb { font: 500 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-scan-badge { font: 700 10.5px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-atk-scan-node.ok rect { stroke: var(--green); stroke-width: 3.5; fill: color-mix(in srgb, var(--green) 16%, var(--surface)); }
+.na-atk-scan-node.ok .na-atk-scan-badge { fill: var(--green); }
+.na-atk-scan-node.bad rect { stroke: var(--red); stroke-width: 3.5; fill: color-mix(in srgb, var(--red) 14%, var(--surface)); }
+.na-atk-scan-node.bad .na-atk-scan-badge { fill: var(--red); }
+.na-atk-scan-node.warn rect { stroke: var(--amber); stroke-width: 3; stroke-dasharray: 5 3; fill: color-mix(in srgb, var(--amber) 13%, var(--surface)); }
+.na-atk-scan-node.warn .na-atk-scan-badge { fill: var(--amber); }
+.na-atk-scan-node.idle rect { stroke-dasharray: 4 3; opacity: 0.8; }
+.na-atk-scan-tok rect { fill: var(--surface); stroke: var(--cmp-1); stroke-width: 2; }
+.na-atk-scan-tok text { font: 700 9.5px "IBM Plex Mono", monospace; fill: var(--ink); }
+.na-atk-scan-tok.forged rect { stroke: var(--cmp-4); stroke-dasharray: 3 2; }
+.na-atk-scan-tok.dead { opacity: 0.55; }
+.na-atk-scan-cap { display: block; text-align: left; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); padding: 0.1rem 0 0.25rem; }
+caption.na-atk-scan-cap { caption-side: top; }
+.na-atk-scan-pre { margin: 0; padding: 0.45rem 0.6rem; max-height: 9.5rem; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font: 500 0.74rem/1.45 "IBM Plex Mono", monospace; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.na-atk-scan-pre .hot { color: var(--red); font-weight: 700; }
+.na-atk-scan-pre .warnl { color: var(--amber); font-weight: 600; }
+.na-atk-scan-pre .empty, .na-atk-scan-pre.empty { color: var(--ink-soft); font-style: italic; }
+.na-atk-scan-pre.cipher { color: var(--ink-soft); }
+.na-atk-scan-browser { border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.na-atk-scan-url { font: 600 0.78rem "IBM Plex Mono", monospace; padding: 0.35rem 0.6rem; background: var(--paper); border-bottom: 1px solid var(--line); color: var(--ink); overflow-wrap: anywhere; }
+.na-atk-scan-bbody { padding: 0.55rem 0.7rem; font-size: 0.86rem; color: var(--ink); min-height: 2.6rem; }
+.na-atk-scan-browser.ok { border-color: var(--green); } .na-atk-scan-browser.bad { border-color: var(--red); } .na-atk-scan-browser.bad .na-atk-scan-bbody { background: color-mix(in srgb, var(--red) 9%, var(--surface)); font-weight: 600; }
+.na-atk-scan-browser.warn { border-color: var(--amber); } .na-atk-scan-browser.warn .na-atk-scan-bbody { background: color-mix(in srgb, var(--amber) 11%, var(--surface)); }
+.na-atk-scan-browser.idle { border-style: dashed; color: var(--ink-soft); } .na-atk-scan-browser.idle .na-atk-scan-bbody { color: var(--ink-soft); font-style: italic; }
+.na-atk-scan-empty, .na-atk-scan-off { color: var(--ink-soft); font-style: italic; font-family: inherit !important; }
+
+.na-atk-mitm-pre.cipher .hot { color: inherit; }
+
+/* ---------- atk-dns specifics ---------- */
+.na-atk-dns-space { margin-top: 0.6rem; }
+.na-atk-dns-grid { display: grid; grid-template-columns: repeat(var(--n, 16), minmax(0, 1fr)); gap: 2px; margin: 0.3rem 0 0.2rem; max-width: 34rem; }
+.na-atk-dns-grid i { aspect-ratio: 1; min-height: 8px; border-radius: 2px; background: var(--paper); border: 1px solid color-mix(in srgb, var(--line) 85%, transparent); display: flex; align-items: center; justify-content: center; font: 700 10px/1 sans-serif; font-style: normal; color: var(--ink); }
+.na-atk-dns-grid i.guess { background: color-mix(in srgb, var(--cmp-4) 55%, var(--surface)); border-color: var(--cmp-4); }
+.na-atk-dns-grid i.secret { outline: 2.5px solid var(--cmp-2); outline-offset: 1px; background: color-mix(in srgb, var(--cmp-2) 30%, var(--surface)); }
+.na-atk-dns-ttl { height: 6px; margin-top: 3px; background: var(--paper); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.na-atk-dns-ttl b { display: block; height: 100%; background: var(--cmp-4); }
+.na-atk-dns-grid-l { stroke: var(--line); stroke-width: 1; }
+.na-atk-dns-grid-l.v { stroke-dasharray: 2 3; opacity: 0.7; }
+.na-atk-dns-tl { font: 500 9.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-dns-line { fill: none; stroke-width: 2.4; }
+.na-atk-dns-line.now { stroke: var(--cmp-4); }
+.na-atk-dns-line.ref1 { stroke: var(--cmp-3); stroke-dasharray: 6 3; stroke-width: 1.8; }
+.na-atk-dns-line.ref2 { stroke: var(--cmp-2); stroke-dasharray: 2 3; stroke-width: 1.8; }
+.na-atk-dns-now-l { stroke: var(--ink-soft); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.na-atk-dns-dot { fill: var(--cmp-4); stroke: var(--surface); stroke-width: 2; }
+.na-atk-dns-dot.won { fill: var(--red); }
+.na-atk-dns-chart { display: block; width: 100%; height: auto; max-width: 28rem; }
+.na-atk-dns-side td.chg, .na-atk-mitm-side td.chg { background: color-mix(in srgb, var(--amber) 22%, transparent); font-weight: 700; }
+.na-atk-mitm-side tr.chg td { background: color-mix(in srgb, var(--amber) 22%, transparent); font-weight: 700; }
+.na-atk-dns-side tr.chg td { background: color-mix(in srgb, var(--red) 14%, transparent); font-weight: 700; }
+
+/* ---------- atk-scan specifics ---------- */
+.na-atk-scan-clock { font: 600 11px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-scan-tok circle { fill: var(--cmp-3); stroke: var(--surface); stroke-width: 1.5; }
+.na-atk-scan-tok text { font: 700 9.5px "IBM Plex Mono", monospace; fill: var(--ink); stroke: none; }
+.na-atk-scan-tok.open circle { fill: var(--green); } .na-atk-scan-tok.closed circle { fill: var(--cmp-10); }
+.na-atk-scan-tok.dead circle { fill: var(--red); opacity: 0.6; }
+.na-atk-scan-views { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0.9rem; margin-top: 0.7rem; align-items: start; }
+@media (max-width: 820px) { .na-atk-scan-views { grid-template-columns: minmax(0, 1fr); } }
+.na-atk-scan-views .na-table { margin-bottom: 0.3rem; }
+.na-atk-scan-views .na-atk-scan-pre { max-height: 14rem; }
+tr.na-atk-scan-v-open td { background: color-mix(in srgb, var(--green) 14%, transparent); font-weight: 700; }
+tr.na-atk-scan-v-filtered td { background: color-mix(in srgb, var(--amber) 13%, transparent); }
+tr.na-atk-scan-v-blocked td { color: var(--ink-soft); font-style: italic; }
+.na-atk-scan-side select { max-width: 9.5rem; padding: 0.15rem 0.3rem; font-size: 0.8rem; }
+.na-atk-scan-side .na-table td { font-size: 0.78rem; }
+.na-atk-scan-side .na-table td:first-child { white-space: nowrap; }
+.na-atk-scan-side select { max-width: 8.2rem; }
+.na-atk-scan-scroll { overflow-x: auto; }
+@media (max-width: 640px) { .na-atk-scan-scroll .na-table { min-width: 21rem; } }

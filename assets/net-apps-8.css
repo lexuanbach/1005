@@ -1,0 +1,94 @@
+/* Chapter 9 §9.9 IoT apps (iot-edgechain, iot-train). Theme tokens only; every rule is scoped under its app's class. */
+.na-iot-edgechain .na-try, .na-iot-train .na-try { margin: 0 0 0.8rem; font-size: 0.88rem; color: var(--ink-soft); }
+.na-iot-edgechain .na-try b, .na-iot-train .na-try b { color: var(--teal-ink); }
+.na-iot-edgechain .na-tbl-scroll, .na-iot-train .na-tbl-scroll { overflow-x: auto; }
+.na-iot-edgechain .na-iot-fine, .na-iot-train .na-iot-fine { color: var(--ink-soft); font-size: 0.86em; }
+
+/* ---------- iot-edgechain ---------- */
+.na-iot-edgechain .na-iot-tog { font-weight: 600; }
+.na-iot-edgechain .na-iot-ec-stage { margin-top: 0.4rem; overflow-x: auto; }
+.na-iot-edgechain .na-iot-ec-stage svg { min-width: 560px; }
+.na-iot-edgechain .na-iot-ot, .na-iot-edgechain .na-iot-it { font: 700 10px "Be Vietnam Pro", sans-serif; letter-spacing: 0.1em; fill: var(--ink-soft); }
+.na-iot-edgechain .na-iot-rule { stroke: var(--line); stroke-width: 2; }
+.na-iot-edgechain .na-iot-edgeline { stroke: var(--red); stroke-width: 2; stroke-dasharray: 6 4; }
+.na-iot-edgechain .na-iot-edgelab { font: 700 11px "Be Vietnam Pro", sans-serif; letter-spacing: 0.12em; fill: var(--red); }
+.na-iot-edgechain .na-iot-box rect { fill: color-mix(in srgb, var(--c) 12%, var(--surface)); stroke: var(--c); stroke-width: 2; }
+.na-iot-edgechain .na-iot-box.dim rect { stroke-dasharray: 5 4; opacity: 0.65; }
+.na-iot-edgechain .na-iot-bt { font: 700 11.5px "Be Vietnam Pro", sans-serif; fill: color-mix(in srgb, var(--c) 60%, var(--ink)); }
+.na-iot-edgechain .na-iot-bsub { font: 500 9px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-iot-edgechain .na-iot-bs { font: 700 9.5px "Be Vietnam Pro", sans-serif; fill: color-mix(in srgb, var(--c) 65%, var(--ink)); }
+.na-iot-edgechain .na-iot-cap { font: 600 9px "Be Vietnam Pro", sans-serif; letter-spacing: 0.05em; fill: var(--ink-soft); }
+.na-iot-edgechain .na-iot-flowlab { font: 600 9.5px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-iot-edgechain .na-iot-band { fill: color-mix(in srgb, var(--cmp-1) 38%, var(--surface)); stroke: var(--cmp-1); stroke-width: 1.5; }
+.na-iot-edgechain .na-iot-band.broken { fill: none; stroke-dasharray: 5 4; opacity: 0.6; }
+.na-iot-edgechain .na-iot-band.over { fill: color-mix(in srgb, var(--red) 28%, var(--surface)); stroke: var(--red); }
+.na-iot-edgechain .na-iot-pipe { fill: none; stroke: var(--ink-soft); stroke-width: 1.6; stroke-dasharray: 4 3; }
+.na-iot-edgechain .na-iot-pipe.over { stroke: var(--red); stroke-width: 2.4; }
+.na-iot-edgechain .na-iot-pipelab { font: 600 9.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-iot-edgechain .na-iot-x { font: 700 12px "Be Vietnam Pro", sans-serif; fill: var(--red); }
+.na-iot-edgechain .na-iot-rate { font: 600 10px "IBM Plex Mono", monospace; fill: var(--ink); }
+.na-iot-edgechain .na-iot-rate.bad { fill: var(--red); }
+.na-iot-edgechain .na-iot-path { margin: 0.5rem 0; }
+.na-iot-edgechain .na-iot-seg { display: flex; height: 1.7rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); margin: 0.25rem 0; }
+.na-iot-edgechain .na-iot-part { min-width: 3px; background: color-mix(in srgb, var(--c) 55%, var(--surface)); border-right: 2px solid var(--surface); }
+.na-iot-edgechain .na-iot-part.dead { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--red) 35%, var(--surface)) 0 6px, var(--surface) 6px 12px); }
+.na-iot-edgechain .na-iot-actbox { border: 1px solid var(--line); border-left-width: 4px; border-radius: 10px; padding: 0.5rem 0.8rem; font-size: 0.9rem; background: var(--paper); }
+.na-iot-edgechain .na-iot-actbox.ok { border-left-color: var(--green); }
+.na-iot-edgechain .na-iot-actbox.no { border-left-color: var(--red); background: color-mix(in srgb, var(--red) 6%, var(--paper)); }
+.na-iot-edgechain .na-iot-actbox.ok b { color: var(--green); } .na-iot-edgechain .na-iot-actbox.no b { color: var(--red); }
+
+/* ---------- iot-train ---------- */
+.na-iot-train .k0 { --c: var(--cmp-6); } .na-iot-train .k1 { --c: var(--cmp-3); } .na-iot-train .k2 { --c: var(--cmp-4); }
+.na-iot-train .na-iot-glyph { color: color-mix(in srgb, var(--c) 80%, var(--ink)); font-weight: 700; }
+.na-iot-train .na-iot-cols { margin-top: 0.2rem; align-items: start; }
+.na-iot-train .na-iot-plot { position: relative; width: 100%; aspect-ratio: 480 / 320; }
+.na-iot-train .na-iot-heat { position: absolute; border-radius: 2px; }
+.na-iot-train .na-iot-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.na-iot-train .na-iot-stage.picking .na-iot-svg { cursor: crosshair; touch-action: none; }
+.na-iot-train .na-iot-frame { fill: none; stroke: var(--line); stroke-width: 1.5; }
+.na-iot-train .na-iot-tick { stroke: var(--ink-soft); stroke-width: 1; }
+.na-iot-train .na-iot-axt { font: 500 9.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-iot-train .na-iot-axl { font: 600 10px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-iot-train .na-iot-pt { fill: color-mix(in srgb, var(--c) 75%, var(--surface)); stroke: var(--ink); stroke-width: 1.1; }
+.na-iot-train .na-iot-pt.test { stroke-width: 0.7; fill-opacity: 0.9; }
+.na-iot-train .na-iot-pt.test.wrong { stroke: var(--red); stroke-width: 1.2; }
+.na-iot-train .na-iot-wring { fill: none; stroke: var(--red); stroke-width: 1.4; }
+.na-iot-train .na-iot-flag { fill: none; stroke: var(--red); stroke-width: 1.8; stroke-dasharray: 3 2; }
+.na-iot-train .na-iot-flagx { font: 700 11px "Be Vietnam Pro", sans-serif; fill: var(--red); }
+.na-iot-train .na-iot-cross { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.55; }
+.na-iot-train .na-iot-marker { fill: color-mix(in srgb, var(--accent) 25%, transparent); stroke: var(--ink); stroke-width: 2.4; }
+.na-iot-train .na-iot-mlab { font: 700 10px "Be Vietnam Pro", sans-serif; fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 3px; }
+.na-iot-train .na-iot-side { display: grid; gap: 0.7rem; min-width: 0; }
+.na-iot-train .na-iot-counts, .na-iot-train .na-iot-card { border: 1px solid var(--line); border-radius: 10px; padding: 0.55rem 0.7rem; background: var(--paper); min-width: 0; }
+.na-iot-train .na-iot-crow { display: grid; grid-template-columns: 1.2rem minmax(5.5rem, auto) 1fr 2.6rem; align-items: center; gap: 0.4rem; font-size: 0.84rem; margin-top: 0.3rem; }
+.na-iot-train .na-iot-ctrack, .na-iot-train .na-iot-ptrack { height: 0.6rem; border-radius: 99px; background: color-mix(in srgb, var(--ink-soft) 14%, var(--surface)); overflow: hidden; }
+.na-iot-train .na-iot-cfill, .na-iot-train .na-iot-pfill { display: block; height: 100%; background: var(--c); }
+.na-iot-train .na-iot-cv, .na-iot-train .na-iot-pv { font: 600 0.8rem "IBM Plex Mono", monospace; text-align: right; }
+.na-iot-train .na-iot-crow.low .na-iot-cv { color: var(--amber); }
+.na-iot-train .na-iot-lie { margin-top: 0.4rem; font-size: 0.78rem; color: var(--red); }
+.na-iot-train .na-iot-bytes { font: 600 0.95rem "IBM Plex Mono", monospace; margin: 0.15rem 0 0.3rem; }
+.na-iot-train .na-iot-w { font-size: 0.78rem; }
+.na-iot-train .na-iot-loss { display: block; width: 100%; max-width: 220px; margin-top: 0.4rem; }
+.na-iot-train .na-iot-lossline { fill: none; stroke: var(--cmp-4); stroke-width: 2; }
+.na-iot-train .na-iot-tabs { margin-top: 0.8rem; }
+.na-iot-train .na-iot-tabs .na-tab { padding: 0.45rem 0.7rem; }
+.na-iot-train .na-iot-pred { margin-top: 0.3rem; }
+.na-iot-train .na-iot-ph { font-size: 0.95rem; margin-bottom: 0.3rem; }
+.na-iot-train .na-iot-prow { display: grid; grid-template-columns: minmax(8rem, 11rem) 1fr 3rem; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin: 0.2rem 0; }
+.na-iot-train .na-iot-pmsg { font-size: 0.88rem; margin-top: 0.4rem; color: var(--ink-soft); }
+.na-iot-train .na-iot-deploy { margin-top: 0.4rem; }
+.na-iot-train .na-iot-dtable td:first-child, .na-iot-train .na-iot-dtable th:first-child { font-family: "Be Vietnam Pro", sans-serif; }
+.na-iot-train .na-iot-dtable td { font-family: "Be Vietnam Pro", sans-serif; vertical-align: top; }
+.na-iot-train .na-iot-curve { display: block; width: 100%; max-width: 420px; }
+.na-iot-train .na-iot-cline { fill: none; stroke: var(--teal); stroke-width: 2.2; }
+.na-iot-train .na-iot-cdot { fill: var(--surface); stroke: var(--teal); stroke-width: 2; }
+.na-iot-train .na-iot-grid { stroke: var(--line); stroke-width: 1; }
+.na-iot-train .na-iot-curvebox { margin-top: 0.5rem; }
+@media (max-width: 560px) { .na-iot-train .na-iot-prow { grid-template-columns: minmax(6rem, 8rem) 1fr 2.6rem; } .na-iot-train .na-iot-crow { grid-template-columns: 1.1rem minmax(4.6rem, auto) 1fr 2.4rem; } }
+
+.na-iot-edgechain .na-iot-swipe { display: none; margin: 0 0 0.3rem; }
+@media (max-width: 640px) {
+  .na-iot-edgechain .na-iot-swipe { display: block; }
+  .na-iot-train .na-iot-axt { font-size: 15px; } .na-iot-train .na-iot-axl { font-size: 16px; } .na-iot-train .na-iot-mlab { font-size: 16px; }
+  .na-iot-train .na-iot-w th, .na-iot-train .na-iot-w td { padding: 0.2rem 0.3rem; }
+}

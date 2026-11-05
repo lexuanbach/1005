@@ -1,0 +1,155 @@
+/* Chapter 9 concept apps 9.7–9.9 (web, transfer, edge). Theme tokens only; every selector is prefixed with its app. */
+.na-web .na-try, .na-transfer .na-try, .na-edge .na-try { margin: 0 0 0.8rem; font-size: 0.88rem; color: var(--ink-soft); }
+.na-web .na-try b, .na-transfer .na-try b, .na-edge .na-try b { color: var(--teal-ink); }
+.na-web .na-tbl-scroll, .na-transfer .na-tbl-scroll, .na-edge .na-tbl-scroll { overflow-x: auto; }
+.na-web pre, .na-transfer pre { margin: 0; }
+
+/* ---------- 9.7 web ---------- */
+.na-web .p-scheme { --c: var(--cmp-1); } .na-web .p-host { --c: var(--cmp-2); } .na-web .p-port { --c: var(--cmp-3); }
+.na-web .p-path { --c: var(--cmp-5); } .na-web .p-query { --c: var(--cmp-4); } .na-web .p-fragment { --c: var(--cmp-10); }
+.na-web-urlview { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.1rem; padding: 0.9rem 0.8rem 0.6rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); font-family: "IBM Plex Mono", monospace; margin-bottom: 0.8rem; }
+.na-web-sep { font-size: 1.05rem; padding: 0.15rem 0; color: var(--ink-soft); }
+.na-web-seg { display: inline-flex; flex-direction: column; align-items: center; min-width: 0; }
+.na-web-txt { font-size: 1.05rem; padding: 0.15rem 0.3rem; border-radius: 6px 6px 0 0; background: color-mix(in srgb, var(--c) 18%, var(--surface)); border-bottom: 3px solid var(--c); color: var(--ink); overflow-wrap: anywhere; }
+.na-web-lbl { font-size: 0.64rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.15rem; color: color-mix(in srgb, var(--c) 70%, var(--ink)); }
+.na-web-seg.p-fragment .na-web-txt { border-bottom-style: dashed; }
+.na-web-seg.ghost { opacity: 0.8; margin: 0 0.1rem; }
+.na-web-seg.ghost .na-web-txt { background: transparent; border: 1px dashed var(--c); border-bottom-width: 3px; font-style: italic; color: var(--ink-soft); }
+.na-web-err { color: var(--red); font-family: "Be Vietnam Pro", sans-serif; font-size: 0.92rem; padding: 0.2rem 0.3rem 0.5rem; }
+.na-web-swatch { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 3px; vertical-align: -1px; background: color-mix(in srgb, var(--c) 40%, var(--surface)); border: 2px solid var(--c); }
+.na-web-swatch.p-fragment { border-style: dashed; }
+.na-web-ptable td.na-web-mean { font-family: "Be Vietnam Pro", sans-serif; color: var(--ink-soft); white-space: normal; min-width: 14rem; }
+.na-web-ptable td { vertical-align: top; overflow-wrap: anywhere; }
+.na-web-ptable td:first-child { white-space: nowrap; }
+.na-web-ptable td:nth-child(2) { min-width: 11rem; }
+.na-web-qtable { max-width: 22rem; margin-top: 0.5rem; }
+.na-web-send { border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.9rem; margin-top: 0.7rem; background: var(--surface); }
+.na-web-steps { margin: 0.2rem 0 0.4rem 1.2rem; font-size: 0.88rem; color: var(--ink-soft); }
+.na-web-pre { font: 500 0.8rem/1.5 "IBM Plex Mono", monospace; background: var(--code-bg); color: var(--code-text); border-radius: 8px; padding: 0.55rem 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.na-web-pre.dim { opacity: 0.6; }
+.na-web-pre.scr { color: var(--code-hl-pre); letter-spacing: 0.02em; }
+.na-web-drop { font-size: 0.85rem; margin-top: 0.4rem; padding-left: 0.6rem; border-left: 3px dashed var(--cmp-10); color: var(--ink-soft); }
+.na-web-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.8rem; }
+@media (max-width: 760px) { .na-web-pair { grid-template-columns: minmax(0, 1fr); } }
+.na-web-box { min-width: 0; }
+.na-web-box > .na-lab { margin-bottom: 0.25rem; }
+.na-web-status { font-size: 0.85rem; padding: 0.3rem 0.6rem; margin-bottom: 0.3rem; border-radius: 8px; border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 14%, var(--surface)); color: var(--ink); --c: var(--ink-soft); }
+.na-web-status b { color: color-mix(in srgb, var(--c) 60%, var(--ink)); }
+.na-web .f1 { --c: var(--cmp-8); } .na-web .f2 { --c: var(--green); } .na-web .f3 { --c: var(--cmp-3); } .na-web .f4 { --c: var(--cmp-7); } .na-web .f5 { --c: var(--red); }
+.na-web td.na-web-stc { font-weight: 600; color: color-mix(in srgb, var(--c) 65%, var(--ink)); white-space: nowrap; }
+.na-web-log tr[role="button"] { cursor: pointer; }
+.na-web-log tr.sel td { background: color-mix(in srgb, var(--teal) 14%, transparent); }
+.na-web-log tr:hover td { background: color-mix(in srgb, var(--teal) 8%, transparent); }
+.na-web-log td.na-web-why { font-family: "Be Vietnam Pro", sans-serif; color: var(--ink-soft); white-space: normal; min-width: 8rem; }
+.na-web-logbox { min-width: 0; }
+.na-web-cap { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.35rem; }
+.na-web-wire { border: 1px dashed color-mix(in srgb, var(--amber) 60%, var(--line)); border-radius: 10px; padding: 0.55rem 0.7rem; background: color-mix(in srgb, var(--amber) 6%, var(--surface)); }
+
+/* ---------- 9.8 transfer ---------- */
+.na-tr-conv { font-size: 0.86rem; color: var(--ink-soft); margin: 0.2rem 0 0.4rem; }
+.na-tr-lane { font: 700 12px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-tr-sub { font: 500 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-tr-sub.d { fill: color-mix(in srgb, var(--cmp-1) 70%, var(--ink)); } .na-tr-sub.a { fill: color-mix(in srgb, var(--cmp-6) 75%, var(--ink)); }
+.na-tr-wait { font: 600 11px "Be Vietnam Pro", sans-serif; fill: var(--red); }
+.na-tr-laneBg { fill: color-mix(in srgb, var(--ink-soft) 8%, var(--paper)); stroke: var(--line); }
+.na-tr-cartoon { margin-top: 0.6rem; }
+.na-tr-slots { display: flex; flex-wrap: wrap; gap: 3px; }
+.na-tr-slot { width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font: 700 0.72rem "IBM Plex Mono", monospace; border: 2px solid; }
+.na-tr-slot.a { background: color-mix(in srgb, var(--cmp-1) 30%, var(--surface)); border-color: var(--cmp-1); color: var(--ink); }
+.na-tr-slot.b { background: var(--cmp-7); border-color: var(--cmp-7); color: #fff; }
+.na-tr-slot.idle { border-style: dashed; border-color: var(--line); }
+.na-tr-side { min-width: 0; }
+.na-tr-gap { margin-top: 0.8rem; }
+.na-tr-got { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; margin-top: 0.6rem; }
+.na-tr-pk { width: 1.7rem; height: 1.7rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; border: 2px dashed var(--line); font: 600 0.78rem "IBM Plex Mono", monospace; color: var(--ink-soft); }
+.na-tr-pk.on { border-style: solid; border-color: var(--green); background: color-mix(in srgb, var(--green) 16%, var(--surface)); color: var(--ink); }
+.na-tr-axis { stroke: var(--ink-soft); stroke-width: 1.4; }
+.na-tr-arrow { stroke-width: 2.2; fill: none; stroke-linecap: round; }
+.na-tr-arrow.data { stroke: var(--cmp-1); } .na-tr-arrow.rtx { stroke: var(--cmp-7); stroke-width: 2.8; } .na-tr-arrow.ack { stroke: var(--cmp-6); stroke-dasharray: 5 3; }
+.na-tr-arrow.lost { opacity: 0.75; }
+.na-tr-head.data { fill: var(--cmp-1); } .na-tr-head.rtx { fill: var(--cmp-7); } .na-tr-head.ack { fill: var(--cmp-6); }
+.na-tr-x { font: 700 14px sans-serif; fill: var(--red); }
+.na-tr-to { font: 600 10px "IBM Plex Mono", monospace; fill: var(--amber); }
+.na-tr-cursor { stroke: var(--teal); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.na-tr-cmp tr.sel td, .na-tr-fwd tr.sel td { background: color-mix(in srgb, var(--teal) 14%, transparent); }
+.na-tr-cmp td.na-best { color: var(--green); font-weight: 700; }
+.na-tr-edge { stroke: color-mix(in srgb, var(--ink-soft) 75%, var(--paper)); stroke-width: 2.4; }
+.na-tr-edge.tree { stroke: var(--cmp-10); stroke-width: 3.4; }
+.na-tr-edge.flash { stroke: var(--cmp-3); stroke-width: 4; }
+.na-tr-edge.path { stroke: var(--teal); stroke-width: 6; }
+.na-tr-edge.cut { stroke: var(--red); stroke-dasharray: 6 5; stroke-width: 2; opacity: 0.8; }
+.na-tr-ehit { cursor: pointer; outline: none; }
+.na-tr-ehit:focus-visible .na-tr-cost { stroke: var(--accent); stroke-width: 3; }
+.na-tr-cost { fill: var(--surface); stroke: var(--ink-soft); stroke-width: 1.2; }
+.na-tr-cost.cut { stroke: var(--red); fill: color-mix(in srgb, var(--red) 12%, var(--surface)); }
+.na-tr-costt { font: 700 12px "IBM Plex Mono", monospace; fill: var(--ink); pointer-events: none; }
+.na-tr-ehit:hover .na-tr-cost { stroke: var(--teal); stroke-width: 2; }
+.na-tr-node { cursor: pointer; outline: none; }
+.na-tr-node circle { fill: var(--surface); stroke: var(--ink-soft); stroke-width: 2.4; }
+.na-tr-node.settled circle { fill: color-mix(in srgb, var(--cmp-2) 22%, var(--surface)); stroke: var(--cmp-2); }
+.na-tr-node.now circle { stroke: var(--cmp-3); stroke-width: 5; }
+.na-tr-node.src circle { stroke-width: 4; stroke: var(--cmp-1); }
+.na-tr-node.dst circle { stroke-width: 4; stroke: var(--teal); stroke-dasharray: 5 3; }
+.na-tr-node:focus-visible circle { stroke: var(--accent); stroke-width: 5; }
+.na-tr-nname { font: 700 15px "Be Vietnam Pro", sans-serif; fill: var(--ink); pointer-events: none; }
+.na-tr-ndist { font: 600 12px "IBM Plex Mono", monospace; fill: var(--ink-soft); pointer-events: none; }
+.na-tr-tag { font: 700 10px "IBM Plex Mono", monospace; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--teal-ink); pointer-events: none; }
+.na-tr-dist tr.now td { background: color-mix(in srgb, var(--cmp-3) 22%, transparent); }
+.na-tr-dist tr.settled td:first-child { color: var(--cmp-2); font-weight: 700; }
+
+/* ---------- 9.9 edge ---------- */
+.na-ed-road { fill: color-mix(in srgb, var(--ink-soft) 30%, var(--paper)); stroke: var(--line); }
+.na-ed-lane { stroke: var(--paper); stroke-width: 2; stroke-dasharray: 14 10; }
+.na-ed-zl { font: 600 11px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-ed-zl.a { fill: var(--amber); } .na-ed-zl.r { fill: var(--red); }
+.na-ed-stopmark { stroke: var(--red); stroke-width: 2; stroke-dasharray: 3 3; }
+.na-ed-ruler { stroke: var(--ink-soft); stroke-width: 1.4; marker-start: none; }
+.na-ed-obs rect { fill: color-mix(in srgb, var(--cmp-7) 70%, var(--surface)); stroke: var(--cmp-7); stroke-width: 2; }
+.na-ed-obsst { stroke: var(--surface); stroke-width: 4; fill: none; opacity: 0.8; }
+.na-ed-body { fill: color-mix(in srgb, var(--cmp-1) 70%, var(--surface)); stroke: var(--cmp-1); stroke-width: 2; }
+.na-ed-wheel { fill: var(--ink); stroke: var(--paper); stroke-width: 2; }
+.na-ed-cam { fill: var(--cmp-2); stroke: var(--ink); stroke-width: 1.5; }
+.na-ed-brake { fill: color-mix(in srgb, var(--red) 25%, var(--surface)); stroke: var(--red); }
+.na-ed-brake.on { fill: var(--red); filter: drop-shadow(0 0 4px var(--red)); }
+.na-ed-brakeray { stroke: var(--red); stroke-width: 2.5; stroke-linecap: round; }
+.na-ed-cl { fill: color-mix(in srgb, var(--cmp-5) 22%, var(--surface)); stroke: var(--cmp-5); stroke-width: 2; }
+.na-ed-cloud.down .na-ed-cl { stroke: var(--red); stroke-dasharray: 5 4; fill: var(--surface); }
+.na-ed-clt { font: 700 11px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-ed-wave { stroke: var(--cmp-5); stroke-width: 2; stroke-dasharray: 2 6; stroke-linecap: round; fill: none; }
+.na-ed-wave.down { stroke: var(--red); opacity: 0.6; }
+.na-ed-x { font: 700 12px "Be Vietnam Pro", sans-serif; fill: var(--red); }
+.na-ed-boom { fill: var(--amber); stroke: var(--red); stroke-width: 2.5; }
+.na-ed-boomt { font: 800 9px "Archivo", sans-serif; fill: var(--ink); }
+.na-ed-safe { font: 700 13px "Be Vietnam Pro", sans-serif; fill: var(--green); }
+.na-ed-bar { margin-top: 0.7rem; }
+.na-ed-seg { display: flex; gap: 2px; height: 2rem; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--paper); margin: 0.25rem 0; }
+.na-ed-part { display: flex; align-items: center; justify-content: center; min-width: 4px; background: color-mix(in srgb, var(--c) 55%, var(--surface)); border-right: 2px solid var(--c); font: 700 0.85rem "IBM Plex Mono", monospace; color: var(--ink); }
+.na-ed-part.inf { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--red) 25%, var(--surface)) 0 6px, var(--surface) 6px 12px); border-right-color: var(--red); }
+.na-ed-cmp { margin-top: 0.4rem; }
+.na-ed-table tr.sel td { background: color-mix(in srgb, var(--teal) 14%, transparent); }
+.na-ed-table td.na-ok { color: var(--green); font-weight: 600; } .na-ed-table td.na-bad { color: var(--red); font-weight: 600; }
+.na-ed-fine { display: block; margin-top: 0.3rem; font-size: 0.82rem; color: var(--ink-soft); }
+.na-ed-bill { margin-top: 0.9rem; }
+.na-ed-billbox { border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 0.9rem; background: var(--paper); }
+.na-ed-brow { display: grid; grid-template-columns: minmax(8rem, 15rem) minmax(0, 1fr) 6rem; gap: 0.6rem; align-items: center; margin: 0.45rem 0; font-size: 0.82rem; }
+@media (max-width: 560px) { .na-ed-brow { grid-template-columns: minmax(0, 1fr); gap: 0.15rem; } }
+.na-ed-btrack { height: 1.1rem; background: color-mix(in srgb, var(--ink-soft) 10%, var(--surface)); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.na-ed-bfill { display: block; height: 100%; }
+.na-ed-bfill.c { background: var(--cmp-5); } .na-ed-bfill.e { background: var(--cmp-2); }
+.na-ed-bv { font: 600 0.82rem "IBM Plex Mono", monospace; text-align: right; }
+@media (max-width: 560px) { .na-ed-bv { text-align: left; } }
+
+.na-tr-stack { display: grid; gap: 0.8rem; }
+.na-tr-arqstage { max-width: 46rem; margin: 0 auto; width: 100%; }
+.na-tr-stack .na-tr-side { max-width: 46rem; margin: 0 auto; width: 100%; }
+.na-web .na-cols[hidden] { display: none; }
+.na-tr-sub.d, .na-tr-sub.a { paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round; }
+.na-tr-arqstage { overflow-x: auto; }
+@media (max-width: 640px) {
+  .na-tr-arqstage svg { min-width: 520px; }
+  .na-web td.na-web-stc { white-space: normal; }
+  .na-web-log td.na-web-why { min-width: 6rem; }
+}
+.na-transfer .na-stage, .na-edge .na-stage { overflow-x: auto; }
+.na-ed-table td { white-space: nowrap; }
+@media (max-width: 640px) { .na-transfer .na-stage svg, .na-edge .na-stage svg { min-width: 500px; } }

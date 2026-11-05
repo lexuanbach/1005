@@ -1,0 +1,108 @@
+/* Apps cookies (9.7) and atk-syn / atk-ddos / atk-url (9.10). Theme tokens only; every selector is prefixed with its app. */
+.na-cookies .na-try, .na-atk-syn .na-try, .na-atk-ddos .na-try, .na-atk-url .na-try { margin: 0 0 0.8rem; font-size: 0.88rem; color: var(--ink-soft); }
+.na-cookies .na-try b, .na-atk-syn .na-try b, .na-atk-ddos .na-try b, .na-atk-url .na-try b { color: var(--teal-ink); }
+.na-cookies .na-chkrow, .na-atk-syn .na-chkrow, .na-atk-ddos .na-chkrow { display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; align-items: center; }
+.na-cookies .na-chk, .na-atk-syn .na-chk, .na-atk-ddos .na-chk { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.86rem; color: var(--ink); cursor: pointer; }
+.na-cookies .na-chk input, .na-atk-syn .na-chk input, .na-atk-ddos .na-chk input { width: 1.05rem; height: 1.05rem; accent-color: var(--teal); }
+.na-cookies .na-chk.off, .na-atk-syn .na-chk.off, .na-atk-ddos .na-chk.off { opacity: 0.5; cursor: not-allowed; }
+.na-cookies .na-tbl-scroll-x, .na-atk-syn .na-tbl-scroll-x, .na-atk-ddos .na-tbl-scroll-x, .na-atk-url .na-tbl-scroll-x { overflow-x: auto; }
+.na-cookies .na-table tr.bad td, .na-atk-url .na-table tr.bad td { color: var(--red); }
+.na-cookies .na-note, .na-atk-syn .na-note, .na-atk-ddos .na-note, .na-atk-url .na-note { margin-top: 0.6rem; }
+.na-cookies .na-cols, .na-atk-syn .na-cols { margin-top: 0.4rem; }
+
+/* ---------- cookies ---------- */
+.na-cookies-stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); gap: 0.7rem; align-items: start; margin-top: 0.4rem; }
+@media (max-width: 900px) { .na-cookies-stage { grid-template-columns: minmax(0, 1fr); } }
+.na-cookies-card { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); padding: 0.6rem 0.75rem; min-width: 0; }
+.na-cookies-card.brw { border-top: 3px solid var(--cmp-1); } .na-cookies-card.srv { border-top: 3px solid var(--cmp-2); }
+.na-cookies-h { font: 700 0.95rem "Be Vietnam Pro", sans-serif; margin-bottom: 0.35rem; color: var(--ink); }
+.na-cookies-jar, .na-cookies-sess { border: 1px dashed var(--line); border-radius: 8px; padding: 0.4rem 0.55rem; background: var(--surface); margin-bottom: 0.45rem; font-size: 0.82rem; color: var(--ink-soft); overflow-wrap: anywhere; min-height: 2.2rem; }
+.na-cookies-jar .na-mono { color: var(--ink); }
+.na-cookies-pills { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.3rem; }
+.na-cookies-pill { font: 600 0.68rem "IBM Plex Mono", monospace; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); white-space: nowrap; }
+.na-cookies-pill.a { --c: var(--cmp-2); } .na-cookies-pill.b { --c: var(--cmp-5); } .na-cookies-pill.c { --c: var(--cmp-3); } .na-cookies-pill.d { --c: var(--cmp-8); }
+.na-cookies-pill.a, .na-cookies-pill.b, .na-cookies-pill.c, .na-cookies-pill.d { border-color: var(--c); color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: color-mix(in srgb, var(--c) 10%, var(--paper)); }
+.na-cookies-pill.ok { border-color: var(--green); color: var(--green); } .na-cookies-pill.x { border-color: var(--red); color: var(--red); text-decoration: line-through; }
+.na-cookies-page { border: 1px solid var(--line); border-radius: 8px; padding: 0.45rem 0.6rem; min-height: 2.4rem; background: var(--surface); font-size: 0.88rem; color: var(--ink); }
+.na-cookies-wire { min-width: 0; }
+.na-cookies-dir { font: 600 0.7rem "IBM Plex Mono", monospace; color: var(--ink-soft); margin: 0.35rem 0 0.15rem; letter-spacing: 0.04em; }
+.na-cookies-pre { margin: 0; font: 500 0.76rem/1.5 "IBM Plex Mono", monospace; background: var(--code-bg); color: var(--code-text); border-radius: 8px; padding: 0.45rem 0.65rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.na-cookies-pre.res { border-left: 3px solid var(--cmp-2); } .na-cookies-pre:not(.res) { border-left: 3px solid var(--cmp-1); }
+.na-cookies-pre .hot { background: color-mix(in srgb, var(--code-hl-fn) 28%, transparent); color: var(--code-hl-fn); border-radius: 3px; padding: 0 0.15rem; font-weight: 600; }
+.na-cookies-empty { font-size: 0.86rem; color: var(--ink-soft); padding: 0.6rem 0.3rem; }
+.na-cookies-srow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.55rem; font-size: 0.8rem; padding: 0.1rem 0; }
+.na-cookies-srow.dead .na-mono { text-decoration: line-through; color: var(--ink-soft); }
+.na-cookies-log td { font-size: 0.74rem; white-space: nowrap; }
+.na-cookies .flash { animation: na-cookies-flash 1.1s ease-out; }
+.na-cookies .na-cookies-pre.flash { animation: na-cookies-flash-pre 1.1s ease-out; }
+@keyframes na-cookies-flash-pre { 0% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 60%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@keyframes na-cookies-flash { 0% { background: color-mix(in srgb, var(--teal) 32%, var(--surface)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 45%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.na-cookies-atk { margin-top: 0.8rem; padding: 0.6rem 0.8rem 0.8rem; border: 1.5px dashed color-mix(in srgb, var(--red) 55%, var(--line)); border-radius: 12px; background: color-mix(in srgb, var(--red) 5%, var(--surface)); }
+.na-cookies-atk-h { font: 700 0.76rem "IBM Plex Mono", monospace; letter-spacing: 0.04em; text-transform: uppercase; color: var(--red); margin-bottom: 0.45rem; }
+.na-cookies-seen { font-size: 0.84rem; color: var(--ink-soft); display: grid; gap: 0.25rem; margin-bottom: 0.3rem; }
+.na-cookies-seen .na-mono { color: var(--ink); overflow-wrap: anywhere; } .na-cookies-seen .scr { color: var(--code-hl-pre); }
+.na-cookies-stolen { font-size: 0.86rem; padding: 0.35rem 0.6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); overflow-wrap: anywhere; }
+.na-cookies-stolen.has { border-color: var(--red); background: color-mix(in srgb, var(--red) 9%, var(--paper)); }
+
+/* ---------- atk-syn ---------- */
+.na-atk-syn-slot rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.2; }
+.na-atk-syn-slot text { font: 700 13px "IBM Plex Mono", monospace; pointer-events: none; }
+.na-atk-syn-slot.l rect { fill: color-mix(in srgb, var(--cmp-2) 30%, var(--surface)); stroke: var(--cmp-2); stroke-width: 2; }
+.na-atk-syn-slot.l text { fill: var(--cmp-2); }
+.na-atk-syn-slot.a rect { fill: color-mix(in srgb, var(--cmp-4) 22%, var(--surface)); stroke: var(--cmp-4); stroke-width: 2; stroke-dasharray: 4 2.5; }
+.na-atk-syn-slot.a text { fill: var(--cmp-4); }
+.na-atk-syn-arr { margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; min-height: 1.8rem; font-size: 0.8rem; color: var(--ink-soft); }
+.na-atk-syn-arr-c { font: 500 0.7rem "IBM Plex Mono", monospace; padding: 0.1rem 0.45rem; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.na-atk-syn-arr-c.l { border-color: var(--cmp-2); } .na-atk-syn-arr-c.a { border-color: var(--cmp-4); border-style: dashed; }
+.na-atk-syn-arr-c.full { color: var(--red); }
+.na-atk-syn-grid { stroke: var(--line); stroke-width: 1; }
+.na-atk-syn-tl { font: 500 9.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-syn-line { fill: none; stroke-width: 2.6; }
+.na-atk-syn-line.ok { stroke: var(--cmp-2); } .na-atk-syn-line.no { stroke: var(--cmp-4); stroke-dasharray: 6 4; }
+.na-atk-syn-lbl { font: 700 10.5px "Be Vietnam Pro", sans-serif; } .na-atk-syn-lbl.ok { fill: var(--cmp-2); } .na-atk-syn-lbl.no { fill: var(--cmp-4); }
+.na-atk-syn-cur { stroke: var(--ink-soft); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.na-atk-syn input[type="range"] { min-width: 6rem; }
+
+/* ---------- atk-ddos ---------- */
+.na-atk-ddos-line { fill: none; stroke-linecap: round; opacity: 0.85; }
+.na-atk-ddos-line.q { stroke: var(--cmp-3); } .na-atk-ddos-line.a { stroke: var(--cmp-4); } .na-atk-ddos-line.cmd { stroke: var(--ink-soft); stroke-dasharray: 3 4; } .na-atk-ddos-line.none { stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.na-atk-ddos-node rect { fill: color-mix(in srgb, var(--c, var(--ink-soft)) 14%, var(--surface)); stroke: var(--c, var(--line)); stroke-width: 2; }
+.na-atk-ddos-node.atk { --c: var(--cmp-4); } .na-atk-ddos-node.vic { --c: var(--cmp-2); } .na-atk-ddos-node.vic.bad { --c: var(--red); } .na-atk-ddos-node.vic.bad rect { stroke-dasharray: 5 3; }
+.na-atk-ddos-node .nm { font: 700 12.5px "Be Vietnam Pro", sans-serif; fill: var(--ink); } .na-atk-ddos-node .sb { font: 500 9.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-ddos-ref rect { fill: var(--surface); stroke: var(--cmp-5); stroke-width: 1.6; } .na-atk-ddos-ref text { font: 600 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-ddos-bot { fill: color-mix(in srgb, var(--cmp-4) 20%, var(--surface)); stroke: var(--cmp-4); stroke-width: 1.6; } .na-atk-ddos-botg { font-size: 10px; fill: var(--cmp-4); }
+.na-atk-ddos-cap { font: 500 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-atk-ddos-ok { font: 700 11px "Be Vietnam Pro", sans-serif; fill: var(--green); }
+.na-atk-ddos-cdn rect { fill: color-mix(in srgb, var(--cmp-8) 18%, var(--surface)); stroke: var(--cmp-8); stroke-width: 2; } .na-atk-ddos-cdn text { font: 700 11px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-atk-ddos-bar { margin: 0.6rem 0 0.2rem; }
+.na-atk-ddos-track { position: relative; height: 20px; margin: 1.5rem 0 0.5rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+.na-atk-ddos-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 9px; transition: width 0.25s; }
+.na-atk-ddos-fill.atk { background: color-mix(in srgb, var(--cmp-4) 60%, var(--surface)); } .na-atk-ddos-fill.atk.over { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--red) 62%, var(--surface)), color-mix(in srgb, var(--red) 62%, var(--surface)) 6px, color-mix(in srgb, var(--red) 40%, var(--surface)) 6px, color-mix(in srgb, var(--red) 40%, var(--surface)) 12px); }
+.na-atk-ddos-fill.legit { background: var(--cmp-2); border-radius: 9px 0 0 9px; border-right: 2px solid var(--surface); }
+.na-atk-ddos-cap-mark { position: absolute; top: -5px; bottom: -5px; width: 0; border-left: 2px dashed var(--ink); font-style: normal; }
+.na-atk-ddos-cap-mark b { position: absolute; top: -1.15rem; left: 0; transform: translateX(-50%); white-space: nowrap; font: 500 0.66rem "IBM Plex Mono", monospace; color: var(--ink); }
+
+/* ---------- atk-url ---------- */
+.na-atk-url-hdr { font: 600 0.82rem "IBM Plex Mono", monospace; color: var(--ink-soft); flex: 1 1 14rem; }
+.na-atk-url-card { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 0.75rem 0.8rem 0.6rem; margin-bottom: 0.6rem; }
+.na-atk-url-view { font: 500 1.02rem/1.55 "IBM Plex Mono", monospace; overflow-wrap: anywhere; word-break: break-all; color: var(--ink); padding: 0.2rem 0 0.3rem; }
+.na-atk-url-s { color: var(--ink-soft); }
+.na-atk-url-ui { color: var(--cmp-4); text-decoration: line-through; text-decoration-thickness: 2px; background: color-mix(in srgb, var(--cmp-4) 12%, transparent); border-radius: 4px; padding: 0 0.1rem; }
+.na-atk-url-sub { color: color-mix(in srgb, var(--cmp-3) 80%, var(--ink)); background: color-mix(in srgb, var(--cmp-3) 18%, transparent); border-bottom: 3px solid var(--cmp-3); border-radius: 4px 0 0 0; padding: 0 0.1rem; }
+.na-atk-url-reg { color: var(--ink); font-weight: 700; background: color-mix(in srgb, var(--cmp-2) 25%, transparent); border-bottom: 3px solid var(--cmp-2); border-radius: 0 4px 0 0; padding: 0 0.1rem; }
+.na-atk-url-rest { color: var(--ink-soft); }
+.na-atk-url-err { color: var(--red); font: 500 0.9rem "Be Vietnam Pro", sans-serif; padding: 0.2rem 0; }
+.na-atk-url-fb { margin: 0.3rem 0 0; }
+.na-atk-url-verdict { font-weight: 700; padding: 0.4rem 0.7rem; border-radius: 8px; border: 1px solid var(--line); margin-bottom: 0.4rem; }
+.na-atk-url-verdict.ok { color: var(--green); border-color: var(--green); background: color-mix(in srgb, var(--green) 8%, var(--paper)); }
+.na-atk-url-verdict.bad { color: var(--red); border-color: var(--red); background: color-mix(in srgb, var(--red) 8%, var(--paper)); }
+.na-atk-url-owner { font-size: 0.9rem; margin: 0.2rem 0 0.3rem; color: var(--ink-soft); } .na-atk-url-owner b { color: var(--ink); }
+.na-atk-url-flags { list-style: none; margin: 0.2rem 0 0.3rem; padding: 0; display: grid; gap: 0.3rem; }
+.na-atk-url-flags li { font-size: 0.86rem; padding: 0.35rem 0.6rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); }
+.na-atk-url-flags li b { color: var(--ink); }
+.na-atk-url-flags li.red { border-left: 4px solid var(--red); } .na-atk-url-flags li.info { border-left: 4px solid var(--cmp-1); } .na-atk-url-flags li.ok { border-left: 4px solid var(--green); }
+.na-atk-url-why { font-size: 0.86rem; color: var(--ink-soft); margin: 0.2rem 0; }
+.na-atk-url-big { font: 700 1.5rem "Be Vietnam Pro", sans-serif; margin: 0.2rem 0 0.5rem; color: var(--ink); }
+.na-atk-url-facts td:first-child { font-family: "Be Vietnam Pro", sans-serif; color: var(--ink-soft); white-space: nowrap; }
+.na-atk-url input[type="text"] { width: 100%; }
+@media (max-width: 520px) { .na-atk-url-view { font-size: 0.9rem; } }

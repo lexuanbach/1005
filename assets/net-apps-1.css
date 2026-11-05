@@ -1,0 +1,77 @@
+/* Apps 9.1–9.3 — every rule is prefixed with the app's own class. Theme tokens only. */
+
+/* ---------- 9.1 reach ---------- */
+.na-reach-band rect { fill: color-mix(in srgb, var(--c) 22%, var(--surface)); stroke: var(--c); stroke-width: 1.5; }
+.na-reach-band text { font: 700 12px "Be Vietnam Pro", sans-serif; fill: color-mix(in srgb, var(--c) 55%, var(--ink)); pointer-events: none; }
+.na-reach-band.on rect { fill: color-mix(in srgb, var(--c) 50%, var(--surface)); stroke-width: 3; }
+.na-reach-tick { stroke: var(--ink-soft); stroke-width: 1.2; }
+.na-reach-tl { font: 500 9.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-reach-mk path { fill: var(--ink); } .na-reach-mk line { stroke: var(--ink); stroke-width: 2; }
+.na-reach-mk text { font: 700 12px "IBM Plex Mono", monospace; fill: var(--ink); }
+.na-reach-info { font-size: 0.9rem; color: var(--ink-soft); margin: 0.2rem 0 0.7rem; }
+.na-reach-info b { color: var(--ink); }
+.na-reach-bar { position: relative; height: 18px; margin: 1.5rem 0 0.4rem; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); }
+.na-reach-fill { height: 100%; border-radius: 8px; background: color-mix(in srgb, var(--cmp-3) 70%, var(--surface)); transition: width .25s; }
+.na-reach-over { position: absolute; right: 8px; top: 0; font: 600 0.7rem/16px "IBM Plex Mono", monospace; color: var(--ink); }
+.na-reach-ref { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 2px dashed var(--ink-soft); font-style: normal; }
+.na-reach-ref b { position: absolute; top: -1.1rem; left: 0; transform: translateX(-50%); white-space: nowrap; font: 500 0.66rem "IBM Plex Mono", monospace; color: var(--ink-soft); }
+.na-reach-ref:last-child b { transform: translateX(-100%); }
+
+/* ---------- 9.2 share ---------- */
+.na-share-srv rect { fill: color-mix(in srgb, var(--cmp-2) 20%, var(--surface)); stroke: var(--cmp-2); stroke-width: 2.5; }
+.na-share-srv text { font: 700 13px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-share-srv.dead rect { fill: color-mix(in srgb, var(--red) 15%, var(--surface)); stroke: var(--red); stroke-dasharray: 5 3; }
+.na-share-srv.dead text { fill: var(--red); }
+.na-share-box { fill: var(--surface); stroke: var(--ink-soft); stroke-width: 1.2; }
+.na-share-cell { fill: var(--paper); stroke: color-mix(in srgb, var(--line) 80%, transparent); stroke-width: 0.5; }
+.na-share-cell.on { stroke: var(--surface); }
+.na-share-pl { font: 600 9px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-share-ok { font: 700 11px sans-serif; fill: var(--green); }
+.na-share-edge { stroke-width: 1.6; opacity: .55; }
+.na-share-edge.srv { stroke-width: 2.4; opacity: .8; stroke-dasharray: 5 3; }
+.na-share-tok { stroke: var(--ink); stroke-width: 1.2; }
+.na-share-grid { stroke: var(--line); stroke-width: 1; }
+.na-share-tl { font: 500 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-share-line { fill: none; stroke-width: 2.6; }
+.na-share-l-cs { stroke: var(--cmp-4); color: var(--cmp-4); fill: none; } .na-share-l-p2p { stroke: var(--cmp-2); color: var(--cmp-2); }
+.na-share-line.na-share-l-p2p { stroke-dasharray: 7 4; }
+rect.na-share-dot.na-share-l-p2p { fill: var(--cmp-2); stroke: var(--surface); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; transform: rotate(45deg); }
+circle.na-share-dot.na-share-l-cs { fill: var(--cmp-4); stroke: var(--surface); stroke-width: 1.5; }
+.na-share-lbl { font: 700 10.5px "Be Vietnam Pro", sans-serif; stroke: none; }
+text.na-share-l-cs { fill: var(--cmp-4); } text.na-share-l-p2p { fill: var(--cmp-2); }
+.na-share-cur { stroke: var(--ink-soft); stroke-width: 1.2; stroke-dasharray: 3 3; }
+
+/* ---------- 9.3 devices ---------- */
+.na-devices-fw { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--ink); align-self: center; }
+.na-devices-fw input { accent-color: var(--teal); }
+.na-devices-lan { fill: color-mix(in srgb, var(--cmp-8) 5%, transparent); stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.na-devices-lt { font: 600 11px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-devices-wire { stroke: color-mix(in srgb, var(--ink-soft) 75%, var(--paper)); stroke-width: 2.4; }
+.na-devices-node rect { fill: color-mix(in srgb, var(--c, var(--cmp-1)) 12%, var(--surface)); stroke: var(--c, var(--cmp-1)); stroke-width: 2; }
+.na-devices-node.host { --c: var(--cmp-1); cursor: pointer; }
+.na-devices-node.hub { --c: var(--cmp-3); } .na-devices-node.switch { --c: var(--cmp-8); } .na-devices-node.router { --c: var(--cmp-5); }
+.na-devices-cols { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+@media (max-width: 820px) { .na-devices-cols { grid-template-columns: minmax(0, 1fr); } }
+.na-devices-nm { font: 700 13px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-devices-sub { font: 500 10.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-devices-badge { font: 700 10.5px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-devices-node.host:hover rect, .na-devices-node.host:focus-visible rect { stroke-width: 3.5; }
+.na-devices-node.host:focus-visible { outline: none; }
+.na-devices-node.src rect { stroke-width: 4; }
+.na-devices-node.ok rect { stroke: var(--green); stroke-width: 3.5; fill: color-mix(in srgb, var(--green) 16%, var(--surface)); }
+.na-devices-node.ok .na-devices-badge { fill: var(--green); }
+.na-devices-node.heard rect { stroke: var(--amber); stroke-width: 2.5; stroke-dasharray: 5 3; fill: color-mix(in srgb, var(--amber) 12%, var(--surface)); }
+.na-devices-node.heard .na-devices-badge { fill: var(--amber); }
+.na-devices-node.drop rect { stroke: var(--red); stroke-width: 3.5; fill: color-mix(in srgb, var(--red) 14%, var(--surface)); }
+.na-devices-node.drop .na-devices-badge { fill: var(--red); }
+.na-devices-tok rect { fill: var(--surface); stroke: var(--cmp-4); stroke-width: 2; }
+.na-devices-tok text { font: 700 9.5px "IBM Plex Mono", monospace; fill: var(--ink); }
+.na-devices-tok.ghost rect { stroke-dasharray: 3 2; stroke: var(--amber); }
+.na-devices-cap { text-align: left; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); padding: 0.5rem 0 0.2rem; }
+.na-devices-side table { margin-bottom: 0.4rem; }
+.na-devices-empty { color: var(--ink-soft); font-family: inherit !important; font-style: italic; }
+.na-devices-side td.chg { background: color-mix(in srgb, var(--amber) 22%, transparent); font-weight: 700; }
+
+.na-devices-stage { overflow-x: auto; }
+.na-devices-scroll { overflow-x: auto; }
+@media (max-width: 640px) { .na-devices-svg.rt { min-width: 500px; } .na-devices-scroll table { min-width: 30rem; } }

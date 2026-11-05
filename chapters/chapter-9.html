@@ -10,6 +10,15 @@
 <link rel="stylesheet" href="../assets/packet-journey.css">
 <link rel="stylesheet" href="../assets/app-fullscreen.css">
 <link rel="stylesheet" href="../assets/fs-network.css">
+<link rel="stylesheet" href="../assets/net-apps.css">
+<link rel="stylesheet" href="../assets/net-apps-1.css">
+<link rel="stylesheet" href="../assets/net-apps-2.css">
+<link rel="stylesheet" href="../assets/net-apps-3.css">
+<link rel="stylesheet" href="../assets/net-apps-4.css">
+<link rel="stylesheet" href="../assets/net-apps-5.css">
+<link rel="stylesheet" href="../assets/net-apps-6.css">
+<link rel="stylesheet" href="../assets/net-apps-7.css">
+<link rel="stylesheet" href="../assets/net-apps-8.css">
 </head>
 <body class="part2">
 
@@ -104,7 +113,7 @@
       </p>
       <div class="meta-chips">
         <a class="chip" href="../demos/network-builder.html">Demo app: Network Builder</a>
-        <a class="chip" href="#concepts">9 concepts</a>
+        <a class="chip" href="#concepts">10 concepts, each with interactive apps</a>
         <a class="chip" href="#lab">Packet Journey lab</a>
         <a class="chip" href="#quiz">28-question quiz</a>
         <a class="chip" href="#exercises">6 exercises</a>
@@ -120,6 +129,7 @@
       <div class="sec-head">
         <span class="eyebrow">01 · Learn the concepts</span>
         <h2>From a typed URL to a page on the screen</h2>
+        <p>Every concept comes with a small <strong>interactive app</strong> (look for the <em>Interactive</em> badge): drag, click and break things to see the mechanism work, then read the explanation again.</p>
       </div>
       <figure class="photo banner">
         <img src="../assets/lecture-images/ch9-rack-switches.jpg" width="1100" height="825"
@@ -173,6 +183,8 @@
           machines, each with its own CPU and memory, exchanging messages instead of electrical
           signals on a motherboard.
         </div>
+        <div data-na-app="reach"></div>
+
       </div>
 
       <div class="concept wide">
@@ -225,6 +237,8 @@
             <tr><td>Streaming, voice/video calls</td><td>RTP, SIP, proprietary</td><td>usually UDP</td><td>late packets are useless, so speed beats perfect delivery</td></tr>
           </table>
         </div>
+        <div data-na-app="share"></div>
+
       </div>
 
       <div class="concept wide">
@@ -259,6 +273,8 @@
           server". A proxy is one way to build a firewall, but not the only one; most firewalls
           simply inspect and filter packets as they pass.
         </div>
+        <div data-na-app="devices"></div>
+
       </div>
 
       <div class="concept wide">
@@ -323,6 +339,8 @@
           distribution → core). A modern lab or dorm floor is a star of stars: the best compromise,
           and the one you will design in the team activity.
         </p>
+        <div data-na-app="topology"></div>
+
       </div>
       <div class="concept wide">
         <h3><span class="idx">9.5</span>Addresses and names: ISP, IP, NAT and DNS</h3>
@@ -386,6 +404,8 @@
           this walk for you and <strong>caches</strong> each answer for its TTL — so most lookups never
           reach the root at all. Step through it in the <a href="#lab">Packet Journey lab</a>.
         </p>
+        <div data-na-app="addressing"></div>
+
         <div class="code-card" style="max-width:46rem">
           <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">a real DNS lookup — dig example.com, captured 18 Oct 2026 (trimmed)</span></div>
           <pre><span class="cm">$ dig example.com A +noall +answer +comments +stats</span>
@@ -459,6 +479,19 @@ com.           172800  IN  NS  a.gtld-servers.net.   <span class="cm">; root →
           part that uses the hardware address — and "PHY" is just the usual abbreviation for the physical layer.
           Also, slide 1 says "Chapter 7"; it is a number borrowed from another book.
         </div>
+        <div data-na-app="layers"></div>
+        <h4 style="margin:1.4rem 0 0.3rem">TCP and UDP up close</h4>
+        <p style="max-width:46rem">
+          The transport layer offers two very different services. <strong>TCP</strong>
+          (<a href="https://www.rfc-editor.org/rfc/rfc9293" target="_blank" rel="noopener">RFC 9293</a>) first
+          <em>opens a connection</em> with a three-way handshake, numbers every byte, waits for acknowledgements,
+          re-sends what is lost and finally closes politely. <strong>UDP</strong>
+          (<a href="https://www.rfc-editor.org/rfc/rfc768" target="_blank" rel="noopener">RFC 768</a>) does none of
+          that: it just sends a self-contained <em>datagram</em> and forgets it. Try both on a bad network.
+        </p>
+        <div data-na-app="tcp"></div>
+        <div data-na-app="udp"></div>
+
       </div>
 
       <div class="concept wide">
@@ -491,6 +524,24 @@ com.           172800  IN  NS  a.gtld-servers.net.   <span class="cm">; root →
           <em>server</em>. HTTP — the <strong>HyperText Transfer Protocol</strong> — is text: the
           client sends a <em>request</em>, the server sends back a <em>response</em>.
         </p>
+        <div data-na-app="web"></div>
+        <h4 style="margin:1.4rem 0 0.3rem">HTTPS: the same conversation inside TLS</h4>
+        <p style="max-width:46rem">
+          Before a single HTTP line is sent, an HTTPS client and server run a <strong>TLS handshake</strong>
+          (<a href="https://www.rfc-editor.org/rfc/rfc8446" target="_blank" rel="noopener">RFC 8446</a>): the server
+          shows a <strong>certificate</strong> signed by a certificate authority the browser already trusts, and the two sides
+          agree on a secret key. Everything after that is encrypted. The browser refuses — and shows a warning — when the
+          certificate is expired, issued for another name, or signed by nobody it trusts.
+        </p>
+        <div data-na-app="tls"></div>
+        <h4 style="margin:1.4rem 0 0.3rem">HTTP forgets you: cookies</h4>
+        <p style="max-width:46rem">
+          HTTP is <strong>stateless</strong>: every request is a stranger. To keep you logged in, the server hands your browser a
+          small <strong>cookie</strong> (<a href="https://www.rfc-editor.org/rfc/rfc6265" target="_blank" rel="noopener">RFC 6265</a>)
+          that the browser sends back with every later request. Whoever holds the cookie <em>is</em> you as far as the server knows.
+        </p>
+        <div data-na-app="cookies"></div>
+
         <h4 style="margin:1rem 0 0.3rem">Anatomy of a URL <span class="supp-tag">Supplementary</span></h4>
         <div class="code-card" style="max-width:46rem">
           <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">one URL, five parts</span></div>
@@ -628,6 +679,8 @@ HTTP/1.1 <span class="kw">200 OK</span>                         <span class="cm"
           close cousin of the graph searches you may meet in later courses; in §2.8 of the
           textbook you will route a file through a small network by hand (Exercises 1 and 2).
         </p>
+        <div data-na-app="transfer"></div>
+
       </div>
 
       <div class="concept wide">
@@ -644,6 +697,8 @@ HTTP/1.1 <span class="kw">200 OK</span>                         <span class="cm"
           Tiny, battery-powered devices use short-range or low-power radio standards (BLE, Zigbee, RFID,
           LoRaWAN) instead of Wi-Fi, and run on small embedded boards.
         </p>
+        <div data-na-app="iot-pipeline"></div>
+        <div data-na-app="iot-connect"></div>
         <p style="max-width:46rem">
           The classic design sends every reading to the <strong>cloud</strong> for analysis. With
           millions of devices that costs <em>bandwidth</em> and <em>time</em>: a car cannot wait for a
@@ -663,6 +718,8 @@ HTTP/1.1 <span class="kw">200 OK</span>                         <span class="cm"
             <tr><td>big central models, easy to update</td><td>small models on weak hardware; harder to update</td></tr>
           </table>
         </div>
+        <div data-na-app="iot-edgechain"></div>
+        <div data-na-app="edge"></div>
         <p style="max-width:46rem">
           Examples from the course materials: a <strong>self-driving car</strong> analyses LIDAR and
           camera data on board (the textbook cites an Intel estimate of about 4 TB of raw sensor data per
@@ -676,6 +733,7 @@ HTTP/1.1 <span class="kw">200 OK</span>                         <span class="cm"
           the slides' demo, <a href="https://teachablemachine.withgoogle.com/" target="_blank" rel="noopener">Google Teachable Machine</a> —
           AI itself is the topic of <a href="chapter-11.html">Chapter 11</a>.
         </p>
+        <div data-na-app="iot-train"></div>
         <div class="note" style="max-width:46rem">
           <span class="note-tag">Did you know?</span>
           Almost everything you do over the Internet between continents travels under the sea:
@@ -683,6 +741,84 @@ HTTP/1.1 <span class="kw">200 OK</span>                         <span class="cm"
           <a href="https://en.wikipedia.org/wiki/Submarine_communications_cable" target="_blank" rel="noopener">Source: Wikipedia — Submarine communications cable</a>.
         </div>
       </div>
+
+      <div class="concept wide" id="attacks">
+        <h3><span class="idx">9.10</span>Attacks on the network: every attack abuses a protocol's trust</h3>
+        <p style="max-width:46rem">
+          The protocols of this chapter were designed to make computers <em>cooperate</em>, not to survive someone who lies.
+          Almost every network attack abuses one such <strong>trust</strong>: that a reply really comes from the machine it
+          names, that a handshake will be finished, that a message is not read on the way, that a name means what it looks like.
+          Each attack below is a <strong>simulation</strong> with the attacker on one side and the defences as switches you can
+          flip — nothing here touches a real network, and attacking systems you do not own is a crime (see
+          <a href="chapter-12.html">Chapter 12</a> for the wider security picture).
+        </p>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <tr><th>Attack</th><th>What it abuses</th><th>What the attacker gets</th><th>Typical defence</th></tr>
+            <tr><td><strong>Eavesdropping / man-in-the-middle</strong></td><td>plain-text HTTP; ARP believes any reply</td><td>reads or edits what passes by</td><td>HTTPS with certificate checks, VPN</td></tr>
+            <tr><td><strong>DNS spoofing</strong></td><td>a UDP answer nobody signed</td><td>victims sent to a fake address</td><td>random IDs and ports, DNSSEC, HTTPS</td></tr>
+            <tr><td><strong>Port scan</strong></td><td>every open port answers</td><td>a map of what runs where</td><td>firewall, closing unused services, IDS</td></tr>
+            <tr><td><strong>SYN flood</strong></td><td>TCP keeps state for half-open connections</td><td>a server that cannot accept real users</td><td>SYN cookies, rate limits</td></tr>
+            <tr><td><strong>UDP amplification / DDoS</strong></td><td>UDP source addresses can be faked; small questions get big answers</td><td>a victim drowned in traffic it never asked for</td><td>ingress filtering, rate limits, CDN scrubbing</td></tr>
+            <tr><td><strong>Lookalike URL (phishing)</strong></td><td>people read a URL left to right</td><td>passwords typed into a fake site</td><td>read the <em>host</em>, password manager</td></tr>
+          </table>
+        </div>
+
+        <h4 style="margin:1.2rem 0 0.3rem">Eavesdropping and man-in-the-middle</h4>
+        <p style="max-width:46rem">
+          On a shared LAN, <strong>ARP</strong> (<a href="https://www.rfc-editor.org/rfc/rfc826" target="_blank" rel="noopener">RFC 826</a>)
+          turns an IP address into a MAC address, and it believes any answer. An attacker on the same network can claim "the router's IP
+          is at <em>my</em> MAC": the victim's traffic now passes through the attacker, who reads it (plain HTTP) or even changes it.
+          HTTPS stops this: the attacker cannot present a valid certificate for the real site.
+        </p>
+        <div data-na-app="atk-mitm"></div>
+
+        <h4 style="margin:1.2rem 0 0.3rem">DNS spoofing</h4>
+        <p style="max-width:46rem">
+          A classic DNS query is one UDP packet out and one back, matched only by a 16-bit ID. If a forged answer reaches the
+          resolver first and matches the ID, the resolver caches the lie for the whole TTL and sends everyone to the attacker's address.
+          Random IDs and source ports make guessing hard; <strong>DNSSEC</strong>
+          (<a href="https://www.rfc-editor.org/rfc/rfc4033" target="_blank" rel="noopener">RFC 4033</a>) signs the answers so a forgery is rejected;
+          and HTTPS still protects you when the name was poisoned, because the fake server has no valid certificate.
+        </p>
+        <div data-na-app="atk-dns"></div>
+
+        <h4 style="margin:1.2rem 0 0.3rem">Port scanning</h4>
+        <p style="max-width:46rem">
+          Before attacking, an intruder asks every door whether it opens. A TCP port that answers the first handshake packet is
+          <strong>open</strong>, one that refuses is <strong>closed</strong>, and one that stays silent is probably <strong>filtered</strong>
+          by a firewall. A firewall hides services; an IDS notices that one machine knocked on hundreds of doors in a second.
+        </p>
+        <div data-na-app="atk-scan"></div>
+
+        <h4 style="margin:1.2rem 0 0.3rem">SYN flood</h4>
+        <p style="max-width:46rem">
+          A TCP server that receives a SYN must remember it while it waits for the third handshake packet. The attacker sends thousands of
+          SYNs from addresses that never answer, the waiting list fills, and real users are turned away
+          (<a href="https://www.rfc-editor.org/rfc/rfc4987" target="_blank" rel="noopener">RFC 4987</a> describes the attack and the cures).
+          <strong>SYN cookies</strong> remove the need to remember anything until the handshake completes.
+        </p>
+        <div data-na-app="atk-syn"></div>
+
+        <h4 style="margin:1.2rem 0 0.3rem">UDP amplification and DDoS</h4>
+        <p style="max-width:46rem">
+          UDP has no handshake, so the sender's address can be forged. The attacker sends a tiny question to many public servers with
+          the <em>victim's</em> address as the source; each server answers the victim with something far bigger. Many such sources at once make a
+          <strong>distributed</strong> denial of service (DDoS): the victim's link is full and real traffic cannot get through.
+          Providers stop forged sources with <em>ingress filtering</em> (<a href="https://www.rfc-editor.org/rfc/rfc2827" target="_blank" rel="noopener">RFC 2827</a>),
+          close open resolvers, and absorb floods in large content networks.
+        </p>
+        <div data-na-app="atk-ddos"></div>
+
+        <h4 style="margin:1.2rem 0 0.3rem">Lookalike URLs</h4>
+        <p style="max-width:46rem">
+          The padlock only says the connection is encrypted <em>to that host</em> — not that the host is honest. A phishing page lives on a
+          host whose name merely <em>looks</em> right. Use what you learned in 9.7: the host is the part between <span class="mono">://</span> and the
+          next <span class="mono">/</span>, after any <span class="mono">name@</span>, read from the right.
+        </p>
+        <div data-na-app="atk-url"></div>
+      </div>
+
     </div>
   </section>
 
@@ -858,6 +994,15 @@ HTTP/1.1 <span class="kw">200 OK</span>                         <span class="cm"
 </footer>
 
 <script src="../assets/packet-journey.js"></script>
+<script src="../assets/net-apps-core.js"></script>
+<script src="../assets/net-apps-1.js"></script>
+<script src="../assets/net-apps-2.js"></script>
+<script src="../assets/net-apps-3.js"></script>
+<script src="../assets/net-apps-4.js"></script>
+<script src="../assets/net-apps-5.js"></script>
+<script src="../assets/net-apps-6.js"></script>
+<script src="../assets/net-apps-7.js"></script>
+<script src="../assets/net-apps-8.js"></script>
 <script src="../assets/ch9-data.js"></script>
 <script src="../assets/course.js"></script>
 <script src="../assets/app-fullscreen.js" data-root="#net-root" data-split="#net-root"></script>

@@ -1,0 +1,145 @@
+/* Chapter 9 concept apps 9.4–9.6 (topology, addressing, layers). Every rule is scoped to one app; theme tokens only. */
+.na-topology .na-tip, .na-addressing .na-tip, .na-layers .na-tip { margin: 0 0 0.6rem; font-size: 0.84rem; color: var(--ink-soft); }
+.na-topology .na-say-tall, .na-addressing .na-say-tall, .na-layers .na-say-tall { min-height: 5.6em; }
+.na-topology .na-stage, .na-addressing .na-stage { overflow-x: auto; }
+
+/* ---------- 9.4 topology ---------- */
+.na-topology .na-stage svg { min-width: 520px; }
+.na-topology .na-t-link { cursor: pointer; }
+.na-topology .na-t-link .hit { stroke: transparent; stroke-width: 18; stroke-linecap: round; }
+.na-topology .na-t-link .vis { stroke: color-mix(in srgb, var(--ink-soft) 80%, var(--paper)); stroke-width: 2.2; stroke-linecap: round; transition: stroke 0.2s; }
+.na-topology .na-t-link.trunk .vis { stroke-width: 3.6; }
+.na-topology .na-t-link.broken .vis { stroke: var(--red); stroke-dasharray: 5 4; }
+.na-topology .na-t-link:hover .vis { stroke: var(--teal); }
+.na-topology .na-t-link.broken:hover .vis { stroke: var(--red); }
+.na-topology .na-t-link .cut { fill: var(--red); font: 700 20px "Be Vietnam Pro", sans-serif; }
+.na-topology .na-t-link .arrow { fill: var(--ink-soft); stroke: var(--surface); stroke-width: 1; }
+.na-topology .na-t-link:focus-visible, .na-topology .na-t-node:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.na-topology .na-t-tap { fill: var(--ink-soft); }
+.na-topology .na-t-node { cursor: pointer; }
+.na-topology .na-t-node rect { fill: var(--surface); stroke: var(--ink-soft); stroke-width: 2; transition: fill 0.2s, stroke 0.2s; }
+.na-topology .na-t-node .lbl { font: 700 14px "Be Vietnam Pro", sans-serif; fill: var(--ink); pointer-events: none; }
+.na-topology .na-t-node .cap { font: 600 10.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); pointer-events: none; }
+.na-topology .na-t-node.ok rect { stroke: var(--green); fill: color-mix(in srgb, var(--green) 15%, var(--surface)); }
+.na-topology .na-t-node.me rect { stroke: var(--teal); stroke-width: 4; fill: color-mix(in srgb, var(--teal) 20%, var(--surface)); }
+.na-topology .na-t-node.cut rect { stroke: var(--red); stroke-dasharray: 5 3; fill: color-mix(in srgb, var(--red) 12%, var(--surface)); }
+.na-topology .na-t-node.cut .cap { fill: var(--red); }
+.na-topology .na-t-node.off rect { stroke-dasharray: 3 3; fill: var(--paper); }
+.na-topology .na-t-node.off .lbl { fill: var(--ink-soft); text-decoration: line-through; }
+.na-topology .na-t-node:hover rect { stroke-width: 3.4; }
+
+/* ---------- 9.5 addressing ---------- */
+.na-addressing .na-bits { margin: 0.4rem 0 0.2rem; }
+.na-addressing .na-second { margin-top: 0.75rem; }
+.na-addressing .na-octets { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; margin-top: 0.25rem; }
+.na-addressing .na-oct { flex: 1 1 11rem; min-width: 0; }
+.na-addressing .na-cells { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
+.na-addressing .na-bit { position: relative; font: 700 0.95rem "IBM Plex Mono", monospace; height: 2.1rem; padding: 0; text-align: center; line-height: 2.1rem; color: var(--ink);
+  border: 1px solid var(--cmp-1); border-radius: 5px; background: color-mix(in srgb, var(--cmp-1) 16%, var(--surface)); }
+.na-addressing .na-bit.host { border-color: var(--cmp-3); background: color-mix(in srgb, var(--cmp-3) 18%, var(--surface)); border-style: dashed; }
+.na-addressing .na-bit.edge { box-shadow: -4px 0 0 -1px var(--ink); }
+.na-addressing button.na-bit { cursor: pointer; }
+.na-addressing button.na-bit:hover { filter: brightness(1.08); border-width: 2px; }
+.na-addressing .na-bit[aria-pressed="true"] { color: var(--ink); text-shadow: 0 0 0.5px currentColor; }
+.na-addressing .na-bit.diff { background: color-mix(in srgb, var(--red) 28%, var(--surface)); border-color: var(--red); color: var(--red); }
+.na-addressing .na-bit.first::after { content: '▲'; position: absolute; left: 0; right: 0; bottom: -0.95rem; line-height: 1; font-size: 0.7rem; color: var(--red); }
+.na-addressing .na-dec { text-align: center; font: 600 0.9rem "IBM Plex Mono", monospace; color: var(--ink-soft); margin-top: 0.15rem; }
+.na-addressing .na-second + .na-octets { margin-bottom: 0.9rem; }
+.na-addressing .na-iptable { margin-top: 0.4rem; }
+.na-addressing .na-iptable th { text-transform: none; font-size: 0.8rem; letter-spacing: 0; white-space: nowrap; width: 1%; padding-right: 1rem; }
+.na-addressing .na-iptable td { font-family: inherit; }
+.na-addressing .na-iptable td b { font-family: "IBM Plex Mono", monospace; }
+.na-addressing .na-sub { color: var(--ink-soft); font-size: 0.78rem; }
+.na-addressing .na-kind { display: inline-block; font: 600 0.72rem "IBM Plex Mono", monospace; padding: 0.05rem 0.45rem; border-radius: 99px; border: 1px solid var(--ink-soft); margin-right: 0.3rem; }
+.na-addressing .na-kind.k-private { border-color: var(--amber); color: var(--amber); }
+.na-addressing .na-kind.k-public { border-color: var(--green); color: var(--green); }
+.na-addressing .na-kind.k-documentation { border-color: var(--cmp-5); color: var(--cmp-5); }
+.na-addressing .na-table th[scope="row"] { text-align: left; }
+
+/* NAT */
+.na-addressing .na-n-zone { fill: color-mix(in srgb, var(--ink-soft) 6%, var(--paper)); stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.na-addressing .na-n-zt { font: 700 11px "Be Vietnam Pro", sans-serif; fill: var(--ink-soft); }
+.na-addressing .na-n-edge { stroke: color-mix(in srgb, var(--ink-soft) 55%, var(--paper)); stroke-width: 2; }
+.na-addressing .na-n-node rect { fill: color-mix(in srgb, var(--cmp-1) 11%, var(--surface)); stroke: var(--cmp-1); stroke-width: 2; }
+.na-addressing .na-n-node.router rect { fill: color-mix(in srgb, var(--cmp-3) 11%, var(--surface)); stroke: var(--cmp-3); }
+.na-addressing .na-n-node.srv rect { fill: color-mix(in srgb, var(--cmp-2) 11%, var(--surface)); stroke: var(--cmp-2); }
+.na-addressing .na-n-node.srv.bad rect { fill: color-mix(in srgb, var(--red) 9%, var(--surface)); stroke: var(--red); stroke-dasharray: 4 3; }
+.na-addressing .na-n-node.hot rect { stroke-width: 4.5; filter: drop-shadow(0 0 6px var(--cmp-3)); }
+.na-addressing .na-n-node .nm { font: 700 12.5px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-addressing .na-n-node .ip { font: 500 10.5px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-addressing .na-n-tok rect { fill: var(--surface); stroke: var(--cmp-1); stroke-width: 2.5; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); }
+.na-addressing .na-n-tok.pub rect { stroke: var(--cmp-3); }
+.na-addressing .na-n-tok text { font: 600 10.5px "IBM Plex Mono", monospace; fill: var(--ink); }
+.na-addressing .na-n-x { fill: var(--red); font: 800 18px "Be Vietnam Pro", sans-serif; paint-order: stroke; stroke: var(--paper); stroke-width: 4px; }
+.na-addressing .na-nat-table { min-height: 4rem; }
+
+/* DNS */
+.na-addressing .na-d-edge { stroke: color-mix(in srgb, var(--ink-soft) 55%, var(--paper)); stroke-width: 2; stroke-dasharray: 5 4; }
+.na-addressing .na-d-node rect { fill: color-mix(in srgb, var(--c) 11%, var(--surface)); stroke: var(--c); stroke-width: 2; transition: stroke-width 0.15s; }
+.na-addressing .na-d-node.on rect { stroke-width: 4.5; fill: color-mix(in srgb, var(--c) 26%, var(--surface)); filter: drop-shadow(0 0 5px var(--c)); }
+.na-addressing .na-d-node .nm { font: 700 12.5px "Be Vietnam Pro", sans-serif; fill: var(--ink); }
+.na-addressing .na-d-node .ip { font: 500 10px "IBM Plex Mono", monospace; fill: var(--ink-soft); }
+.na-addressing .na-d-tok circle { fill: var(--c); stroke: var(--surface); stroke-width: 2; }
+.na-addressing .na-d-tok text { font: 700 12px "IBM Plex Mono", monospace; fill: var(--paper); }
+.na-addressing .na-d-bub { font: 600 10.5px "IBM Plex Mono", monospace; fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+.na-addressing .na-d-log { list-style: none; margin: 0.55rem 0 0; padding: 0; font-size: 0.8rem; color: var(--ink-soft); min-height: 4.5rem; }
+.na-addressing .na-d-log li { padding: 0.15rem 0; display: flex; gap: 0.4rem; align-items: baseline; }
+.na-addressing .na-d-log li.local { font-style: italic; color: var(--amber); }
+.na-addressing .na-d-log .n { flex: 0 0 auto; display: inline-grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--teal); color: var(--paper); font: 700 0.7rem "IBM Plex Mono", monospace; }
+.na-addressing .na-d-log b { color: var(--ink); font-weight: 600; }
+.na-addressing .na-d-cache { min-height: 5rem; overflow-x: auto; }
+.na-addressing .na-d-clock { font: 500 0.8rem "IBM Plex Mono", monospace; color: var(--ink-soft); margin: 0.5rem 0; }
+.na-addressing .na-d-ttl { display: block; position: relative; white-space: nowrap; padding-bottom: 5px; }
+.na-addressing .na-d-ttl i { position: absolute; left: 0; bottom: 0; height: 3px; border-radius: 2px; background: var(--teal); }
+
+/* ---------- 9.6 layers ---------- */
+.na-layers { --L-app: var(--cmp-6); --L-tr: var(--cmp-5); --L-ip: var(--cmp-3); --L-eth: var(--cmp-8); }
+.na-layers .na-lay-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.8rem; }
+@media (max-width: 760px) { .na-layers .na-lay-grid { grid-template-columns: minmax(0, 1fr); } }
+.na-layers .na-lay-col { display: flex; flex-direction: column; gap: 0.4rem; }
+.na-layers .na-lay-ch { font: 700 0.76rem "IBM Plex Mono", monospace; letter-spacing: 0.04em; color: var(--ink-soft); text-transform: uppercase; }
+.na-layers .na-lay-row { display: grid; grid-template-columns: 8.2rem minmax(0, 1fr); grid-template-areas: "name bar" "job bar" "verdict verdict"; gap: 0.1rem 0.6rem; align-items: center; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-left: 5px solid var(--c); border-radius: 9px;
+  background: var(--surface); --c: var(--ink-soft); transition: background 0.25s, box-shadow 0.25s; min-height: 4.1rem; }
+.na-layers .L-app { --c: var(--L-app); } .na-layers .L-tr { --c: var(--L-tr); } .na-layers .L-ip { --c: var(--L-ip); } .na-layers .L-eth { --c: var(--L-eth); }
+.na-layers .na-lay-row:not(.done) { opacity: 0.62; border-left-style: dashed; }
+.na-layers .na-lay-row.done { background: color-mix(in srgb, var(--c) 8%, var(--surface)); }
+.na-layers .na-lay-row.active { box-shadow: 0 0 0 2px var(--c), 0 0 12px color-mix(in srgb, var(--c) 55%, transparent); opacity: 1; }
+.na-layers .na-lay-row.failed { border-color: var(--red); border-left-color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--surface)); box-shadow: 0 0 0 2px var(--red); }
+.na-layers .na-lay-name { grid-area: name; font-size: 0.86rem; line-height: 1.25; }
+.na-layers .na-lay-name .osi { display: block; font: 500 0.66rem "IBM Plex Mono", monospace; color: var(--ink-soft); margin-top: 0.15rem; }
+.na-layers .na-lay-job { grid-area: job; font-size: 0.74rem; color: var(--ink-soft); line-height: 1.3; }
+.na-layers .na-lay-bar { grid-area: bar; display: flex; flex-wrap: wrap; gap: 3px; align-items: stretch; min-width: 0; }
+.na-layers .na-lay-bar.ghost { color: var(--ink-soft); font-size: 0.78rem; font-style: italic; align-items: center; }
+.na-layers .na-lay-verdict { grid-area: verdict; font-size: 0.76rem; margin-top: 0.25rem; }
+.na-layers .na-lay-verdict.ok { color: var(--green); } .na-layers .na-lay-verdict.bad { color: var(--red); font-weight: 600; }
+.na-layers .na-seg2 { --c: var(--ink-soft); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.2rem 0.4rem; min-width: 2.6rem; font: inherit; cursor: pointer; color: var(--ink);
+  border: 2px solid var(--c); border-radius: 6px; background: color-mix(in srgb, var(--c) 18%, var(--surface)); }
+.na-layers .na-seg2.c-app { --c: var(--L-app); } .na-layers .na-seg2.c-tr { --c: var(--L-tr); } .na-layers .na-seg2.c-ip { --c: var(--L-ip); } .na-layers .na-seg2.c-eth { --c: var(--L-eth); }
+.na-layers .na-seg2.trailer { border-style: dashed; }
+.na-layers .na-seg2:hover { filter: brightness(1.1); }
+.na-layers .na-seg2 .sl { font: 700 0.72rem "IBM Plex Mono", monospace; line-height: 1.2; }
+.na-layers .na-seg2 .sz { font: 500 0.64rem "IBM Plex Mono", monospace; color: var(--ink-soft); }
+.na-layers .na-seg2.flipped { outline: 2px dashed var(--red); outline-offset: 1px; }
+.na-layers .na-lay-wire { margin-top: 0.7rem; min-height: 0; }
+.na-layers .na-hexdump { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 0.25rem; }
+.na-layers .hx { font: 500 0.74rem "IBM Plex Mono", monospace; padding: 0.05rem 0.2rem; border-radius: 3px; --c: var(--ink-soft); background: color-mix(in srgb, var(--c) 20%, var(--surface)); border-bottom: 2px solid var(--c); color: var(--ink); }
+.na-layers .hx.c-app { --c: var(--L-app); } .na-layers .hx.c-tr { --c: var(--L-tr); } .na-layers .hx.c-ip { --c: var(--L-ip); } .na-layers .hx.c-eth { --c: var(--L-eth); }
+.na-layers .hx.flipped { background: var(--red); border-color: var(--red); color: var(--paper); font-weight: 700; }
+.na-layers .na-lay-fields { margin-top: 0.7rem; min-height: 2.2rem; }
+.na-layers .na-lay-fields table.na-table th { text-transform: none; font-size: 0.8rem; letter-spacing: 0; white-space: nowrap; width: 1%; padding-right: 1rem; }
+.na-layers .na-lay-fields table.na-table td { font-family: inherit; }
+@media (max-width: 520px) { .na-layers .na-lay-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "job" "bar" "verdict"; } }
+.na-topology .na-t-node .cap { paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round; }
+
+.na-addressing .na-cols-even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: 0.8rem; }
+@media (max-width: 820px) { .na-addressing .na-cols-even { grid-template-columns: minmax(0, 1fr); } }
+.na-addressing .na-d-log li .t { min-width: 0; }
+.na-addressing .na-table th { white-space: nowrap; }
+.na-addressing .na-stage svg { min-width: 520px; }
+@media (max-width: 560px) {
+  .na-addressing .na-iptable th, .na-addressing .na-iptable td { display: block; width: auto; white-space: normal; padding: 0.1rem 0.5rem; }
+  .na-addressing .na-iptable th { padding-top: 0.45rem; }
+  .na-addressing .na-iptable td { border-bottom: 1px solid var(--line); padding-bottom: 0.4rem; }
+}
+.na-addressing .na-swipe { display: none; margin: 0 0 0.3rem; font-size: 0.76rem; color: var(--ink-soft); }
+@media (max-width: 560px) { .na-addressing .na-swipe { display: block; } }
