@@ -93,6 +93,8 @@ def strip_wrapper(html: str) -> str:
     return html
 
 def drop_local_only(html: str) -> str:
+    # whole sections first (e.g. the home page's slide library), then single links
+    html = re.sub(r'\s*<section class="[^"]*local-only[^"]*"[^>]*>.*?</section>', '', html, flags=re.DOTALL)
     return re.sub(r'\s*<a class="[^"]*local-only[^"]*"[^>]*>.*?</a>', '', html, flags=re.DOTALL)
 
 def rewrite_links(html: str, page: str, mapping: dict) -> str:

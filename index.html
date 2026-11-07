@@ -472,6 +472,49 @@
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.74rem; color: var(--ink-soft);
   }
+  .slides-jump { display: inline-block; margin-top: 0.7rem; font-weight: 600; font-size: 0.92rem; color: var(--accent); }
+  /* ── All slides ───────────────────────────────── */
+  .slide-list { display: grid; gap: 0.5rem; }
+  .slide-row {
+    display: grid; grid-template-columns: 3.4rem minmax(0, 1fr) 13rem 11rem;
+    gap: 0.9rem; align-items: center;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 3px solid var(--row-c, var(--accent));
+    border-radius: 10px; padding: 0.7rem 1rem;
+  }
+  .slide-row.ph2 { --row-c: var(--teal); }
+  .slide-ch {
+    font-size: 0.8rem; font-weight: 600; text-decoration: none;
+    color: var(--row-c, var(--accent)); white-space: nowrap;
+  }
+  .slide-title { font-size: 0.95rem; font-weight: 500; color: var(--ink); text-decoration: none; }
+  .slide-title:hover { color: var(--row-c, var(--accent)); text-decoration: underline; }
+  .slide-link {
+    display: flex; flex-direction: column; gap: 0.05rem;
+    padding: 0.4rem 0.7rem; border-radius: 8px; text-decoration: none;
+    border: 1px solid var(--line); background: var(--paper);
+  }
+  a.slide-link:hover { border-color: var(--row-c, var(--accent)); }
+  .slide-link .kind { font-size: 0.84rem; font-weight: 600; color: var(--ink); }
+  .slide-link.tb {
+    border-color: color-mix(in srgb, var(--row-c, var(--accent)) 40%, var(--line));
+    background: color-mix(in srgb, var(--row-c, var(--accent)) 8%, var(--surface));
+  }
+  .slide-link.tb .kind { color: var(--row-c, var(--accent)); }
+  .slide-link.none { border-style: dashed; background: transparent; }
+  .slide-link.none .kind { color: var(--ink-soft); }
+  .slide-link .info { font-size: 0.7rem; color: var(--ink-soft); font-family: "IBM Plex Mono", monospace; }
+  @media (max-width: 820px) {
+    .slide-row { grid-template-columns: 3rem minmax(0, 1fr) minmax(0, 1fr); }
+    .slide-title { grid-column: 2 / -1; }
+    .slide-link.tb, .slide-link.none { grid-column: 2; }
+  }
+  @media (max-width: 520px) {
+    .slide-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.5rem 0.6rem; }
+    .slide-ch { grid-column: 1 / -1; }
+    .slide-title { grid-column: 1 / -1; }
+    .slide-link.tb, .slide-link.none { grid-column: 1; }
+  }
 </style>
 
 </head>
@@ -786,6 +829,7 @@
         <span class="eyebrow" data-i18n="materials-eyebrow">05 · Learning materials</span>
         <h2 data-i18n="materials-title">Study each chapter, then practise it</h2>
         <p data-i18n="materials-description">Every chapter page teaches the concepts from the lecture slides, then tests you with a 25+ question quiz and programming exercises that run directly in your browser.</p>
+        <a class="slides-jump local-only" href="#slides" data-i18n="slides-jump">All slide decks, including the textbook slides →</a>
       </div>
       <div class="materials-grid">
         <a class="mat-card" href="chapters/chapter-1.html">
@@ -987,6 +1031,96 @@
           <span class="mat-meta mono" data-i18n="mat-s10-meta">supplementary topic · Loop vs. Recursion Race · 8 MCQs</span>
         </a>
       </div>
+    </div>
+  </section>
+  <section class="block local-only" id="slides">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="slides-eyebrow">06 · All slides</span>
+        <h2 data-i18n="slides-title">Every slide deck, chapter by chapter</h2>
+        <p data-i18n="slides-description">Each chapter has two decks: the <b>textbook slides</b>, written in 2026 together with the course textbook, and the original <b>lecture slides</b> used in class. Slide numbers quoted on the chapter pages refer to the lecture slides. All decks open as PDF in a new tab.</p>
+      </div>
+      <div class="slide-list">
+        <div class="slide-row">
+          <a class="slide-ch mono" href="chapters/chapter-1.html">Ch 1</a>
+          <a class="slide-title" href="chapters/chapter-1.html" data-i18n="mat-ch1-title">Introduction to Algorithms and Flowcharts</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/Ch01_Algorithms_and_Flowcharts.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">27 slides · EN · 0.4 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap01_Introduction%20to%20Algorithms%20and%20Flowcharts.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">24 slides · 0.5 MB</span></a>
+        </div>
+        <div class="slide-row">
+          <a class="slide-ch mono" href="chapters/chapter-2.html">Ch 2</a>
+          <a class="slide-title" href="chapters/chapter-2.html" data-i18n="mat-ch2-title">Basic Elements in C++</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/Ch02_Basic_Elements_in_Cpp.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">52 slides · EN · 0.7 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap02_Basic%20Element%20in%20C%2B%2B.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">53 slides · 0.8 MB</span></a>
+        </div>
+        <div class="slide-row">
+          <a class="slide-ch mono" href="chapters/chapter-3.html">Ch 3</a>
+          <a class="slide-title" href="chapters/chapter-3.html" data-i18n="mat-ch3-title">Selection Structure</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/Ch03_Selection_Structures.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">29 slides · EN · 0.3 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap03_Selection.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">33 slides · 0.5 MB</span></a>
+        </div>
+        <div class="slide-row">
+          <a class="slide-ch mono" href="chapters/chapter-4.html">Ch 4</a>
+          <a class="slide-title" href="chapters/chapter-4.html" data-i18n="mat-ch4-title">Repetition Structures</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/Ch04_Repetition.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">15 slides · EN · 0.7 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap04_Repetition.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">30 slides · 0.7 MB</span></a>
+        </div>
+        <div class="slide-row">
+          <a class="slide-ch mono" href="chapters/chapter-5.html">Ch 5</a>
+          <a class="slide-title" href="chapters/chapter-5.html" data-i18n="mat-ch5-title">Arrays and Strings</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/Ch05_Arrays_and_Strings.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">25 slides · EN · 0.4 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap05_ArraysAndStrings.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">31 slides · 0.5 MB</span></a>
+        </div>
+        <div class="slide-row">
+          <a class="slide-ch mono" href="chapters/chapter-6.html">Ch 6</a>
+          <a class="slide-title" href="chapters/chapter-6.html" data-i18n="mat-ch6-title">Functions</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/Ch06_Functions.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">42 slides · EN · 0.5 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/C%2B%2B%20PDF%20Slides/Chap06_Functions.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">41 slides · 1.2 MB</span></a>
+        </div>
+        <div class="slide-row ph2">
+          <a class="slide-ch mono" href="chapters/chapter-7.html">Ch 7</a>
+          <a class="slide-title" href="chapters/chapter-7.html" data-i18n="mat-ch7-title">Von Neumann Architecture</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/P2-01_Von_Neumann_Architecture_VI.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">74 slides · VI · 7.7 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/Part%202%20PDF%20Slides/1%20-%20JVN.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">35 slides · 2.5 MB</span></a>
+        </div>
+        <div class="slide-row ph2">
+          <a class="slide-ch mono" href="chapters/chapter-8.html">Ch 8</a>
+          <a class="slide-title" href="chapters/chapter-8.html" data-i18n="mat-ch8-title">Assembly &amp; Compilers</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/P2-01_Von_Neumann_Architecture_VI.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">74 slides · VI · 7.7 MB</span><span class="info mono" data-i18n="slides-same-7">same deck as Ch 7</span></a>
+          <a class="slide-link" href="Lecture%20Slides/Part%202%20PDF%20Slides/1%20-%20JVN.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">35 slides · 2.5 MB</span></a>
+        </div>
+        <div class="slide-row ph2">
+          <a class="slide-ch mono" href="chapters/chapter-9.html">Ch 9</a>
+          <a class="slide-title" href="chapters/chapter-9.html" data-i18n="mat-ch9-title">Computer Networks</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/P2-02_Computer_Networks.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">50 slides · EN · 13.6 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/Part%202%20PDF%20Slides/2%20-%20Internet%20Network.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">43 slides · 5.3 MB</span></a>
+        </div>
+        <div class="slide-row ph2">
+          <a class="slide-ch mono" href="chapters/chapter-10.html">Ch 10</a>
+          <a class="slide-title" href="chapters/chapter-10.html" data-i18n="mat-ch10-title">Databases</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/P2-03_Databases.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">44 slides · EN · 2.6 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/Part%202%20PDF%20Slides/3%20-%20Database.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">26 slides · 1.7 MB</span></a>
+        </div>
+        <div class="slide-row ph2">
+          <a class="slide-ch mono" href="chapters/chapter-11.html">Ch 11</a>
+          <a class="slide-title" href="chapters/chapter-11.html" data-i18n="mat-ch11-title">Artificial Intelligence</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/P2-04_Artificial_Intelligence.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">25 slides · EN · 1.6 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/Part%202%20PDF%20Slides/4%20-%20AI.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">25 slides · 4.2 MB</span></a>
+        </div>
+        <div class="slide-row ph2">
+          <a class="slide-ch mono" href="chapters/chapter-12.html">Ch 12</a>
+          <a class="slide-title" href="chapters/chapter-12.html" data-i18n="mat-ch12-title">LLMs &amp; Security</a>
+          <span class="slide-link none"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono" data-i18n="slides-none">not released yet</span></span>
+          <a class="slide-link" href="Lecture%20Slides/Part%202%20PDF%20Slides/5%20-%20Privacy%2C%20Ethics%2C%20LLM.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">17 slides · 1.2 MB</span></a>
+        </div>
+        <div class="slide-row ph2">
+          <a class="slide-ch mono" href="chapters/chapter-13.html">Ch 13</a>
+          <a class="slide-title" href="chapters/chapter-13.html" data-i18n="mat-ch13-title">Citation &amp; Responsible AI</a>
+          <a class="slide-link tb" href="Lecture%20Slides/Textbook%20slides/P2-06_Citation_Responsible_Use_VI.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-tb">Textbook slides</span><span class="info mono">44 slides · VI · 0.8 MB</span></a>
+          <a class="slide-link" href="Lecture%20Slides/Part%202%20PDF%20Slides/6%20-%20Citations%2C%20Referencing.pdf" target="_blank" rel="noopener"><span class="kind" data-i18n="slides-lec">Lecture slides</span><span class="info mono">44 slides · 0.4 MB</span></a>
+        </div>
+      </div>
+      <p class="sched-note" data-i18n="slides-note">Chapters 7 and 8 share one textbook deck (Von Neumann architecture, in Vietnamese). The Chapter 13 deck is also in Vietnamese. The textbook deck for Chapter 12 (LLMs &amp; Security) has not been released yet; it will be added here when it is.</p>
     </div>
   </section>
 </main>
@@ -1192,6 +1326,15 @@
       "mat-tb-title": "Giáo trình đầy đủ",
       "mat-tb-desc": "Giáo trình biên soạn đầy đủ cho môn học (tiếng Việt, PDF) — tải về hoặc xem trực tiếp trong trình duyệt.",
       "mat-tb-meta": "Giáo trình đầy đủ · PDF · ~21 MB",
+      "slides-eyebrow": "06 · Toàn bộ slide",
+      "slides-title": "Tất cả slide, theo từng chương",
+      "slides-description": "Mỗi chương có hai bộ slide: <b>slide giáo trình</b>, biên soạn năm 2026 cùng với giáo trình môn học, và <b>slide bài giảng</b> gốc dùng trên lớp. Số slide được trích trên các trang chương là số của slide bài giảng. Mọi bộ slide mở dạng PDF trong tab mới.",
+      "slides-jump": "Toàn bộ slide, gồm cả slide giáo trình →",
+      "slides-tb": "Slide giáo trình",
+      "slides-lec": "Slide bài giảng",
+      "slides-none": "chưa phát hành",
+      "slides-same-7": "dùng chung với Ch 7",
+      "slides-note": "Chương 7 và 8 dùng chung một bộ slide giáo trình (Kiến trúc Von Neumann, tiếng Việt). Bộ slide chương 13 cũng bằng tiếng Việt. Slide giáo trình chương 12 (LLM &amp; Bảo mật) chưa phát hành; khi có sẽ được bổ sung tại đây.",
       "mat-s1-title": "Từ mã nguồn đến chương trình chạy",
       "mat-s1-desc": "Chương trình C++ được biên dịch và chạy từng bước ra sao — preprocessor, compiler, assembler, linker — và interpreter của Playground đi một con đường hoàn toàn khác như thế nào.",
       "mat-s1-meta": "chủ đề bổ trợ · 8 câu hỏi",
