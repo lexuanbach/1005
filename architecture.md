@@ -111,6 +111,13 @@ Mỗi chương có section `#teamwork` (thảo luận nhóm 3–4 người + thu
 - **Sidebar trái** (`aside.side`, static HTML trong từng trang để build.py rewrite được link): danh sách chương 1–6 (4–6 đánh dấu "soon"), playground, và anchor "On this page". Hiện từ ≥1080px; dưới đó dùng topnav.
 - **Fold section**: `course.js#initFolds()` biến mỗi `section.block` (trang có `#quiz-root`) thành phần thu gọn — mặc định đóng, click `.sec-head` mở, hash `#quiz`… tự mở section tương ứng; `.pagenav` luôn hiển thị ngoài fold.
 
+### Slide mode (`assets/slide-mode.js` + `assets/slide-mode.css`)
+Mọi trang chương có nút **▶ Slides** trên topbar và chip **▶ Present as slides** ở hero: trình chiếu bài giảng thành deck toàn màn hình. Không có nội dung riêng cho slide — deck được dựng **tự động từ chính trang**: slide bìa (eyebrow + h1 + lede của hero), slide Outline (bấm để nhảy), rồi các section `#concepts`, `#studio`/`#lab`, `#teamwork` (mỗi `h3` trong `.concept` bắt đầu một nhóm slide mới, khối không nằm trong `.concept` gom dưới tiêu đề `h2` của section), cuối cùng slide "Keep going" dẫn về quiz/exercises/reading.
+- **Di chuyển chứ không sao chép**: các phần tử thật được chuyển vào slide (để lại comment placeholder) và trả về chỗ cũ khi thoát → mini app, ▶ Run, tooltip giải thích code vẫn chạy. Phần tử app chèn thêm khi đang ở slide (vd. cửa sổ code của ▶ Run) đi theo phần tử đứng trước nó khi trả về.
+- **Xếp slide theo kích thước màn hình**: thêm từng khối tới khi tràn → sang slide mới; khối đứng trước kết thúc bằng dấu ":" hoặc là heading được kéo theo; khối quá cao thì tách (`.media-row`, div bọc không class) hoặc cho slide đó cuộn ("↓ more"). Xếp lại khi resize, đổi cỡ chữ (A−/A+, lưu `co1005-slide-zoom`) và khi ảnh tải xong. Cỡ chữ gốc `html` theo kích thước màn hình khi bật (mọi thứ dùng rem nên phóng to đồng đều — hợp máy chiếu).
+- **Phím**: → / ← chuyển slide; Space / PageDown / ↓ (phím của bút trình chiếu) cuộn hết slide cao trước rồi mới sang slide; Home/End; O overview; F toàn màn hình; +/− cỡ chữ; Esc về trang (trang cuộn tới đúng concept đang trình chiếu). Vuốt ngang trên điện thoại. Deep link `#slides-N`.
+- Load **sau** `course.js` (cần fold và `.topbar-tools`). z-index deck 900: dưới tooltip (3000) và cửa sổ fullscreen của editor; khi app bật fullscreen riêng (`html.fs-on`) deck nhường phím và ẩn thanh điều khiển.
+
 ### Quy tắc chất lượng quiz
 Distractor phải dài **bằng hoặc hơn** đáp án đúng (tránh lộ "đáp án dài nhất"). Script kiểm: `audit-quiz.js` trong scratchpad — chạy sau mỗi lần sửa dữ liệu quiz, yêu cầu 0 flagged.
 
